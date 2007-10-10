@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+    <description>
+        Spring configuration for the uniprot service.
+    </description>
+
+    <bean id="yasp" class="uk.ac.ebi.intact.uniprot.service.YaspService"/>
+    <bean id="remote" class="uk.ac.ebi.intact.uniprot.service.UniprotRemoteService"/>
+    <bean id="dummy" class="uk.ac.ebi.intact.uniprot.service.DummyUniprotService"/>
+
+    <bean id="UniprotBridgeAdapter" class="remote"/>
+
+    <bean id="proteinLoaderBean" class="uk.ac.ebi.intact.util.protein.ProteinServiceImpl">
+        <constructor-arg>
+            <ref bean="${UniprotBridgeAdapter.class}"/>
+        </constructor-arg>
+    </bean>
+
+</beans>
