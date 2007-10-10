@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+    <description>
+        Defines what type of TaxonomyBridgeAdapter will be used by default when a BioSourceLoaderService is
+        instanciated.
+    </description>
+
+    <bean id="newt" class="uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService"/>
+    <bean id="ols" class="uk.ac.ebi.intact.bridges.taxonomy.OLSTaxonomyService"/>
+    <bean id="dummy" class="uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService"/>
+
+    <!--<bean id="TaxonomyBridgeAdapter" class="newt" />-->
+
+    <bean id="biosourceLoaderBean" class="uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl">
+        <constructor-arg>
+            <ref bean="dummy"/>
+        </constructor-arg>
+    </bean>
+</beans>

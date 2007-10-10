@@ -1,0 +1,24 @@
+<document>
+    <properties>
+        <title>Changes in intact-biosource-update</title>
+        <author email="skerrien@ebi.ac.uk">Samuel Kerrien</author>
+    </properties>
+    <body>
+
+        <!-- Usage documentation: http://maven.apache.org/plugins/maven-changes-plugin/usage.html -->
+
+        <release version="1.1-SNAPSHOT" date="2007-02-21" description="">
+            <action dev="skerrien" type="update">
+                When calling the BioSourceServiceFactory without param, Spring bean injection sets a default TaxonomyService.
+             </action>
+        </release>
+
+        <release version="1.0" date="2007-02-20" description="First release">
+            <!-- No action taken yet -->
+            <action dev="skerrien" type="add">
+                Created a BioSourceService that allows to create BioSources based on taxid.
+            </action>
+        </release>
+
+    </body>
+</document>
