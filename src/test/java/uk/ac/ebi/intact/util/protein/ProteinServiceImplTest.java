@@ -1,12 +1,18 @@
 package uk.ac.ebi.intact.util.protein;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.After;
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.config.CvPrimer;
+import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
 import uk.ac.ebi.intact.context.CvContext;
+import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.persister.PersisterHelper;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.*;
@@ -19,10 +25,8 @@ import uk.ac.ebi.intact.util.protein.mock.FlexibleMockUniprotService;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 import uk.ac.ebi.intact.util.protein.mock.UniprotProteinXrefBuilder;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 import uk.ac.ebi.intact.util.protein.utils.ProteinToDeleteManager;
-import uk.ac.ebi.intact.core.unit.IntactUnit;
-import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.*;
 
@@ -33,26 +37,52 @@ import java.util.*;
  * @version $Id$
  * @since TODO artifact version
  */
-public class ProteinServiceImplTest extends TestCase {
+public class ProteinServiceImplTest extends IntactBasicTestCase {
 
-    public ProteinServiceImplTest( String name ) {
-        super( name );
+    @Before
+    public void before() throws Exception {
+        SchemaUtils.resetSchema();
+
+        beginTransaction();
+        CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
+        cvPrimer.createCVs();
+        commitTransaction();
+
     }
 
-    public void setUp() throws Exception {
-        super.setUp();
-//        new IntactUnit().createSchema();
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-    }
-
-    public void tearDown() throws Exception {
-        super.tearDown();
-
+    @After
+    public void after() throws Exception {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+        IntactContext.getCurrentInstance().close();
     }
 
-    public static Test suite() {
-        return new TestSuite( ProteinServiceImplTest.class );
+    private class ComprehensiveCvPrimer extends SmallCvPrimer {
+
+        public ComprehensiveCvPrimer(DaoFactory daoFactory) {
+            super(daoFactory);
+        }
+
+        @Override
+        public void createCVs() {
+            super.createCVs();
+
+            getCvObject(CvInteractorType.class, CvInteractorType.PROTEIN, CvInteractorType.PROTEIN_MI_REF);
+            getCvObject(CvInteractorType.class, CvInteractorType.DNA, CvInteractorType.DNA_MI_REF);
+            getCvObject(CvDatabase.class, CvDatabase.UNIPROT, CvDatabase.UNIPROT_MI_REF);
+            getCvObject(CvDatabase.class, CvDatabase.INTERPRO, CvDatabase.INTERPRO_MI_REF);
+            getCvObject(CvXrefQualifier.class, CvXrefQualifier.SECONDARY_AC, CvXrefQualifier.SECONDARY_AC_MI_REF);
+            getCvObject(CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT, CvXrefQualifier.ISOFORM_PARENT_MI_REF);
+            getCvObject(CvAliasType.class, CvAliasType.GENE_NAME, CvAliasType.GENE_NAME_MI_REF);
+            getCvObject(CvAliasType.class, CvAliasType.GENE_NAME_SYNONYM, CvAliasType.GENE_NAME_SYNONYM_MI_REF);
+            getCvObject(CvAliasType.class, CvAliasType.ISOFORM_SYNONYM, CvAliasType.ISOFORM_SYNONYM_MI_REF);
+            getCvObject(CvAliasType.class, CvAliasType.LOCUS_NAME, CvAliasType.LOCUS_NAME_MI_REF);
+            getCvObject(CvAliasType.class, CvAliasType.ORF_NAME, CvAliasType.ORF_NAME_MI_REF);
+            getCvObject(CvInteractionType.class, CvInteractionType.DIRECT_INTERACTION, CvInteractionType.DIRECT_INTERACTION_MI_REF);
+            getCvObject(CvExperimentalRole.class, CvExperimentalRole.ANCILLARY, CvExperimentalRole.ANCILLARY_MI_REF);
+            getCvObject(CvBiologicalRole.class, CvBiologicalRole.COFACTOR, CvBiologicalRole.COFACTOR_MI_REF);
+            
+            getCvObject(CvTopic.class, CvTopic.ISOFORM_COMMENT);
+        }
     }
 
     //////////////////////
@@ -116,6 +146,7 @@ public class ProteinServiceImplTest extends TestCase {
     ////////////////////
     // Tests
 
+    @Test
     public void testRetrieve_CDC42_CANFA() throws Exception {
 
 
@@ -291,7 +322,7 @@ public class ProteinServiceImplTest extends TestCase {
         return proteinToReturn;
     }
 
-
+    @Test
     public void testRetrieve_spliceVariant() throws Exception {
         // clear database content.
         clearProteinsFromDatabase();
@@ -349,6 +380,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testRetrieve_update_CDC42_CANFA() throws Exception {
         // clear database content.
         clearProteinsFromDatabase();
@@ -428,6 +460,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testRetrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
 
         // clear database content.
@@ -477,6 +510,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testRetrieve_intact1_uniprot0() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -553,6 +587,7 @@ public class ProteinServiceImplTest extends TestCase {
     /**
      * Test that the protein xref and the protein are udpated when : countPrimary == 0 && countSecondary == 1
      */
+    @Test
     public void testRetrieve_primaryCount0_secondaryCount1() throws Exception{
 
         // clear database content.
@@ -642,6 +677,7 @@ public class ProteinServiceImplTest extends TestCase {
     /**
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
+    @Test
     public void testRetrieve_uniprotAcReturningMoreThen1EntryWithDifferentSpecies() throws Exception{
 
         // clear database content.
@@ -693,6 +729,7 @@ public class ProteinServiceImplTest extends TestCase {
     /**
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
+    @Test
     public void testRetrieve_uniprotAcReturningMoreThen1EntryWithSameSpecies() throws Exception{
 
         // clear database content.
@@ -748,6 +785,7 @@ public class ProteinServiceImplTest extends TestCase {
 //        }
 //    }
 
+    @Test
     public void testRetrieve_primaryCount0_secondaryCount2() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -828,6 +866,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testRetrieve_primaryCount1_secondaryCount1() throws Exception{
 
         // clear database content.
@@ -933,6 +972,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testRetrieve_throwException() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -990,6 +1030,7 @@ public class ProteinServiceImplTest extends TestCase {
 //
 //    }
 
+    @Test
     public void testRetrieve_primaryCount2_secondaryCount1() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -1103,7 +1144,7 @@ public class ProteinServiceImplTest extends TestCase {
 
     }
 
-
+    @Test
     public void testRetrieve_spliceVariantWith2UniprotIdentity() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -1220,7 +1261,7 @@ public class ProteinServiceImplTest extends TestCase {
 
     }
 
-
+    @Test
     public void testRetrieve_spliceVariantFoundInIntactNotInUniprot() throws Exception{
 
         // clear database content.
@@ -1281,6 +1322,7 @@ public class ProteinServiceImplTest extends TestCase {
 
     }
 
+    @Test
     public void testRetrieve_1spliceVariantFoundInIntact2InUniprot() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
@@ -1357,7 +1399,7 @@ public class ProteinServiceImplTest extends TestCase {
 
     }
 
-
+    @Test
     public void testRetrieve_TrEMBL_to_SP() throws Exception {
         // checks that protein moving from TrEMBL to SP are detected and updated accordingly.
         // Essentially, that means having a new Primary AC and the current on in the databse becoming secondary.
@@ -1410,6 +1452,7 @@ public class ProteinServiceImplTest extends TestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
+    @Test
     public void testConstructor() throws Exception{
         try{
             ProteinService proteinService = new ProteinServiceImpl(null);
@@ -1419,6 +1462,7 @@ public class ProteinServiceImplTest extends TestCase {
         }
     }
 
+    @Test
     public void testSetBioSource() throws Exception{
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
 

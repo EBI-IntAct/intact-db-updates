@@ -791,6 +791,10 @@ public class ProteinServiceImpl implements ProteinService {
             CvObjectDao<CvTopic> cvDao = daoFactory.getCvObjectDao( CvTopic.class );
             CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
 
+            if (comment == null) {
+                throw new IllegalStateException("No CvTopic found with shortlabel: "+ CvTopic.ISOFORM_COMMENT);
+            }
+
             Annotation annotation = new Annotation( owner, comment );
             annotation.setAnnotationText( note );
             AnnotationUpdaterUtils.addNewAnnotation( spliceVariant, annotation );

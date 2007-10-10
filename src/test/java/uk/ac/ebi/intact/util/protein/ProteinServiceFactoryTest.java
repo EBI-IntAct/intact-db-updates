@@ -1,8 +1,8 @@
 package uk.ac.ebi.intact.util.protein;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.Test;
+import static org.junit.Assert.*;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.AbstractUniprotService;
 
@@ -16,27 +16,12 @@ import java.util.Map;
  * @version 1.0
  * @since <pre>02/09/2007</pre>
  */
-public class ProteinServiceFactoryTest extends TestCase {
-
-    public ProteinServiceFactoryTest( String name ) {
-        super( name );
-    }
-
-    public void setUp() throws Exception {
-        super.setUp();
-    }
-
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public static Test suite() {
-        return new TestSuite( ProteinServiceFactoryTest.class );
-    }
+public class ProteinServiceFactoryTest extends IntactBasicTestCase {
 
     ////////////////////
     // Tests
 
+    @Test
     public void testGetInstance() throws Exception {
         ProteinServiceFactory f1 = ProteinServiceFactory.getInstance();
         assertNotNull( f1 );
@@ -69,6 +54,7 @@ public class ProteinServiceFactoryTest extends TestCase {
         }
     }
 
+    @Test
     public void testBuildProteinService() {
         ProteinServiceFactory factory = ProteinServiceFactory.getInstance();
         assertNotNull( factory );
