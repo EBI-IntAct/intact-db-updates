@@ -13,6 +13,10 @@
 
     <name>IntAct Database Update :: Proteins Update</name>
 
+    <properties>
+        <spring.version>2.0.5</spring.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.intact.core</groupId>
@@ -28,11 +32,23 @@
             <version>${bridges.version}</version>
         </dependency>
 
+        <!-- Spring deps -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>2.0.5</version>
+            <version>${spring.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jca</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-support</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>commons-collections</groupId>
