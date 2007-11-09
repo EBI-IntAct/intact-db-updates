@@ -113,7 +113,7 @@ public class AliasUpdaterUtils {
         Collection<InteractorAlias> toDelete = CollectionUtils.subtract( currentAliases, newAliases ); // current minus new
         Collection<InteractorAlias> toCreate = CollectionUtils.subtract( newAliases, currentAliases );
 
-        Iterator toDeleteIterator = toDelete.iterator();
+        Iterator<InteractorAlias> toDeleteIterator = toDelete.iterator();
         for ( InteractorAlias alias : toCreate ) {
             if ( toDeleteIterator.hasNext() ) {
                 // in order to avoid wasting ACs, we overwrite attributes of an outdated xref.
@@ -134,7 +134,8 @@ public class AliasUpdaterUtils {
 
         for ( ; toDeleteIterator.hasNext(); ) {
             // delete remaining outdated/unrecycled aliases
-            Alias alias = ( Alias ) toDeleteIterator.next();
+            InteractorAlias alias = toDeleteIterator.next();
+            protein.removeAlias( alias );
             aliasDao.delete( alias );
 
             updated = true;

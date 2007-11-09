@@ -10,7 +10,7 @@ import uk.ac.ebi.intact.config.CvPrimer;
 import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
 import uk.ac.ebi.intact.context.CvContext;
 import uk.ac.ebi.intact.context.IntactContext;
-import uk.ac.ebi.intact.core.persister.PersisterHelper;
+import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.model.*;
@@ -52,7 +52,10 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @After
     public void after() throws Exception {
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+        final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+        if( dataContext.isTransactionActive() ) {
+            dataContext.commitTransaction();
+        }
         IntactContext.getCurrentInstance().close();
     }
 
@@ -101,15 +104,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         return service;
     }
 
-    private Protein searchByShortlabel( List<ProteinImpl> proteins, String shortlabel ) {
-        for ( ProteinImpl protein : proteins ) {
-            if ( protein.getShortLabel().equals( shortlabel ) ) {
-                return protein;
-            }
-        }
-        return null;
-    }
-
     private void clearProteinsFromDatabase() throws IntactTransactionException {
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -143,13 +137,40 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         }
     }
 
+    private Protein getProteinForPrimaryAc(Collection<Protein> proteins, String primaryAc) throws ProteinServiceException {
+        CvDatabase uniprot = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.UNIPROT_MI_REF);
+        CvXrefQualifier identity = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF);
+        Protein proteinToReturn = null;
+        for(Protein protein : proteins){
+            for(InteractorXref xref : protein.getXrefs()){
+                if(uniprot.equals(xref.getCvDatabase())
+                        && identity.equals(xref.getCvXrefQualifier())
+                        && primaryAc.equals(xref.getPrimaryId())){
+                    if(proteinToReturn == null){
+                        proteinToReturn = protein;
+                    }else{
+                        throw new ProteinServiceException("2 proteins with the same identity");
+                    }
+                }
+            }
+        }
+        return proteinToReturn;
+    }
+
+    private Protein getProteinByShortlabel( Protein[] proteins, String label ) {
+        for ( Protein protein : proteins ) {
+            if( label.equals( protein.getShortLabel() ) ) {
+                return protein;
+            }
+        }
+        return null;
+    }
+
     ////////////////////
     // Tests
 
     @Test
-    public void testRetrieve_CDC42_CANFA() throws Exception {
-
-
+    public void retrieve_CDC42_CANFA() throws Exception {
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -159,6 +180,9 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         Collection<Protein> proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
+        Protein protein = getProteinByShortlabel( proteins.toArray( new Protein[]{} ), "cdc42_canfa" );
+        assertNotNull( protein );
+        assertEquals( 7, protein.getXrefs().size() );
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -171,7 +195,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         UniprotService uniprotService = service.getUniprotService();
         Collection<UniprotProtein>uniprotProteins = uniprotService.retrieve(MockUniprotProtein.CANFA_PRIMARY_AC);
         for(UniprotProtein prot : uniprotProteins){
-            System.out.println("Uniprot prot.getPrimaryAc() = " + prot.getPrimaryAc());
             Collection<UniprotSpliceVariant> svs = prot.getSpliceVariants();
             assertEquals(2, svs.size());
         }
@@ -180,10 +203,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         boolean P60952found = false;
         boolean P60952_1found = false;
         boolean P60952_2found = false;
-        for(Protein protein : proteins){
-            System.out.println("protein.getAc() = " + protein.getAc());
-            InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protein);
-            System.out.println("uniprotIdentity.getPrimaryId() = " + uniprotIdentity.getPrimaryId());
+        for(Protein p : proteins){
+            InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(p);
             if("P60952".equals(uniprotIdentity.getPrimaryId())){
                 P60952found = true;
             } else if("P60952-1".equals(uniprotIdentity.getPrimaryId())){
@@ -198,7 +219,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
         // The retrieve method return a collection of proteins containing the master protein and it's splice variant if
         // any. We want to be sure to get the master protein.
-        Protein protein = getProteinForPrimaryAc(proteins, MockUniprotProtein.CANFA_PRIMARY_AC);//proteins.iterator().next();
+        protein = getProteinForPrimaryAc(proteins, MockUniprotProtein.CANFA_PRIMARY_AC);
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
         CvObjectDao<CvObject> cvDao = daoFactory.getCvObjectDao();
@@ -218,9 +239,9 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", protein.getFullName() );
         assertEquals( "34B44F9225EC106B", protein.getCrc64() );
         assertEquals( "MQTIKCVVVGDGAVGKTCLLISYTTNKFPSEYVPTVFDNYAVTVMIGGEPYTLGLFDTAG" +
-                "QEDYDRLRPLSYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHHCPKTPFLLVGTQIDLR" +
-                "DDPSTIEKLAKNKQKPITPETAEKLARDLKAVKYVECSALTQRGLKNVFDEAILAALEPP" +
-                "ETQPKRKCCIF", protein.getSequence() );
+                      "QEDYDRLRPLSYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHHCPKTPFLLVGTQIDLR" +
+                      "DDPSTIEKLAKNKQKPITPETAEKLARDLKAVKYVECSALTQRGLKNVFDEAILAALEPP" +
+                      "ETQPKRKCCIF", protein.getSequence() );
         assertNotNull( protein.getBioSource() );
         assertNotNull( protein.getBioSource().getAc() );
         assertEquals( "9615", protein.getBioSource().getTaxId() );
@@ -243,7 +264,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         List<ProteinImpl> variants = pdao.getSpliceVariants( protein );
         assertEquals( 2, variants.size() );
 
-        Protein sv1 = searchByShortlabel( variants, "P60952-1" );
+        Protein sv1 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-1" );
         assertNotNull( sv1 );
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", sv1.getFullName() );
         assertTrue( sv1.getXrefs().contains( new InteractorXref( owner, intact, protein.getAc(), isoformParent ) ) );
@@ -258,7 +279,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertTrue( sv1.getAnnotations().contains(
                 new Annotation( owner, isoformComment, "Has not been isolated in dog so far" ) ) );
 
-        Protein sv2 = searchByShortlabel( variants, "P60952-2" );
+        Protein sv2 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-2" );
         assertNotNull( sv2 );
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", sv2.getFullName() );
         assertTrue( sv2.getXrefs().contains( new InteractorXref( owner, intact, protein.getAc(), isoformParent ) ) );
@@ -293,37 +314,17 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         variants = pdao.getSpliceVariants( protein );
         assertEquals( 2, variants.size() );
 
-        sv1 = searchByShortlabel( variants, "P60952-1" );
+        sv1 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-1" );
         assertEquals( sv1ac, sv1.getAc() );
 
-        sv2 = searchByShortlabel( variants, "P60952-2" );
+        sv2 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-2" );
         assertEquals( sv2ac, sv2.getAc() );
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
     }
 
-    private Protein getProteinForPrimaryAc(Collection<Protein> proteins, String primaryAc) throws ProteinServiceException {
-        CvDatabase uniprot = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.UNIPROT_MI_REF);
-        CvXrefQualifier identity = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF);
-        Protein proteinToReturn = null;
-        for(Protein protein : proteins){
-            for(InteractorXref xref : protein.getXrefs()){
-                if(uniprot.equals(xref.getCvDatabase())
-                        && identity.equals(xref.getCvXrefQualifier())
-                        && primaryAc.equals(xref.getPrimaryId())){
-                    if(proteinToReturn == null){
-                        proteinToReturn = protein;
-                    }else{
-                        throw new ProteinServiceException("2 proteins with the same identity");
-                    }
-                }
-            }
-        }
-        return proteinToReturn;
-    }
-
     @Test
-    public void testRetrieve_spliceVariant() throws Exception {
+    public void retrieve_spliceVariant() throws Exception {
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -381,7 +382,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_update_CDC42_CANFA() throws Exception {
+    public void retrieve_update_CDC42_CANFA() throws Exception {
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -395,7 +396,13 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         Collection<Protein> proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
+        Protein protein = getProteinByShortlabel( proteins.toArray( new Protein[]{} ), "cdc42_canfa" );
+        assertNotNull( protein );
+        assertEquals( 7, protein.getXrefs().size() );
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
+
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         // update shortlabel
         canfa.setId( "FOO_BAR" );
         canfa.setDescription( "LALALA" );
@@ -419,7 +426,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         canfa.getGenes().remove( "CDC42" );
 
         uniprotServiceResult = proteinService.retrieve( "P60952" );
-        Map<String ,String> errors = uniprotServiceResult.getErrors();
+        Map<String, String> errors = uniprotServiceResult.getErrors();
         Set<String> keySet = errors.keySet();
         for(String errorType : keySet){
             String error = errors.get(errorType);
@@ -428,9 +435,9 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
-        Protein protein = proteins.iterator().next();
+        protein = getProteinByShortlabel( proteins.toArray( new Protein[]{} ), "foo_bar" );
+        assertNotNull( protein );
 
-        assertEquals( "foo_bar", protein.getShortLabel() );
         assertEquals( "LALALA", protein.getFullName() );
         assertEquals( "LLLLLLLLLLLLL", protein.getSequence() );
         assertEquals( "XXXXXXXXXXXXX", protein.getCrc64() );
@@ -445,6 +452,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         CvAliasType orf = ( CvAliasType ) cvDao.getByPsiMiRef( CvAliasType.ORF_NAME_MI_REF );
         CvAliasType locus = ( CvAliasType ) cvDao.getByPsiMiRef( CvAliasType.LOCUS_NAME_MI_REF );
 
+        // 6 Xrefs: 3 UniProt + 3 InterPro
         assertEquals( 6, protein.getXrefs().size() );
         assertTrue( protein.getXrefs().contains( new InteractorXref( owner, interpro, "IPR00000", null ) ) );
         assertTrue( protein.getXrefs().contains( new InteractorXref( owner, interpro, "IPR013753", null ) ) );
@@ -456,12 +464,11 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertTrue( protein.getAliases().contains( new InteractorAlias( owner, protein, orf, "o" ) ) );
         assertTrue( protein.getAliases().contains( new InteractorAlias( owner, protein, locus, "l" ) ) );
 
-
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
     @Test
-    public void testRetrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
+    public void retrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
 
         // clear database content.
         clearProteinsFromDatabase();
@@ -511,7 +518,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_intact1_uniprot0() throws Exception{
+    public void retrieve_intact1_uniprot0() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -556,7 +563,9 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    public void testRetrieve_intact0_uniprot0() throws Exception{
+    @Test
+    public void retrieve_intact0_uniprot0() throws Exception{
+
         // clear database content.
         clearProteinsFromDatabase();
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -581,14 +590,13 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         }
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-
     }
 
     /**
      * Test that the protein xref and the protein are udpated when : countPrimary == 0 && countSecondary == 1
      */
     @Test
-    public void testRetrieve_primaryCount0_secondaryCount1() throws Exception{
+    public void retrieve_primaryCount0_secondaryCount1() throws Exception{
 
         // clear database content.
         clearProteinsFromDatabase();
@@ -678,15 +686,12 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
     @Test
-    public void testRetrieve_uniprotAcReturningMoreThen1EntryWithDifferentSpecies() throws Exception{
+    public void retrieve_uniprotAcReturningMoreThen1EntryWithDifferentSpecies() throws Exception {
 
         // clear database content.
         clearProteinsFromDatabase();
 
-        /*----------------------------------------------------------
-       Create in the db, the CANFA protein with primary Ac P60952
-        -----------------------------------------------------------*/
-
+        // Create in the db, the CANFA protein with primary Ac P60952
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         //Do some settings
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -730,7 +735,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
     @Test
-    public void testRetrieve_uniprotAcReturningMoreThen1EntryWithSameSpecies() throws Exception{
+    public void retrieve_uniprotAcReturningMoreThen1EntryWithSameSpecies() throws Exception{
 
         // clear database content.
         clearProteinsFromDatabase();
@@ -786,7 +791,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 //    }
 
     @Test
-    public void testRetrieve_primaryCount0_secondaryCount2() throws Exception{
+    public void retrieve_primaryCount0_secondaryCount2() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -867,7 +872,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_primaryCount1_secondaryCount1() throws Exception{
+    public void retrieve_primaryCount1_secondaryCount1() throws Exception{
 
         // clear database content.
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -973,7 +978,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_throwException() throws Exception{
+    public void retrieve_throwException() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -1031,7 +1036,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 //    }
 
     @Test
-    public void testRetrieve_primaryCount2_secondaryCount1() throws Exception{
+    public void retrieve_primaryCount2_secondaryCount1() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -1145,7 +1150,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_spliceVariantWith2UniprotIdentity() throws Exception{
+    public void retrieve_spliceVariantWith2UniprotIdentity() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -1262,7 +1267,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_spliceVariantFoundInIntactNotInUniprot() throws Exception{
+    public void retrieve_spliceVariantFoundInIntactNotInUniprot() throws Exception{
 
         // clear database content.
         clearProteinsFromDatabase();
@@ -1323,7 +1328,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_1spliceVariantFoundInIntact2InUniprot() throws Exception{
+    public void retrieve_1spliceVariantFoundInIntact2InUniprot() throws Exception{
         // clear database content.
         clearProteinsFromDatabase();
 
@@ -1400,7 +1405,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testRetrieve_TrEMBL_to_SP() throws Exception {
+    public void retrieve_TrEMBL_to_SP() throws Exception {
         // checks that protein moving from TrEMBL to SP are detected and updated accordingly.
         // Essentially, that means having a new Primary AC and the current on in the databse becoming secondary.
 
@@ -1453,7 +1458,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testConstructor() throws Exception{
+    public void constructor() throws Exception{
         try{
             ProteinService proteinService = new ProteinServiceImpl(null);
             fail("Should have thrown and IllegalArgumentExcpetion.");
@@ -1463,7 +1468,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     }
 
     @Test
-    public void testSetBioSource() throws Exception{
+    public void setBioSource() throws Exception{
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
 
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
@@ -1475,4 +1480,48 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         }
     }
 
+    @Test
+    public void alias_update() throws Exception {
+        // Aim: load a protein from uniprot into IntAct, then change its gene name and check that on the next update
+        //      the intact object has been updated accordingly.
+
+        // clear database content.
+        clearProteinsFromDatabase();
+
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
+        UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA_WITH_NO_SPLICE_VARIANT();
+        //  ACs are P60952, P21181, P25763
+        uniprotService.add( "P60952", canfa );
+
+        ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+
+        UniprotServiceResult uniprotServiceResult = service.retrieve( "P60952" );
+        Collection<Protein> proteins = uniprotServiceResult.getProteins();
+        assertNotNull( proteins );
+        assertEquals( 1, proteins.size() );
+        Protein protein = proteins.iterator().next();
+        final String ac = protein.getAc();
+        assertNotNull( ac );
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        // update the Uniprot entry
+        canfa.getGenes().clear();
+
+        uniprotServiceResult = service.retrieve( "P60952" );
+        proteins = uniprotServiceResult.getProteins();
+        assertNotNull( proteins );
+        assertEquals( 1, proteins.size() );
+        protein = proteins.iterator().next();
+        assertNotNull( protein.getAc() );
+        assertEquals( ac, protein.getAc() );
+
+        assertEquals( 0, protein.getAliases().size() );
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+    }
 }

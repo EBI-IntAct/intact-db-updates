@@ -115,7 +115,6 @@ public class MockUniprotProtein {
                 .build();
     }
 
-
     public static UniprotProtein build_CDC42_CANFA_WITH_NO_SPLICE_VARIANT() {
         return new UniprotProteinBuilder()
                 .setSource( UniprotProteinType.SWISSPROT )
