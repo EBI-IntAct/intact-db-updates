@@ -41,8 +41,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Before
     public void before() throws Exception {
-        SchemaUtils.resetSchema();
-
         beginTransaction();
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
