@@ -867,7 +867,7 @@ public class ProteinServiceImpl implements ProteinService {
         }else{
             System.out.println("intact found by shortlabel");
         }
-        intact = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.INTACT_MI_REF);
+        intact = (CvDatabase) cvObjectDao.getByPsiMiRef(CvDatabase.INTACT_MI_REF);
         if(intact == null){
             System.out.println("intact was null");
         }else{
@@ -939,7 +939,7 @@ public class ProteinServiceImpl implements ProteinService {
     }
 
     private Collection<UniprotProtein> retrieveFromUniprot( String uniprotId ) {
-        return uniprotService.retreive( uniprotId );
+        return uniprotService.retrieve( uniprotId );
     }
 
     /**
