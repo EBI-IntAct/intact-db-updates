@@ -1,11 +1,17 @@
 package uk.ac.ebi.intact.util.biosource;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.model.BioSource;
+import uk.ac.ebi.intact.model.CvDatabase;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.config.CvPrimer;
+import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
+import uk.ac.ebi.intact.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.context.IntactContext;
+import org.junit.Test;
+import org.junit.Assert;
+import org.junit.Before;
 
 /**
  * BioSourceServiceImpl Tester.
@@ -13,45 +19,46 @@ import uk.ac.ebi.intact.model.BioSource;
  * @author Samuel Kerrien (skerrien@ebi.ac.uk)
  * @since 1.0
  */
-public class BioSourceServiceImplTest extends TestCase {
+public class BioSourceServiceImplTest extends IntactBasicTestCase {
 
-    public BioSourceServiceImplTest( String name ) {
-        super( name );
+    public class MyPrimer extends SmallCvPrimer {
+        public MyPrimer( DaoFactory daoFactory ) {
+            super( daoFactory );
+        }
+
+        public void createCVs() {
+            super.createCVs();
+            getCvObject( CvDatabase.class, CvDatabase.NEWT, CvDatabase.NEWT_MI_REF );
+        }
     }
 
-    public void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void initializeDatabase() throws Exception {
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        new MyPrimer( getDaoFactory() ).createCVs();
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public static Test suite() {
-        return new TestSuite( BioSourceServiceImplTest.class );
-    }
-
-    ////////////////////
-    // Tests
-
+    @Test
     public void testGetBiosource_existingOne() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
         BioSource bs = service.getBiosourceByTaxid( String.valueOf( 9606 ) );
-        assertNotNull( bs );
+        Assert.assertNotNull( bs );
     }
 
+    @Test
     public void testGetBiosource_newBioSource() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
         BioSource bs = service.getBiosourceByTaxid( String.valueOf( 9999999 ) );
-        assertNotNull( bs );
+        Assert.assertNotNull( bs );
 
         BioSource bs2 = service.getBiosourceByTaxid( String.valueOf( 9999999 ) );
-        assertNotNull( bs2 );
+        Assert.assertNotNull( bs2 );
 
-        assertEquals( bs.getTaxId(), bs2.getTaxId() );
-        assertEquals( bs.getShortLabel(), bs2.getShortLabel() );
-        assertEquals( bs.getFullName(), bs.getFullName());
+        Assert.assertEquals( bs.getTaxId(), bs2.getTaxId() );
+        Assert.assertEquals( bs.getShortLabel(), bs2.getShortLabel() );
+        Assert.assertEquals( bs.getFullName(), bs.getFullName());
     }
 }

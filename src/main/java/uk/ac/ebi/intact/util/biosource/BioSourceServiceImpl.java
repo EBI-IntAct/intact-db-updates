@@ -271,10 +271,10 @@ public class BioSourceServiceImpl implements BioSourceService {
 
         // get source database
         CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
-        String miRef = taxonomyService.getSourceDatabaseMiRef();
+        final String miRef = taxonomyService.getSourceDatabaseMiRef();
         CvDatabase db = dbDao.getByPsiMiRef( miRef );
         if ( db == null ) {
-            String name = taxonomyService.getClass().getSimpleName();
+            final String name = taxonomyService.getClass().getSimpleName();
             throw new IllegalStateException( "Could not find a CvDatabase based on the MI reference given by the " +
                                              "TaxonomyService[" + name + "]: " + miRef );
         }
