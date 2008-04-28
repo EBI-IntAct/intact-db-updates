@@ -157,7 +157,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     private Protein getProteinByShortlabel( Protein[] proteins, String label ) {
         for ( Protein protein : proteins ) {
-            if( label.equals( protein.getShortLabel() ) ) {
+            if( label.equalsIgnoreCase( protein.getShortLabel() ) ) {
                 return protein;
             }
         }
@@ -262,7 +262,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         List<ProteinImpl> variants = pdao.getSpliceVariants( protein );
         assertEquals( 2, variants.size() );
 
-        Protein sv1 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-1" );
+        Protein sv1 = getProteinByShortlabel( variants.toArray( new Protein[variants.size()] ), "P60952-1" );
         assertNotNull( sv1 );
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", sv1.getFullName() );
         assertTrue( sv1.getXrefs().contains( new InteractorXref( owner, intact, protein.getAc(), isoformParent ) ) );
@@ -277,7 +277,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertTrue( sv1.getAnnotations().contains(
                 new Annotation( owner, isoformComment, "Has not been isolated in dog so far" ) ) );
 
-        Protein sv2 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-2" );
+        Protein sv2 = getProteinByShortlabel( variants.toArray( new Protein[variants.size()] ), "P60952-2" );
         assertNotNull( sv2 );
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", sv2.getFullName() );
         assertTrue( sv2.getXrefs().contains( new InteractorXref( owner, intact, protein.getAc(), isoformParent ) ) );
@@ -301,7 +301,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         pdao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
         Protein sv = pdao.getByAc(sv1ac);
         InteractorXref svXref = ProteinUtils.getUniprotXref(sv);
-        assertEquals(svXref.getPrimaryId(), sv1.getShortLabel());
+        assertEquals(svXref.getPrimaryId(), sv1.getShortLabel().toUpperCase());
 
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
@@ -312,10 +312,10 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         variants = pdao.getSpliceVariants( protein );
         assertEquals( 2, variants.size() );
 
-        sv1 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-1" );
+        sv1 = getProteinByShortlabel( variants.toArray( new Protein[variants.size()] ), "P60952-1" );
         assertEquals( sv1ac, sv1.getAc() );
 
-        sv2 = getProteinByShortlabel( variants.toArray( new Protein[]{} ), "P60952-2" );
+        sv2 = getProteinByShortlabel( variants.toArray( new Protein[variants.size()] ), "P60952-2" );
         assertEquals( sv2ac, sv2.getAc() );
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
