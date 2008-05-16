@@ -16,9 +16,11 @@
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
@@ -33,6 +35,11 @@ import java.util.Date;
  * @version $Id$
  */
 public class ProteinProcessorTest extends IntactBasicTestCase {
+
+    @Before
+    public void before_schema() throws Exception {
+        SchemaUtils.createSchema();
+    }
 
     @Test
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
