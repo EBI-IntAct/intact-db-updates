@@ -17,9 +17,11 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.util.DebugUtil;
 
 /**
  * TODO comment that class header
@@ -31,15 +33,23 @@ public class LoggingProcessorListener implements ProteinProcessorListener {
 
     private static final Log log = LogFactory.getLog( LoggingProcessorListener.class );
 
-    public void onPreProcess(ProteinEvent evt) {
+    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Pre-processing protein: "+evt.getProtein().getShortLabel());
     }
 
-    public void onProcess(ProteinEvent evt) {
+    public void onProcess(ProteinEvent evt) throws ProcessorException {
        if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
     }
 
-    public void onPreDelete(ProteinDeleteEvent evt) {
+    public void onPreDelete(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Deleted protein: "+evt.getProtein().getShortLabel());
+    }
+
+    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Duplicated proteins: "+ DebugUtil.acList(evt.getProteins()));
+    }
+
+    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Dead protein found: "+evt.getProtein().getShortLabel());
     }
 }

@@ -19,9 +19,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -31,6 +33,7 @@ import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collection;
 
 /**
  * Duplicate detection for proteins.
@@ -43,82 +46,18 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
     private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
 
     @Override
-    public void onPreProcess(ProteinEvent evt) {
-        DataContext dataContext = evt.getDataContext();
-        Protein protein = evt.getProtein();
-
-        if (protein.getAc() == null) {
-            throw new IllegalArgumentException("We need an AC to check for duplicates: "+protInfo(protein));
-        }
-
-        if (log.isDebugEnabled()) log.debug("Searching for duplicates in the database for: "+protInfo(protein));
-
-        // ignore proteins that cannot be updated from uniprot
-        if (!ProteinUtils.isFromUniprot(protein)) {
-            if (log.isDebugEnabled()) log.debug("Duplicate search ignored for proteins that do not exist in UniprotKb: "+protInfo(protein));
-            return;
-        }
-
-        // ignore splice variants for now, as they follow additional criteria to distinguish between them
-        if (ProteinUtils.isSpliceVariant(protein)) {
-            if (log.isDebugEnabled()) log.debug("Duplicate search ignored for splice variant: "+protInfo(protein));
-            return;
-        }
-
-        ProteinDao proteinDao = dataContext.getDaoFactory().getProteinDao();
-
-        // param checks
-        if (protein.getCrc64() == null) {
-            if (log.isErrorEnabled()) log.error("Protein without CRC64 found: "+protInfo(protein));
-            return;
-        }
-
-        if (protein.getBioSource() == null) {
-            if (log.isErrorEnabled()) log.error("Protein without BioSource: "+protInfo(protein));
-            return;
-        }
-
-        // create a list of possible duplicates, by retrieving from the database
-        // those proteins with the same CRC64 and organism - then remove the processed protein
-        // from the results
-        List<ProteinImpl> possibleDuplicates = proteinDao.getByCrcAndTaxId(protein.getCrc64(), protein.getBioSource().getTaxId());
-
-        // if there are possible duplicates (more than 1 result), check and fix when necessary
-        if (possibleDuplicates.size() > 1) {
-            checkAndFixDuplication(possibleDuplicates, evt);
-        } else {
-            if (log.isDebugEnabled()) log.debug("No duplicates found for: "+protInfo(protein));
-        }
+    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+        mergeDuplicates(evt.getProteins(), evt);
     }
 
-    private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt) {
-        List<Protein> realDuplicates = new ArrayList<Protein>();
-
-        Protein firstProtein = possibleDuplicates.get(0);
-
-        for (int i = 1; i < possibleDuplicates.size(); i++) {
-            Protein possibleDuplicate =  possibleDuplicates.get(i);
-
-            if (ProteinUtils.containTheSameIdentities(firstProtein, possibleDuplicate)) {
-                if (realDuplicates.isEmpty()) realDuplicates.add(firstProtein);
-                realDuplicates.add(possibleDuplicate);
-            }
-        }
-
-        if (!realDuplicates.isEmpty()) {
-            // merge the real duplicates
-            mergeDuplicates(realDuplicates, evt);
-        }
-    }
-
-    protected void mergeDuplicates(List<? extends Protein> duplicates, ProteinEvent evt) {
+    protected void mergeDuplicates(Collection<Protein> duplicates, MultiProteinEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // add the interactions from the duplicated proteins to the protein
         // that was created first in the database
 
         // calculate the original protein
-        Protein originalProt = calculateOriginalProtein(duplicates);
+        Protein originalProt = calculateOriginalProtein(new ArrayList<Protein>(duplicates));
 
         // move the interactions from the rest of proteins to the original
         for (Protein duplicate : duplicates) {
@@ -128,7 +67,7 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
 
                 // and delete the duplicate
                 if (duplicate.getActiveInstances().isEmpty()) {
-                    deleteProtein(duplicate, evt);
+                    deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate));
                 } else {
                     throw new IllegalStateException("Attempt to delete a duplicate that still contains interactions: "+protInfo(duplicate));
                 }
@@ -163,7 +102,7 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
         ProteinUpdateProcessor proteinUpdateProcessor = (ProteinUpdateProcessor) evt.getSource();
-        proteinUpdateProcessor.fireOnPreDelete(new ProteinDeleteEvent(this, evt.getDataContext(), protein));
+        proteinUpdateProcessor.fireOnPreDelete(new ProteinEvent(this, evt.getDataContext(), protein));
 
         proteinDao.delete((ProteinImpl)protein);
     }

@@ -16,25 +16,34 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 
 /**
- * TODO comment that class header
+ * Basic implementation of the ProteinProcessorListener
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
 public abstract class AbstractProteinProcessorListener implements ProteinProcessorListener {
 
-    public void onPreProcess(ProteinEvent evt) {
+    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         // nothing
     }
 
-    public void onProcess(ProteinEvent evt) {
+    public void onProcess(ProteinEvent evt) throws ProcessorException {
         // nothing
     }
 
-    public void onPreDelete(ProteinDeleteEvent evt) {
+    public void onPreDelete(ProteinEvent evt) throws ProcessorException {
         // nothing
+    }
+
+    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+
+    }
+
+    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+
     }
 
     protected String protInfo(Protein protein) {

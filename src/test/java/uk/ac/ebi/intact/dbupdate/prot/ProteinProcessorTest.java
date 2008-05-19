@@ -21,9 +21,10 @@ import org.junit.Test;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.util.SchemaUtils;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
 
 import java.util.Date;
@@ -59,17 +60,13 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
          ProteinProcessor processor = new ProteinProcessor(3) {
             protected void registerListeners() {
-                addListener(new ProteinProcessorListener() {
+                addListener(new AbstractProteinProcessorListener() {
 
-                    public void onPreProcess(ProteinEvent evt) {
+                    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
                         if ("main".equals(evt.getProtein().getShortLabel())) {
                             getDaoFactory().getProteinDao().deleteByAc(protRemoved.getAc());
                         }
                     }
-
-                    public void onProcess(ProteinEvent evt) {}
-
-                    public void onPreDelete(ProteinDeleteEvent evt) {}
                 });
             }
         };

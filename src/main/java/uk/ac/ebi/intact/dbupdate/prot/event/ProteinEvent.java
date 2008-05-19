@@ -26,7 +26,7 @@ import java.util.EventObject;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProteinEvent extends EventObject {
+public class ProteinEvent extends EventObject implements ProteinProcessorEvent{
 
     private Protein protein;
     private DataContext dataContext;

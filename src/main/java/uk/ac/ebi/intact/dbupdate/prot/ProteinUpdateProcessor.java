@@ -17,10 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.event.impl.DuplicatesFixer;
-import uk.ac.ebi.intact.dbupdate.prot.event.impl.LoggingProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.impl.ProtWithoutInteractionDeleter;
-import uk.ac.ebi.intact.dbupdate.prot.event.impl.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.event.impl.*;
 
 /**
  * Updates the database proteins using the latest information from UniProt
@@ -48,6 +45,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         addListener(new LoggingProcessorListener());
 
         if (configUpdate.isFixDuplicates()) {
+            addListener(new DuplicatesFinder());
             addListener(new DuplicatesFixer());
         }
 

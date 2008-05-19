@@ -18,15 +18,44 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.model.Protein;
 
+import java.util.EventObject;
+import java.util.Collection;
+
 /**
  * TODO comment that class header
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProteinDeleteEvent extends ProteinEvent {
+public class MultiProteinEvent extends EventObject implements ProteinProcessorEvent {
 
-    public ProteinDeleteEvent(Object source, DataContext dataContext, Protein protein) {
-        super(source, dataContext, protein);
+    private Collection<Protein> proteins;
+    private DataContext dataContext;
+
+    private boolean finalizationRequested;
+
+    /**
+     * An event involving a list of proteins.
+     */
+    public MultiProteinEvent(Object source, DataContext dataContext, Collection<Protein> proteins) {
+        super(source);
+        this.proteins = proteins;
+        this.dataContext = dataContext;
+    }
+
+    public void requestFinalization() {
+        this.finalizationRequested = true;
+    }
+
+    public boolean isFinalizationRequested() {
+        return finalizationRequested;
+    }
+
+    public DataContext getDataContext() {
+        return dataContext;
+    }
+
+    public Collection<Protein> getProteins() {
+        return proteins;
     }
 }

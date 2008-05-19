@@ -21,9 +21,9 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.business.IntactTransactionException;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.context.IntactContext;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.util.DebugUtil;
@@ -181,7 +181,11 @@ public abstract class ProteinProcessor {
 
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
-                ((ProteinProcessorListener) listeners[i + 1]).onPreProcess(evt);
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onPreProcess(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -191,17 +195,53 @@ public abstract class ProteinProcessor {
 
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
-                ((ProteinProcessorListener) listeners[i + 1]).onProcess(evt);
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onProcess(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
-    public void fireOnPreDelete(ProteinDeleteEvent evt) {
+    public void fireOnPreDelete(ProteinEvent evt) {
         Object[] listeners = listenerList.getListenerList();
 
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
-                ((ProteinProcessorListener) listeners[i + 1]).onPreDelete(evt);
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onPreDelete(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void fireOnProteinDuplicationFound(MultiProteinEvent evt) {
+        Object[] listeners = listenerList.getListenerList();
+
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ProteinProcessorListener.class) {
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onProteinDuplicationFound(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void fireOnDeadProteinFound(ProteinEvent evt) {
+        Object[] listeners = listenerList.getListenerList();
+
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ProteinProcessorListener.class) {
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onDeadProteinFound(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -18,8 +18,8 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinDeleteEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -45,7 +45,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinProcessorListe
     private boolean deleteSpliceVariantsWithoutInteractions;
 
     @Override
-    public void onPreProcess(ProteinEvent evt) {
+    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
         if (log.isDebugEnabled()) {
@@ -118,7 +118,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinProcessorListe
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
         ProteinUpdateProcessor proteinUpdateProcessor = (ProteinUpdateProcessor) evt.getSource();
-        proteinUpdateProcessor.fireOnPreDelete(new ProteinDeleteEvent(this, evt.getDataContext(), protein));
+        proteinUpdateProcessor.fireOnPreDelete(new ProteinEvent(this, evt.getDataContext(), protein));
 
         if (!proteinDao.isTransient((ProteinImpl)protein)) {
             proteinDao.delete((ProteinImpl)protein);

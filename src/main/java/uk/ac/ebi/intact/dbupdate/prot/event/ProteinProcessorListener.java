@@ -15,20 +15,30 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+
 import java.util.EventListener;
 
 /**
- * TODO comment that class header
+ * Listener for ProteinProcessors
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
 public interface ProteinProcessorListener extends EventListener {
 
-    void onPreProcess(ProteinEvent evt);
+    // general phase events
 
-    void onProcess(ProteinEvent evt);
+    void onPreProcess(ProteinEvent evt) throws ProcessorException;
 
-    void onPreDelete(ProteinDeleteEvent evt);
+    void onProcess(ProteinEvent evt) throws ProcessorException;
+
+    // specific events
+
+    void onPreDelete(ProteinEvent evt) throws ProcessorException;
+
+    void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException;
+
+    void onDeadProteinFound(ProteinEvent evt) throws ProcessorException;
 
 }
