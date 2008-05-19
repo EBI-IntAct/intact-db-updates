@@ -224,7 +224,7 @@ public class ProteinServiceImpl implements ProteinService {
      *
      * @throws ProteinServiceException
      */
-    private Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
+    public Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
 
         Collection<Protein> proteins = new ArrayList<Protein>( 1 );
 
@@ -857,21 +857,21 @@ public class ProteinServiceImpl implements ProteinService {
      */
     private Protein createMinimalisticProtein( UniprotProtein uniprotProtein ) throws ProteinServiceException {
 
+        if (uniprotProtein == null) {
+            throw new NullPointerException("Passed a null UniprotProtein");
+        }
+
+        if (bioSourceService == null) {
+            throw new IllegalStateException("BioSourceService should not be null");
+        }
+
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
         ProteinDao pdao = daoFactory.getProteinDao();
-        CvObjectDao cvObjectDao = daoFactory.getCvObjectDao(CvDatabase.class);
-        CvDatabase intact = (CvDatabase) cvObjectDao.getByShortLabel(CvDatabase.INTACT);
-        if(intact == null){
-            System.out.println("intact was null");
-        }else{
-            System.out.println("intact found by shortlabel");
+
+        if (uniprotProtein.getOrganism() == null) {
+            throw new IllegalStateException("Uniprot protein without organism: "+uniprotProtein);
         }
-        intact = (CvDatabase) cvObjectDao.getByPsiMiRef(CvDatabase.INTACT_MI_REF);
-        if(intact == null){
-            System.out.println("intact was null");
-        }else{
-            System.out.println("intact found by miRef");
-        }
+
         BioSource biosource = null;
         try {
             biosource = bioSourceService.getBiosourceByTaxid( String.valueOf( uniprotProtein.getOrganism().getTaxid() ) );

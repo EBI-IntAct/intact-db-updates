@@ -39,15 +39,18 @@ public abstract class AbstractProteinProcessorListener implements ProteinProcess
     }
 
     public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
-
+         // nothing
     }
 
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+        // nothing
+    }
 
+    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        // nothing
     }
 
     protected String protInfo(Protein protein) {
         return protein.getShortLabel()+" ("+protein.getAc()+")";
     }
-
 }

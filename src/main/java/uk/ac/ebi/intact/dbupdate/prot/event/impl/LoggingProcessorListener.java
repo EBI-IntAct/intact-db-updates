@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.util.DebugUtil;
 
@@ -51,5 +52,9 @@ public class LoggingProcessorListener implements ProteinProcessorListener {
 
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Dead protein found: "+evt.getProtein().getShortLabel());
+    }
+
+    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Sequence for protein has changed: "+evt.getProtein().getShortLabel());
     }
 }

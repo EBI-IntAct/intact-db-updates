@@ -27,6 +27,13 @@ import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.uniprot.UniprotServiceException;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.util.protein.ProteinService;
+import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
+import uk.ac.ebi.intact.util.protein.ProteinServiceFactory;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
+import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
+import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -65,7 +72,10 @@ public class UniprotProteinUpdater extends AbstractProteinProcessorListener {
             throw new ProcessorException("Problem finding protein in UniProt: "+uniprotXref.getPrimaryId());
         }
 
-        System.out.println(uniprotProtein);
+//       ProteinService protService = ProteinServiceFactory.getInstance().buildProteinService(new UniprotRemoteService());
+//       protService.setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(new NewtTaxonomyService()));
+//       UniprotServiceResult result = protService.retrieve(uniprotXref.getPrimaryId());
+//       System.out.println(result.getMessages());
     }
 
     private UniprotProtein findUniprotProtein( String id, String taxid ) throws UniprotServiceException {

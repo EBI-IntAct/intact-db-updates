@@ -24,6 +24,7 @@ import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.util.DebugUtil;
@@ -239,6 +240,20 @@ public abstract class ProteinProcessor {
             if (listeners[i] == ProteinProcessorListener.class) {
                 try {
                     ((ProteinProcessorListener) listeners[i + 1]).onDeadProteinFound(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void fireOnProteinSequenceChanged(ProteinSequenceChangeEvent evt) {
+        Object[] listeners = listenerList.getListenerList();
+
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ProteinProcessorListener.class) {
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onProteinSequenceChanged(evt);
                 } catch (ProcessorException e) {
                     e.printStackTrace();
                 }
