@@ -8,6 +8,7 @@ package uk.ac.ebi.intact.util.protein;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -191,26 +192,6 @@ public class ProteinServiceImpl implements ProteinService {
 
         return species.size();
     }
-//
-//    public UniprotServiceResult retrieve( String uniprotId, int taxidFilter )  {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    public UniprotServiceResult retrieve( String uniprotId, Collection<Integer> taxidFilters ) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    public UniprotServiceResult retrieve( Collection<String> uniprotIds ) {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    public UniprotServiceResult retrieve( Collection<String> uniprotIds, int taxidFilter )  {
-//        throw new UnsupportedOperationException();
-//    }
-//
-//    public UniprotServiceResult retrieve( Collection<String> uniprotIds, Collection<Integer> taxidFilters )  {
-//        throw new UnsupportedOperationException();
-//    }
 
     ///////////////////////////
     // Private methods
@@ -225,48 +206,46 @@ public class ProteinServiceImpl implements ProteinService {
      * @throws ProteinServiceException
      */
     public Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
-        Collection<Protein> proteins = new ArrayList<Protein>( 1 );
+        Collection<Protein> proteins = new ArrayList<Protein>();
+        Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
 
-        Collection<Protein> nonUniprotProteins = new ArrayList<Protein>( 1 );
+        final String uniprotAc = uniprotProtein.getPrimaryAc();
         String taxid = String.valueOf( uniprotProtein.getOrganism().getTaxid() );
-        System.out.println("TAXID = " + taxid);
-        System.out.println("UNIPROT PROTEIN = [" + uniprotProtein.getPrimaryAc() + ", " + uniprotProtein.getOrganism().getName() + "]");
 
-        // Collection IntAct protein based on UniProt primary AC
+        if (log.isDebugEnabled()) log.debug("Searching IntAct for Uniprot protein: "+ uniprotAc + ", "
+                + uniprotProtein.getOrganism().getName() +" ("+uniprotProtein.getOrganism().getTaxid()+")");
 
-        Collection<Protein> primaryProteins = searchIntactByPrimaryAc( uniprotProtein );
-        System.out.println("SIZE OF THE PRIMARY PROTEINS primaryProteins.size() = " + primaryProteins.size());
-        if ( !primaryProteins.isEmpty() ) {
-                primaryProteins = filterByTaxid( primaryProteins, taxid );
-                nonUniprotProteins.addAll( removeAndGetNonUniprotProteins( primaryProteins ) );
+        // we will assign the proteins to two collections - primary / secondary
+        Collection<ProteinImpl> primaryProteins = proteinDao.getByUniprotId(uniprotAc);
+        Collection<ProteinImpl> secondaryProteins = new ArrayList<ProteinImpl>();
+
+        for (String secondaryAc : uniprotProtein.getSecondaryAcs()) {
+            secondaryProteins.addAll(proteinDao.getByUniprotId(secondaryAc));
         }
+
+        // filter by tax id and remove non-uniprot prots from the list, and assign to the primary or secondary collections
+
+        filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, primaryProteins);
+        filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, secondaryProteins);
+
         int countPrimary = primaryProteins.size();
-        System.out.println("SIZE OF THE PRIMARY PROTEINS AFTER FILTERING ON THE TAXID primaryProteins.size() = " + primaryProteins.size());
-
-        // Collection IntAct protein based on UniProt secondary ACs
-        Collection<Protein> secondaryProteins = searchIntactBySecondaryAc( uniprotProtein );
-        System.out.println("SIZE OF THE SECONDARY ACS PROTEIN secondaryProteins.size() = " + secondaryProteins.size());
-        if ( !secondaryProteins.isEmpty() ) {
-            secondaryProteins = filterByTaxid( secondaryProteins, taxid );
-            nonUniprotProteins.addAll( removeAndGetNonUniprotProteins( secondaryProteins ) );
-        }
         int countSecondary = secondaryProteins.size();
-        System.out.println("SIZE OF THE SECONDARY ACS PROTEIN AFTER FILTERING ON THE TAXID secondaryProteins.size() = " + secondaryProteins.size());
+
+        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
 
 
         if ( countPrimary == 0 && countSecondary == 0 ) {
-            System.out.println("NO PRIMARY NO SECONDARY");
-            log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
+            if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
             Protein protein = createMinimalisticProtein( uniprotProtein );
             proteins.add( protein );
             updateProtein( protein, uniprotProtein, proteins );
 
         } else if ( countPrimary == 0 && countSecondary == 1 ) {
-            System.out.println("NO PRIMARY, 1 SECONDARY");
-            //Corresponding test : ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount1()
-            log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
-            System.out.println("Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
+            if (log.isDebugEnabled())
+                log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
+
             Protein protein = secondaryProteins.iterator().next();
             proteins.add( protein );
 
@@ -277,44 +256,35 @@ public class ProteinServiceImpl implements ProteinService {
             updateProtein( protein, uniprotProtein, proteins );
 
         } else if ( countPrimary == 1 && countSecondary == 0 ) {
-            System.out.println("1 PRIMARY and NO SECONDARY");
-            // Corresponding test : ProteinServiceImplTest.testRetrieve_sequenceUpdate()
-            //                      ProteinServiceImplTest.testRetrieve_update_CDC42_CANFA()
-            log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
-            System.out.println( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
+            if (log.isDebugEnabled())
+                log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
 
             Protein protein = primaryProteins.iterator().next();
             proteins.add( protein );
             updateProtein( protein, uniprotProtein, proteins );
 
         }else if ( countPrimary == 1 && countSecondary >= 1){
-            System.out.println("1 PRIMARY AND 1 SECONDARY");
-            log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
+            if (log.isDebugEnabled())
+                log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
             StringBuffer sb = new StringBuffer();
             sb.append("Found several protein in IntAct for entry : " + uniprotProtein.getPrimaryAc() + ". 1 with the " +
                     "primaryAc and " + secondaryProteins.size() + " with the secondary acs. We are going to merged those" +
                     " proteins into one.").append( NEW_LINE );
             Protein primaryProt = primaryProteins.iterator().next();
-            System.out.println("bla");
+
             Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),secondaryProteins);
-            System.out.println("we keep prot " + protToBeKept.getAc());
+
             sb.append("The protein we keep is : " + protToBeKept.getAc() + "," + protToBeKept.getShortLabel()).append( NEW_LINE );
             List<Protein> proteinsToDelete = new ArrayList<Protein>();
             proteinsToDelete.addAll(secondaryProteins);
             proteinsToDelete.add(primaryProt);
-
             proteinsToDelete.remove(protToBeKept);
-            System.out.println("before replaceInActiveInstances");
-            replaceInActiveInstances(proteinsToDelete, protToBeKept);
-            System.out.println("after replaceInActiveInstances");
 
-            ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
-            ComponentDao componentDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getComponentDao();
+            ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
+
             sb.append("The protein which are going to be merged :").append( NEW_LINE );
-            System.out.println("protein which are going to be merged");
-            System.out.println("proteinsToDelete.size() = " + proteinsToDelete.size());
 
-	    CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
+           CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
 
 	    //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
             Institution owner = IntactContext.getCurrentInstance().getInstitution();
@@ -398,6 +368,21 @@ public class ProteinServiceImpl implements ProteinService {
         return proteins;
     }
 
+    private void filterByTaxidAndNonUniprot(Collection<Protein> nonUniprotProteins, String taxid, Collection<ProteinImpl> primaryProteins) {
+        for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
+            ProteinImpl protein = proteinIterator.next();
+
+            if (!taxid.equals(protein.getBioSource().getTaxId())) {
+                proteinIterator.remove();
+                continue;
+            }
+
+            if (!ProteinUtils.isFromUniprot(protein)) {
+                nonUniprotProteins.add(protein);
+            }
+        }
+    }
+
     /**
      * Given the protein "protein" it will add to it an annotation with cvTopic to-delete.
      * This is done in case the protein update would fail before the having deleted the protein it need to delete.
@@ -469,7 +454,7 @@ public class ProteinServiceImpl implements ProteinService {
      * @param proteins (if null return an IllegalArgumentException)
      * @return a protein
      */
-    private Protein getProtWithMaxInteraction(Protein protein, Collection<Protein> proteins){
+    private Protein getProtWithMaxInteraction(Protein protein, Collection<? extends Protein> proteins){
         if(protein == null){
             throw new IllegalArgumentException("The protein argument shouldn't be null.");
         }
@@ -585,13 +570,13 @@ public class ProteinServiceImpl implements ProteinService {
         // Update Splice Variants
 
         // search intact
-        Collection<ProteinImpl> variants = getSpliceVariants( protein );
+        Collection<ProteinImpl> variants = pdao.getSpliceVariants( protein );
         // We create a copy of the collection that hold the spliceVariants as the findMatches remove the splice variants
         // from the collection when a match is found. Therefore the first time it runs, it finds the match, the splice
         // variants are correctly created, the uniprotSpliceVariant are deleted from the collection so that the second
         // you run it, the splice variant are not linked anymore to the uniprotProtein and therefore they are not correctly
         // updated.
-        Collection<UniprotSpliceVariant> spliceVariantsClone = new ArrayList();
+        Collection<UniprotSpliceVariant> spliceVariantsClone = new ArrayList<UniprotSpliceVariant>();
         for(UniprotSpliceVariant sv : uniprotProtein.getSpliceVariants()){
             spliceVariantsClone.add(sv);
         }
@@ -614,7 +599,7 @@ public class ProteinServiceImpl implements ProteinService {
 
             } else {
                 Protein intactSpliceVariant = match.getIntactProtein();
-                InteractorXref intactSpliceVariantUniprotXref = ProteinUtils.getUniprotXref(intactSpliceVariant);
+
                 if(intactSpliceVariant.getActiveInstances().size() == 0){
                     ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
                     //Add the ac to the protein to delete ac collection, as if we would delete it now it would create
@@ -894,77 +879,8 @@ public class ProteinServiceImpl implements ProteinService {
         return protein;
     }
 
-    private Collection<Protein> searchIntact( String uniprotAc ) {
-
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
-        List<ProteinImpl> proteins = pdao.getByUniprotId( uniprotAc );
-
-        Collection<Protein> p = new ArrayList<Protein>( proteins.size() );
-        for ( ProteinImpl protein : proteins ) {
-            p.add( protein );
-        }
-
-        return p;
-    }
-
-    private Collection<Protein> searchIntactByPrimaryAc( UniprotProtein uniprotProtein ) {
-        Collection<Protein> proteins = searchIntact( uniprotProtein.getPrimaryAc() );
-
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Searching by Primary Ac yielded " + proteins.size() + " proteins." );
-        }
-
-        return proteins;
-    }
-
-    private Collection<Protein> searchIntactBySecondaryAc( UniprotProtein uniprotProtein ) {
-        Collection<Protein> proteins = new ArrayList<Protein>( 2 );
-
-        for ( String ac : uniprotProtein.getSecondaryAcs() ) {
-
-            Collection<Protein> ps = searchIntact( ac );
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Searching by secondary AC[ " + ac + " ] yielded " + ps.size() + " proteins." );
-            }
-            proteins.addAll( ps );
-        }
-
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Search by secondary AC yielded overall " + proteins.size() + " proteins." );
-        }
-
-        return proteins;
-    }
-
     private Collection<UniprotProtein> retrieveFromUniprot( String uniprotId ) {
         return uniprotService.retrieve( uniprotId );
-    }
-
-    /**
-     * Remove from the given IntAct proteins all of those that are not original UniProt proteins.
-     * Removed proteins are returned to the user. The given collection may be altered.
-     *
-     * @param proteins the collection to be updated.
-     *
-     * @return a non null colection of IntAct protein that are not from UniProt.
-     */
-    private Collection<Protein> removeAndGetNonUniprotProteins( Collection<Protein> proteins ) {
-        Collection<Protein> selected = new ArrayList<Protein>( proteins.size() );
-
-        for ( Iterator<Protein> iterator = proteins.iterator(); iterator.hasNext(); ) {
-            Protein protein = iterator.next();
-
-            if ( !ProteinUtils.isFromUniprot( protein ) ) {
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "Protein " + protein.getShortLabel() + " (" + protein.getAc() + ") is not from UniProt." );
-                }
-                iterator.remove();
-                selected.add( protein );
-            }
-        }
-
-        return selected;
     }
 
     private String generateProteinShortlabel( UniprotProtein uniprotProtein ) {
@@ -978,42 +894,5 @@ public class ProteinServiceImpl implements ProteinService {
         name = uniprotProtein.getId();
 
         return name.toLowerCase();
-    }
-
-    private Collection<Protein> filterByTaxid( Collection<Protein> proteins, String taxid ) {
-
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Filtering protein collection (" + proteins.size() + ") by taxid: " + taxid );
-        }
-        Collection<Protein> filtered = new ArrayList<Protein>( proteins.size() );
-
-        for ( Protein protein : proteins ) {
-            if ( protein.getBioSource().getTaxId().equals( taxid ) ) {
-                filtered.add( protein );
-            }
-        }
-
-        if ( log.isDebugEnabled() ) {
-            log.debug( "After filtering, " + filtered.size() + " protein(s) remain." );
-        }
-
-        return filtered;
-    }
-
-    /**
-     * Get existing splice variant from the master protein given. <br>
-     *
-     * @param master The master protein of the splice variant
-     *
-     * @return the created splice variants
-     */
-    private Collection<ProteinImpl> getSpliceVariants( Protein master ) {
-
-        if ( master == null ) {
-            throw new IllegalArgumentException( "You must give a non null protein." );
-        }
-
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        return daoFactory.getProteinDao().getSpliceVariants( master );
     }
 }

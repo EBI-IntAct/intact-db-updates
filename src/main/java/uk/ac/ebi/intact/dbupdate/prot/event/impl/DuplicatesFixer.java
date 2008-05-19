@@ -17,23 +17,20 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.context.DataContext;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.model.Component;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Duplicate detection for proteins.
@@ -63,7 +60,7 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
         for (Protein duplicate : duplicates) {
             // don't process the original protein with itself
             if (!duplicate.getAc().equals(originalProt.getAc())) {
-                moveInteractionsToOriginal(originalProt, duplicate);
+                ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
 
                 // and delete the duplicate
                 if (duplicate.getActiveInstances().isEmpty()) {
@@ -88,14 +85,6 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
         }
         
         return originalProt;
-    }
-
-    protected void moveInteractionsToOriginal(Protein original, Protein duplicate) {
-        for (Component component : duplicate.getActiveInstances()) {
-            component.setInteractor(original);
-        }
-        original.getActiveInstances().addAll(duplicate.getActiveInstances());
-        duplicate.getActiveInstances().clear();
     }
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
