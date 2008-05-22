@@ -10,7 +10,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.protein.CvHelper;
@@ -97,7 +96,7 @@ public class AliasUpdaterUtils {
      */
     public static boolean updateAliasCollection( Protein protein, Collection<Alias> newAliases ) {
 
-        AliasDao aliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao( InteractorAlias.class );
+        //AliasDao aliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao( InteractorAlias.class );
 
         if ( protein == null ) {
             throw new IllegalArgumentException( "You must give a non null protein." );
@@ -123,7 +122,7 @@ public class AliasUpdaterUtils {
                 recycledAlias.setName( alias.getName() );
                 recycledAlias.setCvAliasType( alias.getCvAliasType() );
 
-                aliasDao.update( recycledAlias );
+                //aliasDao.update( recycledAlias );
                 updated = true;
 
             } else {
@@ -136,7 +135,7 @@ public class AliasUpdaterUtils {
             // delete remaining outdated/unrecycled aliases
             InteractorAlias alias = toDeleteIterator.next();
             protein.removeAlias( alias );
-            aliasDao.delete( alias );
+            //aliasDao.delete( alias );
 
             updated = true;
         }

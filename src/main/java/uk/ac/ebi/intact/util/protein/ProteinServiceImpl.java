@@ -8,9 +8,11 @@ package uk.ac.ebi.intact.util.protein;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -36,8 +38,6 @@ public class ProteinServiceImpl implements ProteinService {
     private UniprotServiceResult uniprotServiceResult;
 
     public static final Log log = LogFactory.getLog( ProteinServiceImpl.class );
-
-    // TODO not public Constructor but a Factory that decides whether to use Remote API or Yasp
 
     // TODO Factory could coordinate a shared cache between multiple instances of the service (eg. multiple services running in threads)
 
@@ -66,12 +66,12 @@ public class ProteinServiceImpl implements ProteinService {
     //////////////////////////
     // Constructor
 
-    ProteinServiceImpl( UniprotService uniprotService ) {
+    protected ProteinServiceImpl( UniprotService uniprotService ) {
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
-        if ( uniprotService == null ) {
-            throw new IllegalArgumentException( "You must give a non null implementation of a UniProt Service." );
-        }
+        //if ( uniprotService == null ) {
+        //    throw new IllegalArgumentException( "You must give a non null implementation of a UniProt Service." );
+        //}
         this.uniprotService = uniprotService;
     }
 
@@ -100,10 +100,6 @@ public class ProteinServiceImpl implements ProteinService {
         this.uniprotService = uniprotService;
     }
 
-//    public void addDbMapping( String databaseName, String miRef ) {
-//        // TODO log overwriting !!
-//        databaseName2mi.put( databaseName, miRef );
-//    }
 
     //////////////////////////
     // ProteinLoaderService
@@ -205,7 +201,7 @@ public class ProteinServiceImpl implements ProteinService {
      *
      * @throws ProteinServiceException
      */
-    public Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
+    protected Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<Protein> proteins = new ArrayList<Protein>();
@@ -299,11 +295,7 @@ public class ProteinServiceImpl implements ProteinService {
                 xref.setParent(protToBeKept);
                 protToBeKept.addXref(xref);
                 protToDelete.setActiveInstances(new ArrayList());
-                addToDeleteAnnotation(protToDelete);
-                proteinDao.saveOrUpdate((ProteinImpl) protToDelete);
-                // Add to the ac to the collection of ac to delete. Will be deleted later. 
-                ProteinToDeleteManager.addProteinAc(protToDelete.getAc());
-                System.out.println("protToDelete.getAc() = " + protToDelete.getAc());
+                deleteProtein(protToDelete);
                 sb.append("\t" + protToDelete.getAc() + "," + protToDelete.getShortLabel()).append( NEW_LINE );
             }
             System.out.println("beofre proteins.add");
@@ -389,16 +381,20 @@ public class ProteinServiceImpl implements ProteinService {
      * In this case we can still delete the protein by had afterwards.
      * @param protein
      */
-    public void addToDeleteAnnotation(Protein protein) throws ProteinServiceException {
-        CvTopic toDelete = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvTopic.class, "to-delete");
-        if(toDelete == null){
-            throw new ProteinServiceException("Can not find the to-delete cvTopic");
-        }
+    public void addToDeleteAnnotation(Protein protein) {
         Institution institution = IntactContext.getCurrentInstance().getInstitution();
+
+        CvTopic toDelete = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                .getCvObjectDao(CvTopic.class).getByShortLabel("to-delete", false);
+        if(toDelete == null){
+            toDelete = CvObjectUtils.createCvObject(institution, CvTopic.class, null, "to-delete");
+            PersisterHelper.saveOrUpdate(toDelete);
+        }
+
         Annotation annot = new Annotation(institution, toDelete, "ProteinUpdateMessage : this protein should be deleted " +
                 " as it is not reflecting what is not in UniprotKB and is not involved in any interactions.");
-        AnnotationDao annotationDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao();
-        annotationDao.saveOrUpdate(annot);
+        //AnnotationDao annotationDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao();
+        //annotationDao.saveOrUpdate(annot);
         protein.addAnnotation(annot);
     }
 
@@ -439,8 +435,7 @@ public class ProteinServiceImpl implements ProteinService {
                 //This will set the interactor of the component to null so you have after to set the interactor again.
                 protein.removeActiveInstance(component);
                 component.setInteractor(replacer);
-                componentDao.saveOrUpdate(component);
-                System.out.println("Component saved");
+                //componentDao.saveOrUpdate(component);
             }
             proteinDao.saveOrUpdate((ProteinImpl) protein);
         }
@@ -538,6 +533,7 @@ public class ProteinServiceImpl implements ProteinService {
 
         // Sequence
         boolean sequenceUpdated = false;
+        String oldSequence = protein.getSequence();
         String sequence = uniprotProtein.getSequence();
         if ( sequence == null || !sequence.equals( protein.getSequence() ) ) {
             if ( log.isDebugEnabled() ) {
@@ -554,11 +550,8 @@ public class ProteinServiceImpl implements ProteinService {
             protein.setCrc64( crc64 );
         }
 
-        // TODO if sequence  was updated, run a range check. Use the AlarmProcessor to log messages.
         if ( sequenceUpdated || !protein.getActiveInstances().isEmpty() ) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Request a Range check on Protein " + protein.getShortLabel() + " " + protein.getAc() );
-            }
+            sequenceChanged(protein, oldSequence);
         }
 
         // Persist changes
@@ -601,12 +594,8 @@ public class ProteinServiceImpl implements ProteinService {
                 Protein intactSpliceVariant = match.getIntactProtein();
 
                 if(intactSpliceVariant.getActiveInstances().size() == 0){
-                    ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
-                    //Add the ac to the protein to delete ac collection, as if we would delete it now it would create
-                    // bugs due to the use of the ProteinDao.getAll(int minResult, int maxResults) in the updatedProteinMojo.
-                    addToDeleteAnnotation(intactSpliceVariant);
-                    proteinDao.saveOrUpdate((ProteinImpl) intactSpliceVariant);
-                    ProteinToDeleteManager.addProteinAc(intactSpliceVariant.getAc());
+                    deleteProtein(intactSpliceVariant);
+
 //                    proteinDao.delete((ProteinImpl) intactSpliceVariant);
                     uniprotServiceResult.addMessage("The protein " + getProteinDescription(intactSpliceVariant) +
                             " is a splice variant of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
@@ -621,6 +610,20 @@ public class ProteinServiceImpl implements ProteinService {
                 }
             }
         }
+    }
+
+    protected void sequenceChanged(Protein protein, String oldSequence) {
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Request a Range check on Protein " + protein.getShortLabel() + " " + protein.getAc() );
+        }
+    }
+
+    protected void deleteProtein(Protein protein) {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+        addToDeleteAnnotation(protein);
+        proteinDao.saveOrUpdate((ProteinImpl) protein);
+
+        ProteinToDeleteManager.addProteinAc(protein.getAc());
     }
 
     private String getProteinDescription(Protein protein){
@@ -664,14 +667,8 @@ public class ProteinServiceImpl implements ProteinService {
                     xrefs = null;
                 } else {
                     if(protein.getActiveInstances().size() == 0){
-                        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
-//                        proteinDao.delete((ProteinImpl) protein);
-                        //Add the ac of the protein to the list of acs to delete as if we would delete it now it would
-                        // cause bugs in module using this artifact with the ProteinDao.getAll(int minResult,
-                        // int maxResults) method.
-                        addToDeleteAnnotation(protein);
-                        proteinDao.saveOrUpdate((ProteinImpl) protein);
-                        ProteinToDeleteManager.addProteinAc(protein.getAc());
+                        deleteProtein(protein);
+
                         uniprotServiceResult.addMessage("The protein " + getProteinDescription(protein) +
                                 " is a splice which had multiple or no identity, as it is not involved in any interaction" +
                                 " we deleted it.");
@@ -784,10 +781,6 @@ public class ProteinServiceImpl implements ProteinService {
             AnnotationUpdaterUtils.addNewAnnotation( spliceVariant, annotation );
         }
 
-        // Persist changed
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
-        pdao.update( ( ProteinImpl ) spliceVariant );
         updatedProteins.add(spliceVariant);
     }
 

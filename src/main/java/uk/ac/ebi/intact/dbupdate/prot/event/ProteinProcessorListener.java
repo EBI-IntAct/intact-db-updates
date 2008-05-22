@@ -35,7 +35,7 @@ public interface ProteinProcessorListener extends EventListener {
 
     // specific events
 
-    void onPreDelete(ProteinEvent evt) throws ProcessorException;
+    void onDelete(ProteinEvent evt) throws ProcessorException;
 
     void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException;
 

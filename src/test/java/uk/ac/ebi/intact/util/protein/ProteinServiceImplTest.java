@@ -9,10 +9,9 @@ import uk.ac.ebi.intact.business.IntactTransactionException;
 import uk.ac.ebi.intact.config.CvPrimer;
 import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
 import uk.ac.ebi.intact.context.CvContext;
-import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.context.DataContext;
+import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.*;
@@ -877,15 +876,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         clearProteinsFromDatabase();
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
-
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-        if(IntactContext.getCurrentInstance().getCvContext().getByLabel(CvTopic.class, "to-delete") == null) {
-            CvTopic toDelete = new CvTopic(IntactContext.getCurrentInstance().getInstitution(), "to-delete");
-            CvObjectDao cvObjectDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao(CvTopic.class);
-            cvObjectDao.saveOrUpdate(toDelete);
-        }
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
@@ -1453,16 +1443,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertEquals( "XXXX", protein.getSequence() );
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-    }
-
-    @Test
-    public void constructor() throws Exception{
-        try{
-            ProteinService proteinService = new ProteinServiceImpl(null);
-            fail("Should have thrown and IllegalArgumentExcpetion.");
-        }catch(IllegalArgumentException e){
-            assertTrue(true);
-        }
     }
 
     @Test

@@ -10,8 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.persistence.dao.*;
+import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
@@ -147,8 +147,6 @@ public class XrefUpdaterUtils {
         }
 
         // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
-        XrefDao xrefDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao();
-        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
         Collection<InteractorXref> xrefs = protein.getXrefs();
         for (Iterator<InteractorXref> iterator = xrefs.iterator(); iterator.hasNext();) {
             InteractorXref xref =  iterator.next();
@@ -157,22 +155,18 @@ public class XrefUpdaterUtils {
             // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
             // secondary ac of the proteins).
             CvDatabase cvDb = xref.getCvDatabase();
-            CvObjectXref cvDbMiXref = CvObjectUtils.getPsiMiIdentityXref(cvDb);
-            String cvDbMi = null;
-            if(cvDbMiXref != null){
-                cvDbMi = cvDbMiXref.getPrimaryId();
+            String cvDbMi = cvDb.getMiIdentifier();
 
-            }
             if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi)){
                 continue;
             }
             // If the protein xref does not exist in the uniprot entry anymore delete it.
             if(!convertedXrefs.contains(xref)){
                 iterator.remove();
-                xrefDao.delete(xref);
+                //xrefDao.delete(xref);
             }
         }
-        proteinDao.saveOrUpdate((ProteinImpl) protein);
+        //proteinDao.saveOrUpdate((ProteinImpl) protein);
     }
 
     /**
@@ -249,7 +243,7 @@ public class XrefUpdaterUtils {
                 recycledXref.setCvXrefQualifier( xref.getCvXrefQualifier() );
                 recycledXref.setDbRelease( xref.getDbRelease() );
 
-                IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().update( recycledXref );
+                //IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().update( recycledXref );
                 updated = true;
 
             } else {
@@ -264,10 +258,10 @@ public class XrefUpdaterUtils {
             if( log.isDebugEnabled() ) {
                 log.debug( "DELETING: " + xref );
             }
-            IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().delete( xref );
+            //IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().delete( xref );
             protein.getXrefs().remove( xref );
 
-            IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao().update( (ProteinImpl ) protein );
+            //IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao().update( (ProteinImpl ) protein );
 
             updated = true;
         }
@@ -288,17 +282,17 @@ public class XrefUpdaterUtils {
 
         // That test is done to avoid to record in the database an Xref
         // which is already linked to that AnnotatedObject.
-        if ( xref.getParentAc() == current.getAc() ) {
-            try {
-                IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().saveOrUpdate( xref );
-                log.debug( "CREATED: [" + xref + "]" );
-            } catch ( Exception e_xref ) {
-                log.error( "Error while creating an Xref for protein " + current, e_xref );
-                return false;
-            }
-        }
-        AnnotatedObjectDao annotatedObjectDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotatedObjectDao();
-        annotatedObjectDao.saveOrUpdate(current);
+//        if ( xref.getParentAc() == current.getAc() ) {
+//            try {
+//                IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().saveOrUpdate( xref );
+//                log.debug( "CREATED: [" + xref + "]" );
+//            } catch ( Exception e_xref ) {
+//                log.error( "Error while creating an Xref for protein " + current, e_xref );
+//                return false;
+//            }
+//        }
+        //AnnotatedObjectDao annotatedObjectDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotatedObjectDao();
+        //annotatedObjectDao.saveOrUpdate(current);
 
         return true;
     }

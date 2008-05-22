@@ -56,6 +56,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
         
         addListener(new UniprotProteinUpdater());
+        addListener(new ProteinDeleter());
     }
 
 }

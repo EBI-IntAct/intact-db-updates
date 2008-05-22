@@ -17,23 +17,21 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
-import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.uniprot.UniprotServiceException;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.util.protein.ProteinService;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
-import uk.ac.ebi.intact.util.protein.ProteinServiceFactory;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
-import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -44,11 +42,16 @@ import java.util.Iterator;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class UniprotProteinUpdater extends AbstractProteinProcessorListener {
+public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinProcessorListener {
     
     private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
-    
-    @Override
+
+    private ProteinProcessor proteinProcessor;
+
+    public UniprotProteinUpdater() {
+        super(null);
+    }
+
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
@@ -60,11 +63,19 @@ public class UniprotProteinUpdater extends AbstractProteinProcessorListener {
         }
     }
 
-    @Override
     public void onProcess(ProteinEvent evt) throws ProcessorException {
+        this.proteinProcessor = (ProteinProcessor) evt.getSource();
+
         Protein protToUpdate = evt.getProtein();
 
         InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protToUpdate);
+        try {
+            retrieve(uniprotXref.getPrimaryId());
+        } catch (Exception e) {
+            throw new ProcessorException(e);
+        }
+
+        /*
         UniprotProtein uniprotProtein = null;
         try {
             uniprotProtein = findUniprotProtein(uniprotXref.getPrimaryId(), protToUpdate.getBioSource().getTaxId());
@@ -72,10 +83,29 @@ public class UniprotProteinUpdater extends AbstractProteinProcessorListener {
             throw new ProcessorException("Problem finding protein in UniProt: "+uniprotXref.getPrimaryId());
         }
 
-//       ProteinService protService = ProteinServiceFactory.getInstance().buildProteinService(new UniprotRemoteService());
-//       protService.setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(new NewtTaxonomyService()));
-//       UniprotServiceResult result = protService.retrieve(uniprotXref.getPrimaryId());
-//       System.out.println(result.getMessages());
+        try {
+            createOrUpdate(uniprotProtein);
+        } catch (ProteinServiceException e) {
+            e.printStackTrace();
+        }*/
+    }
+
+    public void onDelete(ProteinEvent evt) throws ProcessorException {}
+
+    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {}
+
+    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {}
+
+    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {}
+
+    @Override
+    protected void deleteProtein(Protein protein) {
+        proteinProcessor.fireOnDelete(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
+    }
+
+    @Override
+    protected void sequenceChanged(Protein protein, String oldSequence) {
+        proteinProcessor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence));
     }
 
     private UniprotProtein findUniprotProtein( String id, String taxid ) throws UniprotServiceException {

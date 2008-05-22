@@ -21,9 +21,9 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.business.IntactTransactionException;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
@@ -119,6 +119,7 @@ public abstract class ProteinProcessor {
                 }
 
                 // load annotations (to avoid lazyinitializationexceptions later)
+                protein.getXrefs().size();
                 protein.getAnnotations().size();
             }
 
@@ -131,7 +132,7 @@ public abstract class ProteinProcessor {
         } while (!protsToUpdate.isEmpty());
     }
 
-    public void update(Collection<? extends Protein> protsToUpdate) throws ProcessorException {
+    public void update(List<? extends Protein> protsToUpdate) throws ProcessorException {
        registerListenersIfNotDoneYet();
 
         if (log.isTraceEnabled()) log.trace("Going to process "+protsToUpdate.size()+" proteins");
@@ -205,13 +206,13 @@ public abstract class ProteinProcessor {
         }
     }
 
-    public void fireOnPreDelete(ProteinEvent evt) {
+    public void fireOnDelete(ProteinEvent evt) {
         Object[] listeners = listenerList.getListenerList();
 
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
                 try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onPreDelete(evt);
+                    ((ProteinProcessorListener) listeners[i + 1]).onDelete(evt);
                 } catch (ProcessorException e) {
                     e.printStackTrace();
                 }

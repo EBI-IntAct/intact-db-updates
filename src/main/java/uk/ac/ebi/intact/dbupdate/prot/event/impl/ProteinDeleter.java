@@ -13,44 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.event;
+package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 
 /**
- * Basic implementation of the ProteinProcessorListener
+ * Removes a protein from the database
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public abstract class AbstractProteinProcessorListener implements ProteinProcessorListener {
+public class ProteinDeleter extends AbstractProteinProcessorListener {
 
-    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        // nothing
-    }
-
-    public void onProcess(ProteinEvent evt) throws ProcessorException {
-        // nothing
-    }
-
+    @Override
     public void onDelete(ProteinEvent evt) throws ProcessorException {
-        // nothing
+       deleteProtein(evt.getProtein(), evt);
     }
 
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
-         // nothing
-    }
+    private void deleteProtein(Protein protein, ProteinEvent evt) {
+        ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
-        // nothing
-    }
-
-    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
-        // nothing
-    }
-
-    protected String protInfo(Protein protein) {
-        return protein.getShortLabel()+" ("+protein.getAc()+")";
+        if (!proteinDao.isTransient((ProteinImpl)protein)) {
+            proteinDao.delete((ProteinImpl)protein);
+        }
     }
 }

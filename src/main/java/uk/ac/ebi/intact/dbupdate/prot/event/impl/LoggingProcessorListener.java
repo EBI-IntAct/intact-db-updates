@@ -17,11 +17,11 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 /**
@@ -42,7 +42,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener {
        if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
     }
 
-    public void onPreDelete(ProteinEvent evt) throws ProcessorException {
+    public void onDelete(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Deleted protein: "+evt.getProtein().getShortLabel());
     }
 
