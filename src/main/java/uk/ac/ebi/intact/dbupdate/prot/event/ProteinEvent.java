@@ -31,8 +31,6 @@ public class ProteinEvent extends EventObject implements ProteinProcessorEvent{
     private Protein protein;
     private DataContext dataContext;
 
-    private boolean finalizationRequested;
-
     /**
      * A protein update event
      *
@@ -43,14 +41,6 @@ public class ProteinEvent extends EventObject implements ProteinProcessorEvent{
         super(source);
         this.protein = protein;
         this.dataContext = dataContext;
-    }
-
-    public void requestFinalization() {
-        this.finalizationRequested = true;
-    }
-
-    public boolean isFinalizationRequested() {
-        return finalizationRequested;
     }
 
     public DataContext getDataContext() {

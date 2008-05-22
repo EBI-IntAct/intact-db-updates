@@ -15,6 +15,12 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
+import uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService;
+import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.UniprotService;
+
 /**
  * TODO comment that class header
  *
@@ -29,7 +35,22 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean deleteSpliceVariantsWithoutInteractions = false;
 
+    private UpdateReportHandler reportHandler;
+
+    private UniprotService uniprotService;
+    private TaxonomyService taxonomyService;
+
     private int processBatchSize = 20;
+
+    public ProteinUpdateProcessorConfig() {
+        this.uniprotService = new UniprotRemoteService();
+        this.taxonomyService = new NewtTaxonomyService();
+    }
+
+    public ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
+        this();
+        this.reportHandler = reportHandler;
+    }
 
     public boolean isFixDuplicates() {
         return fixDuplicates;
@@ -61,5 +82,29 @@ public class ProteinUpdateProcessorConfig {
 
     public void setDeleteSpliceVariantsWithoutInteractions(boolean deleteSpliceVariantsWithoutInteractions) {
         this.deleteSpliceVariantsWithoutInteractions = deleteSpliceVariantsWithoutInteractions;
+    }
+
+    public UpdateReportHandler getReportHandler() {
+        return reportHandler;
+    }
+
+    public void setReportHandler(UpdateReportHandler reportHandler) {
+        this.reportHandler = reportHandler;
+    }
+
+    public UniprotService getUniprotService() {
+        return uniprotService;
+    }
+
+    public void setUniprotService(UniprotService uniprotService) {
+        this.uniprotService = uniprotService;
+    }
+
+    public TaxonomyService getTaxonomyService() {
+        return taxonomyService;
+    }
+
+    public void setTaxonomyService(TaxonomyService taxonomyService) {
+        this.taxonomyService = taxonomyService;
     }
 }

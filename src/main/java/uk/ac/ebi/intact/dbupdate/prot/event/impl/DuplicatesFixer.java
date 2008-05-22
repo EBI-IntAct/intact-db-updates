@@ -87,6 +87,6 @@ public class DuplicatesFixer extends AbstractProteinProcessorListener {
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
         ProteinProcessor processor = (ProteinProcessor) evt.getSource();
-        processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), protein));
+        processor.fireOnDelete(new ProteinEvent(evt.getSource(), evt.getDataContext(), protein));
     }
 }

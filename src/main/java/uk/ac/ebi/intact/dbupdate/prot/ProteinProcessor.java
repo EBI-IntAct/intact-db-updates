@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.util.DebugUtil;
 
@@ -51,6 +52,11 @@ public abstract class ProteinProcessor {
     private int batchSize = 50;
 
     private List<String> previousBatchACs;
+
+    private boolean finalizationRequested;
+
+    private Protein currentProtein;
+
 
     public ProteinProcessor() {
         previousBatchACs = new ArrayList<String>();
@@ -117,19 +123,41 @@ public abstract class ProteinProcessor {
                 if (intersectedACs.contains(protein.getAc())) {
                     protIterator.remove();
                 }
-
-                // load annotations (to avoid lazyinitializationexceptions later)
-                protein.getXrefs().size();
-                protein.getAnnotations().size();
             }
 
-            update(protsToUpdate);
-
             commitTransaction();
+
+            updateByACs(DebugUtil.acList(protsToUpdate));
 
             firstResult = firstResult+(batchSize/2);
 
         } while (!protsToUpdate.isEmpty());
+    }
+
+    public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
+        for (String protAc : protACsToUpdate) {
+            dataContext.beginTransaction();
+            ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
+
+            if (prot == null) {
+                if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protACsToUpdate);
+                return;
+            }
+
+            // load annotations (to avoid lazyinitializationexceptions later)
+            prot.getXrefs().size();
+            prot.getAnnotations().size();
+
+            update(prot);
+
+            try {
+                dataContext.commitTransaction();
+            } catch (IntactTransactionException e) {
+                throw new ProcessorException(e);
+            }
+        }
     }
 
     public void update(List<? extends Protein> protsToUpdate) throws ProcessorException {
@@ -143,7 +171,11 @@ public abstract class ProteinProcessor {
     }
 
     public void update(Protein protToUpdate) throws ProcessorException {
+        this.currentProtein = protToUpdate;
+        
         registerListenersIfNotDoneYet();
+
+        finalizationRequested = false;
 
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
@@ -152,7 +184,7 @@ public abstract class ProteinProcessor {
         ProteinEvent preProcessEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnPreProcess(preProcessEvent);
 
-        if (preProcessEvent.isFinalizationRequested()) {
+        if (isFinalizationRequested()) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Pre-Process phase");
             return;
         }
@@ -162,12 +194,19 @@ public abstract class ProteinProcessor {
         ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnProcess(processEvent);
 
-        if (preProcessEvent.isFinalizationRequested()) {
+        if (isFinalizationRequested() ) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Process phase");
             return;
         }
     }
 
+    public void finalizeAfterCurrentPhase() {
+        finalizationRequested = true;
+    }
+
+    public boolean isFinalizationRequested() {
+        return finalizationRequested;
+    }
 
     // listener methods
     public void addProteinUpdaterListener(ProteinProcessorListener listener) {
@@ -184,7 +223,12 @@ public abstract class ProteinProcessor {
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
                 try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onPreProcess(evt);
+                    ProteinProcessorListener listener = (ProteinProcessorListener) listeners[i + 1];
+                    if (isFinalizationRequested()) {
+                        log.debug("Processor finalization already requested. Skipping: "+listener.getClass());
+                        return;
+                    }
+                    listener.onPreProcess(evt);
                 } catch (ProcessorException e) {
                     e.printStackTrace();
                 }
@@ -198,7 +242,12 @@ public abstract class ProteinProcessor {
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
                 try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onProcess(evt);
+                    ProteinProcessorListener listener = (ProteinProcessorListener) listeners[i + 1];
+                    if (isFinalizationRequested()) {
+                        log.debug("Processor finalization already requested. Skipping: "+listener.getClass());
+                        return;
+                    }
+                    listener.onProcess(evt);
                 } catch (ProcessorException e) {
                     e.printStackTrace();
                 }
@@ -262,6 +311,20 @@ public abstract class ProteinProcessor {
         }
     }
 
+    public void fireOnProteinCreated(ProteinEvent evt) {
+        Object[] listeners = listenerList.getListenerList();
+
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ProteinProcessorListener.class) {
+                try {
+                    ((ProteinProcessorListener) listeners[i + 1]).onProteinCreated(evt);
+                } catch (ProcessorException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     private void registerListenersIfNotDoneYet() {
         if (listenerList.getListenerCount() == 0) {
             registerListeners();
@@ -281,5 +344,9 @@ public abstract class ProteinProcessor {
         } catch (IntactTransactionException e) {
             throw new ProcessorException("Problem committing", e);
         }
+    }
+
+    public Protein getCurrentProtein() {
+        return currentProtein;
     }
 }

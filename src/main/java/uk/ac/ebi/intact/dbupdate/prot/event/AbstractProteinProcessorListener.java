@@ -50,6 +50,10 @@ public abstract class AbstractProteinProcessorListener implements ProteinProcess
         // nothing
     }
 
+    public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
+        // nothing
+    }
+
     protected String protInfo(Protein protein) {
         return protein.getShortLabel()+" ("+protein.getAc()+")";
     }

@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
@@ -27,14 +28,9 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.UniprotServiceException;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
+import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Updates the current protein in the database, using information from uniprot
@@ -48,8 +44,9 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
     private ProteinProcessor proteinProcessor;
 
-    public UniprotProteinUpdater() {
-        super(null);
+    public UniprotProteinUpdater(UniprotService uniprotService, TaxonomyService taxonomyService) {
+        super(uniprotService);
+        setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
     }
 
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
@@ -59,7 +56,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
         if (!ProteinUtils.isFromUniprot(protein)) {
             if (log.isTraceEnabled()) log.trace("Request finalization, as this protein cannot be updated using UniProt");
-            evt.requestFinalization();
+            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
     }
 
@@ -75,19 +72,6 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
             throw new ProcessorException(e);
         }
 
-        /*
-        UniprotProtein uniprotProtein = null;
-        try {
-            uniprotProtein = findUniprotProtein(uniprotXref.getPrimaryId(), protToUpdate.getBioSource().getTaxId());
-        } catch (UniprotServiceException e) {
-            throw new ProcessorException("Problem finding protein in UniProt: "+uniprotXref.getPrimaryId());
-        }
-
-        try {
-            createOrUpdate(uniprotProtein);
-        } catch (ProteinServiceException e) {
-            e.printStackTrace();
-        }*/
     }
 
     public void onDelete(ProteinEvent evt) throws ProcessorException {}
@@ -97,6 +81,8 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {}
 
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {}
+
+    public void onProteinCreated(ProteinEvent evt) throws ProcessorException {}
 
     @Override
     protected void deleteProtein(Protein protein) {
@@ -108,26 +94,8 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         proteinProcessor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence));
     }
 
-    private UniprotProtein findUniprotProtein( String id, String taxid ) throws UniprotServiceException {
-        UniprotService uniprot = new UniprotRemoteService();
-        Collection<UniprotProtein> uniprotProteins = uniprot.retrieve( id );
-        for ( Iterator<UniprotProtein> iterator = uniprotProteins.iterator(); iterator.hasNext(); ) {
-            UniprotProtein protein = iterator.next();
-            int t = protein.getOrganism().getTaxid();
-            if ( !String.valueOf(t).equals(taxid) ) {
-                log.info( "Protein " + id + " was filtered out. Taxid required: " + taxid + ", found: " + t + "." );
-                iterator.remove();
-            }
-        }
-
-        if (uniprotProteins.isEmpty()) {
-            return null;
-        }
-
-        if (log.isWarnEnabled() && uniprotProteins.size() > 1) {
-            log.warn("More than 1 uniprot protein found for Uniprot AC '"+id+" and taxid '"+taxid+"'");
-        }
-
-        return uniprotProteins.iterator().next();
+    @Override
+    protected void proteinCreated(Protein protein) {
+         proteinProcessor.fireOnProteinCreated(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
     }
 }

@@ -17,10 +17,13 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 
 /**
  * TODO comment that class header
@@ -30,15 +33,21 @@ import uk.ac.ebi.intact.model.Protein;
  */
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
+    private class DummyProcessor extends ProteinProcessor {
+        protected void registerListeners() { }
+    }
+
     @Test
     public void onPreProcess_uniprot() throws Exception{
-         Protein prot = getMockBuilder().createProteinRandom();
-        ProteinEvent evt = new ProteinEvent(this, null, prot);
+        Protein prot = getMockBuilder().createProteinRandom();
+        ProteinProcessor processor = new DummyProcessor();
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater();
+        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+
+        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService(), new NewtTaxonomyService());
         listener.onPreProcess(evt);
 
-        Assert.assertFalse(evt.isFinalizationRequested());
+        Assert.assertFalse(processor.isFinalizationRequested());
     }
     
     @Test
@@ -47,11 +56,13 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         prot.getXrefs().clear();
         prot.addAnnotation(getMockBuilder().createAnnotation("nonUniprot", null, CvTopic.NON_UNIPROT));
 
-        ProteinEvent evt = new ProteinEvent(this, null, prot);
+        ProteinProcessor processor = new DummyProcessor();
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater();
+        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+
+        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService(), new NewtTaxonomyService());
         listener.onPreProcess(evt);
 
-        Assert.assertTrue(evt.isFinalizationRequested());
+        Assert.assertTrue(processor.isFinalizationRequested());
     }
 }

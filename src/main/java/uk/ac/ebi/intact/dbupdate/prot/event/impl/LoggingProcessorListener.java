@@ -57,4 +57,8 @@ public class LoggingProcessorListener implements ProteinProcessorListener {
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Sequence for protein has changed: "+evt.getProtein().getShortLabel());
     }
+
+    public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Protein created: "+evt.getProtein().getShortLabel());
+    }
 }

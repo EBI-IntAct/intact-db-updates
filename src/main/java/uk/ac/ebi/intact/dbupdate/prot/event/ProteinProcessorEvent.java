@@ -11,9 +11,6 @@ import java.io.Serializable;
  * @version $Id$
  */
 public interface ProteinProcessorEvent extends Serializable {
-    void requestFinalization();
-
-    boolean isFinalizationRequested();
 
     DataContext getDataContext();
 }

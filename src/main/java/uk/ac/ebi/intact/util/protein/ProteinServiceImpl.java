@@ -238,6 +238,8 @@ public class ProteinServiceImpl implements ProteinService {
             proteins.add( protein );
             updateProtein( protein, uniprotProtein, proteins );
 
+            proteinCreated(protein);
+
         } else if ( countPrimary == 0 && countSecondary == 1 ) {
             if (log.isDebugEnabled())
                 log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
@@ -590,6 +592,8 @@ public class ProteinServiceImpl implements ProteinService {
                 // update
                 updateSpliceVariant( intactSpliceVariant, protein, match.getUniprotSpliceVariant(), uniprotProtein, proteins );
 
+                proteinCreated(intactSpliceVariant);
+
             } else {
                 Protein intactSpliceVariant = match.getIntactProtein();
 
@@ -610,6 +614,10 @@ public class ProteinServiceImpl implements ProteinService {
                 }
             }
         }
+    }
+
+    protected void proteinCreated(Protein protein) {
+        // nothing
     }
 
     protected void sequenceChanged(Protein protein, String oldSequence) {

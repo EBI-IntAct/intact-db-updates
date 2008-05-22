@@ -92,13 +92,10 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinProcessorListe
                     for (Protein spliceVar : spliceVars) {
                         deleteProtein(spliceVar, evt);
                     }
-                    
-                    evt.requestFinalization();
 
                 } else if (isDeleteSpliceVariantsWithoutInteractions()) {
                     if (log.isDebugEnabled()) log.debug("Splice variant will be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
                     deleteProtein(protein, evt);
-                    evt.requestFinalization();
                 } else {
                     if (log.isDebugEnabled()) log.debug("Protein is a splice variant (without interactions) and won't be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
                 }

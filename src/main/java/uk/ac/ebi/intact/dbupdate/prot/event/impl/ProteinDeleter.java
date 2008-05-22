@@ -15,7 +15,10 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
@@ -30,15 +33,24 @@ import uk.ac.ebi.intact.persistence.dao.ProteinDao;
  */
 public class ProteinDeleter extends AbstractProteinProcessorListener {
 
+    private static final Log log = LogFactory.getLog( ProteinDeleter.class );
+
     @Override
     public void onDelete(ProteinEvent evt) throws ProcessorException {
-       deleteProtein(evt.getProtein(), evt);
+        deleteProtein(evt.getProtein(), evt);
     }
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
+        if (log.isDebugEnabled()) log.debug("Deleting protein: "+protInfo(protein));
+        
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
         if (!proteinDao.isTransient((ProteinImpl)protein)) {
+            ProteinProcessor processor = (ProteinProcessor)evt.getSource();
+
+            if (protein.getAc().equals(processor.getCurrentProtein().getAc())) {
+                processor.finalizeAfterCurrentPhase();
+            }
             proteinDao.delete((ProteinImpl)protein);
         }
     }

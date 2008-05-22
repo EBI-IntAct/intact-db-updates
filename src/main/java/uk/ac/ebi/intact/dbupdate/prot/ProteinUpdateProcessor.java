@@ -44,19 +44,30 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     protected void registerListeners() {
         addListener(new LoggingProcessorListener());
 
+        boolean forceDeleteOfProteins = false;
+
         if (configUpdate.isFixDuplicates()) {
             addListener(new DuplicatesFinder());
             addListener(new DuplicatesFixer());
+            forceDeleteOfProteins = true;
         }
 
         if (configUpdate.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
             deleter.setDeleteSpliceVariantsWithoutInteractions(configUpdate.isDeleteSpliceVariantsWithoutInteractions());
             addListener(deleter);
+            forceDeleteOfProteins = true;
+        }
+
+        if (forceDeleteOfProteins) {
+            addListener(new ProteinDeleter());
         }
         
-        addListener(new UniprotProteinUpdater());
-        addListener(new ProteinDeleter());
+        addListener(new UniprotProteinUpdater(configUpdate.getUniprotService(), configUpdate.getTaxonomyService()));
+
+        if (configUpdate.getReportHandler() != null) {
+            addListener(new ReportWriterListener(configUpdate.getReportHandler()));
+        }
     }
 
 }
