@@ -29,6 +29,7 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -104,7 +105,14 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         Assert.assertNotNull(dupe2FromDb);
         // xrefs: identity and intact-secondary
-        Assert.assertEquals(2, dupe2FromDb.getXrefs().size());
+        Collection<InteractorXref> dupe2Xrefs = dupe2FromDb.getXrefs();
+        Assert.assertEquals(2, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+
+        for (InteractorXref xref : dupe2Xrefs) {
+            if ("intact-secondary".equals(xref.getCvXrefQualifier().getShortLabel())) {
+                Assert.assertEquals(dupe1.getAc(), xref.getPrimaryId());
+            }
+        }
     }
 }
