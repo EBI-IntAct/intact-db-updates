@@ -75,6 +75,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
                         containsSpliceVarsWithInteractions = true;
                     } else if (isDeleteSpliceVariantsWithoutInteractions()) {
                         if (log.isDebugEnabled()) log.debug("Splice variant for protein '"+protein.getShortLabel()+"' will be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
+                        evt.setMessage("Splice variant without interactions");
                         deleteProtein(spliceVar, evt);
                     }
                 }
@@ -84,17 +85,20 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
             if (!containsSpliceVarsWithInteractions) {
                 if (!isSpliceVariant) {
                     if (log.isDebugEnabled()) log.debug("Protein will be deleted (no interactions, no splice variants): "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
+                    evt.setMessage("No interactions");
                     deleteProtein(protein, evt);
 
                     // if the master protein does not have interactions, nor any of the splice variants, we remove all of them.
                     // note that the previous algorithm above that iterates spliceVariants only removes the ones without interactions
                     // if the corresponding configuration is set. This iteration, removes all the splice variants for the master prot
                     for (Protein spliceVar : spliceVars) {
+                        evt.setMessage("Splice variant without interactions (master without interactions as well)");
                         deleteProtein(spliceVar, evt);
                     }
 
                 } else if (isDeleteSpliceVariantsWithoutInteractions()) {
                     if (log.isDebugEnabled()) log.debug("Splice variant will be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
+                    evt.setMessage("Splice variant without interactions - however master does");
                     deleteProtein(protein, evt);
                 } else {
                     if (log.isDebugEnabled()) log.debug("Protein is a splice variant (without interactions) and won't be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
@@ -113,7 +117,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-        processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), protein));
+        processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), protein, evt.getMessage()));
     }
 
     public boolean isDeleteSpliceVariantsWithoutInteractions() {

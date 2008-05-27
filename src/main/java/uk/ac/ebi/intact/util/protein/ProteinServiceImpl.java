@@ -545,8 +545,6 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
-//        if((databaseName2mi == null))
         XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi );
 
         // Aliases
@@ -619,7 +617,6 @@ public class ProteinServiceImpl implements ProteinService {
                 if(intactSpliceVariant.getActiveInstances().size() == 0){
                     deleteProtein(intactSpliceVariant);
 
-//                    proteinDao.delete((ProteinImpl) intactSpliceVariant);
                     uniprotServiceResult.addMessage("The protein " + getProteinDescription(intactSpliceVariant) +
                             " is a splice variant of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
                             " As it is not part of any interactions in IntAct we have deleted it."  );

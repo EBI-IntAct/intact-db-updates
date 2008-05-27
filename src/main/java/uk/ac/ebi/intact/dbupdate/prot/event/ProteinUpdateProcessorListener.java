@@ -37,4 +37,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onProteinCreated(ProteinEvent evt) throws ProcessorException;
 
+    void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException;
+
 }

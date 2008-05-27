@@ -18,7 +18,6 @@ package uk.ac.ebi.intact.dbupdate.prot.report;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * TODO comment that class header
@@ -28,12 +27,12 @@ import java.io.Writer;
  */
 public class FileReportHandler implements UpdateReportHandler{
 
-    private Writer preProcessedWriter;
-    private Writer processedWriter;
-    private Writer duplicatesWriter;
-    private Writer deletedWriter;
-    private Writer deadWriter;
-    private Writer createdWriter;
+    private ReportWriter preProcessedWriter;
+    private ReportWriter processedWriter;
+    private ReportWriter duplicatesWriter;
+    private ReportWriter deletedWriter;
+    private ReportWriter deadWriter;
+    private ReportWriter createdWriter;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -44,40 +43,40 @@ public class FileReportHandler implements UpdateReportHandler{
             throw new IOException("The file passed to the constructor has to be a directory: "+dirFile);
         }
 
-        this.preProcessedWriter = new FileWriter(new File(dirFile, "pre_processed.csv"));
-        this.processedWriter = new FileWriter(new File(dirFile, "processed.csv"));
-        this.duplicatesWriter = new FileWriter(new File(dirFile, "duplicates.txt"));
-        this.deletedWriter = new FileWriter(new File(dirFile, "deleted.csv"));
-        this.deadWriter = new FileWriter(new File(dirFile, "dead.csv"));
-        this.createdWriter = new FileWriter(new File(dirFile, "created.csv"));
+        this.preProcessedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "pre_processed.csv")));
+        this.processedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "processed.csv")));
+        this.duplicatesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "duplicates.csv")));
+        this.deletedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted.csv")));
+        this.deadWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead.csv")));
+        this.createdWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "created.csv")));
     }
 
-    public Writer getPreProcessedWriter() throws IOException {
+    public ReportWriter getPreProcessedWriter() throws IOException {
         return preProcessedWriter;
     }
 
-    public Writer getProcessedWriter() throws IOException {
+    public ReportWriter getProcessedWriter() throws IOException {
         return processedWriter;
     }
 
-    public Writer getDuplicatedWriter() throws IOException {
+    public ReportWriter getDuplicatedWriter() throws IOException {
         return duplicatesWriter;
     }
 
-    public Writer getDeletedWriter() throws IOException {
+    public ReportWriter getDeletedWriter() throws IOException {
         return deletedWriter;
     }
 
-    public Writer getDeadWriter() throws IOException {
+    public ReportWriter getDeadWriter() throws IOException {
         return deadWriter;
     }
 
-    public Writer getCreatedWriter() throws IOException {
+    public ReportWriter getCreatedWriter() throws IOException {
         return createdWriter;
     }
 
     public void close() throws IOException {
-         this.preProcessedWriter.close();
+        this.preProcessedWriter.close();
         this.processedWriter.close();
         this.duplicatesWriter.close();
         this.deletedWriter.close();

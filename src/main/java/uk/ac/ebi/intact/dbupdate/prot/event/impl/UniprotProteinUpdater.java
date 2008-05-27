@@ -102,8 +102,9 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         List<Protein> proteins = new ArrayList<Protein>(primaryProteins.size()+secondaryProteins.size());
         proteins.addAll(primaryProteins);
         proteins.addAll(secondaryProteins);
-        proteinProcessor.fireOnProteinDuplicationFound(new MultiProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins));
+        MultiProteinEvent event = new MultiProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins);
+        proteinProcessor.fireOnProteinDuplicationFound(event);
 
-        return DuplicatesFixer.calculateOriginalProtein(proteins);
+        return event.getReferenceProtein();
     }
 }

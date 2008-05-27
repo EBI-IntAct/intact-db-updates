@@ -19,6 +19,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -26,7 +27,6 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * TODO comment that class header
@@ -49,7 +49,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         try {
-            writeLine(reportHandler.getPreProcessedWriter(), evt.getProtein());
+            writeDefaultLine(reportHandler.getPreProcessedWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -58,8 +58,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
         try {
-            Writer duplicatedWriter = reportHandler.getDuplicatedWriter();
-            duplicatedWriter.write((DebugUtil.acList(evt.getProteins())+ NEW_LINE));
+            ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
+            duplicatedWriter.writeHeaderIfNecessary("Kept", "Duplicated ACs", "Duplicated shortLabels");
+            duplicatedWriter.writeColumnValues(evt.getReferenceProtein().getAc(),
+                                               DebugUtil.acList(evt.getProteins()).toString(),
+                                               DebugUtil.labelList(evt.getProteins()).toString());
             reportHandler.getDuplicatedWriter().flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
@@ -69,7 +72,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onProcess(ProteinEvent evt) throws ProcessorException {
         try {
-            writeLine(reportHandler.getProcessedWriter(), evt.getProtein());
+            writeDefaultLine(reportHandler.getProcessedWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -78,7 +81,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         try {
-            writeLine(reportHandler.getDeletedWriter(), evt.getProtein());
+            writeDefaultLine(reportHandler.getDeletedWriter(), evt.getProtein(), evt.getMessage());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -87,7 +90,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
         try {
-            writeLine(reportHandler.getDeadWriter(), evt.getProtein());
+            writeDefaultLine(reportHandler.getDeadWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -96,17 +99,32 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         try {
-            writeLine(reportHandler.getCreatedWriter(), evt.getProtein());
+
+            writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
     }
 
-    private void writeLine(Writer writer, Protein protein) throws IOException {
+    private void writeDefaultHeaderIfNecessary(ReportWriter writer) throws IOException {
         if (writer != null) {
-            InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
-            String primaryId = (uniprotXref != null)? uniprotXref.getPrimaryId() : "-";
-            writer.write((protein.getAc()+"\t"+protein.getShortLabel()+"\t"+primaryId+NEW_LINE));
+            writer.writeHeaderIfNecessary("ac", "shortLabel", "primaryAC", "message");
+            writer.flush();
+        }
+    }
+
+    private void writeDefaultLine(ReportWriter writer, Protein protein) throws IOException {
+        writeDefaultLine(writer, protein, null);
+    }
+
+    private void writeDefaultLine(ReportWriter writer, Protein protein, String message) throws IOException {
+        writeDefaultHeaderIfNecessary(writer);
+        if (writer != null) {
+           InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
+           String primaryId = (uniprotXref != null)? uniprotXref.getPrimaryId() : "-";
+            message = (message != null)? message : "-";
+
+            writer.writeColumnValues(protein.getAc(), protein.getShortLabel(), primaryId, message);
             writer.flush();
         }
     }

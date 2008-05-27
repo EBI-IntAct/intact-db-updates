@@ -26,10 +26,11 @@ import java.util.EventObject;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProteinEvent extends EventObject implements ProteinProcessorEvent{
+public class ProteinEvent extends EventObject implements ProteinProcessorEvent, MessageContainer {
 
     private Protein protein;
     private DataContext dataContext;
+    private String message;
 
     /**
      * A protein update event
@@ -43,11 +44,24 @@ public class ProteinEvent extends EventObject implements ProteinProcessorEvent{
         this.dataContext = dataContext;
     }
 
+    public ProteinEvent(Object source, DataContext dataContext, Protein protein, String message) {
+        this(source, dataContext, protein);
+        this.message = message;
+    }
+
     public DataContext getDataContext() {
         return dataContext;
     }
 
     public Protein getProtein() {
         return protein;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

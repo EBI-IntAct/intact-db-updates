@@ -18,8 +18,8 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.model.Protein;
 
-import java.util.EventObject;
 import java.util.Collection;
+import java.util.EventObject;
 
 /**
  * TODO comment that class header
@@ -31,6 +31,8 @@ public class MultiProteinEvent extends EventObject implements ProteinProcessorEv
 
     private Collection<Protein> proteins;
     private DataContext dataContext;
+
+    private Protein referenceProtein;
 
     private boolean finalizationRequested;
 
@@ -57,5 +59,13 @@ public class MultiProteinEvent extends EventObject implements ProteinProcessorEv
 
     public Collection<Protein> getProteins() {
         return proteins;
+    }
+
+    public Protein getReferenceProtein() {
+        return referenceProtein;
+    }
+
+    public void setReferenceProtein(Protein referenceProtein) {
+        this.referenceProtein = referenceProtein;
     }
 }

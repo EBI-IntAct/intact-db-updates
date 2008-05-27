@@ -56,6 +56,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
         // calculate the original protein
         Protein originalProt = calculateOriginalProtein(new ArrayList<Protein>(duplicates));
+        evt.setReferenceProtein(originalProt);
 
         // move the interactions from the rest of proteins to the original
         for (Protein duplicate : duplicates) {
@@ -78,7 +79,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                 // and delete the duplicate
                 if (duplicate.getActiveInstances().isEmpty()) {
-                    deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate));
+                    deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
                 } else {
                     throw new IllegalStateException("Attempt to delete a duplicate that still contains interactions: "+protInfo(duplicate));
                 }
@@ -103,6 +104,6 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-        processor.fireOnDelete(new ProteinEvent(evt.getSource(), evt.getDataContext(), protein));
+        processor.fireOnDelete(new ProteinEvent(evt.getSource(), evt.getDataContext(), protein, evt.getMessage()));
     }
 }

@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.report;
+package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
-import java.io.Closeable;
-import java.io.IOException;
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 
 /**
- * Defines the ReportWriters available to a protein update process.
+ * Listens to update cases.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public interface UpdateReportHandler extends Closeable {
+public class UpdateCaseListener extends AbstractProteinUpdateProcessorListener{
 
-    ReportWriter getPreProcessedWriter() throws IOException;
-    ReportWriter getProcessedWriter() throws IOException;
-    ReportWriter getDuplicatedWriter() throws IOException;
-    ReportWriter getDeletedWriter() throws IOException;
-    ReportWriter getDeadWriter() throws IOException;
-    ReportWriter getCreatedWriter() throws IOException;
+    @Override
+    public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
+        super.onUpdateCase(evt);
+    }
 }
