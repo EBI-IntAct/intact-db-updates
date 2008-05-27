@@ -52,6 +52,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         //configUpdate.setProcessBatchSize(3);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe2 = cloner.clone(dupe1);
@@ -89,8 +90,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateAll();
-
-        // TODO: should be 4 or 5?
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
