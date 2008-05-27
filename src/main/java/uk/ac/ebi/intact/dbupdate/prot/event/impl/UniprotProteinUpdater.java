@@ -22,13 +22,23 @@ import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
+import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Updates the current protein in the database, using information from uniprot
@@ -36,7 +46,7 @@ import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinUpdateProcessorListener, ProteinProcessorListener {
+public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinProcessorListener {
     
     private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
 
@@ -72,16 +82,6 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
     }
 
-    public void onDelete(ProteinEvent evt) throws ProcessorException {}
-
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {}
-
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {}
-
-    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {}
-
-    public void onProteinCreated(ProteinEvent evt) throws ProcessorException {}
-
     @Override
     protected void deleteProtein(Protein protein) {
         proteinProcessor.fireOnDelete(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
@@ -95,5 +95,15 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     @Override
     protected void proteinCreated(Protein protein) {
          proteinProcessor.fireOnProteinCreated(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
+    }
+
+    @Override
+    protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        List<Protein> proteins = new ArrayList<Protein>(primaryProteins.size()+secondaryProteins.size());
+        proteins.addAll(primaryProteins);
+        proteins.addAll(secondaryProteins);
+        proteinProcessor.fireOnProteinDuplicationFound(new MultiProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins));
+
+        return DuplicatesFixer.calculateOriginalProtein(proteins);
     }
 }

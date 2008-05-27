@@ -17,13 +17,16 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.util.XrefUtils;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
@@ -60,6 +63,19 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
             if (!duplicate.getAc().equals(originalProt.getAc())) {
                 ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
 
+                // create an "intact-secondary" xref to the protein to be kept.
+                // This will allow the user to search using old ACs
+                Institution owner = duplicate.getOwner();
+                InstitutionXref psiMiXref = XrefUtils.getPsiMiIdentityXref(owner);
+                if (psiMiXref != null) {
+                    CvDatabase db = psiMiXref.getCvDatabase();
+
+                    CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
+                    PersisterHelper.saveOrUpdate(intactSecondary);
+                    InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
+                    originalProt.addXref(xref);
+                }
+
                 // and delete the duplicate
                 if (duplicate.getActiveInstances().isEmpty()) {
                     deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate));
@@ -71,7 +87,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
     }
 
-    protected Protein calculateOriginalProtein(List<? extends Protein> duplicates) {
+    protected static Protein calculateOriginalProtein(List<? extends Protein> duplicates) {
         Protein originalProt = duplicates.get(0);
 
         for (int i = 1; i < duplicates.size(); i++) {

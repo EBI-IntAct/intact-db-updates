@@ -23,10 +23,7 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.model.Interaction;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
@@ -56,7 +53,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         UpdateReportHandler reportHandler = new FileReportHandler(new File("target"));
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig(reportHandler);
-        //configUpdate.setProcessBatchSize(3);
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
@@ -105,6 +103,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         Assert.assertNotNull(dupe2FromDb);
+        // xrefs: identity and intact-secondary
+        Assert.assertEquals(2, dupe2FromDb.getXrefs().size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
     }
 }

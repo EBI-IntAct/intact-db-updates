@@ -204,7 +204,6 @@ public class ProteinServiceImpl implements ProteinService {
     protected Collection<Protein> createOrUpdate( UniprotProtein uniprotProtein ) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
-        Collection<Protein> proteins = new ArrayList<Protein>();
         Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
 
         final String uniprotAc = uniprotProtein.getPrimaryAc();
@@ -231,6 +230,20 @@ public class ProteinServiceImpl implements ProteinService {
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
 
+
+        Collection<Protein> proteins = processCase(uniprotProtein, primaryProteins, secondaryProteins);
+
+        proteins.addAll( nonUniprotProteins );
+            uniprotServiceResult.addAllToProteins(nonUniprotProteins);
+
+        return proteins;
+    }
+
+    private Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+        Collection<Protein> proteins = new ArrayList<Protein>();
+        int countPrimary = primaryProteins.size();
+        int countSecondary = secondaryProteins.size();
 
         if ( countPrimary == 0 && countSecondary == 0 ) {
             if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
@@ -264,49 +277,8 @@ public class ProteinServiceImpl implements ProteinService {
         }else if ( countPrimary == 1 && countSecondary >= 1){
             if (log.isDebugEnabled())
                 log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
-            StringBuffer sb = new StringBuffer();
-            sb.append("Found several protein in IntAct for entry : " + uniprotProtein.getPrimaryAc() + ". 1 with the " +
-                    "primaryAc and " + secondaryProteins.size() + " with the secondary acs. We are going to merged those" +
-                    " proteins into one.").append( NEW_LINE );
-            Protein primaryProt = primaryProteins.iterator().next();
 
-            Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),secondaryProteins);
-
-            sb.append("The protein we keep is : " + protToBeKept.getAc() + "," + protToBeKept.getShortLabel()).append( NEW_LINE );
-            List<Protein> proteinsToDelete = new ArrayList<Protein>();
-            proteinsToDelete.addAll(secondaryProteins);
-            proteinsToDelete.add(primaryProt);
-            proteinsToDelete.remove(protToBeKept);
-
-            ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
-
-            sb.append("The protein which are going to be merged :").append( NEW_LINE );
-
-           CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
-
-	    //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
-            Institution owner = IntactContext.getCurrentInstance().getInstitution();
-            CvDatabase intact = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.INTACT_MI_REF);
-
-            for(Protein protToDelete : proteinsToDelete ){
-
-                // On the protein that we are going to keep add the protein ac of the one we are going to delete as
-                // intact-secondary xref. That way, a user can still search for the protein ac he used to search with
-                // even if it has been deleted.
-                InteractorXref xref = new InteractorXref(owner,intact, protToDelete.getAc(), intactSecondary);
-                xref.setParent(protToBeKept);
-                protToBeKept.addXref(xref);
-                protToDelete.setActiveInstances(new ArrayList());
-                deleteProtein(protToDelete);
-                sb.append("\t" + protToDelete.getAc() + "," + protToDelete.getShortLabel()).append( NEW_LINE );
-            }
-            System.out.println("beofre proteins.add");
-            proteins.add( protToBeKept );
-            proteinDao.saveOrUpdate((ProteinImpl) protToBeKept);
-            updateProtein( protToBeKept, uniprotProtein, proteins );
-            // Message being added.
-            System.out.println("Message being added " + sb);
-            uniprotServiceResult.addMessage(sb.toString());
+            processDuplication(uniprotProtein, primaryProteins, secondaryProteins);
 
         }else {
 
@@ -356,10 +328,56 @@ public class ProteinServiceImpl implements ProteinService {
             }
         }
 
-            proteins.addAll( nonUniprotProteins );
-            uniprotServiceResult.addAllToProteins(nonUniprotProteins);
-
         return proteins;
+    }
+
+    protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("Found several protein in IntAct for entry : " + uniprotProtein.getPrimaryAc() + ". 1 with the " +
+                "primaryAc and " + secondaryProteins.size() + " with the secondary acs. We are going to merged those" +
+                " proteins into one.").append( NEW_LINE );
+        Protein primaryProt = primaryProteins.iterator().next();
+
+        Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),secondaryProteins);
+
+        sb.append("The protein we keep is : " + protToBeKept.getAc() + "," + protToBeKept.getShortLabel()).append( NEW_LINE );
+        List<Protein> proteinsToDelete = new ArrayList<Protein>();
+        proteinsToDelete.addAll(secondaryProteins);
+        proteinsToDelete.add(primaryProt);
+        proteinsToDelete.remove(protToBeKept);
+
+        ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
+
+        sb.append("The protein which are going to be merged :").append( NEW_LINE );
+
+        CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
+
+        //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
+        Institution owner = IntactContext.getCurrentInstance().getInstitution();
+        CvDatabase intact = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.INTACT_MI_REF);
+
+        for(Protein protToDelete : proteinsToDelete ){
+
+            // On the protein that we are going to keep add the protein ac of the one we are going to delete as
+            // intact-secondary xref. That way, a user can still search for the protein ac he used to search with
+            // even if it has been deleted.
+            InteractorXref xref = new InteractorXref(owner,intact, protToDelete.getAc(), intactSecondary);
+            xref.setParent(protToBeKept);
+            protToBeKept.addXref(xref);
+            protToDelete.setActiveInstances(new ArrayList());
+            deleteProtein(protToDelete);
+            sb.append("\t" + protToDelete.getAc() + "," + protToDelete.getShortLabel()).append( NEW_LINE );
+        }
+
+        proteinDao.saveOrUpdate((ProteinImpl) protToBeKept);
+        updateProtein( protToBeKept, uniprotProtein, new ArrayList<Protein>(Arrays.asList(protToBeKept)) );
+        // Message being added.
+
+        uniprotServiceResult.addMessage(sb.toString());
+
+        return protToBeKept;
     }
 
     private void filterByTaxidAndNonUniprot(Collection<Protein> nonUniprotProteins, String taxid, Collection<ProteinImpl> primaryProteins) {
@@ -376,6 +394,7 @@ public class ProteinServiceImpl implements ProteinService {
             }
         }
     }
+
 
     /**
      * Given the protein "protein" it will add to it an annotation with cvTopic to-delete.
