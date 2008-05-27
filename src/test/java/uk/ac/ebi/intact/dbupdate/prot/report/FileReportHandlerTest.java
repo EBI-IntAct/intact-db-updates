@@ -46,7 +46,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
         commitTransaction();
 
-        UpdateReportHandler reportHandler = new FileReportHandler(new File("/target"));
+        UpdateReportHandler reportHandler = new FileReportHandler(new File("target"));
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig(reportHandler);
         //configUpdate.setProcessBatchSize(3);
