@@ -16,9 +16,11 @@
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.model.Interaction;
@@ -39,6 +41,11 @@ import java.util.Date;
  * @version $Id$
  */
 public class FileReportHandlerTest extends IntactBasicTestCase {
+
+    @Before
+    public void before_schema() throws Exception {
+        SchemaUtils.createSchema();
+    }
 
     @Test
     public void simulation() throws Exception {
