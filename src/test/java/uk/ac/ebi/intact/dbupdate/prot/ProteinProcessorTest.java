@@ -21,10 +21,8 @@ import org.junit.Test;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.util.SchemaUtils;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
 
 import java.util.Date;
@@ -60,7 +58,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
          ProteinProcessor processor = new ProteinProcessor(3) {
             protected void registerListeners() {
-                addListener(new AbstractProteinProcessorListener() {
+                addListener(new AbstractProteinUpdateProcessorListener() {
 
                     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
                         if ("main".equals(evt.getProtein().getShortLabel())) {

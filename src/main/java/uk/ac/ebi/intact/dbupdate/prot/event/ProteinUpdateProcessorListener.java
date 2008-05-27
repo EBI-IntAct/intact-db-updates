@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot;
+package uk.ac.ebi.intact.dbupdate.prot.event;
+
+import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+
+import java.util.EventListener;
 
 /**
- * TODO comment that class header
+ * Listener for ProteinProcessors
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProcessorException extends RuntimeException{
+public interface ProteinUpdateProcessorListener extends EventListener {
 
-    public ProcessorException() {
-        super();
-    }
+    void onDelete(ProteinEvent evt) throws ProcessorException;
 
-    public ProcessorException(String message) {
-        super(message);
-    }
+    void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException;
 
-    public ProcessorException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    void onDeadProteinFound(ProteinEvent evt) throws ProcessorException;
 
-    public ProcessorException(Throwable cause) {
-        super(cause);
-    }
+    void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException;
+
+    void onProteinCreated(ProteinEvent evt) throws ProcessorException;
+
 }

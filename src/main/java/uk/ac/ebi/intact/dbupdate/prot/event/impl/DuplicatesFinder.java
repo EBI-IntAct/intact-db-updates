@@ -18,18 +18,15 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.context.DataContext;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.model.Component;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +37,7 @@ import java.util.List;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class DuplicatesFinder extends AbstractProteinProcessorListener {
+public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
 
     private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
 
@@ -109,7 +106,7 @@ public class DuplicatesFinder extends AbstractProteinProcessorListener {
 
         if (!realDuplicates.isEmpty()) {
             // fire a duplication event
-            final ProteinProcessor processor = (ProteinProcessor) evt.getSource();
+            final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
             processor.fireOnProteinDuplicationFound(new MultiProteinEvent(processor, evt.getDataContext(), realDuplicates));
         }
     }

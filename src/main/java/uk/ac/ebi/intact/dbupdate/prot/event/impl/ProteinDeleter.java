@@ -19,7 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -31,7 +31,7 @@ import uk.ac.ebi.intact.persistence.dao.ProteinDao;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProteinDeleter extends AbstractProteinProcessorListener {
+public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
 
     private static final Log log = LogFactory.getLog( ProteinDeleter.class );
 

@@ -13,49 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.event.impl;
+package uk.ac.ebi.intact.dbupdate.prot.event;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.util.DebugUtil;
+import uk.ac.ebi.intact.model.Protein;
 
 /**
- * TODO comment that class header
+ * Basic implementation of the ProteinProcessorListener
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class LoggingProcessorListener implements ProteinProcessorListener, ProteinUpdateProcessorListener {
-
-    private static final Log log = LogFactory.getLog( LoggingProcessorListener.class );
+public abstract class AbstractProteinUpdateProcessorListener implements ProteinProcessorListener, ProteinUpdateProcessorListener {
 
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Pre-processing protein: "+evt.getProtein().getShortLabel());
+        // nothing
     }
 
     public void onProcess(ProteinEvent evt) throws ProcessorException {
-       if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
+        // nothing
     }
 
     public void onDelete(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Deleted protein: "+evt.getProtein().getShortLabel());
+        // nothing
     }
 
     public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Duplicated proteins: "+ DebugUtil.acList(evt.getProteins()));
+         // nothing
     }
 
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Dead protein found: "+evt.getProtein().getShortLabel());
+        // nothing
     }
 
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Sequence for protein has changed: "+evt.getProtein().getShortLabel());
+        // nothing
     }
 
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Protein created: "+evt.getProtein().getShortLabel());
+        // nothing
+    }
+
+    protected String protInfo(Protein protein) {
+        return protein.getShortLabel()+" ("+protein.getAc()+")";
     }
 }

@@ -27,6 +27,7 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.util.Date;
 
@@ -41,6 +42,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @Before
     public void before_schema() throws Exception {
         SchemaUtils.createSchema();
+
+        beginTransaction();
+        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
+        primer.createCVs();
+        commitTransaction();
     }
 
     /**

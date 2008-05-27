@@ -17,6 +17,10 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.impl.*;
 
 /**
@@ -67,6 +71,36 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         if (configUpdate.getReportHandler() != null) {
             addListener(new ReportWriterListener(configUpdate.getReportHandler()));
+        }
+    }
+
+    public void fireOnDelete(ProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onDelete(evt);
+        }
+    }
+
+    public void fireOnProteinDuplicationFound(MultiProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinDuplicationFound(evt);
+        }
+    }
+
+    public void fireOnDeadProteinFound(ProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onDeadProteinFound(evt);
+        }
+    }
+
+    public void fireOnProteinSequenceChanged(ProteinSequenceChangeEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinSequenceChanged(evt);
+        }
+    }
+
+    public void fireOnProteinCreated(ProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinCreated(evt);
         }
     }
 

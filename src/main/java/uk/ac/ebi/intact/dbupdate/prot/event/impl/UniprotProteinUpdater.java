@@ -21,10 +21,8 @@ import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -38,11 +36,11 @@ import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinProcessorListener {
+public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinUpdateProcessorListener, ProteinProcessorListener {
     
     private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
 
-    private ProteinProcessor proteinProcessor;
+    private ProteinUpdateProcessor proteinProcessor;
 
     public UniprotProteinUpdater(UniprotService uniprotService, TaxonomyService taxonomyService) {
         super(uniprotService);
@@ -61,7 +59,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     }
 
     public void onProcess(ProteinEvent evt) throws ProcessorException {
-        this.proteinProcessor = (ProteinProcessor) evt.getSource();
+        this.proteinProcessor = (ProteinUpdateProcessor) evt.getSource();
 
         Protein protToUpdate = evt.getProtein();
 

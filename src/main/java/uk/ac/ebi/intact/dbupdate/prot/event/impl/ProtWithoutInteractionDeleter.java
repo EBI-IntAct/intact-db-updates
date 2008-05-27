@@ -18,8 +18,8 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -38,7 +38,7 @@ import java.util.List;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProtWithoutInteractionDeleter extends AbstractProteinProcessorListener {
+public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcessorListener {
 
     private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleter.class );
 
@@ -112,7 +112,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinProcessorListe
     }
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
-        ProteinProcessor processor = (ProteinProcessor) evt.getSource();
+        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
         processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), protein));
     }
 

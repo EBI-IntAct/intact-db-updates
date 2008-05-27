@@ -21,10 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.business.IntactTransactionException;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.context.IntactContext;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
@@ -68,10 +66,6 @@ public abstract class ProteinProcessor {
     }
 
     protected abstract void registerListeners();
-
-    protected void addListener(ProteinProcessorListener processorListener) {
-        listenerList.add(ProteinProcessorListener.class, processorListener);
-    }
 
     /**
      * Updates all the proteins in the database
@@ -209,119 +203,46 @@ public abstract class ProteinProcessor {
     }
 
     // listener methods
-    public void addProteinUpdaterListener(ProteinProcessorListener listener) {
+    public void addListener(ProteinProcessorListener listener) {
         listenerList.add(ProteinProcessorListener.class, listener);
     }
 
-    public void removeProteinUpdaterListener(ProteinProcessorListener listener) {
+    public void removeListener(ProteinProcessorListener listener) {
         listenerList.remove(ProteinProcessorListener.class, listener);
     }
 
-    public void fireOnPreProcess(ProteinEvent evt) {
+    protected <T> List<T> getListeners(Class<T> listenerClass) {
+        List list = new ArrayList();
+
         Object[] listeners = listenerList.getListenerList();
 
         for (int i = 0; i < listeners.length; i += 2) {
             if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ProteinProcessorListener listener = (ProteinProcessorListener) listeners[i + 1];
-                    if (isFinalizationRequested()) {
-                        log.debug("Processor finalization already requested. Skipping: "+listener.getClass());
-                        return;
-                    }
-                    listener.onPreProcess(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
+                if (listenerClass.isAssignableFrom(listeners[i+1].getClass())) {
+                    list.add(listeners[i+1]);
                 }
             }
+        }
+        return list;
+    }
+
+    public void fireOnPreProcess(ProteinEvent evt) {
+        for (ProteinProcessorListener listener : getListeners(ProteinProcessorListener.class)) {
+            if (isFinalizationRequested()) {
+                log.debug("Processor finalization already requested. Skipping: " + listener.getClass());
+                return;
+            }
+            listener.onPreProcess(evt);
         }
     }
 
     public void fireOnProcess(ProteinEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ProteinProcessorListener listener = (ProteinProcessorListener) listeners[i + 1];
-                    if (isFinalizationRequested()) {
-                        log.debug("Processor finalization already requested. Skipping: "+listener.getClass());
-                        return;
-                    }
-                    listener.onProcess(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
+        for (ProteinProcessorListener listener : getListeners(ProteinProcessorListener.class)) {
+            if (isFinalizationRequested()) {
+                log.debug("Processor finalization already requested. Skipping: " + listener.getClass());
+                return;
             }
-        }
-    }
-
-    public void fireOnDelete(ProteinEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onDelete(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void fireOnProteinDuplicationFound(MultiProteinEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onProteinDuplicationFound(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void fireOnDeadProteinFound(ProteinEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onDeadProteinFound(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void fireOnProteinSequenceChanged(ProteinSequenceChangeEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onProteinSequenceChanged(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public void fireOnProteinCreated(ProteinEvent evt) {
-        Object[] listeners = listenerList.getListenerList();
-
-        for (int i = 0; i < listeners.length; i += 2) {
-            if (listeners[i] == ProteinProcessorListener.class) {
-                try {
-                    ((ProteinProcessorListener) listeners[i + 1]).onProteinCreated(evt);
-                } catch (ProcessorException e) {
-                    e.printStackTrace();
-                }
-            }
+            listener.onProcess(evt);
         }
     }
 

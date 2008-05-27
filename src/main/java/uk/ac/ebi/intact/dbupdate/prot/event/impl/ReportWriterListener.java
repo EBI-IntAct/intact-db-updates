@@ -16,7 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
@@ -34,7 +34,7 @@ import java.io.Writer;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ReportWriterListener extends AbstractProteinProcessorListener {
+public class ReportWriterListener extends AbstractProteinUpdateProcessorListener {
 
 
     private static final String NEW_LINE = System.getProperty("line.separator");
