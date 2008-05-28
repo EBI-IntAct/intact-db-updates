@@ -58,9 +58,15 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Protein created: "+evt.getProtein().getShortLabel());
     }
-
+ 
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
        if (log.isDebugEnabled()) log.debug("Update case: "+evt.getProtein().getId()+" ("+
                                            evt.getPrimaryProteins().size()+" primary - "+evt.getSecondaryProteins().size()+" secondary)");
     }
+
+    public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Non-uniprot protein found: "+evt.getProtein().getShortLabel());
+    }
+
+
 }

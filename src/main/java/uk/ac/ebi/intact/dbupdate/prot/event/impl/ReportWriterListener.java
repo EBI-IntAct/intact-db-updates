@@ -27,6 +27,8 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * TODO comment that class header
@@ -99,8 +101,16 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         try {
-
             writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
+        } catch (IOException e) {
+            throw new ProcessorException(e);
+        }
+    }
+
+    @Override
+    public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
+        try {
+            writeDefaultLine(reportHandler.getNonUniprotProteinWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -108,7 +118,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     private void writeDefaultHeaderIfNecessary(ReportWriter writer) throws IOException {
         if (writer != null) {
-            writer.writeHeaderIfNecessary("ac", "shortLabel", "primaryAC", "message");
+            writer.writeHeaderIfNecessary("ac", "shortLabel", "primary ID", "message");
             writer.flush();
         }
     }
@@ -120,13 +130,38 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     private void writeDefaultLine(ReportWriter writer, Protein protein, String message) throws IOException {
         writeDefaultHeaderIfNecessary(writer);
         if (writer != null) {
-           InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
-           String primaryId = (uniprotXref != null)? uniprotXref.getPrimaryId() : "-";
+            String primaryId = getPrimaryIdString(protein);
             message = (message != null)? message : "-";
 
             writer.writeColumnValues(protein.getAc(), protein.getShortLabel(), primaryId, message);
             writer.flush();
         }
+    }
+
+    private String getPrimaryIdString(Protein protein) {
+        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
+
+        String primaryId = null;
+
+        if (uniprotXref != null) {
+            primaryId = uniprotXref.getPrimaryId();
+        } else {
+            StringBuilder sb = new StringBuilder();
+            List<InteractorXref> xrefs = ProteinUtils.getIdentityXrefs(protein);
+
+            Iterator<InteractorXref> iterator = xrefs.iterator();
+            while (iterator.hasNext()) {
+                InteractorXref xref =  xrefs.iterator().next();
+                sb.append(xref.getCvDatabase().getShortLabel()).append(":").append(xref.getPrimaryId());
+                if (iterator.hasNext()) sb.append("|");
+                primaryId = sb.toString();
+            }
+
+            if (xrefs.isEmpty()) {
+                primaryId = "-";
+            }
+        }
+        return primaryId;
     }
 
 

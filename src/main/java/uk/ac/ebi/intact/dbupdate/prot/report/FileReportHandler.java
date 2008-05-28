@@ -33,6 +33,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter deletedWriter;
     private ReportWriter deadWriter;
     private ReportWriter createdWriter;
+    private ReportWriter nonUniprotProteinWriter;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -49,6 +50,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.deletedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted.csv")));
         this.deadWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead.csv")));
         this.createdWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "created.csv")));
+        this.nonUniprotProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "non_uniprot.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {
@@ -75,6 +77,10 @@ public class FileReportHandler implements UpdateReportHandler{
         return createdWriter;
     }
 
+    public ReportWriter getNonUniprotProteinWriter() {
+        return nonUniprotProteinWriter;
+    }
+
     public void close() throws IOException {
         this.preProcessedWriter.close();
         this.processedWriter.close();
@@ -82,5 +88,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.deletedWriter.close();
         this.deadWriter.close();
         this.createdWriter.close();
+        this.nonUniprotProteinWriter.close();
     }
 }

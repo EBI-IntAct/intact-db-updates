@@ -39,4 +39,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException;
 
+    void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException;
+
 }

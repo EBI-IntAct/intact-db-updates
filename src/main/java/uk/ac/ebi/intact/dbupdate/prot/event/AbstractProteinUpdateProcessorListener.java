@@ -58,6 +58,10 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinP
         // nothing
     }
 
+    public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
+        // nothing
+    }
+
     protected String protInfo(Protein protein) {
         return protein.getShortLabel()+" ("+protein.getAc()+")";
     }

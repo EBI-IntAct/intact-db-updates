@@ -32,4 +32,5 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getDeletedWriter() throws IOException;
     ReportWriter getDeadWriter() throws IOException;
     ReportWriter getCreatedWriter() throws IOException;
+    ReportWriter getNonUniprotProteinWriter() throws IOException;
 }

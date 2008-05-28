@@ -63,6 +63,9 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         if (log.isTraceEnabled()) log.trace("Checking if the protein can be updated using UniProt information: "+ protein.getShortLabel()+" ("+protein.getAc()+")");
 
         if (!ProteinUtils.isFromUniprot(protein)) {
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                ((ProteinUpdateProcessor)evt.getSource()).fireNonUniprotProteinFound(evt);
+            }
             if (log.isTraceEnabled()) log.trace("Request finalization, as this protein cannot be updated using UniProt");
             ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }

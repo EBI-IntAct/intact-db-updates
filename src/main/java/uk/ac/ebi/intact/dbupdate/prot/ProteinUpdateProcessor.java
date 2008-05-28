@@ -104,4 +104,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireNonUniprotProteinFound(ProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onNonUniprotProteinFound(evt);
+        }
+    }
+
 }
