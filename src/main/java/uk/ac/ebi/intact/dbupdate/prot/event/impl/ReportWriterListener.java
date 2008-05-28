@@ -19,6 +19,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -113,6 +114,24 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writeDefaultLine(reportHandler.getNonUniprotProteinWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
+        }
+    }
+
+    @Override
+    public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
+        try {
+            ReportWriter writer = reportHandler.getUpdateCasesWriter();
+            writer.writeHeaderIfNecessary("UniProt ID", "updated (AC)", "updated (labels)", "IA primary c.", "IA secondary c.", "IA primary", "IA secondary");
+            String primaryId = evt.getProtein().getPrimaryAc();
+            writer.writeColumnValues(primaryId, String.valueOf(evt.getPrimaryProteins().size()),
+                                     DebugUtil.acList(evt.getUpdatedProteins()).toString(),
+                                     DebugUtil.labelList(evt.getUpdatedProteins()).toString(),
+                                     String.valueOf(evt.getSecondaryProteins().size()),
+                                     DebugUtil.acList(evt.getPrimaryProteins()).toString(),
+                                     DebugUtil.acList(evt.getSecondaryProteins()).toString());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing update case to stream", e);
         }
     }
 

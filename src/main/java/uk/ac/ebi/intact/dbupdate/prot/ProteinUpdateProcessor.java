@@ -17,10 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.impl.*;
 
 /**
@@ -107,6 +104,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public void fireNonUniprotProteinFound(ProteinEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onNonUniprotProteinFound(evt);
+        }
+    }
+
+    public void fireOnUpdateCase(UpdateCaseEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onUpdateCase(evt);
         }
     }
 

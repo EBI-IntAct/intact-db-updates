@@ -22,10 +22,7 @@ import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -85,6 +82,12 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
     }
 
+    public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
+        final UniprotProtein uniprotProtein = evt.getProtein();
+        final Collection<? extends Protein> primaryProts = evt.getPrimaryProteins();
+        final Collection<? extends Protein> secondaryProts = evt.getSecondaryProteins();
+    }
+
     @Override
     protected void deleteProtein(Protein protein) {
         proteinProcessor.fireOnDelete(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
@@ -109,5 +112,17 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         proteinProcessor.fireOnProteinDuplicationFound(event);
 
         return event.getReferenceProtein();
+    }
+
+    @Override
+    protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        UpdateCaseEvent event = new UpdateCaseEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(),
+                                                    uniprotProtein, primaryProteins, secondaryProteins);
+        proteinProcessor.fireOnUpdateCase(event);
+
+        Collection<Protein> updatedProts = super.processCase(uniprotProtein, primaryProteins, secondaryProteins);
+        event.getUpdatedProteins().addAll(updatedProts);
+
+        return updatedProts;
     }
 }

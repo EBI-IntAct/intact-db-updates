@@ -230,17 +230,14 @@ public class ProteinServiceImpl implements ProteinService {
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
 
-
         Collection<Protein> proteins = processCase(uniprotProtein, primaryProteins, secondaryProteins);
-
         proteins.addAll( nonUniprotProteins );
-            uniprotServiceResult.addAllToProteins(nonUniprotProteins);
+        uniprotServiceResult.addAllToProteins(nonUniprotProteins);
 
         return proteins;
     }
 
-    private Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
-        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+    protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         Collection<Protein> proteins = new ArrayList<Protein>();
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -249,7 +246,7 @@ public class ProteinServiceImpl implements ProteinService {
             if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
             Protein protein = createMinimalisticProtein( uniprotProtein );
             proteins.add( protein );
-            updateProtein( protein, uniprotProtein, proteins );
+            proteins.addAll(updateProtein( protein, uniprotProtein ));
 
             proteinCreated(protein);
 
@@ -264,15 +261,16 @@ public class ProteinServiceImpl implements ProteinService {
             XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
             // Update protein
-            updateProtein( protein, uniprotProtein, proteins );
+            proteins.addAll(updateProtein( protein, uniprotProtein ));
 
         } else if ( countPrimary == 1 && countSecondary == 0 ) {
             if (log.isDebugEnabled())
                 log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
 
             Protein protein = primaryProteins.iterator().next();
-            proteins.add( protein );
-            updateProtein( protein, uniprotProtein, proteins );
+            proteins.add(protein);
+
+            proteins.addAll(updateProtein( protein, uniprotProtein ));
 
         }else if ( countPrimary == 1 && countSecondary >= 1){
             if (log.isDebugEnabled())
@@ -286,7 +284,6 @@ public class ProteinServiceImpl implements ProteinService {
 
             String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
             log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
-            System.out.println( "Could not update that protein, number of protein found in IntAct: " + pCount );
 
             if ( countPrimary > 1 && countSecondary == 0 ) {
                 //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
@@ -372,7 +369,7 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         proteinDao.saveOrUpdate((ProteinImpl) protToBeKept);
-        updateProtein( protToBeKept, uniprotProtein, new ArrayList<Protein>(Arrays.asList(protToBeKept)) );
+        updateProtein( protToBeKept, uniprotProtein );
         // Message being added.
 
         uniprotServiceResult.addMessage(sb.toString());
@@ -515,9 +512,9 @@ public class ProteinServiceImpl implements ProteinService {
      *
      * @param protein        the intact protein to update.
      * @param uniprotProtein the uniprot protein used for data input.
-     * @param proteins a collection of protein where updateProtein will add the splice variant it creates if any.
      */
-    private void updateProtein( Protein protein, UniprotProtein uniprotProtein, Collection<Protein> proteins ) throws ProteinServiceException {
+    private Collection<Protein> updateProtein( Protein protein, UniprotProtein uniprotProtein ) throws ProteinServiceException {
+        List<Protein> proteins = new ArrayList<Protein>();
 
         // check that both protein carry the same organism information
         String t1 = protein.getBioSource().getTaxId();
@@ -528,7 +525,7 @@ public class ProteinServiceImpl implements ProteinService {
                      getProteinDescription(protein) + " by BioSource( " + t2 + "," +
                     uniprotProtein.getOrganism().getName() + " )\nChanging the taxid of an existing protein is a forbidden operation.");
 
-            return;
+            return proteins;
         }
 
         // Fullname
@@ -599,7 +596,13 @@ public class ProteinServiceImpl implements ProteinService {
 
             if ( match.isSuccessful() ) {
                 // update
-                updateSpliceVariant( match.getIntactProtein(), protein, match.getUniprotSpliceVariant(), uniprotProtein, proteins );
+                final UniprotSpliceVariant variant = match.getUniprotSpliceVariant();
+                final Protein intactProtein = match.getIntactProtein();
+                updateSpliceVariant(intactProtein, protein, variant, uniprotProtein );
+
+                if (variant.getSequence() != null) {
+                    proteins.add(intactProtein);
+                }
 
             } else if ( match.hasNoIntact() ) {
                 // create shallow
@@ -607,9 +610,14 @@ public class ProteinServiceImpl implements ProteinService {
                         protein,
                         uniprotProtein );
                 // update
-                updateSpliceVariant( intactSpliceVariant, protein, match.getUniprotSpliceVariant(), uniprotProtein, proteins );
+                final UniprotSpliceVariant uniprotSpliceVariant = match.getUniprotSpliceVariant();
+                updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein );
 
                 proteinCreated(intactSpliceVariant);
+
+                if (uniprotSpliceVariant.getSequence() != null) {
+                    proteins.add(intactSpliceVariant);
+                }
 
             } else {
                 Protein intactSpliceVariant = match.getIntactProtein();
@@ -630,6 +638,8 @@ public class ProteinServiceImpl implements ProteinService {
                 }
             }
         }
+
+        return proteins;
     }
 
     protected void proteinCreated(Protein protein) {
@@ -756,10 +766,8 @@ public class ProteinServiceImpl implements ProteinService {
      */
     private void updateSpliceVariant( Protein spliceVariant, Protein master,
                                       UniprotSpliceVariant uniprotSpliceVariant,
-                                      UniprotProtein uniprotProtein,
-                                      Collection<Protein> updatedProteins
+                                      UniprotProtein uniprotProtein
     ) throws ProteinServiceException {
-
         String shorltabel = uniprotSpliceVariant.getPrimaryAc();
         spliceVariant.setShortLabel( shorltabel );
 
@@ -804,8 +812,6 @@ public class ProteinServiceImpl implements ProteinService {
             annotation.setAnnotationText( note );
             AnnotationUpdaterUtils.addNewAnnotation( spliceVariant, annotation );
         }
-
-        updatedProteins.add(spliceVariant);
     }
 
     /**
