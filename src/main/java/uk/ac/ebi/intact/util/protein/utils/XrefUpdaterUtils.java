@@ -113,7 +113,7 @@ public class XrefUpdaterUtils {
                 Collection<Xref> xrefs = XrefUpdaterUtils.convert( uniprotXrefs, cvDatabase );
                 XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs );
             }else{
-                log.info("We are not copying across xref to " + db);
+                log.debug("We are not copying across xref to " + db);
             }
 
 
@@ -129,8 +129,8 @@ public class XrefUpdaterUtils {
         CvObjectDao<CvDatabase> dbDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao(CvDatabase.class);
         Collection<Xref> convertedXrefs = new ArrayList<Xref>();
         for(UniprotXref uniprotXref : uniprotProtein.getCrossReferences()){
-            String db = uniprotXref.getDatabase();
-            String mi = databaseName2mi.get( db.toLowerCase() );
+            String db = uniprotXref.getDatabase().toLowerCase();
+            String mi = databaseName2mi.get( db );
             CvDatabase cvDatabase = null;
             if ( mi != null ) {
                 cvDatabase = dbDao.getByPsiMiRef( mi );
@@ -142,7 +142,7 @@ public class XrefUpdaterUtils {
             if(cvDatabase!=null){
                 convertedXrefs.add(XrefUpdaterUtils.convert(uniprotXref, cvDatabase));
             }else{
-                log.info("cvDatabase " + db + " could not be found, the uniprot crossRef won't be converted to intact xref");
+                log.debug("cvDatabase " + db + " could not be found, the uniprot crossRef won't be converted to intact xref");
             }
         }
 

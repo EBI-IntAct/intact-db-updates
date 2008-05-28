@@ -123,9 +123,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
             writer.writeHeaderIfNecessary("UniProt ID", "updated (AC)", "updated (labels)", "IA primary c.", "IA secondary c.", "IA primary", "IA secondary");
             String primaryId = evt.getProtein().getPrimaryAc();
-            writer.writeColumnValues(primaryId, String.valueOf(evt.getPrimaryProteins().size()),
+            writer.writeColumnValues(primaryId,
                                      DebugUtil.acList(evt.getUpdatedProteins()).toString(),
                                      DebugUtil.labelList(evt.getUpdatedProteins()).toString(),
+                                     String.valueOf(evt.getPrimaryProteins().size()),
                                      String.valueOf(evt.getSecondaryProteins().size()),
                                      DebugUtil.acList(evt.getPrimaryProteins()).toString(),
                                      DebugUtil.acList(evt.getSecondaryProteins()).toString());
