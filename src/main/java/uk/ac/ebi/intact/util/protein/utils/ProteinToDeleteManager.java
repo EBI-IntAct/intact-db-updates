@@ -5,8 +5,8 @@
  */
 package uk.ac.ebi.intact.util.protein.utils;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * TODO comment this
@@ -16,13 +16,12 @@ import java.util.ArrayList;
  * @since TODO
  */
 public class ProteinToDeleteManager {
-    private static ThreadLocal<Collection<String>> threadLocal = new ThreadLocal<Collection<String>>();
-
-
-    static{
-        Collection<String> acsToDelete = new ArrayList<String>();
-        threadLocal.set(acsToDelete);
-    }
+    private static ThreadLocal<Collection<String>> threadLocal = new ThreadLocal<Collection<String>>() {
+        @Override
+        protected Collection<String> initialValue() {
+            return new ArrayList<String>();
+        }
+    };
 
     public static void addProteinAc(String ac){
         Collection<String> acsToDelete = threadLocal.get();
