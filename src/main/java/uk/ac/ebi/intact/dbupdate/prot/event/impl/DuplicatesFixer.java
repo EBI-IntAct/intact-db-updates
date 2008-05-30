@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -27,6 +28,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
+import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
@@ -63,6 +65,12 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
             // don't process the original protein with itself
             if (!duplicate.getAc().equals(originalProt.getAc())) {
                 ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
+                List<InteractorXref> copiedXrefs = ProteinTools.copyNonIdentityXrefs(originalProt, duplicate);
+
+                for (InteractorXref copiedXref : copiedXrefs) {
+                    DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+                    daoFactory.getXrefDao(InteractorXref.class).persist(copiedXref);
+                }
 
                 // create an "intact-secondary" xref to the protein to be kept.
                 // This will allow the user to search using old ACs

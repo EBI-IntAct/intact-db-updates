@@ -31,6 +31,7 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 
 /**
  * TODO comment that class header
@@ -60,11 +61,26 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe2 = cloner.clone(dupe1);
-        ProteinUtils.getIdentityXrefs(dupe2).iterator().next().setPrimaryId("P12346");
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12346");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
 
         dupe2.setCreated(new Date(1)); // dupe2 is older
+
+        Assert.assertEquals(2, dupe1.getXrefs().size());
+        Assert.assertEquals(1, dupe2.getXrefs().size());
 
         Protein prot1 = getMockBuilder().createProteinRandom();
         Protein prot2 = getMockBuilder().createProteinRandom();
@@ -104,15 +120,27 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         Assert.assertNotNull(dupe2FromDb);
-        // xrefs: identity and intact-secondary
+        // xrefs: identity, intact-secondary and dip
         Collection<InteractorXref> dupe2Xrefs = dupe2FromDb.getXrefs();
-        Assert.assertEquals(2, dupe2Xrefs.size());
-        Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+
+        boolean intactSecondaryFound = false;
+        boolean dipFound = false;
 
         for (InteractorXref xref : dupe2Xrefs) {
-            if ("intact-secondary".equals(xref.getCvXrefQualifier().getShortLabel())) {
+            if (xref.getCvXrefQualifier() != null && "intact-secondary".equals(xref.getCvXrefQualifier().getShortLabel())) {
                 Assert.assertEquals(dupe1.getAc(), xref.getPrimaryId());
+                intactSecondaryFound = true;
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                dipFound = true;
             }
         }
+
+        Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
+        Assert.assertTrue("An dip xref (copied from dupe1) is expected in dupe2", dipFound);
+
+        Assert.assertEquals(3, dupe2Xrefs.size());
+        Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+
+
     }
 }
