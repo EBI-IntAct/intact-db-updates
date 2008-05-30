@@ -685,16 +685,13 @@ public class ProteinServiceImpl implements ProteinService {
         // copy the intact collection
         Collection<Protein> proteins = new ArrayList<Protein>( intactProteins );
 
-        CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
-        CvXrefQualifier identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
-
         for ( Iterator<UniprotSpliceVariant> itsv = uniprotSpliceVariants.iterator(); itsv.hasNext(); ) {
             UniprotSpliceVariant usv = itsv.next();
 
             boolean found = false;
             for ( Iterator<Protein> itp = proteins.iterator(); itp.hasNext() && false == found; ) {
                 Protein protein = itp.next();
-                Collection<Xref> xrefs = AnnotatedObjectUtils.searchXrefs( protein, uniprot, identity );
+                Collection<InteractorXref> xrefs = AnnotatedObjectUtils.searchXrefs( protein, CvDatabase.UNIPROT_MI_REF, CvXrefQualifier.IDENTITY_MI_REF );
                 String upac = null;
                 if ( xrefs.size() == 1 ) {
                     upac = xrefs.iterator().next().getPrimaryId();

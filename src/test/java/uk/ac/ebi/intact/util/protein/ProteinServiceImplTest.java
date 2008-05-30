@@ -11,6 +11,7 @@ import uk.ac.ebi.intact.context.CvContext;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.*;
@@ -39,6 +40,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Before
     public void before() throws Exception {
+        SchemaUtils.createSchema();
+
         beginTransaction();
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
@@ -69,39 +72,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
         service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
         return service;
-    }
-
-    private void clearProteinsFromDatabase() throws IntactTransactionException {
-
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-
-        // delete all interactors
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        InteractorDao idao = daoFactory.getInteractorDao();
-        List all = idao.getAll();
-        System.out.println( "Searching for objects to delete, found " + all.size() + " interactor(s)." );
-
-        if ( !all.isEmpty() ) {
-            System.out.println( "Now deleting them all..." );
-            idao.deleteAll( all );
-
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-
-            // check that interactor count is 0
-            IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-
-            daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-            idao = daoFactory.getInteractorDao();
-
-            List list = idao.getAll();
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-            assertNotNull( list );
-            assertTrue( list.isEmpty() );
-            list = null;
-        } else {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-            System.out.println( "Database was already cleared of any interactor." );
-        }
     }
 
     private Protein getProteinForPrimaryAc(Collection<Protein> proteins, String primaryAc) throws ProteinServiceException {
@@ -138,8 +108,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_CDC42_CANFA() throws Exception {
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         ProteinService service = buildProteinService();
@@ -292,8 +260,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_spliceVariant() throws Exception {
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService service = new FlexibleMockUniprotService();
@@ -350,8 +316,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_update_CDC42_CANFA() throws Exception {
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService service = new FlexibleMockUniprotService();
@@ -437,9 +401,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     @Test
     public void retrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
 
-        // clear database content.
-        clearProteinsFromDatabase();
-
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
         uniprotService.add( "P60952", canfa );
@@ -458,6 +419,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         String proteinCrc = protein.getCrc64();
 
         // Update the seqence/CRC of the protein
+        System.out.println("SEQ: "+proteinSeq);
         assertTrue( proteinSeq.length() > 20 );
         String newSequence = proteinSeq.substring( 2, 20 );
         canfa.setSequence( newSequence );
@@ -486,8 +448,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_intact1_uniprot0() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
+
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
@@ -533,8 +494,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     @Test
     public void retrieve_intact0_uniprot0() throws Exception{
 
-        // clear database content.
-        clearProteinsFromDatabase();
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
@@ -564,9 +523,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      */
     @Test
     public void retrieve_primaryCount0_secondaryCount1() throws Exception{
-
-        // clear database content.
-        clearProteinsFromDatabase();
 
         /*----------------------------------------------------------
         Create in the db, the CANFA protein with primary Ac P60952
@@ -655,9 +611,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     @Test
     public void retrieve_uniprotAcReturningMoreThen1EntryWithDifferentSpecies() throws Exception {
 
-        // clear database content.
-        clearProteinsFromDatabase();
-
         // Create in the db, the CANFA protein with primary Ac P60952
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         //Do some settings
@@ -703,9 +656,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      */
     @Test
     public void retrieve_uniprotAcReturningMoreThen1EntryWithSameSpecies() throws Exception{
-
-        // clear database content.
-        clearProteinsFromDatabase();
 
         /*----------------------------------------------------------
        Create in the db, the CANFA protein with primary Ac P60952
@@ -759,9 +709,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_primaryCount0_secondaryCount2() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
-
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
@@ -840,11 +787,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_primaryCount1_secondaryCount1() throws Exception{
-
-        // clear database content.
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-        clearProteinsFromDatabase();
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -937,8 +879,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_throwException() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -995,9 +935,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_primaryCount2_secondaryCount1() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
-
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
@@ -1109,8 +1046,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_spliceVariantWith2UniprotIdentity() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -1227,9 +1162,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     @Test
     public void retrieve_spliceVariantFoundInIntactNotInUniprot() throws Exception{
 
-        // clear database content.
-        clearProteinsFromDatabase();
-
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         if(IntactContext.getCurrentInstance().getCvContext().getByLabel(CvTopic.class, "to-delete") == null) {
             CvTopic toDelete = new CvTopic(IntactContext.getCurrentInstance().getInstitution(), "to-delete");
@@ -1287,8 +1219,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Test
     public void retrieve_1spliceVariantFoundInIntact2InUniprot() throws Exception{
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -1367,9 +1297,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         // checks that protein moving from TrEMBL to SP are detected and updated accordingly.
         // Essentially, that means having a new Primary AC and the current on in the databse becoming secondary.
 
-        // clear database content.
-        clearProteinsFromDatabase();
-
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -1432,9 +1359,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     public void alias_update() throws Exception {
         // Aim: load a protein from uniprot into IntAct, then change its gene name and check that on the next update
         //      the intact object has been updated accordingly.
-
-        // clear database content.
-        clearProteinsFromDatabase();
 
         IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
