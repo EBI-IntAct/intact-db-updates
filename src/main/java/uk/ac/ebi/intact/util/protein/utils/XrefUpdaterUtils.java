@@ -234,8 +234,17 @@ public class XrefUpdaterUtils {
             if( log.isDebugEnabled() ) {
                 log.debug( "DELETING: " + xref );
             }
-            protein.getXrefs().remove( xref );
+            Iterator<InteractorXref> protXrefsIterator = protein.getXrefs().iterator();
+            while (protXrefsIterator.hasNext()) {
+                InteractorXref interactorXref =  protXrefsIterator.next();
 
+                if (interactorXref.getPrimaryId().equals(xref.getPrimaryId())) {
+                    IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                            .getXrefDao(InteractorXref.class).delete(interactorXref);
+                    protXrefsIterator.remove();
+                }
+
+            }
             updated = true;
         }
         
