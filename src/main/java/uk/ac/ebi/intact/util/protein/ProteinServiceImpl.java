@@ -300,6 +300,11 @@ public class ProteinServiceImpl implements ProteinService {
                     sb.append( NEW_LINE );
                 }
                 uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THEN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+
+                Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
+                proteins.add(updatedProt);
+
+
             } else if ( countPrimary == 0 && countSecondary > 1 ) {
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
 

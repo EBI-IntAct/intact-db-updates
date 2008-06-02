@@ -183,6 +183,13 @@ public abstract class ProteinProcessor {
             return;
         }
 
+        try {
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+        } catch (IntactTransactionException e) {
+            throw new ProcessorException(e);
+        }
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
         if (log.isTraceEnabled()) log.trace("Processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
         ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
