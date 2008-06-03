@@ -120,7 +120,6 @@ public class ProteinServiceImpl implements ProteinService {
 
         Collection<UniprotProtein> uniprotProteins = retrieveFromUniprot( uniprotId );
 
-        Collection<Protein> intactProteins = new ArrayList<Protein>( uniprotProteins.size() );
         try{
             if(uniprotProteins.size() == 0){
                 ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
@@ -150,7 +149,7 @@ public class ProteinServiceImpl implements ProteinService {
                             + " returned a set of proteins belonging to different organisms.", UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE);
                 }
             } else {
-                intactProteins.addAll( createOrUpdate( uniprotProteins ) );
+                createOrUpdate( uniprotProteins );
             }
         }catch(ProteinServiceException e){
 
@@ -158,7 +157,6 @@ public class ProteinServiceImpl implements ProteinService {
             uniprotServiceResult.addError(e.getMessage(), UniprotServiceResult.UNEXPECTED_EXCEPTION_ERROR_TYPE);
         }
 
-        uniprotServiceResult.addAllToProteins(intactProteins);
         return uniprotServiceResult;
     }
 
@@ -230,11 +228,10 @@ public class ProteinServiceImpl implements ProteinService {
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
 
-        Collection<Protein> proteins = processCase(uniprotProtein, primaryProteins, secondaryProteins);
-        proteins.addAll( nonUniprotProteins );
+        processCase(uniprotProtein, primaryProteins, secondaryProteins);
         uniprotServiceResult.addAllToProteins(nonUniprotProteins);
 
-        return proteins;
+        return uniprotServiceResult.getProteins();
     }
 
     protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
