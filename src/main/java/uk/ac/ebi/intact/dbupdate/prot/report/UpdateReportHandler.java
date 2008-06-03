@@ -31,8 +31,8 @@ public interface UpdateReportHandler extends Closeable {
 
     ReportWriter getDuplicatedWriter() throws IOException;
     ReportWriter getDeletedWriter() throws IOException;
-    ReportWriter getDeadWriter() throws IOException;
     ReportWriter getCreatedWriter() throws IOException;
     ReportWriter getNonUniprotProteinWriter() throws IOException;
     ReportWriter getUpdateCasesWriter() throws IOException;
+    ReportWriter getSequenceChangedWriter() throws IOException;
 }

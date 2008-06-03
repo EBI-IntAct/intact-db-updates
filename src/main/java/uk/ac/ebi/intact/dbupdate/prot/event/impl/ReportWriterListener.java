@@ -16,15 +16,13 @@
 package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.DebugUtil;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
@@ -93,21 +91,64 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
-        try {
-            writeDefaultLine(reportHandler.getDeadWriter(), evt.getProtein());
-        } catch (IOException e) {
-            throw new ProcessorException(e);
-        }
-    }
-
-    @Override
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         try {
             writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
+    }
+
+    @Override
+    public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        final Protein protein = evt.getProtein();
+        try {
+            final ReportWriter writer = reportHandler.getSequenceChangedWriter();
+
+            if (evt.getOldSequence() != null) {
+                writer.writeLine(">"+ protein.getAc()+"|OLD|"+
+                                 protein.getShortLabel()+"|"+
+                                 getPrimaryIdString(protein)+"|"+
+                                 "CRC:"+Crc64.getCrc64(evt.getOldSequence())+"|"+
+                                 evt.getOldSequence().length());
+                writer.writeLine(insertNewLinesIfNecessary(evt.getOldSequence(), 80));
+            }
+
+            String state;
+            int seqDiff;
+
+            if (evt.getOldSequence() != null) {
+                state = "UPDATE";
+                seqDiff = protein.getSequence().length()-evt.getOldSequence().length();
+            } else {
+                state = "NEW";
+                seqDiff = protein.getSequence().length();
+            }
+
+            writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
+                             protein.getShortLabel()+"|"+
+                             getPrimaryIdString(protein)+
+                             "CRC:"+protein.getCrc64()+"|"+
+                             protein.getSequence().length()+"|Diff:"+seqDiff);
+            writer.writeLine(insertNewLinesIfNecessary(protein.getSequence(), 80));
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing to sequence changed writer", e);
+        }
+    }
+
+    private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
+        StringBuilder sb = new StringBuilder(oldSequence);
+
+        int startIndex = oldSequence.length() - (oldSequence.length() % maxLineLength);
+
+        if (startIndex > maxLineLength) {
+            for (int i = startIndex; i>=0; i=i-maxLineLength) {
+                sb.insert(i, System.getProperty("line.separator"));
+            }
+        }
+        
+        return sb.toString();
     }
 
     @Override

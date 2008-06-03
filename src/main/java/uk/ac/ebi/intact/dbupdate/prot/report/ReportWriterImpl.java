@@ -68,6 +68,10 @@ public class ReportWriterImpl implements ReportWriter {
         isContentWritten = true;
     }
 
+    public void writeLine(String str) throws IOException {
+        getWriter().write(str+NEW_LINE);
+    }
+
     public Writer getWriter() {
         return writer;
     }

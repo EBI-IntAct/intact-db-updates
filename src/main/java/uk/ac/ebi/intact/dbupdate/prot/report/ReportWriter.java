@@ -14,4 +14,6 @@ public interface ReportWriter extends Flushable, Closeable{
     void writeHeaderIfNecessary(String ... colHeaderTexts) throws IOException;
 
     void writeColumnValues(String ... colValues) throws IOException;
+
+    void writeLine(String str) throws IOException;
 }

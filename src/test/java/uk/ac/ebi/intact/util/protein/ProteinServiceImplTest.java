@@ -778,10 +778,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         Map<String ,String> errors = uniprotServiceResult.getErrors();
         Set<String> keySet = errors.keySet();
         assertEquals(1,errors.size());
-        for(String errorType : keySet){
-            String error = errors.get(errorType);
-            assertTrue(error.contains("More than one IntAct protein is matching secondary AC(s):"));
-        }
+
         IntactContext.getCurrentInstance().getDataContext().commitTransaction();
     }
 
@@ -844,9 +841,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         Collection<String> messages = uniprotServiceResult.getMessages();
         assertEquals(1,messages.size());
-        for(String message : messages){
-            assertTrue(message.contains("The protein which are going to be merged :"));
-        }
+  
         Collection<String> acsOfProtToDelete = ProteinToDeleteManager.getAcToDelete();
         assertEquals(1, acsOfProtToDelete.size());
         proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();

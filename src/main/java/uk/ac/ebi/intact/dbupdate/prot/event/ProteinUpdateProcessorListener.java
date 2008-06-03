@@ -31,8 +31,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException;
 
-    void onDeadProteinFound(ProteinEvent evt) throws ProcessorException;
-
     void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException;
 
     void onProteinCreated(ProteinEvent evt) throws ProcessorException;

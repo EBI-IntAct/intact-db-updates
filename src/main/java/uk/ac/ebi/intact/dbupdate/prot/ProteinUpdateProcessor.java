@@ -83,12 +83,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnDeadProteinFound(ProteinEvent evt) {
-        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
-            listener.onDeadProteinFound(evt);
-        }
-    }
-
     public void fireOnProteinSequenceChanged(ProteinSequenceChangeEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onProteinSequenceChanged(evt);

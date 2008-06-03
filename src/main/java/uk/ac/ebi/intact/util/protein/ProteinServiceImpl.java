@@ -46,8 +46,6 @@ public class ProteinServiceImpl implements ProteinService {
 
     // TODO upon global protein update, update the table IA_DB_INFO and store last-global-protein-update : YYYY-MMM-DD
 
-    public static final String NEW_LINE = "\n";
-
     /**
      * UniProt Data Source.
      */
@@ -289,18 +287,8 @@ public class ProteinServiceImpl implements ProteinService {
             if ( countPrimary > 1 && countSecondary == 0 ) {
                 //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
                 StringBuilder sb = new StringBuilder();
-                sb.append( "More than one IntAct protein is matching Primary AC: " + uniprotProtein.getPrimaryAc() );
-                sb.append( NEW_LINE ).append( "Matches were:" ).append( NEW_LINE );
-                System.out.println(sb);
-                int i = 1;
-                for ( Protein pp : primaryProteins ) {
-                    sb.append( i++ ).append( ". " );
-                    sb.append( pp.getAc() );
-                    sb.append( "  " );
-                    sb.append( pp.getShortLabel() );
-                    sb.append( NEW_LINE );
-                }
-                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+
+                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
 
                 Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
                 proteins.add(updatedProt);
@@ -308,24 +296,11 @@ public class ProteinServiceImpl implements ProteinService {
 
             } else if ( countPrimary == 0 && countSecondary > 1 ) {
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
-
-                StringBuilder sb = new StringBuilder();
-                sb.append( "More than one IntAct protein is matching secondary AC(s): " + uniprotProtein.getSecondaryAcs() );
-                sb.append( NEW_LINE ).append( "Matches were:" ).append( NEW_LINE );
-                System.out.println(sb);
-                int i = 1;
-                for ( Protein pp : secondaryProteins ) {
-                    sb.append( i++ ).append( ". " );
-                    sb.append( pp.getAc() );
-                    sb.append( "  " );
-                    sb.append( pp.getShortLabel() );
-                    sb.append( NEW_LINE );
-                }
-                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
+                uniprotServiceResult.addError("Possible duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
             } else {
 
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
-                uniprotServiceResult.addError( "Unexpected number of protein found in IntAct for UniprotEntry("+ uniprotProtein.getPrimaryAc() + ") " + pCount + NEW_LINE +
+                uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProtein.getPrimaryAc() + ") " + pCount + ", " +
                         "Please fix this problem manualy.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
 
             }
@@ -339,23 +314,16 @@ public class ProteinServiceImpl implements ProteinService {
     protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
-        StringBuffer sb = new StringBuffer();
-        sb.append("Found several protein in IntAct for entry : " + uniprotProtein.getPrimaryAc() + ". 1 with the " +
-                "primaryAc and " + secondaryProteins.size() + " with the secondary acs. We are going to merged those" +
-                " proteins into one.").append( NEW_LINE );
         Protein primaryProt = primaryProteins.iterator().next();
 
         Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),secondaryProteins);
 
-        sb.append("The protein we keep is : " + protToBeKept.getAc() + "," + protToBeKept.getShortLabel()).append( NEW_LINE );
         List<Protein> proteinsToDelete = new ArrayList<Protein>();
         proteinsToDelete.addAll(secondaryProteins);
         proteinsToDelete.add(primaryProt);
         proteinsToDelete.remove(protToBeKept);
 
         ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
-
-        sb.append("The protein which are going to be merged :").append( NEW_LINE );
 
         CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
 
@@ -371,16 +339,15 @@ public class ProteinServiceImpl implements ProteinService {
             InteractorXref xref = new InteractorXref(owner,intact, protToDelete.getAc(), intactSecondary);
             xref.setParent(protToBeKept);
             protToBeKept.addXref(xref);
-            protToDelete.setActiveInstances(new ArrayList());
+            protToDelete.getActiveInstances().clear();
             deleteProtein(protToDelete);
-            sb.append("\t" + protToDelete.getAc() + "," + protToDelete.getShortLabel()).append( NEW_LINE );
         }
 
         proteinDao.saveOrUpdate((ProteinImpl) protToBeKept);
         updateProtein( protToBeKept, uniprotProtein );
         // Message being added.
 
-        uniprotServiceResult.addMessage(sb.toString());
+        uniprotServiceResult.addMessage("Duplication found");
 
         return protToBeKept;
     }
