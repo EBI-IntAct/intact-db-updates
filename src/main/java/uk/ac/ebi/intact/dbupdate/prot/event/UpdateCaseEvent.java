@@ -18,8 +18,8 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventObject;
 
@@ -36,7 +36,7 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
     private Collection<? extends Protein> primaryProteins;
     private Collection<? extends Protein> secondaryProteins;
 
-    private Collection<Protein> updatedProteins;
+    private UniprotServiceResult uniprotServiceResult;
 
     /**
      * An event thrown when a specific case is found during update
@@ -55,8 +55,6 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
         this.dataContext = dataContext;
         this.primaryProteins = primaryProteins;
         this.secondaryProteins = secondaryProteins;
-
-        this.updatedProteins = new ArrayList<Protein>();
     }
 
     public DataContext getDataContext() {
@@ -75,7 +73,11 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
         return secondaryProteins;
     }
 
-    public Collection<Protein> getUpdatedProteins() {
-        return updatedProteins;
+    public UniprotServiceResult getUniprotServiceResult() {
+        return uniprotServiceResult;
+    }
+
+    public void setUniprotServiceResult(UniprotServiceResult uniprotServiceResult) {
+        this.uniprotServiceResult = uniprotServiceResult;
     }
 }

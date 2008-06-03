@@ -26,7 +26,7 @@ import java.util.*;
  * @version $Id$
  * @since 1.1.2
  */
-public class XrefUpdaterUtils {
+public final class XrefUpdaterUtils {
 
     private XrefUpdaterUtils() {
     }
@@ -66,12 +66,15 @@ public class XrefUpdaterUtils {
         return xrefCluster;
     }
 
-    public static void updateAllXrefs( Protein protein,
+    public static XrefUpdaterReport updateAllXrefs( Protein protein,
                                        UniprotProtein uniprotProtein,
                                        Map<String, String> databaseName2mi
     ) {
 
         Map<String, Collection<UniprotXref>> xrefCluster = XrefUpdaterUtils.clusterByDatabaseName( uniprotProtein.getCrossReferences() );
+
+        List<Xref> createdXrefs = new ArrayList<Xref>();
+        List<Xref> deletedXrefs = new ArrayList<Xref>();
 
         for ( Map.Entry<String, Collection<UniprotXref>> entry : xrefCluster.entrySet() ) {
 
@@ -91,35 +94,16 @@ public class XrefUpdaterUtils {
                     log.error( "Could not find CvDatabase by label: " + db );
                 }
             }
-            // we have a define list of db we take as xref from Uniprot. This list will come from databaseName2mi,
-            // that can be IntactCrossReferenceFilter.getFilteredDatabases or an other map associating the name of
-            // a database in uniprot to it's psi-mi identifier in IntAct.
-            // If the database is not in the given map, we don't add the xref to the intact protein.
 
-//            } else {
-//                if ( log.isDebugEnabled() ) {
-//                    log.debug( "No mapping found for CvDatabase("+db+"), searching by database name instead of MI ref..." );
-//                }
-//                cvDatabase = dbDao.getByShortLabel( db, true );
-//
-//                if( cvDatabase == null ) {
-//                    log.error("databaseName2mi is empty : " + databaseName2mi.isEmpty());
-//                    System.out.println("db = " + db);
-//                    log.error( "Could not find CvDatabase by label: " + db );
-//                }
-//            }
             if(cvDatabase != null){
                 // Convert collection into Xref
                 Collection<Xref> xrefs = XrefUpdaterUtils.convert( uniprotXrefs, cvDatabase );
-                XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs );
+                XrefUpdaterReport report = XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs );
+                createdXrefs.addAll(Arrays.asList(report.getAddedXrefs()));
+                deletedXrefs.addAll(Arrays.asList(report.getRemovedXrefs()));
             }else{
                 log.debug("We are not copying across xref to " + db);
             }
-
-
-
-
-
         }
         //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
         XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
@@ -166,7 +150,10 @@ public class XrefUpdaterUtils {
                 //xrefDao.delete(xref);
             }
         }
-        //proteinDao.saveOrUpdate((ProteinImpl) protein);
+
+        return new XrefUpdaterReport(protein,
+                                     createdXrefs.toArray(new Xref[createdXrefs.size()]),
+                                     deletedXrefs.toArray(new Xref[deletedXrefs.size()]));
     }
 
     /**
@@ -185,7 +172,7 @@ public class XrefUpdaterUtils {
      *
      * @return true if the protein has been updated, otherwise false
      */
-    public static boolean updateXrefCollection( Protein protein, CvDatabase database, Collection<Xref> newXrefs ) {
+    public static XrefUpdaterReport updateXrefCollection( Protein protein, CvDatabase database, Collection<Xref> newXrefs ) {
 
         if ( protein == null ) {
             throw new IllegalArgumentException( "You must give a non null protein." );
@@ -226,7 +213,7 @@ public class XrefUpdaterUtils {
         }
 
         for ( Xref xref : toCreate ) {
-            updated = updated | addNewXref( protein, xref );
+            addNewXref( protein, xref );
         }
 
         for ( Xref xref : toDelete ) {
@@ -245,13 +232,14 @@ public class XrefUpdaterUtils {
                 }
 
             }
-            updated = true;
         }
         
-        return updated;
+        return new XrefUpdaterReport(protein,
+                                     toCreate.toArray(new Xref[toCreate.size()]),
+                                     toDelete.toArray(new Xref[toDelete.size()]));
     }
 
-    public static boolean addNewXref( AnnotatedObject current, final Xref xref ) {
+    private static boolean addNewXref( AnnotatedObject current, final Xref xref ) {
         // Make sure the xref does not yet exist in the object
         if ( current.getXrefs().contains( xref ) ) {
             log.debug( "SKIPPED: [" + xref + "] already exists" );
@@ -262,24 +250,10 @@ public class XrefUpdaterUtils {
         xref.setParent(current);
         current.addXref( xref );
 
-        // That test is done to avoid to record in the database an Xref
-        // which is already linked to that AnnotatedObject.
-//        if ( xref.getParentAc() == current.getAc() ) {
-//            try {
-//                IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getXrefDao().saveOrUpdate( xref );
-//                log.debug( "CREATED: [" + xref + "]" );
-//            } catch ( Exception e_xref ) {
-//                log.error( "Error while creating an Xref for protein " + current, e_xref );
-//                return false;
-//            }
-//        }
-        //AnnotatedObjectDao annotatedObjectDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotatedObjectDao();
-        //annotatedObjectDao.saveOrUpdate(current);
-
         return true;
     }
 
-    public static void updateUniprotXrefs( Protein protein, UniprotProtein uniprotProtein ) {
+    public static XrefUpdaterReport updateUniprotXrefs( Protein protein, UniprotProtein uniprotProtein ) {
 
         CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
         CvXrefQualifier identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
@@ -306,7 +280,7 @@ public class XrefUpdaterUtils {
             log.debug( "Built " + ux.size() + " UniProt Xref(s)." );
         }
 
-        XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux );
+        return XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux );
     }
 
     public static void updateSpliceVariantUniprotXrefs( Protein intactSpliceVariant,

@@ -258,7 +258,11 @@ public class ProteinServiceImpl implements ProteinService {
             proteins.add( protein );
 
             // update UniProt Xrefs
-            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
+            XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
+
+            if (xrefReport.isUpdated()) {
+                uniprotServiceResult.addXrefUpdaterReport(xrefReport);
+            }
 
             // Update protein
             proteins.addAll(updateProtein( protein, uniprotProtein ));
@@ -299,7 +303,7 @@ public class ProteinServiceImpl implements ProteinService {
                     sb.append( pp.getShortLabel() );
                     sb.append( NEW_LINE );
                 }
-                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THEN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
 
                 Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
                 proteins.add(updatedProt);
@@ -320,7 +324,7 @@ public class ProteinServiceImpl implements ProteinService {
                     sb.append( pp.getShortLabel() );
                     sb.append( NEW_LINE );
                 }
-                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THEN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
+                uniprotServiceResult.addError(sb.toString(), UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
             } else {
 
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
@@ -547,7 +551,11 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi );
+        XrefUpdaterReport report = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi );
+
+        if (report.isUpdated()) {
+            uniprotServiceResult.addXrefUpdaterReport(report);
+        }
 
         // Aliases
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein );
@@ -616,7 +624,7 @@ public class ProteinServiceImpl implements ProteinService {
                         uniprotProtein );
                 // update
                 final UniprotSpliceVariant uniprotSpliceVariant = match.getUniprotSpliceVariant();
-                updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein );
+                //updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein, false );
 
                 proteinCreated(intactSpliceVariant);
 
@@ -770,8 +778,8 @@ public class ProteinServiceImpl implements ProteinService {
                                       UniprotSpliceVariant uniprotSpliceVariant,
                                       UniprotProtein uniprotProtein
     ) throws ProteinServiceException {
-        String shorltabel = uniprotSpliceVariant.getPrimaryAc();
-        spliceVariant.setShortLabel( shorltabel );
+        String shortLabel = uniprotSpliceVariant.getPrimaryAc();
+        spliceVariant.setShortLabel( shortLabel );
 
         spliceVariant.setFullName( master.getFullName() );
 
@@ -783,20 +791,26 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         boolean sequenceUpdated = false;
-        if ( !uniprotSpliceVariant.getSequence().equals( spliceVariant.getSequence() ) ) {
+        final String oldSequence = spliceVariant.getSequence();
+
+        if ( !uniprotSpliceVariant.getSequence().equals(oldSequence) ) {
             spliceVariant.setSequence( uniprotSpliceVariant.getSequence() );
             sequenceUpdated = true;
         }
 
-        spliceVariant.setCrc64( Crc64.getCrc64( spliceVariant.getSequence() ) );
+        spliceVariant.setCrc64( Crc64.getCrc64(uniprotSpliceVariant.getSequence()) );
 
-        // Add IntAct Xref - done in the shallow creation ??
+        // Add IntAct Xref
 
         // update UniProt Xrefs
         XrefUpdaterUtils.updateSpliceVariantUniprotXrefs( spliceVariant, uniprotSpliceVariant, uniprotProtein );
 
         // Update Aliases
         AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotSpliceVariant );
+
+        if (sequenceUpdated) {
+            sequenceChanged(spliceVariant, oldSequence);
+        }
 
         // Update Note
         String note = uniprotSpliceVariant.getNote();
@@ -919,5 +933,9 @@ public class ProteinServiceImpl implements ProteinService {
         name = uniprotProtein.getId();
 
         return name.toLowerCase();
+    }
+
+    protected UniprotServiceResult getUniprotServiceResult() {
+        return uniprotServiceResult;
     }
 }

@@ -26,8 +26,10 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.DebugUtil;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -121,19 +123,87 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
         try {
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
-            writer.writeHeaderIfNecessary("UniProt ID", "updated (AC)", "updated (labels)", "IA primary c.", "IA secondary c.", "IA primary", "IA secondary");
+            writer.writeHeaderIfNecessary("UniProt ID",
+                                          "Updated prots",
+                                          "IA primary c.",
+                                          "IA secondary c.",
+                                          "IA primary",
+                                          "IA secondary",
+                                          "Xrefs added",
+                                          "Xrefs removed");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
-                                     DebugUtil.acList(evt.getUpdatedProteins()).toString(),
-                                     DebugUtil.labelList(evt.getUpdatedProteins()).toString(),
+                                     protCollectionToString(evt.getUniprotServiceResult().getProteins()),
                                      String.valueOf(evt.getPrimaryProteins().size()),
                                      String.valueOf(evt.getSecondaryProteins().size()),
-                                     DebugUtil.acList(evt.getPrimaryProteins()).toString(),
-                                     DebugUtil.acList(evt.getSecondaryProteins()).toString());
+                                     protCollectionToString(evt.getPrimaryProteins()),
+                                     protCollectionToString(evt.getSecondaryProteins()),
+                                     xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                                     xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
         }
+    }
+
+    private static String protCollectionToString(Collection<? extends Protein> protCollection) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<? extends Protein> iterator = protCollection.iterator(); iterator.hasNext();) {
+            Protein protein = iterator.next();
+
+            sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        if (protCollection.isEmpty()) {
+            sb.append("-");
+        }
+
+        return sb.toString();
+    }
+
+    private static String xrefReportsAddedToString(Collection<XrefUpdaterReport> xrefReports) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
+            XrefUpdaterReport report = iterator.next();
+
+            sb.append(report.getProtein().getAc()).append("[").append(report.removedXrefsToString()).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append("|");
+            }
+        }
+
+        if (xrefReports.isEmpty()) {
+            sb.append("-");
+        }
+
+        return sb.toString();
+    }
+
+    private static String xrefReportsRemovedToString(Collection<XrefUpdaterReport> xrefReports) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
+            XrefUpdaterReport report = iterator.next();
+
+            sb.append(report.getProtein().getAc()).append("[").append(report.addedXrefsToString()).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append("|");
+            }
+        }
+
+        if (xrefReports.isEmpty()) {
+            sb.append("-");
+        }
+
+        return sb.toString();
     }
 
     private void writeDefaultHeaderIfNecessary(ReportWriter writer) throws IOException {

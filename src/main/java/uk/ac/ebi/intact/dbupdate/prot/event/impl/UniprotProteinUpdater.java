@@ -75,17 +75,11 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
         InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protToUpdate);
         try {
-            retrieve(uniprotXref.getPrimaryId());
+            super.retrieve(uniprotXref.getPrimaryId());
         } catch (Exception e) {
-            throw new ProcessorException(e);
+            throw new ProcessorException("Problem trying to update proteins using Uniprot AC: "+uniprotXref.getPrimaryId(), e);
         }
 
-    }
-
-    public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
-        final UniprotProtein uniprotProtein = evt.getProtein();
-        final Collection<? extends Protein> primaryProts = evt.getPrimaryProteins();
-        final Collection<? extends Protein> secondaryProts = evt.getSecondaryProteins();
     }
 
     @Override
@@ -118,10 +112,11 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         UpdateCaseEvent event = new UpdateCaseEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(),
                                                     uniprotProtein, primaryProteins, secondaryProteins);
-        proteinProcessor.fireOnUpdateCase(event);
 
         Collection<Protein> updatedProts = super.processCase(uniprotProtein, primaryProteins, secondaryProteins);
-        event.getUpdatedProteins().addAll(updatedProts);
+        event.setUniprotServiceResult(getUniprotServiceResult());
+
+        proteinProcessor.fireOnUpdateCase(event);
 
         return updatedProts;
     }

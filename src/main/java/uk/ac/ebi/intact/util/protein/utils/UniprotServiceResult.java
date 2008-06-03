@@ -7,10 +7,7 @@ package uk.ac.ebi.intact.util.protein.utils;
 
 import uk.ac.ebi.intact.model.Protein;
 
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * TODO comment this
@@ -21,22 +18,22 @@ import java.util.HashMap;
  */
 public class UniprotServiceResult {
 
-    public static final String MORE_THEN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE = "More then one IntAct protein matching "
+    public static final String MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE = "More than one IntAct protein matching "
             + "the uniprot primaryAc.";
-    public static final String MORE_THEN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE = "More then one IntAct protein matching " +
+    public static final String MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE = "More than one IntAct protein matching " +
             "the uniprot secondaryAc.";
     public static final String UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE = "An unexpected number of proteins was found in " +
             "IntAct searching by uniprot primaryAc and uniprot secondaryAc(s).";
     public static final String PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE = "Protein found in IntAct but not in Uniprot.";
     public static final String PROTEIN_NOT_IN_INTACT_NOT_IN_UNIPROT_ERROR_TYPE = "Protein not found in IntAct and not found" +
             " in Uniprot.";
-    public static final String SEVERAL_PROT_BELONGING_TO_SAME_ORGA_ERROR_TYPE = "More then one protein found in Uniprot all " +
+    public static final String SEVERAL_PROT_BELONGING_TO_SAME_ORGA_ERROR_TYPE = "More than one protein found in Uniprot all " +
             "belonging to the same organism.";
-    public static final String SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE = "More then one protein found in Uniprot " +
+    public static final String SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE = "More than one protein found in Uniprot " +
                 "belonging to the different organisms.";
     public static final String SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT = "Protein being a splice variant in IntAct " +
             "but not in Uniprot and being part of an interaction.";
-    public static final String BIOSOURCE_MISMATCH = "The bioSource of the IntAct protein, is not the same then the " +
+    public static final String BIOSOURCE_MISMATCH = "The bioSource of the IntAct protein is not the same than the " +
             "bioSource of the uniprotProtein.";
     public static final String SPLICE_VARIANT_WITH_MULTIPLE_IDENTITY = "Splice variants with multiple identity.";
     public static final String SPLICE_VARIANT_WITH_NO_IDENTITY = "Splice variant with no identity.";
@@ -46,7 +43,7 @@ public class UniprotServiceResult {
     /**
      * A collection of retrieved proteins.
      */
-    Collection<Protein> proteins = new ArrayList<Protein>();
+    private Collection<Protein> proteins = new ArrayList<Protein>();
     /**
      * A collection of Exception that occured.
      */
@@ -61,10 +58,12 @@ public class UniprotServiceResult {
      */
     private Map<String,String> errors = new HashMap<String, String>();
 
+    private List<XrefUpdaterReport> xrefUpdaterReports = new ArrayList<XrefUpdaterReport>();
+
     /**
      * The query sent to the UniprotService for protein update(ex : P12345).
      */
-    private String querySentToService = new String();
+    private String querySentToService;
 
     /**
      * Constructor put private so that when you create a UniprotServiceResult you have at least to give the query sent
@@ -87,7 +86,7 @@ public class UniprotServiceResult {
 
     public void addException(Exception e){
         if(e == null){
-            throw new IllegalArgumentException( " e should not be null");
+            throw new IllegalArgumentException( "Exception should not be null");
         }
         exceptions.add(e);
     }
@@ -156,5 +155,13 @@ public class UniprotServiceResult {
 
     public Collection<Protein> getProteins() {
         return proteins;
+    }
+
+    public List<XrefUpdaterReport> getXrefUpdaterReports() {
+        return xrefUpdaterReports;
+    }
+
+    public void addXrefUpdaterReport(XrefUpdaterReport report) {
+        xrefUpdaterReports.add(report);
     }
 }
