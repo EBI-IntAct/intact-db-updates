@@ -334,6 +334,8 @@ public class ProteinServiceImpl implements ProteinService {
             }
         }
 
+        uniprotServiceResult.addAllToProteins(proteins);
+
         return proteins;
     }
 

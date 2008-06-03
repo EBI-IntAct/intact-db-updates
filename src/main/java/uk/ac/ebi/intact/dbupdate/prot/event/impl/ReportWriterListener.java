@@ -130,7 +130,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                                           "IA primary",
                                           "IA secondary",
                                           "Xrefs added",
-                                          "Xrefs removed");
+                                          "Xrefs removed",
+                                          "Error messages",
+                                          "Other messages");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
                                      protCollectionToString(evt.getUniprotServiceResult().getProteins()),
@@ -139,7 +141,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                                      protCollectionToString(evt.getPrimaryProteins()),
                                      protCollectionToString(evt.getSecondaryProteins()),
                                      xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
-                                     xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()));
+                                     xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                                     evt.getUniprotServiceResult().getErrors().toString(),
+                                     evt.getUniprotServiceResult().getMessages().toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
