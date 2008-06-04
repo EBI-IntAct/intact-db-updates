@@ -63,7 +63,7 @@ public final class XrefUpdaterReport {
     }
 
     public String removedXrefsToString() {
-        return xrefsToString(addedXrefs);
+        return xrefsToString(removedXrefs);
     }
 
     protected static String xrefsToString(Xref[] xrefs) {

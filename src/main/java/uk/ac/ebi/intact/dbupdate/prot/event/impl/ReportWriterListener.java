@@ -236,7 +236,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
             XrefUpdaterReport report = iterator.next();
 
-            sb.append(report.getProtein().getAc()).append("[").append(report.removedXrefsToString()).append("]");
+            sb.append(report.getProtein().getAc()).append("[").append(report.addedXrefsToString()).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");
@@ -256,7 +256,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
             XrefUpdaterReport report = iterator.next();
 
-            sb.append(report.getProtein().getAc()).append("[").append(report.addedXrefsToString()).append("]");
+            sb.append(report.getProtein().getAc()).append("[").append(report.removedXrefsToString()).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");
