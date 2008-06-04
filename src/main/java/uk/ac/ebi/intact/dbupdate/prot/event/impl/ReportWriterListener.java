@@ -15,15 +15,17 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.Crc64;
-import uk.ac.ebi.intact.util.DebugUtil;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
@@ -38,9 +40,6 @@ import java.util.List;
  * @version $Id$
  */
 public class ReportWriterListener extends AbstractProteinUpdateProcessorListener {
-
-
-    private static final String NEW_LINE = System.getProperty("line.separator");
 
     private UpdateReportHandler reportHandler;
 
@@ -59,13 +58,13 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+    public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         try {
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
-            duplicatedWriter.writeHeaderIfNecessary("Kept", "Duplicated ACs", "Duplicated shortLabels");
+            duplicatedWriter.writeHeaderIfNecessary("Kept", "Active instances", "Duplicates");
             duplicatedWriter.writeColumnValues(evt.getReferenceProtein().getAc(),
-                                               DebugUtil.acList(evt.getProteins()).toString(),
-                                               DebugUtil.labelList(evt.getProteins()).toString());
+                                               String.valueOf(evt.getReferenceProtein().getActiveInstances().size()),
+                                               protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
             reportHandler.getDuplicatedWriter().flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
@@ -108,28 +107,33 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             if (evt.getOldSequence() != null) {
                 writer.writeLine(">"+ protein.getAc()+"|OLD|"+
                                  protein.getShortLabel()+"|"+
-                                 getPrimaryIdString(protein)+"|"+
-                                 "CRC:"+Crc64.getCrc64(evt.getOldSequence())+"|"+
-                                 evt.getOldSequence().length());
+                                 getPrimaryIdString(protein)
+                                 +"|CRC:"+Crc64.getCrc64(evt.getOldSequence())+
+                                 "|Length:"+evt.getOldSequence().length());
                 writer.writeLine(insertNewLinesIfNecessary(evt.getOldSequence(), 80));
             }
 
             String state;
             int seqDiff;
+            int levenshtein;
 
             if (evt.getOldSequence() != null) {
                 state = "UPDATE";
                 seqDiff = protein.getSequence().length()-evt.getOldSequence().length();
+                levenshtein = StringUtils.getLevenshteinDistance(protein.getSequence(), evt.getOldSequence());
             } else {
                 state = "NEW";
                 seqDiff = protein.getSequence().length();
+                levenshtein = seqDiff;
             }
 
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
                              protein.getShortLabel()+"|"+
                              getPrimaryIdString(protein)+
-                             "CRC:"+protein.getCrc64()+"|"+
-                             protein.getSequence().length()+"|Diff:"+seqDiff);
+                             "|CRC:"+protein.getCrc64()+
+                             "|Length:"+protein.getSequence().length()+
+                             "|Diff:"+seqDiff+
+                             "|Levenshtein:"+ levenshtein);
             writer.writeLine(insertNewLinesIfNecessary(protein.getSequence(), 80));
             writer.flush();
         } catch (IOException e) {
@@ -142,8 +146,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
         int startIndex = oldSequence.length() - (oldSequence.length() % maxLineLength);
 
-        if (startIndex > maxLineLength) {
-            for (int i = startIndex; i>=0; i=i-maxLineLength) {
+        if (startIndex >= maxLineLength) {
+            for (int i = startIndex; i>0; i=i-maxLineLength) {
                 sb.insert(i, System.getProperty("line.separator"));
             }
         }
@@ -176,11 +180,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                                           "Other messages");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
-                                     protCollectionToString(evt.getUniprotServiceResult().getProteins()),
+                                     protCollectionToString(evt.getUniprotServiceResult().getProteins(), true),
                                      String.valueOf(evt.getPrimaryProteins().size()),
                                      String.valueOf(evt.getSecondaryProteins().size()),
-                                     protCollectionToString(evt.getPrimaryProteins()),
-                                     protCollectionToString(evt.getSecondaryProteins()),
+                                     protCollectionToString(evt.getPrimaryProteins(), true),
+                                     protCollectionToString(evt.getSecondaryProteins(), true),
                                      xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
                                      xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
                                      evt.getUniprotServiceResult().getErrors().toString(),
@@ -191,13 +195,28 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
-    private static String protCollectionToString(Collection<? extends Protein> protCollection) {
+    private static String protCollectionToString(Collection<? extends Protein> protCollection,
+                                                 boolean showActiveInstancesCount) {
+        return protCollectionToString(protCollection, showActiveInstancesCount, null);
+    }
+
+    private static String protCollectionToString(Collection<? extends Protein> protCollection,
+                                                 boolean showInteractionsCount,
+                                                 AdditionalInfoMap<?> additionalInfo) {
         StringBuilder sb = new StringBuilder();
 
         for (Iterator<? extends Protein> iterator = protCollection.iterator(); iterator.hasNext();) {
             Protein protein = iterator.next();
 
             sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
+
+            if (showInteractionsCount) {
+                sb.append("[").append(protein.getActiveInstances().size()).append("]");
+            }
+
+            if (additionalInfo != null && !additionalInfo.isEmpty()) {
+                sb.append("[").append(additionalInfo.get(protein.getAc())).append("]");
+            }
 
             if (iterator.hasNext()) {
                 sb.append(", ");
@@ -253,7 +272,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     private void writeDefaultHeaderIfNecessary(ReportWriter writer) throws IOException {
         if (writer != null) {
-            writer.writeHeaderIfNecessary("ac", "shortLabel", "primary ID", "message");
+            writer.writeHeaderIfNecessary("datetime", "ac", "shortLabel", "primary ID", "message");
             writer.flush();
         }
     }
@@ -268,7 +287,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             String primaryId = getPrimaryIdString(protein);
             message = (message != null)? message : "-";
 
-            writer.writeColumnValues(protein.getAc(), protein.getShortLabel(), primaryId, message);
+            writer.writeColumnValues(new DateTime().toString(), protein.getAc(), protein.getShortLabel(), primaryId, message);
             writer.flush();
         }
     }

@@ -43,7 +43,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
         if (log.isDebugEnabled()) log.debug("Deleted protein: "+evt.getProtein().getShortLabel());
     }
 
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+    public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Duplicated proteins: "+ DebugUtil.acList(evt.getProteins()));
     }
 

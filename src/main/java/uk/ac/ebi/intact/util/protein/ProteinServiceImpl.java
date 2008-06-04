@@ -530,7 +530,7 @@ public class ProteinServiceImpl implements ProteinService {
         boolean sequenceUpdated = false;
         String oldSequence = protein.getSequence();
         String sequence = uniprotProtein.getSequence();
-        if ( sequence == null || !sequence.equals( protein.getSequence() ) ) {
+        if ( sequence == null || !sequence.equals( oldSequence ) ) {
             if ( log.isDebugEnabled() ) {
                 log.debug( "Sequence requires update." );
             }

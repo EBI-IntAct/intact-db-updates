@@ -21,7 +21,7 @@ import uk.ac.ebi.intact.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -107,7 +107,7 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
         if (!realDuplicates.isEmpty()) {
             // fire a duplication event
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new MultiProteinEvent(processor, evt.getDataContext(), realDuplicates));
+            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates));
         }
     }
 }

@@ -22,7 +22,7 @@ import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.AbstractProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.event.MultiProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -46,11 +46,11 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
     private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
 
     @Override
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+    public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         mergeDuplicates(evt.getProteins(), evt);
     }
 
-    protected void mergeDuplicates(Collection<Protein> duplicates, MultiProteinEvent evt) {
+    protected void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // add the interactions from the duplicated proteins to the protein

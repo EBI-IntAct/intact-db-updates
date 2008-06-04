@@ -77,7 +77,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnProteinDuplicationFound(MultiProteinEvent evt) {
+    public void fireOnProteinDuplicationFound(DuplicatesFoundEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onProteinDuplicationFound(evt);
         }

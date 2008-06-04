@@ -38,7 +38,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinP
         // nothing
     }
 
-    public void onProteinDuplicationFound(MultiProteinEvent evt) throws ProcessorException {
+    public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
          // nothing
     }
 

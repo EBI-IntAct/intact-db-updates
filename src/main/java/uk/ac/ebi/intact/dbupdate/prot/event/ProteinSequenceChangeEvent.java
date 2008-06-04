@@ -21,6 +21,7 @@ public class ProteinSequenceChangeEvent extends ProteinEvent {
      */
     public ProteinSequenceChangeEvent(Object source, DataContext dataContext, Protein protein, String oldSequence) {
         super(source, dataContext, protein);
+        this.oldSequence = oldSequence;
     }
 
     public String getOldSequence() {
