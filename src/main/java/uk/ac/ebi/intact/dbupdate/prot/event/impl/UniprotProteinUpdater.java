@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -60,11 +59,14 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         if (log.isTraceEnabled()) log.trace("Checking if the protein can be updated using UniProt information: "+ protein.getShortLabel()+" ("+protein.getAc()+")");
 
         if (!ProteinUtils.isFromUniprot(protein)) {
+            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+
             if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                ((ProteinUpdateProcessor)evt.getSource()).fireNonUniprotProteinFound(evt);
+                updateProcessor.fireNonUniprotProteinFound(evt);
             }
-            if (log.isTraceEnabled()) log.trace("Request finalization, as this protein cannot be updated using UniProt");
-            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
+            
+            if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt");
+            updateProcessor.finalizeAfterCurrentPhase();
         }
     }
 

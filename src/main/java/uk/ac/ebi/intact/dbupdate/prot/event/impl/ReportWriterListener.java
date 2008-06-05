@@ -300,12 +300,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         if (uniprotXref != null) {
             primaryId = uniprotXref.getPrimaryId();
         } else {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(64);
             List<InteractorXref> xrefs = ProteinUtils.getIdentityXrefs(protein);
 
             Iterator<InteractorXref> iterator = xrefs.iterator();
             while (iterator.hasNext()) {
-                InteractorXref xref =  xrefs.iterator().next();
+                InteractorXref xref =  iterator.next();
                 sb.append(xref.getCvDatabase().getShortLabel()).append(":").append(xref.getPrimaryId());
                 if (iterator.hasNext()) sb.append("|");
                 primaryId = sb.toString();
