@@ -137,7 +137,7 @@ public abstract class ProteinProcessor {
 
             if (prot == null) {
                 if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protACsToUpdate);
-                return;
+                continue;
             }
 
             // load annotations (to avoid lazyinitializationexceptions later)
@@ -194,11 +194,6 @@ public abstract class ProteinProcessor {
 
         ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnProcess(processEvent);
-
-        if (isFinalizationRequested() ) {
-            if (log.isDebugEnabled()) log.debug("Finalizing after Process phase");
-            return;
-        }
     }
 
     public void finalizeAfterCurrentPhase() {

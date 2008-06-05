@@ -545,7 +545,7 @@ public class ProteinServiceImpl implements ProteinService {
             protein.setCrc64( crc64 );
         }
 
-        if ( sequenceUpdated || !protein.getActiveInstances().isEmpty() ) {
+        if ( sequenceUpdated && !protein.getActiveInstances().isEmpty() ) {
             sequenceChanged(protein, oldSequence);
         }
 

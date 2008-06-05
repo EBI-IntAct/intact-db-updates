@@ -28,7 +28,10 @@ import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -52,7 +55,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
         commitTransaction();
 
-        UpdateReportHandler reportHandler = new FileReportHandler(new File("target"));
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig(reportHandler);
 
@@ -82,7 +86,9 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, dupe1.getXrefs().size());
         Assert.assertEquals(1, dupe2.getXrefs().size());
 
-        Protein prot1 = getMockBuilder().createProteinRandom();
+        Protein prot1 = getMockBuilder().createProtein("P54999", "ruxf_yeast",
+                                                       getMockBuilder().createBioSource(4932, "yeast"));
+        prot1.setSequence("MSESSDISAMQPVNPKPFLKGLVNHRVGVKLKFNSTEYRGTLVSTDNYFNLQLNEAEEFVAGVSHGTLGEIFIRCNNVLYIRELPN");
         Protein prot2 = getMockBuilder().createProteinRandom();
         Protein prot3 = getMockBuilder().createProteinRandom();
 
@@ -142,5 +148,48 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
 
+        final File preProcessedFile = new File(dir, "pre_processed.csv");
+        final File processedFile = new File(dir, "processed.csv");
+        final File duplicatesFile = new File(dir, "duplicates.csv");
+        final File deletedFile = new File(dir, "deleted.csv");
+        final File createdFile = new File(dir, "created.csv");
+        final File nonUniprotFile = new File(dir, "non_uniprot.csv");
+        final File updateCasesFile = new File(dir, "update_cases.csv");
+        final File sequenceChangedFile = new File(dir, "sequence_changed.csv");
+
+        Assert.assertTrue(preProcessedFile.exists());
+        Assert.assertTrue(processedFile.exists());
+        Assert.assertTrue(duplicatesFile.exists());
+        Assert.assertTrue(deletedFile.exists());
+        Assert.assertTrue(createdFile.exists());
+        Assert.assertTrue(nonUniprotFile.exists());
+        Assert.assertTrue(updateCasesFile.exists());
+        Assert.assertTrue(sequenceChangedFile.exists());
+        
+        Assert.assertEquals(5, countLinesInFile(preProcessedFile));
+        Assert.assertEquals(5, countLinesInFile(processedFile));
+        Assert.assertEquals(2, countLinesInFile(duplicatesFile));
+        Assert.assertEquals(2, countLinesInFile(deletedFile));
+        Assert.assertEquals(0, countLinesInFile(createdFile));
+        Assert.assertEquals(0, countLinesInFile(nonUniprotFile));
+        Assert.assertEquals(3, countLinesInFile(updateCasesFile));
+        Assert.assertEquals(4, countLinesInFile(sequenceChangedFile));
+
+
+    }
+
+    private static int countLinesInFile(File file) {
+        int count = 0;
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(file));
+            String str;
+            while ((str = in.readLine()) != null) {
+                count++;
+            }
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return count;
     }
 }
