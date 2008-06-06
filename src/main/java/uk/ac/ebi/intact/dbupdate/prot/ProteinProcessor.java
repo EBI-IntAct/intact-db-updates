@@ -85,11 +85,19 @@ public abstract class ProteinProcessor {
 
         int maxResults = batchSize;
         int firstResult = 0;
+        int previousFirstResult = -1;
 
         List<? extends Protein> protsToUpdate;
 
         do {
             if (log.isTraceEnabled()) log.trace("Processing batch "+firstResult+"-"+(firstResult+maxResults));
+
+            if (previousFirstResult == firstResult) {
+                if (log.isInfoEnabled()) log.info("The first result for this iteration and the previous one is the same. Existing iteration");
+                break;
+            }
+            previousFirstResult = firstResult;
+
             dataContext.beginTransactionManualFlush();
             protsToUpdate = protDao.getAllSorted(firstResult, maxResults, "created", true);
 

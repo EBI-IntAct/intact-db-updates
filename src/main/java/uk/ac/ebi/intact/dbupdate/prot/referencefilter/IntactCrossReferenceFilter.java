@@ -44,18 +44,19 @@ public class IntactCrossReferenceFilter implements CrossReferenceFilter {
      * might be an entry point for the a user to get in Intact. (A user could search in IntAct with and ac from sgd db).
      */
     public IntactCrossReferenceFilter() {
-
-        db2mi.put( format( "cygd"), "MI:0464");
-        db2mi.put( format( "ensembl"), "MI:0476");
-        db2mi.put( format( "flybase"), "MI:0478");
         db2mi.put( format( "go" ), "MI:0448");
         db2mi.put( format( "interpro" ), "MI:0449");
         db2mi.put( format( "pdb" ), "MI:0460");
-        db2mi.put( format( "sgd" ), "MI:0484");
-        db2mi.put( format( "rgd"), "MI:0483");
-        db2mi.put( format("uniprotkb"), "MI:0486");
-        db2mi.put( format("refseq"), "MI:0481");
+        db2mi.put( format( "cygd"), "MI:0464");
         db2mi.put( format("reactome"), "MI:0467");
+        db2mi.put( format( "ensembl"), "MI:0476");
+        db2mi.put( format( "wormbase"), "MI:0487" );
+        db2mi.put( format( "flybase"), "MI:0478" );
+        db2mi.put( format( "refseq"), "MI:0481" );
+        db2mi.put( format( "rgd"), "MI:0483" );
+        db2mi.put( format( "sgd" ), "MI:0484" );
+        db2mi.put( format( "uniprotkb"), "MI:0486" );
+        db2mi.put( format( "ipi"), "MI:0675" );
     }
 
     private String format( String s ) {
