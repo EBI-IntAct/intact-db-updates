@@ -41,6 +41,7 @@ public class ProteinUpdateProcessorConfig {
     private TaxonomyService taxonomyService;
 
     private int processBatchSize = 20;
+    private int processStepSize = 10;
 
     public ProteinUpdateProcessorConfig() {
         this.uniprotService = new UniprotRemoteService();
@@ -74,6 +75,14 @@ public class ProteinUpdateProcessorConfig {
 
     public void setProcessBatchSize(int processBatchSize) {
         this.processBatchSize = processBatchSize;
+    }
+
+    public int getProcessStepSize() {
+        return processStepSize;
+    }
+
+    public void setProcessStepSize(int processStepSize) {
+        this.processStepSize = processStepSize;
     }
 
     public boolean isDeleteSpliceVariantsWithoutInteractions() {

@@ -33,12 +33,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     private ProteinUpdateProcessorConfig configUpdate;
 
     public ProteinUpdateProcessor(){
-        super(20);
+        super(60, 20);
         this.configUpdate = new ProteinUpdateProcessorConfig();
     }
 
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
-        super(configUpdate.getProcessBatchSize());
+        super(configUpdate.getProcessBatchSize(), configUpdate.getProcessStepSize());
         this.configUpdate = configUpdate;
     }
 

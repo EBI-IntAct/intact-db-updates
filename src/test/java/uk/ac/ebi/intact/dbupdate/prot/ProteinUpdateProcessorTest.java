@@ -56,9 +56,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
+        configUpdate.setProcessStepSize(2);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
+        masterProt1.getBioSource().setTaxId("9986"); // rabit
 
         PersisterHelper.saveOrUpdate(masterProt1);
 
@@ -87,12 +89,13 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         protUpdateProcessor.updateAll();
 
-        Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
+        // splice var 'sv11' is deleted anyway, as P12345 does not contain such a splice var according to uniprot
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
         
-        Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
-        Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(masterProt1.getShortLabel()));
+        Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel("aatm_rabit")); // renamed master prot
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar11.getShortLabel()));
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(randomProt.getShortLabel()));
 
@@ -107,10 +110,13 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
+        configUpdate.setProcessStepSize(2);
         configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
+        masterProt1.getBioSource().setTaxId("9986"); // rabit
+
 
         PersisterHelper.saveOrUpdate(masterProt1);
 
@@ -144,7 +150,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
         Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
-        Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(masterProt1.getShortLabel()));
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel("aatm_rabit")); // renamed master prot
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar11.getShortLabel()));
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(randomProt.getShortLabel()));
 
@@ -158,9 +164,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
+        configUpdate.setProcessStepSize(2);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
+        masterProt1.getBioSource().setTaxId("9986"); // rabit
 
         PersisterHelper.saveOrUpdate(masterProt1);
 
@@ -202,8 +210,10 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
+        configUpdate.setProcessStepSize(2);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.getBioSource().setTaxId("9986"); // rabit
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe2 = cloner.clone(dupe1);

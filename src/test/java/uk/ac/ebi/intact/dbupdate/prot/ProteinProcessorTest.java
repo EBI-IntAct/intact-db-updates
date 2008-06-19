@@ -56,7 +56,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
          Assert.assertNotNull(protRemoved.getAc());
 
-         ProteinProcessor processor = new ProteinProcessor(3) {
+         ProteinProcessor processor = new ProteinProcessor(3, 2) {
             protected void registerListeners() {
                 addListener(new AbstractProteinUpdateProcessorListener() {
 

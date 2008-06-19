@@ -48,6 +48,7 @@ public abstract class ProteinProcessor {
     protected EventListenerList listenerList = new EventListenerList();
 
     private int batchSize = 50;
+    private int stepSize = 10;
 
     private List<String> previousBatchACs;
 
@@ -60,9 +61,10 @@ public abstract class ProteinProcessor {
         previousBatchACs = new ArrayList<String>();
     }
 
-    public ProteinProcessor(int batchSize){
+    public ProteinProcessor(int batchSize, int stepSize){
         this();
         this.batchSize = batchSize;
+        this.stepSize = stepSize;
     }
 
     protected abstract void registerListeners();
@@ -73,6 +75,10 @@ public abstract class ProteinProcessor {
      */
     public void updateAll() throws ProcessorException {
         registerListenersIfNotDoneYet();
+
+        if (stepSize > batchSize) {
+            throw new IllegalArgumentException("The step size must be smaller than the batch size. Batch size: "+batchSize+" / Step size: "+stepSize);
+        }
         
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         ProteinDao protDao = dataContext.getDaoFactory().getProteinDao();
@@ -112,7 +118,9 @@ public abstract class ProteinProcessor {
 
             if (firstResult > 0 && intersectedACs.isEmpty() && !protsToUpdate.isEmpty()) {
                 if (log.isInfoEnabled()) log.info("No overlap between batches in iteration. Will adjust firstResult");
-                firstResult = firstResult-(batchSize/2)+1;
+                firstResult = firstResult-stepSize+1;
+                commitTransaction();
+                continue;
             } else {
                 if (log.isTraceEnabled()) log.trace("Intersection between batches: "+intersectedACs);
                 previousBatchACs = currentBatchACs;
@@ -131,7 +139,7 @@ public abstract class ProteinProcessor {
 
             updateByACs(DebugUtil.acList(protsToUpdate));
 
-            firstResult = firstResult+(batchSize/2);
+            firstResult = firstResult+stepSize;
 
         } while (!protsToUpdate.isEmpty());
     }

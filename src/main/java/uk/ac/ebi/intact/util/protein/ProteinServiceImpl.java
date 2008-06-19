@@ -15,7 +15,10 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.persistence.dao.*;
+import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.persistence.dao.ProteinDao;
+import uk.ac.ebi.intact.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
@@ -411,7 +414,6 @@ public class ProteinServiceImpl implements ProteinService {
             c++;
         }
 
-        ComponentDao componentDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getComponentDao();
         for (int i=0; i<proteinArray.length; i++){
             Protein protein =  proteinArray[i];
             Collection<Component> components = protein.getActiveInstances();
@@ -674,7 +676,6 @@ public class ProteinServiceImpl implements ProteinService {
                 String upac = null;
                 if ( xrefs.size() == 1 ) {
                     upac = xrefs.iterator().next().getPrimaryId();
-                    xrefs = null;
                 } else {
                     if(protein.getActiveInstances().size() == 0){
                         deleteProtein(protein);
@@ -817,6 +818,13 @@ public class ProteinServiceImpl implements ProteinService {
                 master.getBioSource(),
                 uniprotSpliceVariant.getPrimaryAc(),
                 CvHelper.getProteinType() );
+
+        if (uniprotSpliceVariant.getSequence() != null) {
+            variant.setSequence(uniprotSpliceVariant.getSequence());
+            variant.setCrc64(Crc64.getCrc64(variant.getSequence()));
+        } else {
+            log.warn("Uniprot splice variant without sequence: "+variant);
+        }
 
         pdao.persist( ( ProteinImpl ) variant );
 
