@@ -96,7 +96,7 @@ public abstract class ProteinProcessor {
         List<? extends Protein> protsToUpdate;
 
         do {
-            if (log.isTraceEnabled()) log.trace("Processing batch "+firstResult+"-"+(firstResult+maxResults));
+            if (log.isInfoEnabled()) log.info("Processing batch "+firstResult+"-"+(firstResult+maxResults));
 
             if (previousFirstResult == firstResult) {
                 if (log.isInfoEnabled()) log.info("The first result for this iteration and the previous one is the same. Existing iteration");
