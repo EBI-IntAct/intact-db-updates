@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -46,6 +47,9 @@ import java.util.List;
 public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinProcessorListener {
     
     private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
+
+    private final int MAX_RETRY_ATTEMPTS = 100;
+    private int retryAttempt = 0;
 
     private ProteinUpdateProcessor proteinProcessor;
 
@@ -77,12 +81,36 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         Protein protToUpdate = evt.getProtein();
 
         InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protToUpdate);
+        safeRetrieve(uniprotXref);
+
+    }
+
+    /**
+     * Will retrieve the entry
+     * @param uniprotXref
+     */
+    private void safeRetrieve(InteractorXref uniprotXref) {
         try {
+            // retrieve the entry from uniprot
             super.retrieve(uniprotXref.getPrimaryId());
+        } catch (RemoteConnectFailureException ce) {
+            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
+                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprotXref.getPrimaryId());
+            }
+            retryAttempt++;
+
+            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
+            try {
+                Thread.sleep(60*1000);
+                safeRetrieve(uniprotXref);
+            } catch (InterruptedException e) {
+                throw new ProcessorException("Problem while waiting before retrying for "+uniprotXref.getPrimaryId(), e);
+            }
+
         } catch (Exception e) {
             throw new ProcessorException("Problem trying to update proteins using Uniprot AC: "+uniprotXref.getPrimaryId(), e);
         }
-
+        retryAttempt = 0;
     }
 
     @Override
