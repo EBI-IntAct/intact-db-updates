@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.event.impl;
+package uk.ac.ebi.intact.dbupdate.prot.listeners;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
