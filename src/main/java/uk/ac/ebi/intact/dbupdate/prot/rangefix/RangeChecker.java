@@ -82,28 +82,28 @@ public class RangeChecker {
         // We need to apply a correction (-1/+1) because the shift calculation is index based (0 is the first position),
         // whereas the range positions are not (first position is 1)
 
-        int shiftedFromIntervalStart = DiffUtils.calculateIndexShift(diffs, range.getFromIntervalStart()-1)+1;
+        int shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart());
 
         if (shiftedFromIntervalStart != range.getFromIntervalStart()) {
             range.setFromIntervalStart(shiftedFromIntervalStart);
             rangeShifted = true;
         }
 
-        int shiftedFromIntervalEnd = DiffUtils.calculateIndexShift(diffs, range.getFromIntervalEnd()-1)+1;
+        int shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd());
 
         if (shiftedFromIntervalEnd != range.getFromIntervalEnd()) {
             range.setFromIntervalEnd(shiftedFromIntervalEnd);
             rangeShifted = true;
         }
 
-        int shiftedToIntervalStart = DiffUtils.calculateIndexShift(diffs, range.getToIntervalStart()-1)+1;
+        int shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart());
 
         if (shiftedToIntervalStart != range.getToIntervalStart()) {
             range.setToIntervalStart(shiftedToIntervalStart);
             rangeShifted = true;
         }
 
-        int shiftedToIntervalEnd = DiffUtils.calculateIndexShift(diffs, range.getToIntervalEnd()-1)+1;
+        int shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd());
 
         if (shiftedToIntervalEnd != range.getToIntervalEnd()) {
             range.setToIntervalEnd(shiftedToIntervalEnd);
@@ -118,6 +118,29 @@ public class RangeChecker {
         }
 
         return rangeShifted;
+    }
+
+    /**
+     * Calculates the shift in position (1-based)
+     * @param diffs The differences between the sequences
+     * @param sequencePosition The original position in the sequence
+     * @return The final position in the sequence. If it couldn't be found, returns -1.
+     */
+    protected int calculatePositionShift(List<Diff> diffs, int sequencePosition) {
+        int index = sequencePosition-1; // index 0-based (sequence is 1-based)
+        int shiftedIndex = DiffUtils.calculateIndexShift(diffs, index);
+
+        int shiftedPos;
+
+        // if exists (is is not -1) return the index 1-based (position)
+        // if not, return -1
+        if (shiftedIndex > -1) {
+            shiftedPos = shiftedIndex+1;
+        } else {
+            shiftedPos = shiftedIndex;
+        }
+
+        return shiftedPos;
     }
 
     private String logInfo(Range range) {

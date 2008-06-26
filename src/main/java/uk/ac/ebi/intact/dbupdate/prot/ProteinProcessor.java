@@ -152,7 +152,7 @@ public abstract class ProteinProcessor {
             ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
 
             if (prot == null) {
-                if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+prot.getAc()+"("+prot.getShortLabel()+")");
+                if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
                 continue;
             }
 

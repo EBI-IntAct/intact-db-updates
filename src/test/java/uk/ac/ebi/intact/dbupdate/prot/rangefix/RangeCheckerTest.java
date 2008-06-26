@@ -149,7 +149,6 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
      @Test
-     @Ignore
     public void shiftFeatureRanges_differentSeq() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ZZAZZDZFEZZZZZZ";
@@ -170,8 +169,5 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(-1, range.getFromIntervalEnd());
         Assert.assertEquals(-1, range.getToIntervalStart());
         Assert.assertEquals(-1, range.getToIntervalEnd());
-
-        String rangeAfterFix = newSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
-        Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
 }
