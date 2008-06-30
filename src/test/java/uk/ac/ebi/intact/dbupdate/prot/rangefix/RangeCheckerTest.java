@@ -57,9 +57,9 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertEquals("BCD", rangeSeq);
 
-        final Collection<Feature> updatedFeatures = rangeChecker.shiftFeatureRanges(Collections.singleton(feature), oldSequence, newSequence);
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
-        Assert.assertTrue(updatedFeatures.isEmpty());
+        Assert.assertTrue(updatedRanges.isEmpty());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
         Assert.assertEquals(2, range.getFromIntervalEnd());
@@ -79,18 +79,23 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        Assert.assertTrue(range.getSequence().startsWith("BCD"));
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<Feature> updatedFeatures = rangeChecker.shiftFeatureRanges(Collections.singleton(feature), oldSequence, newSequence);
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
-        Assert.assertTrue(updatedFeatures.isEmpty());
+        Assert.assertTrue(updatedRanges.isEmpty());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
         Assert.assertEquals(2, range.getFromIntervalEnd());
         Assert.assertEquals(4, range.getToIntervalStart());
         Assert.assertEquals(4, range.getToIntervalEnd());
+
+        Assert.assertTrue(range.getSequence().startsWith("BZD"));
 
         String rangeAfterFix = newSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertNotSame(rangeAfterFix, rangeSeq);
@@ -109,9 +114,9 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<Feature> updatedFeatures = rangeChecker.shiftFeatureRanges(Collections.singleton(feature), oldSequence, newSequence);
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
-        Assert.assertEquals(1, updatedFeatures.size());
+        Assert.assertEquals(1, updatedRanges.size());
         
         Assert.assertEquals(3, range.getFromIntervalStart());
         Assert.assertEquals(3, range.getFromIntervalEnd());
@@ -135,9 +140,9 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<Feature> updatedFeatures = rangeChecker.shiftFeatureRanges(Collections.singleton(feature), oldSequence, newSequence);
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
-        Assert.assertTrue(updatedFeatures.isEmpty());
+        Assert.assertTrue(updatedRanges.isEmpty());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
         Assert.assertEquals(2, range.getFromIntervalEnd());
@@ -159,11 +164,30 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
         feature.addRange(range);
 
-        String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
-        final Collection<Feature> updatedFeatures = rangeChecker.shiftFeatureRanges(Collections.singleton(feature), oldSequence, newSequence);
+        Assert.assertFalse(updatedRanges.isEmpty());
 
-        Assert.assertFalse(updatedFeatures.isEmpty());
+        Assert.assertEquals(-1, range.getFromIntervalStart());
+        Assert.assertEquals(-1, range.getFromIntervalEnd());
+        Assert.assertEquals(6, range.getToIntervalStart());
+        Assert.assertEquals(6, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void shiftFeatureRanges_substitutionInExactPosition() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "ABZDEF";
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(3, 3, 3, 3);
+        range.prepareSequence(oldSequence);
+        feature.addRange(range);
+        Assert.assertEquals('C',range.getSequence().charAt(0));
+        
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertEquals(-1, range.getFromIntervalStart());
         Assert.assertEquals(-1, range.getFromIntervalEnd());

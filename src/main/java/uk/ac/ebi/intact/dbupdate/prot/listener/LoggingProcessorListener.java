@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.listeners;
+package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,6 +66,10 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
 
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Non-uniprot protein found: "+evt.getProtein().getShortLabel());
+    }
+
+    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Range ("+evt.getNewRange().getAc()+") changed from "+evt.getOldRange()+" to "+evt.getNewRange());
     }
 
 

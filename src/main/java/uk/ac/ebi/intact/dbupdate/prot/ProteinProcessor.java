@@ -44,7 +44,7 @@ public abstract class ProteinProcessor {
 
     private static final Log log = LogFactory.getLog( ProteinUpdateProcessor.class );
 
-    // to allow listeners
+    // to allow listener
     protected EventListenerList listenerList = new EventListenerList();
 
     private int batchSize = 50;
@@ -108,7 +108,7 @@ public abstract class ProteinProcessor {
             protsToUpdate = protDao.getAllSorted(firstResult, maxResults, "created", true);
 
             // we check if the previous batch of ACs and this one overlapps, just to check
-            // that the iteration is correct and no external (or from listeners) changes
+            // that the iteration is correct and no external (or from listener) changes
             // affect the iteration
             List<String> currentBatchACs = DebugUtil.acList(protsToUpdate);
 
@@ -270,7 +270,7 @@ public abstract class ProteinProcessor {
         }
 
         if (listenerList.getListenerCount() == 0) {
-            throw new IllegalStateException("No listeners registered for ProteinProcessor");
+            throw new IllegalStateException("No listener registered for ProteinProcessor");
         }
     }
 

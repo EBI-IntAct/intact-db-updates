@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.event;
+package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 
 import java.util.EventListener;
 
@@ -38,5 +39,7 @@ public interface ProteinUpdateProcessorListener extends EventListener {
     void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException;
 
     void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException;
+
+    void onRangeChanged(RangeChangedEvent evt) throws ProcessorException;
 
 }

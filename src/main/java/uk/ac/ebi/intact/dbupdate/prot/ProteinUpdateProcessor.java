@@ -18,7 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listeners.*;
+import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 
 /**
  * Updates the database proteins using the latest information from UniProt
@@ -106,6 +106,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public void fireOnUpdateCase(UpdateCaseEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onUpdateCase(evt);
+        }
+    }
+
+    public void fireOnRangeChange(RangeChangedEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onRangeChanged(evt);
         }
     }
 

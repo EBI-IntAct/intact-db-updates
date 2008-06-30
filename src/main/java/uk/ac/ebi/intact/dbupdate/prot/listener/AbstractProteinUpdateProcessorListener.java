@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.event;
+package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.model.Protein;
 
 /**
@@ -59,6 +60,10 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinP
     }
 
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
+        // nothing
+    }
+
+    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
         // nothing
     }
 

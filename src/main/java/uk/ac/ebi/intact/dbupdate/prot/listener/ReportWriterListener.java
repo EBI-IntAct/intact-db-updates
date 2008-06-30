@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.listeners;
+package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -22,8 +22,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
@@ -41,8 +40,10 @@ import java.util.List;
  */
 public class ReportWriterListener extends AbstractProteinUpdateProcessorListener {
 
-    private UpdateReportHandler reportHandler;
+    private static final String EMPTY_VALUE = "-";
+    private static final String NEW_LINE = System.getProperty("line.separator");
 
+    private UpdateReportHandler reportHandler;
 
     public ReportWriterListener(UpdateReportHandler reportHandler) {
         this.reportHandler = reportHandler;
@@ -141,20 +142,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
-    private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
-        StringBuilder sb = new StringBuilder(oldSequence);
-
-        int startIndex = oldSequence.length() - (oldSequence.length() % maxLineLength);
-
-        if (startIndex >= maxLineLength) {
-            for (int i = startIndex; i>0; i=i-maxLineLength) {
-                sb.insert(i, System.getProperty("line.separator"));
-            }
-        }
-        
-        return sb.toString();
-    }
-
     @Override
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
         try {
@@ -195,6 +182,57 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
+    @Override
+    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
+        Feature feature = evt.getNewRange().getFeature();
+        Component component = feature.getComponent();
+        Interactor interactor = component.getInteractor();
+
+        final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
+        String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+        
+        try {
+            ReportWriter writer = reportHandler.getRangeChangedWriter();
+            writer.writeHeaderIfNecessary("Prot. AC",
+                                          "Prot. Label",
+                                          "Prot. Uniprot",
+                                          "Comp. AC",
+                                          "Feature AC",
+                                          "Feature Label",
+                                          "Range AC",
+                                          "Old Pos.",
+                                          "New Pos.",
+                                          "Message");
+            writer.writeColumnValues(interactor.getAc(),
+                                     interactor.getShortLabel(),
+                                     uniprotAc,
+                                     component.getAc(),
+                                     feature.getAc(),
+                                     feature.getShortLabel(),
+                                     evt.getNewRange().getAc(),
+                                     evt.getOldRange().toString(),
+                                     evt.getNewRange().toString(),
+                                     dashIfNull(evt.getMessage()));
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing update case to stream", e);
+        }
+    }
+
+    private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
+        StringBuilder sb = new StringBuilder(oldSequence);
+
+        int startIndex = oldSequence.length() - (oldSequence.length() % maxLineLength);
+
+        if (startIndex >= maxLineLength) {
+            for (int i = startIndex; i>0; i=i-maxLineLength) {
+                sb.insert(i, NEW_LINE);
+            }
+        }
+
+        return sb.toString();
+    }
+
     private static String protCollectionToString(Collection<? extends Protein> protCollection,
                                                  boolean showActiveInstancesCount) {
         return protCollectionToString(protCollection, showActiveInstancesCount, null);
@@ -224,7 +262,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
 
         if (protCollection.isEmpty()) {
-            sb.append("-");
+            sb.append(EMPTY_VALUE);
         }
 
         return sb.toString();
@@ -244,7 +282,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
 
         if (xrefReports.isEmpty()) {
-            sb.append("-");
+            sb.append(EMPTY_VALUE);
         }
 
         return sb.toString();
@@ -264,7 +302,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
 
         if (xrefReports.isEmpty()) {
-            sb.append("-");
+            sb.append(EMPTY_VALUE);
         }
 
         return sb.toString();
@@ -285,11 +323,15 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         writeDefaultHeaderIfNecessary(writer);
         if (writer != null) {
             String primaryId = getPrimaryIdString(protein);
-            message = (message != null)? message : "-";
+            message = dashIfNull(message);
 
             writer.writeColumnValues(new DateTime().toString(), protein.getAc(), protein.getShortLabel(), primaryId, message);
             writer.flush();
         }
+    }
+
+    private String dashIfNull(String str) {str = (str != null)? str : EMPTY_VALUE;
+        return str;
     }
 
     private String getPrimaryIdString(Protein protein) {
@@ -312,7 +354,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             }
 
             if (xrefs.isEmpty()) {
-                primaryId = "-";
+                primaryId = EMPTY_VALUE;
             }
         }
         return primaryId;

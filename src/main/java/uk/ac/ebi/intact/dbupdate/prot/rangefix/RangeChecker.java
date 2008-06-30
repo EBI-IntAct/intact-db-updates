@@ -23,11 +23,11 @@ import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Interactor;
 import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.model.clone.IntactCloner;
+import uk.ac.ebi.intact.model.clone.IntactClonerException;
+import uk.ac.ebi.intact.business.IntactException;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Fixes the ranges of the features of a protein when updating the sequence.
@@ -41,12 +41,12 @@ public class RangeChecker {
 
     /**
      * Changes the features ranges by analysing the shift in positions after a sequence is changed.
-     * @param features The features to update
+     * @param feature The feature to update
      * @param oldSequence The old sequence
      * @param newSequence The new sequence
      */
-    public Collection<Feature> shiftFeatureRanges(Collection<Feature> features, String oldSequence, String newSequence) {
-        if (features == null) throw new NullPointerException("Feature list was null");
+    public Collection<UpdatedRange> shiftFeatureRanges(Feature feature, String oldSequence, String newSequence) {
+        if (feature == null) throw new NullPointerException("Feature was null");
         if (oldSequence == null) throw new NullPointerException("Old sequence was null");
         if (newSequence == null) throw new NullPointerException("New sequence was null");
 
@@ -54,24 +54,30 @@ public class RangeChecker {
 
         List<Diff> diffs = DiffUtils.diff(oldSequence, newSequence);
 
-        Map<String,Feature> updatedFeatures = new HashMap<String,Feature>();
+        List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
 
-             for (Feature feature : features) {
-                 for (Range range : feature.getRanges()) {
-                     String initialRange = range.toString();
+        for (Range range : feature.getRanges()) {
+            final IntactCloner intactCloner = new IntactCloner();
+            Range oldRange = null;
+            try {
+                oldRange = intactCloner.clone(range);
+            } catch (IntactClonerException e) {
+                throw new IntactException("Could not clone range: "+range, e);
+            }
 
-                     boolean rangeShifted = shiftRange(diffs, range);
+            boolean rangeShifted = shiftRange(diffs, range);
 
-                     if (rangeShifted) {
-                         if (log.isInfoEnabled())
-                             log.info("Range shifted from " + initialRange + " to " + range.toString() + ": " + logInfo(range));
+            range.prepareSequence(newSequence);
 
-                         updatedFeatures.put(feature.getAc(), feature);
-                     }
-                 }
-             }
+            if (rangeShifted) {
+                if (log.isInfoEnabled())
+                    log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
+                
+                updatedRanges.add(new UpdatedRange(oldRange, range));
+            }
+        }
 
-        return updatedFeatures.values();
+        return updatedRanges;
     }
 
     protected boolean shiftRange(List<Diff> diffs, Range range) {

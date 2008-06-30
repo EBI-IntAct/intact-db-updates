@@ -35,6 +35,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter nonUniprotProteinWriter;
     private ReportWriter updateCasesWriter;
     private ReportWriter sequenceChangedWriter;
+    private ReportWriter rangeChangedWriter;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -52,7 +53,8 @@ public class FileReportHandler implements UpdateReportHandler{
         this.createdWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "created.csv")));
         this.nonUniprotProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "non_uniprot.csv")));
         this.updateCasesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "update_cases.csv")));
-        this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.csv")));
+        this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
+        this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {
@@ -87,6 +89,10 @@ public class FileReportHandler implements UpdateReportHandler{
         return sequenceChangedWriter;
     }
 
+    public ReportWriter getRangeChangedWriter() {
+        return rangeChangedWriter;
+    }
+
     public void close() throws IOException {
         this.preProcessedWriter.close();
         this.processedWriter.close();
@@ -95,5 +101,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.createdWriter.close();
         this.nonUniprotProteinWriter.close();
         this.sequenceChangedWriter.close();
+        this.rangeChangedWriter.close();
     }
 }

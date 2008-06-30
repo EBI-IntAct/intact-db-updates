@@ -64,6 +64,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
 
         CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
         dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
@@ -96,12 +97,19 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Interaction interaction2 = getMockBuilder().createInteraction(dupe2, prot2);
         Interaction interaction3 = getMockBuilder().createInteraction(dupe1, prot3);
 
+        // add a range in the protein with updated sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        // persist the interactions
         PersisterHelper.saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
-
 
         beginTransaction();
 
@@ -147,7 +155,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(8, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
-
         final File preProcessedFile = new File(dir, "pre_processed.csv");
         final File processedFile = new File(dir, "processed.csv");
         final File duplicatesFile = new File(dir, "duplicates.csv");
@@ -155,7 +162,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         final File createdFile = new File(dir, "created.csv");
         final File nonUniprotFile = new File(dir, "non_uniprot.csv");
         final File updateCasesFile = new File(dir, "update_cases.csv");
-        final File sequenceChangedFile = new File(dir, "sequence_changed.csv");
+        final File sequenceChangedFile = new File(dir, "sequence_changed.fasta");
+        final File rangeChangedFile = new File(dir, "range_changed.csv");
 
         Assert.assertTrue(preProcessedFile.exists());
         Assert.assertTrue(processedFile.exists());
@@ -165,6 +173,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(nonUniprotFile.exists());
         Assert.assertTrue(updateCasesFile.exists());
         Assert.assertTrue(sequenceChangedFile.exists());
+        Assert.assertTrue(rangeChangedFile.exists());
         
         Assert.assertEquals(5, countLinesInFile(preProcessedFile));
         Assert.assertEquals(5, countLinesInFile(processedFile));
@@ -174,6 +183,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, countLinesInFile(nonUniprotFile));
         Assert.assertEquals(3, countLinesInFile(updateCasesFile));
         Assert.assertEquals(4, countLinesInFile(sequenceChangedFile));
+        Assert.assertEquals(2, countLinesInFile(rangeChangedFile));
 
 
     }
