@@ -74,8 +74,6 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
             String message = SEQCHANGED_CAUTION.replaceAll("\\[uniprotkb\\]", "[uniprotkb:"+ uniprotAc+"]");
 
-            System.out.println(SEQCHANGED_CAUTION.length());
-
             if (log.isWarnEnabled()) log.warn("Sequence has changed considerably during update for protein: "+protInfo(evt.getProtein()));
 
             addCaution(evt.getProtein(), message);
