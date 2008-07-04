@@ -54,4 +54,34 @@ public class UpdatedRange {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    public boolean isSequenceChanged() {
+        if (isRangeLengthChanged()) {
+            return true;
+        }
+
+        return !(rangeSequence(oldRange).equals(rangeSequence(newRange)));
+    }
+
+    public boolean isRangeLengthChanged() {
+        return rangeLength(oldRange) != rangeLength(newRange);
+    }
+
+    protected int rangeLength(Range range) {
+        if (range.getToIntervalEnd() == -1) {
+            return -1;
+        }
+
+        return range.getToIntervalEnd()+1 - range.getFromIntervalStart();
+    }
+
+    protected String rangeSequence(Range range) {
+        int length = rangeLength(range);
+
+        if (length <= 0 || range.getSequence() == null) {
+            return "";
+        }
+
+        return range.getSequence().substring(0, rangeLength(range));
+    }
 }

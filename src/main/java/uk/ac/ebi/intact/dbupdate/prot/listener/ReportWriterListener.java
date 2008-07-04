@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
@@ -184,7 +185,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     @Override
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-        Feature feature = evt.getNewRange().getFeature();
+        UpdatedRange updatedRange = evt.getUpdatedRange();
+        Feature feature = updatedRange.getNewRange().getFeature();
         Component component = feature.getComponent();
         Interactor interactor = component.getInteractor();
 
@@ -193,26 +195,30 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         
         try {
             ReportWriter writer = reportHandler.getRangeChangedWriter();
-            writer.writeHeaderIfNecessary("Prot. AC",
-                                          "Prot. Label",
-                                          "Prot. Uniprot",
-                                          "Comp. AC",
-                                          "Feature AC",
-                                          "Feature Label",
-                                          "Range AC",
+            writer.writeHeaderIfNecessary("Range AC",
                                           "Old Pos.",
                                           "New Pos.",
+                                          "Length Changed",
+                                          "Seq. Changed",
+                                          "Feature AC",
+                                          "Feature Label",
+                                          "Comp. AC",
+                                          "Prot. AC",
+                                          "Prot. Label",
+                                          "Prot. Uniprot",
                                           "Message");
-            writer.writeColumnValues(interactor.getAc(),
-                                     interactor.getShortLabel(),
-                                     uniprotAc,
-                                     component.getAc(),
+            writer.writeColumnValues(updatedRange.getNewRange().getAc(),
+                                     updatedRange.getOldRange().toString(),
+                                     updatedRange.getNewRange().toString(),
+                                     booleanToYesNo(updatedRange.isRangeLengthChanged()),
+                                     booleanToYesNo(updatedRange.isSequenceChanged()),
                                      feature.getAc(),
                                      feature.getShortLabel(),
-                                     evt.getNewRange().getAc(),
-                                     evt.getOldRange().toString(),
-                                     evt.getNewRange().toString(),
-                                     dashIfNull(evt.getMessage()));
+                                     component.getAc(),
+                                     interactor.getAc(),
+                                     interactor.getShortLabel(),
+                                     uniprotAc,
+                                     dashIfNull(updatedRange.getMessage()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -332,6 +338,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     private String dashIfNull(String str) {str = (str != null)? str : EMPTY_VALUE;
         return str;
+    }
+
+    private String booleanToYesNo(boolean bool) {
+        return bool? "Y" : "N";
     }
 
     private String getPrimaryIdString(Protein protein) {

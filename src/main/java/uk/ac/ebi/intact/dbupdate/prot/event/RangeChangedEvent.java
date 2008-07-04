@@ -16,7 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.context.DataContext;
-import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 
 /**
  * TODO comment that class header
@@ -24,33 +24,21 @@ import uk.ac.ebi.intact.model.Range;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class RangeChangedEvent implements ProteinProcessorEvent, MessageContainer {
+public class RangeChangedEvent implements ProteinProcessorEvent {
 
     private DataContext dataContext;
-    private Range oldRange;
-    private Range newRange;
-    private String message;
+    private UpdatedRange updatedRange;
 
-    public RangeChangedEvent(DataContext dataContext, Range oldRange, Range newRange, String message) {
+    public RangeChangedEvent(DataContext dataContext, UpdatedRange updatedRange) {
         this.dataContext = dataContext;
-        this.oldRange = oldRange;
-        this.newRange = newRange;
-        this.message = message;
+        this.updatedRange = updatedRange;
     }
 
     public DataContext getDataContext() {
         return dataContext;
     }
 
-    public Range getOldRange() {
-        return oldRange;
-    }
-
-    public Range getNewRange() {
-        return newRange;
-    }
-
-    public String getMessage() {
-        return message;
+    public UpdatedRange getUpdatedRange() {
+        return updatedRange;
     }
 }

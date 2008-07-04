@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.business.IntactException;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.model.Component;
@@ -25,9 +26,10 @@ import uk.ac.ebi.intact.model.Interactor;
 import uk.ac.ebi.intact.model.Range;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.clone.IntactClonerException;
-import uk.ac.ebi.intact.business.IntactException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Fixes the ranges of the features of a protein when updating the sequence.
@@ -68,6 +70,9 @@ public class RangeChecker {
             boolean rangeShifted = shiftRange(diffs, range);
 
             range.prepareSequence(newSequence);
+
+            // TODO report message if new range has different length than the old range
+            // TODO compare the old-new ranges sequences, and report changes within the range
 
             if (rangeShifted) {
                 if (log.isInfoEnabled())
@@ -121,6 +126,11 @@ public class RangeChecker {
         if (lengthBefore != lengthAfter && log.isWarnEnabled()) {
             log.warn("Range length changed after shifting its position when updating the sequence from "+
                      lengthBefore+" to "+lengthAfter+": "+logInfo(range));
+        }
+
+        if (range.getFromIntervalStart() == -1 ||
+            range.getToIntervalEnd() != -1) {
+            range.setUndetermined(true);
         }
 
         return rangeShifted;
