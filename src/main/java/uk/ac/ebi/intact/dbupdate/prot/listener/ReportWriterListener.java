@@ -23,6 +23,7 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.Crc64;
@@ -118,15 +119,18 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             String state;
             int seqDiff;
             int levenshtein;
+            double conservation;
 
             if (evt.getOldSequence() != null) {
                 state = "UPDATE";
                 seqDiff = protein.getSequence().length()-evt.getOldSequence().length();
                 levenshtein = StringUtils.getLevenshteinDistance(protein.getSequence(), evt.getOldSequence());
+                conservation = ProteinTools.calculateSequenceConservation(evt.getOldSequence(), protein.getSequence());
             } else {
                 state = "NEW";
                 seqDiff = protein.getSequence().length();
                 levenshtein = seqDiff;
+                conservation = 0;
             }
 
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
@@ -135,7 +139,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                              "|CRC:"+protein.getCrc64()+
                              "|Length:"+protein.getSequence().length()+
                              "|Diff:"+seqDiff+
-                             "|Levenshtein:"+ levenshtein);
+                             "|Levenshtein:"+ levenshtein+
+                             "|Conservation:"+conservation);
             writer.writeLine(insertNewLinesIfNecessary(protein.getSequence(), 80));
             writer.flush();
         } catch (IOException e) {

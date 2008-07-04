@@ -70,6 +70,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             addListener(new ReportWriterListener(configUpdate.getReportHandler()));
         }
 
+        //addListener(new SequenceChangedListener());
         addListener(new RangeFixer());
     }
 
