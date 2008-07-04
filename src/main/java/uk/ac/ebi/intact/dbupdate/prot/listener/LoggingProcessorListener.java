@@ -69,7 +69,8 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
     }
 
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Range ("+evt.getNewRange().getAc()+") changed from "+evt.getOldRange()+" to "+evt.getNewRange());
+        if (log.isDebugEnabled()) log.debug("Range ("+evt.getUpdatedRange().getNewRange().getAc()+
+                                            ") changed from "+evt.getUpdatedRange().getOldRange()+" to "+evt.getUpdatedRange().getNewRange());
     }
 
 
