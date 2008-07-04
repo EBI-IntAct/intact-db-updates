@@ -21,11 +21,9 @@ import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
-import uk.ac.ebi.intact.model.AnnotatedObject;
-import uk.ac.ebi.intact.model.Annotation;
-import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 
 /**
@@ -40,7 +38,12 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
     private static final Log log = LogFactory.getLog( SequenceChangedListener.class );
 
-    private double conservationThreshold = 0.05;
+    private static final String SEQCHANGED_CAUTION = "Protein [uniprotkb] has undergone a significant sequence change since this"  +
+                                                     "entry was originally annotated which may effect the results shown. For " +
+                                                     "further information, please access the IntAct curation manual and for " +
+                                                     "details of the sequence change go to [unisave]";
+
+    private double conservationThreshold = 0.35;
 
     public SequenceChangedListener() {
     }
@@ -62,12 +65,23 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
         // if the sequences are considerably different, create a caution for the protein and the interactions
         if ( relativeConservation <= conservationThreshold) {
+                    final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
+            String uniprotAc = null;
+
+            if (xref != null) {
+                uniprotAc = xref.getPrimaryId();
+            }
+
+            String message = SEQCHANGED_CAUTION.replaceAll("\\[uniprotkb\\]", "[uniprotkb:"+ uniprotAc+"]");
+
+            System.out.println(SEQCHANGED_CAUTION.length());
+
             if (log.isWarnEnabled()) log.warn("Sequence has changed considerably during update for protein: "+protInfo(evt.getProtein()));
 
-            addCaution(evt.getProtein(), "The sequence was changed considerably during update from Uniprot.");
+            addCaution(evt.getProtein(), message);
 
             for (Component comp : evt.getProtein().getActiveInstances()) {
-                addCaution(comp.getInteraction(), "This interaction contains a participant in which the sequence was changed considerably during update from Uniprot.");
+                addCaution(comp.getInteraction(), message);
             }
         }
     }

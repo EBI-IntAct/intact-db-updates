@@ -46,15 +46,15 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
-        final Collection<Annotation> topicsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
                                                                          prot, oldSequence));
 
-        final Collection<Annotation> topicsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsAfter.size());
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsAfter.size());
     }
     
     @Test
@@ -67,15 +67,16 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
-        final Collection<Annotation> topicsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
                                                                          prot, oldSequence));
 
-        final Collection<Annotation> topicsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(1, topicsAfter.size());
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(1, cautionsAfter.size());
+        System.out.println(cautionsAfter);
     }
 
     @Test
@@ -88,15 +89,15 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
-        final Collection<Annotation> topicsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
                                                                          prot, oldSequence));
 
-        final Collection<Annotation> topicsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(1, topicsAfter.size());
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(1, cautionsAfter.size());
     }
 
     @Test
@@ -109,15 +110,15 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
-        final Collection<Annotation> topicsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
                                                                          prot, oldSequence));
 
-        final Collection<Annotation> topicsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(1, topicsAfter.size());
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(1, cautionsAfter.size());
     }
     
     @Test
@@ -130,14 +131,14 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
-        final Collection<Annotation> topicsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
                                                                          prot, oldSequence));
 
-        final Collection<Annotation> topicsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
-        Assert.assertEquals(0, topicsAfter.size());
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsAfter.size());
     }
 }
