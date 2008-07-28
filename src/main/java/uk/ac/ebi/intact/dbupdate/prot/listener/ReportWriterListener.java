@@ -26,8 +26,8 @@ import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
+import uk.ac.ebi.intact.commons.util.Crc64;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -111,7 +111,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 writer.writeLine(">"+ protein.getAc()+"|OLD|"+
                                  protein.getShortLabel()+"|"+
                                  getPrimaryIdString(protein)
-                                 +"|CRC:"+Crc64.getCrc64(evt.getOldSequence())+
+                                 +"|CRC:"+ Crc64.getCrc64(evt.getOldSequence())+
                                  "|Length:"+evt.getOldSequence().length());
                 writer.writeLine(insertNewLinesIfNecessary(evt.getOldSequence(), 80));
             }
