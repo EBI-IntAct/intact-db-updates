@@ -89,7 +89,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
         for (Annotation annot : ao.getAnnotations()) {
             if (CvTopic.CAUTION_MI_REF.equals(annot.getCvTopic().getIdentifier()) &&
                     annot.getAnnotationText().equals(cautionMessage)) {
-                if (log.isInfoEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("Annotated object already contains a caution. Not adding another one: "+ao);
                 }
                 return;
