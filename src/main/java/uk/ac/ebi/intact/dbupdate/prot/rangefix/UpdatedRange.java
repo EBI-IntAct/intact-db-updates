@@ -78,10 +78,22 @@ public class UpdatedRange {
     protected String rangeSequence(Range range) {
         int length = rangeLength(range);
 
-        if (length <= 0 || range.getSequence() == null) {
-            return "";
+        String rseq = "";
+
+        final String rangeSequence = range.getSequence();
+
+        if (length <= 0 || rangeSequence == null) {
+            return rseq;
         }
 
-        return range.getSequence().substring(0, rangeLength(range));
+        final int rangeLength = rangeLength(range);
+
+        if (rangeSequence.length() < rangeLength) {
+            rseq = rangeSequence;
+        } else {
+            rseq = rangeSequence.substring(0, rangeLength);
+        }
+
+        return rseq;
     }
 }
