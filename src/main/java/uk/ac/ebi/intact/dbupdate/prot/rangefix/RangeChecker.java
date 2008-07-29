@@ -66,7 +66,7 @@ public class RangeChecker {
                 throw new IntactException("Could not clone range: "+range, e);
             }
 
-            boolean rangeShifted = shiftRange(diffs, range);
+            boolean rangeShifted = shiftRange(diffs, range, newSequence);
 
             range.prepareSequence(newSequence);
 
@@ -81,7 +81,7 @@ public class RangeChecker {
         return updatedRanges;
     }
 
-    protected boolean shiftRange(List<Diff> diffs, Range range) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String newSequence) {
         boolean rangeShifted = false;
         int lengthBefore = range.getToIntervalEnd() - range.getFromIntervalStart();
 
@@ -119,28 +119,28 @@ public class RangeChecker {
         // We need to apply a correction (-1/+1) because the shift calculation is index based (0 is the first position),
         // whereas the range positions are not (first position is 1)
 
-        int shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart());
+        int shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart(), newSequence);
 
         if (shiftedFromIntervalStart != range.getFromIntervalStart()) {
             range.setFromIntervalStart(shiftedFromIntervalStart);
             rangeShifted = true;
         }
 
-        int shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd());
+        int shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd(), newSequence);
 
         if (shiftedFromIntervalEnd != range.getFromIntervalEnd()) {
             range.setFromIntervalEnd(shiftedFromIntervalEnd);
             rangeShifted = true;
         }
 
-        int shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart());
+        int shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart(), newSequence);
 
         if (shiftedToIntervalStart != range.getToIntervalStart()) {
             range.setToIntervalStart(shiftedToIntervalStart);
             rangeShifted = true;
         }
 
-        int shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd());
+        int shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd(), newSequence);
 
         if (shiftedToIntervalEnd != range.getToIntervalEnd()) {
             range.setToIntervalEnd(shiftedToIntervalEnd);
@@ -168,8 +168,13 @@ public class RangeChecker {
      * @param sequencePosition The original position in the sequence
      * @return The final position in the sequence. If it couldn't be found, returns 0.
      */
-    protected int calculatePositionShift(List<Diff> diffs, int sequencePosition) {
+    protected int calculatePositionShift(List<Diff> diffs, int sequencePosition, String newSequence) {
         if (sequencePosition <= 0) return 0;
+
+        if (sequencePosition > newSequence.length()) {
+            if (log.isWarnEnabled()) log.warn("Index position out of bounds for range: "+sequencePosition+" (new sequence length: "+newSequence.length());
+            sequencePosition = newSequence.length();
+        }
 
         int index = sequencePosition-1; // index 0-based (sequence is 1-based)
         int shiftedIndex = DiffUtils.calculateIndexShift(diffs, index);
@@ -178,7 +183,7 @@ public class RangeChecker {
 
         // if exists (is is not -1) return the index 1-based (position)
         // if not, return 0
-        if (shiftedIndex > 0) {
+        if (shiftedIndex > -1) {
             shiftedPos = shiftedIndex+1;
         } else {
             shiftedPos = 0;
