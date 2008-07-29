@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.model.CvFuzzyType;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Range;
 
@@ -238,6 +239,98 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(1, updatedRanges.size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void shiftFeatureRanges_cTerminal_from() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setFromCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void shiftFeatureRanges_cTerminal_to() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setToCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void shiftFeatureRanges_nTerminal_from() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setFromCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+    
+    @Test
+    public void shiftFeatureRanges_nTerminal_to() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setToCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());

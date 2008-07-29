@@ -46,13 +46,12 @@ public class RangeChecker {
      * @param feature The feature to update
      * @param oldSequence The old sequence
      * @param newSequence The new sequence
+     * @return a collection that contains the ranges that have been updated
      */
     public Collection<UpdatedRange> shiftFeatureRanges(Feature feature, String oldSequence, String newSequence) {
         if (feature == null) throw new NullPointerException("Feature was null");
         if (oldSequence == null) throw new NullPointerException("Old sequence was null");
         if (newSequence == null) throw new NullPointerException("New sequence was null");
-
-        // determine the kind of sequence update
 
         List<Diff> diffs = DiffUtils.diff(oldSequence, newSequence);
 
@@ -71,9 +70,6 @@ public class RangeChecker {
 
             range.prepareSequence(newSequence);
 
-            // TODO report message if new range has different length than the old range
-            // TODO compare the old-new ranges sequences, and report changes within the range
-
             if (rangeShifted) {
                 if (log.isInfoEnabled())
                     log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
@@ -88,6 +84,18 @@ public class RangeChecker {
     protected boolean shiftRange(List<Diff> diffs, Range range) {
         boolean rangeShifted = false;
         int lengthBefore = range.getToIntervalEnd() - range.getFromIntervalStart();
+
+        if (range.getFromCvFuzzyType() != null &&
+            (range.getFromCvFuzzyType().isCTerminal() ||
+            range.getFromCvFuzzyType().isNTerminal())) {
+            return rangeShifted;
+        }
+
+        if (range.getToCvFuzzyType() != null &&
+            (range.getToCvFuzzyType().isCTerminal() ||
+            range.getToCvFuzzyType().isNTerminal())) {
+            return rangeShifted;
+        }
 
         // don't shift the range if it is undetermined, and reset it to 0 if necessary
         if (range.isUndetermined()) {
