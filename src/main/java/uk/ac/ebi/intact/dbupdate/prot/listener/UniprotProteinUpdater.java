@@ -81,7 +81,12 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         Protein protToUpdate = evt.getProtein();
 
         InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protToUpdate);
-        safeRetrieve(uniprotXref);
+
+        if (uniprotXref != null) {
+            safeRetrieve(uniprotXref);
+        } else {
+            if (log.isWarnEnabled()) log.warn("Protein without uniprot xref: "+protToUpdate);
+        }
 
     }
 
@@ -90,6 +95,10 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
      * @param uniprotXref
      */
     private void safeRetrieve(InteractorXref uniprotXref) {
+        if (uniprotXref == null) {
+            throw new NullPointerException("Traying to safe-retrieve a null uniprotXref");
+        }
+
         try {
             // retrieve the entry from uniprot
             super.retrieve(uniprotXref.getPrimaryId());
