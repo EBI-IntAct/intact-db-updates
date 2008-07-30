@@ -66,7 +66,18 @@ public class RangeChecker {
                 throw new IntactException("Could not clone range: "+range, e);
             }
 
-            boolean rangeShifted = shiftRange(diffs, range, oldSequence);
+            boolean rangeShifted = false;
+
+            // check the case where the length correspond to all the sequence. If that is the case,
+            // the new range will cover the new sequence and there is no need to calculate the shift
+            if (range.getFromIntervalStart() == 1 &&
+                    range.getToIntervalEnd() >= oldSequence.length()) {
+                rangeShifted = true;
+                range.setToIntervalStart(newSequence.length());
+                range.setToIntervalEnd(newSequence.length());
+            } else { // otherwise calculate the shift
+                rangeShifted = shiftRange(diffs, range, oldSequence);
+            }
 
             range.prepareSequence(newSequence);
 
