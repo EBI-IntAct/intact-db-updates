@@ -85,7 +85,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         if (uniprotXref != null) {
             safeRetrieve(uniprotXref);
         } else {
-            if (log.isWarnEnabled()) log.warn("Protein without uniprot xref: "+protToUpdate);
+            if (log.isWarnEnabled()) log.warn("Protein without uniprot xref: "+protToUpdate.getAc()+" ("+protToUpdate.getShortLabel()+")");
         }
 
     }
