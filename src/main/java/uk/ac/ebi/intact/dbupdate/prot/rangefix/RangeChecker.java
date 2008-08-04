@@ -66,18 +66,7 @@ public class RangeChecker {
                 throw new IntactException("Could not clone range: "+range, e);
             }
 
-            boolean rangeShifted = false;
-
-            // check the case where the length correspond to all the sequence. If that is the case,
-            // the new range will cover the new sequence and there is no need to calculate the shift
-            if (range.getFromIntervalStart() == 1 &&
-                    range.getToIntervalEnd() >= oldSequence.length()) {
-                rangeShifted = true;
-                range.setToIntervalStart(newSequence.length());
-                range.setToIntervalEnd(newSequence.length());
-            } else { // otherwise calculate the shift
-                rangeShifted = shiftRange(diffs, range, oldSequence);
-            }
+            boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence);
 
             range.prepareSequence(newSequence);
 
@@ -92,20 +81,34 @@ public class RangeChecker {
         return updatedRanges;
     }
 
-    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
         boolean rangeShifted = false;
         int lengthBefore = range.getToIntervalEnd() - range.getFromIntervalStart();
 
-        if (range.getFromCvFuzzyType() != null &&
-            (range.getFromCvFuzzyType().isCTerminal() ||
-            range.getFromCvFuzzyType().isNTerminal())) {
-            return rangeShifted;
-        }
-
+        // case: n-terminal or c-terminal
         if (range.getToCvFuzzyType() != null &&
             (range.getToCvFuzzyType().isCTerminal() ||
             range.getToCvFuzzyType().isNTerminal())) {
             return rangeShifted;
+        }
+
+        // case: from/to was the last aa in the old sequence
+        if (oldSequence.length() != newSequence.length()) {
+            if (range.getFromIntervalStart() == oldSequence.length()) {
+                rangeShifted = true;
+                range.setFromIntervalStart(newSequence.length());
+                range.setFromIntervalEnd(newSequence.length());
+            }
+
+            if (range.getToIntervalStart() >= oldSequence.length()) {
+                rangeShifted = true;
+                range.setToIntervalStart(newSequence.length());
+                range.setToIntervalEnd(newSequence.length());
+            }
+            
+            if (rangeShifted) {
+                return rangeShifted;
+            }
         }
 
         // don't shift the range if it is undetermined, and reset it to 0 if necessary

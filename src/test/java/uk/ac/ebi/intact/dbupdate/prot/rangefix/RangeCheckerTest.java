@@ -415,4 +415,31 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(6, range.getToIntervalStart());
         Assert.assertEquals(6, range.getToIntervalEnd());
     }
+
+    @Test
+    public void shiftFeatureRanges_toOutOfBounds4() throws Exception {
+        String oldSequence = "MDNCLAHAHAHAHAHAAAAL";
+        String newSequence = "MDNCLA";
+
+        Assert.assertEquals(20, oldSequence.length());
+        Assert.assertEquals(6, newSequence.length());
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(20, 20, 20, 20);
+        feature.addRange(range);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(1, updatedRanges.size());
+
+        UpdatedRange updatedRange = updatedRanges.iterator().next();
+        Assert.assertFalse(updatedRange.isRangeLengthChanged());
+        Assert.assertTrue(updatedRange.isSequenceChanged());
+
+        Assert.assertEquals(6, range.getFromIntervalStart());
+        Assert.assertEquals(6, range.getFromIntervalEnd());
+        Assert.assertEquals(6, range.getToIntervalStart());
+        Assert.assertEquals(6, range.getToIntervalEnd());
+    }
 }
