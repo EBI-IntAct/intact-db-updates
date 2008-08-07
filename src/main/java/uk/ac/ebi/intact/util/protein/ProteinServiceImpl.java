@@ -26,7 +26,9 @@ import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.protein.utils.*;
+import uk.ac.ebi.intact.business.IntactTransactionException;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -854,7 +856,7 @@ public class ProteinServiceImpl implements ProteinService {
      * @return a non null, persisted intact protein.
      */
     private Protein createMinimalisticProtein( UniprotProtein uniprotProtein ) throws ProteinServiceException {
-
+     try{
         if (uniprotProtein == null) {
             throw new NullPointerException("Passed a null UniprotProtein");
         }
@@ -877,6 +879,7 @@ public class ProteinServiceImpl implements ProteinService {
             throw new ProteinServiceException(e);
         }
 
+        IntactContext.getCurrentInstance().getDataContext().beginTransaction(); 
         Protein protein = new ProteinImpl( CvHelper.getInstitution(),
                 biosource,
                 generateProteinShortlabel( uniprotProtein ),
@@ -888,8 +891,13 @@ public class ProteinServiceImpl implements ProteinService {
         XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
         pdao.update( ( ProteinImpl ) protein );
-
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
         return protein;
+
+     }catch( IntactTransactionException e){
+        throw new ProteinServiceException(e);
+     }
+    
     }
 
     private Collection<UniprotProtein> retrieveFromUniprot( String uniprotId ) {
