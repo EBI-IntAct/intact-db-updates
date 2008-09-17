@@ -38,14 +38,17 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         RangeChecker rangeChecker = new RangeChecker();
 
-        for (Component component : evt.getProtein().getActiveInstances()) {
-            for (Feature feature : component.getBindingDomains()) {
-                Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence());
+        if (evt.getOldSequence() != null && evt.getProtein().getSequence() != null) {
 
-                // fire the events for the range changes
-                for (UpdatedRange updatedRange : updatedRanges) {
-                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    processor.fireOnRangeChange(new RangeChangedEvent(evt.getDataContext(), updatedRange));
+            for (Component component : evt.getProtein().getActiveInstances()) {
+                for (Feature feature : component.getBindingDomains()) {
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence());
+
+                    // fire the events for the range changes
+                    for (UpdatedRange updatedRange : updatedRanges) {
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnRangeChange(new RangeChangedEvent(evt.getDataContext(), updatedRange));
+                    }
                 }
             }
         }
