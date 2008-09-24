@@ -223,8 +223,10 @@ public class ProteinServiceImpl implements ProteinService {
 
         // filter by tax id and remove non-uniprot prots from the list, and assign to the primary or secondary collections
 
-        filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, primaryProteins);
-        filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, secondaryProteins);
+        if (taxid != null) {
+            filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, primaryProteins);
+            filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, secondaryProteins);
+        }
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -361,7 +363,7 @@ public class ProteinServiceImpl implements ProteinService {
         for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
             ProteinImpl protein = proteinIterator.next();
 
-            if (!taxid.equals(protein.getBioSource().getTaxId())) {
+            if (taxid != null && !taxid.equals(protein.getBioSource().getTaxId())) {
                 proteinIterator.remove();
                 continue;
             }
