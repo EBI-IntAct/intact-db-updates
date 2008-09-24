@@ -363,7 +363,7 @@ public class ProteinServiceImpl implements ProteinService {
         for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
             ProteinImpl protein = proteinIterator.next();
 
-            if (taxid != null && !taxid.equals(protein.getBioSource().getTaxId())) {
+            if (protein.getBioSource() == null || !taxid.equals(protein.getBioSource().getTaxId())) {
                 proteinIterator.remove();
                 continue;
             }
