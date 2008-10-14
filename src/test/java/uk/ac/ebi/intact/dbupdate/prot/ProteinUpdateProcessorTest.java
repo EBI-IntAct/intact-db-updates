@@ -29,6 +29,7 @@ import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -259,6 +260,33 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         Assert.assertNotNull(dupe2FromDb);
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+    }
+
+    @Test
+    public void updateProteinWithNullBiosource() throws Exception {
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setProcessBatchSize(3);
+        configUpdate.setProcessStepSize(2);
+
+        Protein prot = getMockBuilder().createProtein("P42898", "riboflavin");
+        prot.setBioSource(null);
+        prot.setCrc64(null);
+        prot.setSequence(null);
+        
+        final Interaction interaction = getMockBuilder().createInteraction(prot);
+
+        PersisterHelper.saveOrUpdate(interaction);
+
+        Assert.assertNotNull(prot.getAc());
+
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateByACs(Arrays.asList(prot.getAc()));
+
+        final ProteinImpl refreshedProt = getDaoFactory().getProteinDao().getByAc(prot.getAc());
+
+        Assert.assertNotNull(refreshedProt.getCrc64());
+        Assert.assertNotNull(refreshedProt.getSequence());
+        Assert.assertNotNull(refreshedProt.getBioSource());
     }
     
 }

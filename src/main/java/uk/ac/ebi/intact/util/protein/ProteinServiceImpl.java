@@ -7,6 +7,7 @@ package uk.ac.ebi.intact.util.protein;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.business.IntactTransactionException;
 import uk.ac.ebi.intact.context.IntactContext;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
@@ -19,6 +20,7 @@ import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.persistence.dao.XrefDao;
+import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
@@ -26,9 +28,7 @@ import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.protein.utils.*;
-import uk.ac.ebi.intact.business.IntactTransactionException;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -221,11 +221,11 @@ public class ProteinServiceImpl implements ProteinService {
             secondaryProteins.addAll(proteinDao.getByUniprotId(secondaryAc));
         }
 
-        // filter by tax id and remove non-uniprot prots from the list, and assign to the primary or secondary collections
+        // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
 
         if (taxid != null) {
-            filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, primaryProteins);
-            filterByTaxidAndNonUniprot(nonUniprotProteins, taxid, secondaryProteins);
+            filterNonUniprot(nonUniprotProteins, primaryProteins);
+            filterNonUniprot(nonUniprotProteins, secondaryProteins);
         }
 
         int countPrimary = primaryProteins.size();
@@ -359,16 +359,12 @@ public class ProteinServiceImpl implements ProteinService {
         return protToBeKept;
     }
 
-    private void filterByTaxidAndNonUniprot(Collection<Protein> nonUniprotProteins, String taxid, Collection<ProteinImpl> primaryProteins) {
+    private void filterNonUniprot(Collection<Protein> nonUniprotProteins, Collection<ProteinImpl> primaryProteins) {
         for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
             ProteinImpl protein = proteinIterator.next();
 
-            if (protein.getBioSource() == null || !taxid.equals(protein.getBioSource().getTaxId())) {
-                proteinIterator.remove();
-                continue;
-            }
-
             if (!ProteinUtils.isFromUniprot(protein)) {
+                proteinIterator.remove();
                 nonUniprotProteins.add(protein);
             }
         }
@@ -498,13 +494,24 @@ public class ProteinServiceImpl implements ProteinService {
         List<Protein> proteins = new ArrayList<Protein>();
 
         // check that both protein carry the same organism information
-        String t1 = protein.getBioSource().getTaxId();
-        int t2 = uniprotProtein.getOrganism().getTaxid();
-        if ( !String.valueOf( t2 ).equals( t1 ) ) {
+        BioSource organism1 = protein.getBioSource();
+
+        Organism organism2 = uniprotProtein.getOrganism();
+        int t2 = organism2.getTaxid();
+
+        if (organism1 == null) {
+            if (log.isWarnEnabled()) log.warn("Protein does not contain biosource. It will be assigned the Biosource from uniprot: "+organism2.getName()+" ("+organism2.getTaxid()+")");
+            organism1 = new BioSource(protein.getOwner(), organism2.getName(), String.valueOf(t2));
+            protein.setBioSource(organism1);
+
+            PersisterHelper.saveOrUpdate(organism1);
+        }
+
+        if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
             uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
-                    " the BioSource(" + t1 + "," + protein.getBioSource().getShortLabel() +  ") of the following protein " +
+                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein " +
                      getProteinDescription(protein) + " by BioSource( " + t2 + "," +
-                    uniprotProtein.getOrganism().getName() + " )\nChanging the taxid of an existing protein is a forbidden operation.");
+                    organism2.getName() + " )\nChanging the taxid of an existing protein is a forbidden operation.");
 
             return proteins;
         }
