@@ -511,7 +511,7 @@ public class ProteinServiceImpl implements ProteinService {
             uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
                     " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein " +
                      getProteinDescription(protein) + " by BioSource( " + t2 + "," +
-                    organism2.getName() + " )\nChanging the taxid of an existing protein is a forbidden operation.");
+                    organism2.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
 
             return proteins;
         }
