@@ -15,7 +15,6 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.business.IntactTransactionException;
@@ -25,13 +24,9 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.util.DebugUtil;
 
 import javax.swing.event.EventListenerList;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -75,73 +70,16 @@ public abstract class ProteinProcessor {
      */
     public void updateAll() throws ProcessorException {
         registerListenersIfNotDoneYet();
-
-        if (stepSize > batchSize) {
-            throw new IllegalArgumentException("The step size must be smaller than the batch size. Batch size: "+batchSize+" / Step size: "+stepSize);
-        }
-        
+         
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-        ProteinDao protDao = dataContext.getDaoFactory().getProteinDao();
 
         dataContext.beginTransaction();
-        int totalCount = protDao.countAll();
+        List<String> acs = dataContext.getDaoFactory().getEntityManager()
+                .createQuery("select p.ac from ProteinImpl p order by p.created").getResultList();
         commitTransaction();
 
-        if (log.isDebugEnabled()) log.debug("Found a total of "+totalCount+" proteins in the database");
+        updateByACs(acs);
 
-        int maxResults = batchSize;
-        int firstResult = 0;
-        int previousFirstResult = -1;
-
-        List<? extends Protein> protsToUpdate;
-
-        do {
-            if (log.isInfoEnabled()) log.info("Processing batch "+firstResult+"-"+(firstResult+maxResults));
-
-            if (previousFirstResult == firstResult) {
-                if (log.isInfoEnabled()) log.info("The first result for this iteration and the previous one is the same. Existing iteration");
-                break;
-            }
-            previousFirstResult = firstResult;
-
-            dataContext.beginTransactionManualFlush();
-            protsToUpdate = protDao.getAllSorted(firstResult, maxResults, "created", true);
-
-            // we check if the previous batch of ACs and this one overlapps, just to check
-            // that the iteration is correct and no external (or from listener) changes
-            // affect the iteration
-            List<String> currentBatchACs = DebugUtil.acList(protsToUpdate);
-
-            if (log.isTraceEnabled()) log.trace("Current batch of ACs: "+currentBatchACs);
-
-            Collection<String> intersectedACs = CollectionUtils.intersection(previousBatchACs, currentBatchACs);
-
-            if (firstResult > 0 && intersectedACs.isEmpty() && !protsToUpdate.isEmpty()) {
-                if (log.isInfoEnabled()) log.info("No overlap between batches in iteration. Will adjust firstResult");
-                firstResult = firstResult-stepSize+1;
-                commitTransaction();
-                continue;
-            } else {
-                if (log.isTraceEnabled()) log.trace("Intersection between batches: "+intersectedACs);
-                previousBatchACs = currentBatchACs;
-            }
-
-            // we removed the overlapped elements from the list, so they are not processed again
-            //protsToUpdate.subList(intersectedACs.size(), protsToUpdate.size());
-            for (Iterator<? extends Protein> protIterator = protsToUpdate.iterator(); protIterator.hasNext();) {
-                Protein protein = protIterator.next();
-                if (intersectedACs.contains(protein.getAc())) {
-                    protIterator.remove();
-                }
-            }
-
-            commitTransaction();
-
-            updateByACs(DebugUtil.acList(protsToUpdate));
-
-            firstResult = firstResult+stepSize;
-
-        } while (!protsToUpdate.isEmpty());
     }
 
     public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {
