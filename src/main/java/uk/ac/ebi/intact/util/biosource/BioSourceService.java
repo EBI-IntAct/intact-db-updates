@@ -6,6 +6,7 @@
 package uk.ac.ebi.intact.util.biosource;
 
 import uk.ac.ebi.intact.model.BioSource;
+import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 
 /**
  * Defines a BioSourceService.
@@ -38,4 +39,6 @@ public interface BioSourceService {
      * @throws BioSourceServiceException if an error occur during the processing.
      */
     public BioSource getBiosourceByTaxid( String taxid ) throws BioSourceServiceException;
+
+    public TaxonomyService getTaxonomyService();
 }

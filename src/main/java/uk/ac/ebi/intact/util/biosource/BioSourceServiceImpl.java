@@ -318,4 +318,8 @@ public class BioSourceServiceImpl implements BioSourceService {
 
         return String.valueOf( term.getTaxid() );
     }
+
+    public TaxonomyService getTaxonomyService() {
+        return taxonomyService;
+    }
 }
