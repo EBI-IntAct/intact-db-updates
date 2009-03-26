@@ -7,9 +7,9 @@
         Spring configuration for the uniprot service.
     </description>
 
-    <bean id="yasp" class="uk.ac.ebi.intact.uniprot.service.YaspService"/>
+    <!--<bean id="yasp" class="uk.ac.ebi.intact.uniprot.service.YaspService"/>-->
     <bean id="remote" class="uk.ac.ebi.intact.uniprot.service.UniprotRemoteService"/>
-    <bean id="dummy" class="uk.ac.ebi.intact.uniprot.service.DummyUniprotService"/>
+    <!--<bean id="dummy" class="uk.ac.ebi.intact.uniprot.service.DummyUniprotService"/>-->
 
     <bean id="UniprotBridgeAdapter" class="remote"/>
 
