@@ -199,24 +199,38 @@ public class BioSourceServiceImpl implements BioSourceService {
                 }
                 break;
 
-            case-1:
+            case -1:
                 bioSource = searchIntactByTaxid( taxid );
                 if ( bioSource == null ) {
                     bioSource = createAndPersistBioSource( "in vitro", null, taxid );
                 }
                 break;
 
-            case-2:
+            case -2:
                 bioSource = searchIntactByTaxid( taxid );
                 if ( bioSource == null ) {
                     bioSource = createAndPersistBioSource( "chemical synthesis", null, taxid );
                 }
                 break;
 
-            case-3:
+            case -3:
                 bioSource = searchIntactByTaxid( taxid );
                 if ( bioSource == null ) {
                     bioSource = createAndPersistBioSource( "unknown", null, taxid );
+                }
+                break;
+
+            case -4:
+                bioSource = searchIntactByTaxid( taxid );
+                if ( bioSource == null ) {
+                    bioSource = createAndPersistBioSource( "in vivo", null, taxid );
+                }
+                break;
+
+            case -5:
+                bioSource = searchIntactByTaxid( taxid );
+                if ( bioSource == null ) {
+                    bioSource = createAndPersistBioSource( "in silico", null, taxid );
                 }
                 break;
 
