@@ -58,6 +58,12 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
     }
 
+    public UniprotProteinUpdater(UniprotService uniprotService) {
+        super(uniprotService);
+        // Build default taxonomy service
+        setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService());
+    }
+
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 

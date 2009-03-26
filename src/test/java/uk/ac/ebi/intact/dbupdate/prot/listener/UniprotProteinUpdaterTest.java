@@ -44,7 +44,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService(), new NewtTaxonomyService());
+        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService());
         listener.onPreProcess(evt);
 
         Assert.assertFalse(processor.isFinalizationRequested());
@@ -60,7 +60,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService(), new NewtTaxonomyService());
+        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService());
         listener.onPreProcess(evt);
 
         Assert.assertTrue(processor.isFinalizationRequested());
