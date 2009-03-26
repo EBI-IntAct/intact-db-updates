@@ -8,16 +8,13 @@
         instanciated.
     </description>
 
-    <bean id="newt" class="uk.ac.ebi.intact.util.taxonomy.NewtTaxonomyService"/>
-    <bean id="ols" class="uk.ac.ebi.intact.util.taxonomy.OLSTaxonomyService"/>
-    <bean id="dummy" class="uk.ac.ebi.intact.util.taxonomy.DummyTaxonomyService"/>
-
-    <!--<bean id="TaxonomyBridgeAdapter" class="newt" />-->
+    <bean id="newt" class="uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService"/>
+    <bean id="ols" class="uk.ac.ebi.intact.bridges.taxonomy.OLSTaxonomyService"/>
 
     <bean id="biosourceLoaderBean" class="uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl">
         <constructor-arg>
             <!--<ref bean="${TaxonomyBridgeAdapter.class}"/>-->
-            <ref bean="newt"/>
+            <ref bean="ols"/>
         </constructor-arg>
     </bean>
 </beans>
