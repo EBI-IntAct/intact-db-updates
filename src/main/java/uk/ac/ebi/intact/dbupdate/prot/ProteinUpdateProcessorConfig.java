@@ -20,9 +20,11 @@ import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
+import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
+import uk.ac.ebi.intact.util.biosource.BioSourceService;
 
 /**
- * TODO comment that class header
+ * Protein update processor config.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -45,7 +47,8 @@ public class ProteinUpdateProcessorConfig {
 
     public ProteinUpdateProcessorConfig() {
         this.uniprotService = new UniprotRemoteService();
-        this.taxonomyService = new NewtTaxonomyService();
+        final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
+        this.taxonomyService = bioSourceService.getTaxonomyService();
     }
 
     public ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
