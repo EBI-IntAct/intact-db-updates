@@ -7,10 +7,11 @@ package uk.ac.ebi.intact.util.deadproteins;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.IntactContext;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.IntactTransactionException;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.*;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.*;
 import uk.ac.ebi.intact.uniprot.UniprotServiceException;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
@@ -207,7 +208,7 @@ public class UpdateDeadProteins {
             throw new IllegalStateException();
         }
 
-        Institution owner = IntactContext.getCurrentInstance().getConfig().getInstitution();
+        Institution owner = IntactContext.getCurrentInstance().getInstitution();
         ComponentDao cdao = daoFactory.getComponentDao();
 
         XrefDao xdao = daoFactory.getXrefDao();
@@ -236,7 +237,7 @@ public class UpdateDeadProteins {
         AnnotationDao adao = daoFactory.getAnnotationDao();
         ProteinDao pdao = daoFactory.getProteinDao();
 
-        Institution owner = IntactContext.getCurrentInstance().getConfig().getInstitution();
+        Institution owner = IntactContext.getCurrentInstance().getInstitution();
         Annotation annot = new Annotation( owner, noUniprotUpdate );
         log.info( "Created new Anntotation( no-uniprot-update )" );
         adao.persist( annot );
@@ -421,7 +422,7 @@ public class UpdateDeadProteins {
 
             DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
             ProteinDao pdao = daoFactory.getProteinDao();
-            IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+            TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
             List<ProteinImpl> deadProteins = pdao.getByUniprotId( id );
 
@@ -430,7 +431,7 @@ public class UpdateDeadProteins {
 
                 // close transaction before to go to next entry
                 try {
-                    IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+                    IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
                 } catch ( IntactTransactionException e ) {
                     throw new UniprotServiceException( e );
                 }
@@ -513,7 +514,7 @@ public class UpdateDeadProteins {
             }
 
             try {
-                IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+                IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
             } catch ( IntactTransactionException e ) {
                 throw new UniprotServiceException( e );
             }

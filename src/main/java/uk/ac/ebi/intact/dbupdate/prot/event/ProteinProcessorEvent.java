@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
-import uk.ac.ebi.intact.context.DataContext;
+import uk.ac.ebi.intact.core.context.DataContext;
 
 import java.io.Serializable;
 

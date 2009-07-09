@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
@@ -36,7 +37,7 @@ import java.util.Collections;
  */
 public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
-    @Test
+    @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionNo() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
 
@@ -57,7 +58,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, cautionsAfter.size());
     }
     
-    @Test
+    @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
 
@@ -79,7 +80,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         System.out.println(cautionsAfter);
     }
 
-    @Test
+    @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
 
@@ -100,7 +101,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Assert.assertEquals(1, cautionsAfter.size());
     }
 
-    @Test
+    @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes3() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
 
@@ -121,7 +122,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Assert.assertEquals(1, cautionsAfter.size());
     }
     
-    @Test
+    @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionNo2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
 

@@ -15,7 +15,7 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
-import uk.ac.ebi.intact.context.DataContext;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;

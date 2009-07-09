@@ -17,14 +17,13 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 
 import java.util.List;
 

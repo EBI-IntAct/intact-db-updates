@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.Range;
 
@@ -28,7 +29,7 @@ import uk.ac.ebi.intact.model.Range;
  */
 public class UpdatedRangeTest extends IntactBasicTestCase {
 
-    @Test
+    @Test @DirtiesContext
     public void isSequenceChanged_no() throws Exception {
         String oldSequence = "ABCDEDF";
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
@@ -48,7 +49,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         Assert.assertEquals("BCD", updated.rangeSequence(newRange));
     }
     
-    @Test
+    @Test @DirtiesContext
     public void isSequenceChanged_yes() throws Exception {
         String oldSequence = "ABCDEDF";
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
@@ -68,7 +69,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         Assert.assertEquals("BZD", updated.rangeSequence(newRange));
     }
 
-    @Test
+    @Test @DirtiesContext
     public void isSequenceChanged_yes2() throws Exception {
         String oldSequence = "ABCDEDF";
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
@@ -82,7 +83,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         Assert.assertTrue(updated.isSequenceChanged());
     }
 
-    @Test
+    @Test @DirtiesContext
     public void isRangeChanged_no1() throws Exception {
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
         Range newRange = getMockBuilder().createRange(2, 2, 4, 4);
@@ -91,7 +92,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         Assert.assertFalse(updated.isRangeLengthChanged());
     }
 
-    @Test
+    @Test @DirtiesContext
     public void isRangeChanged_yes1() throws Exception {
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
         Range newRange = getMockBuilder().createRange(1, 1, 4, 4);
@@ -100,7 +101,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         Assert.assertTrue(updated.isRangeLengthChanged());
     }
     
-    @Test
+    @Test @DirtiesContext
     public void isRangeChanged_yes2() throws Exception {
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
         Range newRange = getMockBuilder().createRange(-1, -1, -1, -1);

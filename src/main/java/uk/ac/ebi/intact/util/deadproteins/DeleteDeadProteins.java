@@ -7,12 +7,13 @@ package uk.ac.ebi.intact.util.deadproteins;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.IntactContext;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.IntactTransactionException;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -75,7 +76,7 @@ public class DeleteDeadProteins {
 
     private void initControlledVocabularies() throws IntactTransactionException {
 
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
         ProteinDao proteinDao = daoFactory.getProteinDao();
@@ -98,7 +99,7 @@ public class DeleteDeadProteins {
         }
 
         try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
         } catch ( IntactTransactionException e ) {
             throw new RuntimeException( e );
         }
@@ -132,7 +133,7 @@ public class DeleteDeadProteins {
         //    This only apply if all respective parent and splice variant do not have any interaction either.
         int proteinDeletedCount = 0;
 
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
         ProteinDao proteinDao = daoFactory.getProteinDao();
@@ -150,7 +151,7 @@ public class DeleteDeadProteins {
         } // ids
 
         try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
         } catch ( IntactTransactionException e ) {
             throw new RuntimeException( e );
         }
@@ -165,12 +166,12 @@ public class DeleteDeadProteins {
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
 
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         ProteinDao proteinDao = daoFactory.getProteinDao();
         final int proteinCount = proteinDao.countAll();
         proteinDao = null;
         try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
         } catch ( IntactTransactionException e ) {
             throw new RuntimeException( e );
         }
@@ -183,10 +184,10 @@ public class DeleteDeadProteins {
 
         while ( i < proteinCount ) {
 
-            IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+            TransactionStatus transactionStatus2 = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
             proteinDao = daoFactory.getProteinDao();
 
-            System.out.println( "Processing proteins " + i + ".." + ( i + CHUNK_SIZE ) );
+            log.debug( "Processing proteins " + i + ".." + ( i + CHUNK_SIZE ) );
             proteins = proteinDao.getAll( i, CHUNK_SIZE );
 
             for ( ProteinImpl protein : proteins ) {
@@ -202,7 +203,7 @@ public class DeleteDeadProteins {
 
             // release the memory for that chunk of data.
             try {
-                IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+                IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
             } catch ( IntactTransactionException e ) {
                 throw new RuntimeException( e );
             }

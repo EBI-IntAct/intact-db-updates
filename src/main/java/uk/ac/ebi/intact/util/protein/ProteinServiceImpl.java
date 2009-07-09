@@ -7,8 +7,13 @@ package uk.ac.ebi.intact.util.protein;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.IntactContext;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.IntactTransactionException;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
+import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -16,10 +21,6 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
@@ -336,7 +337,8 @@ public class ProteinServiceImpl implements ProteinService {
 
         //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
         Institution owner = IntactContext.getCurrentInstance().getInstitution();
-        CvDatabase intact = IntactContext.getCurrentInstance().getCvContext().getByMiRef(CvDatabase.class, CvDatabase.INTACT_MI_REF);
+        CvDatabase intact = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                .getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
         for(Protein protToDelete : proteinsToDelete ){
 
@@ -793,7 +795,7 @@ public class ProteinServiceImpl implements ProteinService {
         // Update Note
         String note = uniprotSpliceVariant.getNote();
         if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
-            Institution owner = IntactContext.getCurrentInstance().getConfig().getInstitution();
+            Institution owner = IntactContext.getCurrentInstance().getInstitution();
             DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
             CvObjectDao<CvTopic> cvDao = daoFactory.getCvObjectDao( CvTopic.class );
             CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
@@ -888,8 +890,9 @@ public class ProteinServiceImpl implements ProteinService {
             throw new ProteinServiceException(e);
         }
 
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction(); 
-        Protein protein = new ProteinImpl( CvHelper.getInstitution(),
+         TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+         Protein protein = new ProteinImpl( CvHelper.getInstitution(),
                 biosource,
                 generateProteinShortlabel( uniprotProtein ),
                 CvHelper.getProteinType() );
@@ -900,7 +903,7 @@ public class ProteinServiceImpl implements ProteinService {
         XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
         pdao.update( ( ProteinImpl ) protein );
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
         return protein;
 
      }catch( IntactTransactionException e){

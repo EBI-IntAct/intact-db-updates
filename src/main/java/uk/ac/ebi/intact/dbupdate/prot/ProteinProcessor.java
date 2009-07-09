@@ -17,9 +17,10 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.DataContext;
-import uk.ac.ebi.intact.context.IntactContext;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.IntactTransactionException;
+import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
@@ -73,10 +74,10 @@ public abstract class ProteinProcessor {
          
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-        dataContext.beginTransaction();
+        TransactionStatus transactionStatus = dataContext.beginTransaction();
         List<String> acs = dataContext.getDaoFactory().getEntityManager()
                 .createQuery("select p.ac from ProteinImpl p order by p.created").getResultList();
-        commitTransaction();
+        commitTransaction(transactionStatus);
 
         updateByACs(acs);
 
@@ -86,7 +87,7 @@ public abstract class ProteinProcessor {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
         for (String protAc : protACsToUpdate) {
-            dataContext.beginTransaction();
+            TransactionStatus transactionStatus = dataContext.beginTransaction();
             ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
 
             if (prot == null) {
@@ -101,7 +102,7 @@ public abstract class ProteinProcessor {
             update(prot);
 
             try {
-                dataContext.commitTransaction();
+                dataContext.commitTransaction(transactionStatus);
             } catch (IntactTransactionException e) {
                 throw new ProcessorException(e);
             }
@@ -126,28 +127,36 @@ public abstract class ProteinProcessor {
         finalizationRequested = false;
 
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+        TransactionStatus transactionStatus = dataContext.beginTransaction();
 
         if (log.isTraceEnabled()) log.trace("Pre-processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
         ProteinEvent preProcessEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnPreProcess(preProcessEvent);
 
+        try {
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
+        } catch (IntactTransactionException e) {
+            throw new ProcessorException(e);
+        }
+
         if (isFinalizationRequested()) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Pre-Process phase");
             return;
         }
 
-        try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction();
-        } catch (IntactTransactionException e) {
-            throw new ProcessorException(e);
-        }
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus2 = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         if (log.isTraceEnabled()) log.trace("Processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
         ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnProcess(processEvent);
+
+        try {
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
+        } catch (IntactTransactionException e) {
+            throw new ProcessorException(e);
+        }
     }
 
     public void finalizeAfterCurrentPhase() {
@@ -214,10 +223,10 @@ public abstract class ProteinProcessor {
 
     // other private methods
 
-    private void commitTransaction() throws ProcessorException {
+    private void commitTransaction(TransactionStatus transactionStatus) throws ProcessorException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         try {
-            dataContext.commitTransaction();
+            dataContext.commitTransaction(transactionStatus);
         } catch (IntactTransactionException e) {
             throw new ProcessorException("Problem committing", e);
         }

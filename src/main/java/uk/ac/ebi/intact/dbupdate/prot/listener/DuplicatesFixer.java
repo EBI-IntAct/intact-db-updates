@@ -17,19 +17,18 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
+import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.util.DebugUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;

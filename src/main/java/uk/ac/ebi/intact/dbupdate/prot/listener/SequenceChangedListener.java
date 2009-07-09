@@ -17,14 +17,14 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 
 /**
  * Checks the protein sequence updates in order to assess the change and add additional

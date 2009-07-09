@@ -18,9 +18,10 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -42,18 +43,15 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Before
     public void before_schema() throws Exception {
-        SchemaUtils.createSchema();
-
-        beginTransaction();
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();
-        commitTransaction();
     }
 
     /**
      * Delete: master prot does not have interactions, but has splice variants with interactions
      */
     @Test
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
@@ -81,7 +79,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         PersisterHelper.saveOrUpdate(spliceVar12, interaction);
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getSpliceVariants(masterProt1).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
@@ -92,7 +90,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // splice var 'sv11' is deleted anyway, as P12345 does not contain such a splice var according to uniprot
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
         
         Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
@@ -108,6 +106,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete splice vars without interactions too
      */
     @Test
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
@@ -137,7 +136,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         PersisterHelper.saveOrUpdate(spliceVar12, interaction);
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getSpliceVariants(masterProt1).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
@@ -147,7 +146,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         protUpdateProcessor.updateAll();
 
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
         Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
@@ -162,6 +161,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, neither its splice variants
      */
     @Test
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
@@ -186,7 +186,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         PersisterHelper.saveOrUpdate(spliceVar11, spliceVar12, interaction);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getSpliceVariants(masterProt1).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
@@ -196,7 +196,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         protUpdateProcessor.updateAll();
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
         Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
@@ -208,6 +208,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Duplicates: fix duplicates
      */
     @Test
+    @DirtiesContext
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
@@ -236,14 +237,10 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
 
-        beginTransaction();
-
         Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
         uniprotXref.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
-
-        commitTransaction();
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1.getCrc64(), dupe1.getBioSource().getTaxId()).size());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
@@ -263,6 +260,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void updateProteinWithNullBiosource() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setProcessBatchSize(3);
@@ -281,6 +279,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateByACs(Arrays.asList(prot.getAc()));
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
 
         final ProteinImpl refreshedProt = getDaoFactory().getProteinDao().getByAc(prot.getAc());
 

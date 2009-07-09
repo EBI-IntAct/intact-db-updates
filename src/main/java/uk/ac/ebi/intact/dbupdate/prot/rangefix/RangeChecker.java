@@ -17,9 +17,9 @@ package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.business.IntactException;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
+import uk.ac.ebi.intact.core.IntactException;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Interactor;

@@ -15,9 +15,9 @@
  */
 package uk.ac.ebi.intact.util.protein;
 
-import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
+import uk.ac.ebi.intact.core.config.impl.SmallCvPrimer;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 
 /**
  * TODO comment that class header

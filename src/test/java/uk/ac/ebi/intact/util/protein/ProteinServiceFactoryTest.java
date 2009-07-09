@@ -1,7 +1,8 @@
 package uk.ac.ebi.intact.util.protein;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.AbstractUniprotService;
@@ -21,7 +22,7 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
     ////////////////////
     // Tests
 
-    @Test
+    @Test @DirtiesContext
     public void testGetInstance() throws Exception {
         ProteinServiceFactory f1 = ProteinServiceFactory.getInstance();
         assertNotNull( f1 );
@@ -54,7 +55,7 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
         }
     }
 
-    @Test
+    @Test @DirtiesContext
     public void testBuildProteinService() {
         ProteinServiceFactory factory = ProteinServiceFactory.getInstance();
         assertNotNull( factory );

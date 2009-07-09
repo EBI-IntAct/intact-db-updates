@@ -16,11 +16,10 @@
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.core.util.SchemaUtils;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.model.*;
@@ -43,17 +42,10 @@ import java.util.Iterator;
  * @version $Id$
  */
 public class FileReportHandlerTest extends IntactBasicTestCase {
-
-    @Before
-    public void before_schema() throws Exception {
-        SchemaUtils.createSchema();
-    }
-
-    @Test
+    
+    @Test @DirtiesContext
     public void simulation() throws Exception {
-        beginTransaction();
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
-        commitTransaction();
 
         final File dir = new File("target/simulation");
         UpdateReportHandler reportHandler = new FileReportHandler(dir);
@@ -111,14 +103,10 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
 
-        beginTransaction();
-
         Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
         uniprotXref.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
-
-        commitTransaction();
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1.getCrc64(), dupe1.getBioSource().getTaxId()).size());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
@@ -152,7 +140,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
         Assert.assertTrue("An dip xref (copied from dupe1) is expected in dupe2", dipFound);
 
-        Assert.assertEquals(9, dupe2Xrefs.size());
+        Assert.assertEquals(12, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
         final File preProcessedFile = new File(dir, "pre_processed.csv");

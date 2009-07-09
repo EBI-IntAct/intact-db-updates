@@ -17,9 +17,9 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.util.DebugUtil;
 
 /**
  * TODO comment that class header

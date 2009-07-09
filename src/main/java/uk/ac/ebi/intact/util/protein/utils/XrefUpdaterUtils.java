@@ -8,10 +8,10 @@ package uk.ac.ebi.intact.util.protein.utils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
@@ -37,7 +37,7 @@ public final class XrefUpdaterUtils {
     public static final Log log = LogFactory.getLog( XrefUpdaterUtils.class );
 
     public static Xref convert( UniprotXref uniprotXref, CvDatabase db ) {
-        Institution owner = IntactContext.getCurrentInstance().getConfig().getInstitution();
+        Institution owner = IntactContext.getCurrentInstance().getInstitution();
         return new InteractorXref( owner, db, uniprotXref.getAccession(), null );
     }
 

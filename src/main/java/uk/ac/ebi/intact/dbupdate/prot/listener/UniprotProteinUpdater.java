@@ -19,7 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;

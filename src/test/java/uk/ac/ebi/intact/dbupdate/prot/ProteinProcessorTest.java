@@ -16,13 +16,12 @@
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.core.util.SchemaUtils;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
 
 import java.util.Date;
@@ -35,12 +34,7 @@ import java.util.Date;
  */
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
-    @Before
-    public void before_schema() throws Exception {
-        SchemaUtils.createSchema();
-    }
-
-    @Test
+    @Test @DirtiesContext
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
 
          final Protein protMain = getMockBuilder().createProtein("P12345", "main");

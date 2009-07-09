@@ -5,10 +5,10 @@
  */
 package uk.ac.ebi.intact.util.protein;
 
-import uk.ac.ebi.intact.context.IntactContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
 
 /**
  * Controlled Vocabulary Helper, provides methods for retreiving CV terms.

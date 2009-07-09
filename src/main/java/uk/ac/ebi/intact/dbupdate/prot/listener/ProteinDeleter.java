@@ -17,13 +17,12 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.persistence.dao.ProteinDao;
 
 /**
  * Removes a protein from the database
@@ -45,13 +44,18 @@ public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
         
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-        if (!proteinDao.isTransient((ProteinImpl)protein)) {
-            ProteinProcessor processor = (ProteinProcessor)evt.getSource();
+        if (protein.getAc() != null) {
+            ProteinProcessor processor = (ProteinProcessor) evt.getSource();
+
+            if (!proteinDao.isTransient((ProteinImpl) protein)) {
+                proteinDao.delete((ProteinImpl) protein);
+            } else {
+                proteinDao.deleteByAc(protein.getAc());
+            }
 
             if (protein.getAc().equals(processor.getCurrentProtein().getAc())) {
                 processor.finalizeAfterCurrentPhase();
             }
-            proteinDao.delete((ProteinImpl)protein);
         }
     }
 }

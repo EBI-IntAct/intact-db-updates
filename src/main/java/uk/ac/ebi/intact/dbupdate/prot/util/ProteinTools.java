@@ -41,7 +41,7 @@ public class ProteinTools {
 
         for (InteractorXref xref : sourceProtein.getXrefs()) {
 
-            if (xref.getCvXrefQualifier() != null && CvXrefQualifier.IDENTITY_MI_REF.equals(xref.getCvXrefQualifier().getMiIdentifier())) {
+            if (xref.getCvXrefQualifier() != null && CvXrefQualifier.IDENTITY_MI_REF.equals(xref.getCvXrefQualifier().getIdentifier())) {
                 continue;
             }
             if (!destinationProtein.getXrefs().contains(xref)) {
