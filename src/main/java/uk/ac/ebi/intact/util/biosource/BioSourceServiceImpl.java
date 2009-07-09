@@ -7,20 +7,17 @@ package uk.ac.ebi.intact.util.biosource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyServiceException;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyTerm;
-import uk.ac.ebi.intact.business.IntactException;
-import uk.ac.ebi.intact.business.IntactTransactionException;
-import uk.ac.ebi.intact.context.IntactContext;
-import uk.ac.ebi.intact.context.DataContext;
+import uk.ac.ebi.intact.core.IntactTransactionException;
+import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.BioSourceDao;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.persistence.dao.BioSourceDao;
-import uk.ac.ebi.intact.persistence.dao.CvObjectDao;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Implementation of the BioSourceService.
@@ -92,21 +89,14 @@ public class BioSourceServiceImpl implements BioSourceService {
     private BioSource searchIntactByTaxid( String taxid ) throws BioSourceServiceException {
         log.debug( "Searching in the database for BioSource(" + taxid + ")" );
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-        DaoFactory daoFactory = dataContext.getDaoFactory();
 
-        if ( !daoFactory.isTransactionActive() ) {
-            log.debug( "There's no transaction active, start a local transaction." );
-            daoFactory.beginTransaction();
-        } else {
-            log.debug( "There's already an ongoing transaction, we join it." );
-        }
+        TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-
-        BioSourceDao bsDao = daoFactory.getBioSourceDao();
+        BioSourceDao bsDao = dataContext.getDaoFactory().getBioSourceDao();
         BioSource biosource = bsDao.getByTaxonIdUnique( taxid );
 
         try {
-            dataContext.commitTransaction();
+            dataContext.commitTransaction(transactionStatus);
         } catch (IntactTransactionException e) {
             throw new BioSourceServiceException("Problem committing", e);
         }
@@ -141,7 +131,7 @@ public class BioSourceServiceImpl implements BioSourceService {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         DaoFactory daoFactory = dataContext.getDaoFactory();
 
-        dataContext.beginTransaction();
+        TransactionStatus transactionStatus = dataContext.beginTransaction();
 
         // Instanciate it
         BioSource bioSource = new BioSource( institution, shortlabel, taxid );
@@ -171,7 +161,7 @@ public class BioSourceServiceImpl implements BioSourceService {
         sourceDao.saveOrUpdate( bioSource );
 
         try {
-            dataContext.commitTransaction();
+            dataContext.commitTransaction(transactionStatus);
         } catch (IntactTransactionException e) {
             throw new BioSourceServiceException("Problem committing", e);
         }

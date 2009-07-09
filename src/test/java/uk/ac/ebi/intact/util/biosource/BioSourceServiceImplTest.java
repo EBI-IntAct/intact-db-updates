@@ -1,17 +1,18 @@
 package uk.ac.ebi.intact.util.biosource;
 
-import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.model.BioSource;
-import uk.ac.ebi.intact.model.CvDatabase;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.config.CvPrimer;
-import uk.ac.ebi.intact.config.impl.SmallCvPrimer;
-import uk.ac.ebi.intact.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.context.IntactContext;
-import org.junit.Test;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
+import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import uk.ac.ebi.intact.core.config.impl.SmallCvPrimer;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.model.BioSource;
+import uk.ac.ebi.intact.model.CvDatabase;
 
 /**
  * BioSourceServiceImpl Tester.
@@ -34,12 +35,12 @@ public class BioSourceServiceImplTest extends IntactBasicTestCase {
 
     @Before
     public void initializeDatabase() throws Exception {
-        IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
         new MyPrimer( getDaoFactory() ).createCVs();
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction();
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
     }
 
-    @Test
+    @Test @DirtiesContext
     public void testGetBiosource_existingOne() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
@@ -47,7 +48,7 @@ public class BioSourceServiceImplTest extends IntactBasicTestCase {
         Assert.assertNotNull( bs );
     }
 
-    @Test
+    @Test @DirtiesContext
     public void testGetBiosource_newBioSource() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
