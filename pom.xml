@@ -12,9 +12,7 @@
 
     <name>IntAct Database Update :: BioSource Update</name>
 
-    <properties>
-        <maven.test.skip>true</maven.test.skip>
-    </properties>
+    
                   
     <dependencies>
         <dependency>
