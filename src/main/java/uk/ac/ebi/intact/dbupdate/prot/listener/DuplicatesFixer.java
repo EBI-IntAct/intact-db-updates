@@ -62,7 +62,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         // move the interactions from the rest of proteins to the original
         for (Protein duplicate : duplicates) {
             // don't process the original protein with itself
-            if (!duplicate.getAc().equals(originalProt.getAc())) {
+            if ( ! duplicate.getAc().equals(originalProt.getAc()) ) {
                 ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
                 List<InteractorXref> copiedXrefs = ProteinTools.copyNonIdentityXrefs(originalProt, duplicate);
 
@@ -76,11 +76,12 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 Institution owner = duplicate.getOwner();
                 InstitutionXref psiMiXref = XrefUtils.getPsiMiIdentityXref(owner);
                 if (psiMiXref != null) {
-                    CvDatabase db = psiMiXref.getCvDatabase();
+                    DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+                    CvDatabase ownerDb = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( psiMiXref.getPrimaryId() );
 
                     CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
                     PersisterHelper.saveOrUpdate(intactSecondary);
-                    InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
+                    InteractorXref xref = new InteractorXref(owner, ownerDb, duplicate.getAc(), intactSecondary);
                     originalProt.addXref(xref);
                 }
 
@@ -92,7 +93,6 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 }
             }
         }
-
     }
 
     protected static Protein calculateOriginalProtein(List<? extends Protein> duplicates) {
