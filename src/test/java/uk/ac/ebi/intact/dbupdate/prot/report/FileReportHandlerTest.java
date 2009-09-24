@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.report;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -42,7 +43,11 @@ import java.util.Iterator;
  * @version $Id$
  */
 public class FileReportHandlerTest extends IntactBasicTestCase {
-    
+
+    @Autowired
+    private PersisterHelper persisterHelper;
+
+
     @Test @DirtiesContext
     public void simulation() throws Exception {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
@@ -97,7 +102,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
 
         // persist the interactions
-        PersisterHelper.saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
+        persisterHelper.save(dupe1, dupe2, interaction1, interaction2, interaction3);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -140,7 +145,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
         Assert.assertTrue("An dip xref (copied from dupe1) is expected in dupe2", dipFound);
 
-        Assert.assertEquals(12, dupe2Xrefs.size());
+        Assert.assertEquals(10, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
         final File preProcessedFile = new File(dir, "pre_processed.csv");
