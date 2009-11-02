@@ -46,7 +46,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
          final Protein prot3 = getMockBuilder().createProteinRandom();
          final Protein prot4 = getMockBuilder().createProteinRandom();
 
-         PersisterHelper.saveOrUpdate(prot1, protMain, prot2, prot3, protRemoved, prot4);
+         getCorePersister().saveOrUpdate(prot1, protMain, prot2, prot3, protRemoved, prot4);
 
          Assert.assertNotNull(protRemoved.getAc());
 

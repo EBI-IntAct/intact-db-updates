@@ -386,7 +386,7 @@ public class ProteinServiceImpl implements ProteinService {
                 .getCvObjectDao(CvTopic.class).getByShortLabel("to-delete", false);
         if(toDelete == null){
             toDelete = CvObjectUtils.createCvObject(institution, CvTopic.class, null, "to-delete");
-            PersisterHelper.saveOrUpdate(toDelete);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(toDelete);
         }
 
         Annotation annot = new Annotation(institution, toDelete, "ProteinUpdateMessage : this protein should be deleted " +
@@ -506,7 +506,7 @@ public class ProteinServiceImpl implements ProteinService {
             organism1 = new BioSource(protein.getOwner(), organism2.getName(), String.valueOf(t2));
             protein.setBioSource(organism1);
 
-            PersisterHelper.saveOrUpdate(organism1);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(organism1);
         }
 
         if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {

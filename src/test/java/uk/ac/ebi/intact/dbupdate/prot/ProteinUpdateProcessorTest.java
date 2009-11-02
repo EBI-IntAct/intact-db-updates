@@ -61,7 +61,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
         masterProt1.getBioSource().setTaxId("9986"); // rabit
 
-        PersisterHelper.saveOrUpdate(masterProt1);
+        getCorePersister().saveOrUpdate(masterProt1);
 
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
 
@@ -76,7 +76,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Interaction interaction = getMockBuilder().createInteraction(spliceVar11, randomProt);
 
-        PersisterHelper.saveOrUpdate(spliceVar12, interaction);
+        getCorePersister().saveOrUpdate(spliceVar12, interaction);
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
@@ -118,7 +118,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         masterProt1.getBioSource().setTaxId("9986"); // rabit
 
 
-        PersisterHelper.saveOrUpdate(masterProt1);
+        getCorePersister().saveOrUpdate(masterProt1);
 
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
 
@@ -133,7 +133,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Interaction interaction = getMockBuilder().createInteraction(spliceVar11, randomProt);
 
-        PersisterHelper.saveOrUpdate(spliceVar12, interaction);
+        getCorePersister().saveOrUpdate(spliceVar12, interaction);
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
@@ -171,7 +171,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
         masterProt1.getBioSource().setTaxId("9986"); // rabit
 
-        PersisterHelper.saveOrUpdate(masterProt1);
+        getCorePersister().saveOrUpdate(masterProt1);
 
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
 
@@ -183,7 +183,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Interaction interaction = getMockBuilder().createInteractionRandomBinary();
 
-        PersisterHelper.saveOrUpdate(spliceVar11, spliceVar12, interaction);
+        getCorePersister().saveOrUpdate(spliceVar11, spliceVar12, interaction);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
@@ -231,7 +231,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Interaction interaction2 = getMockBuilder().createInteraction(dupe2, prot2);
         Interaction interaction3 = getMockBuilder().createInteraction(dupe1, prot3);
 
-        PersisterHelper.saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
+        getCorePersister().saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -273,7 +273,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         
         final Interaction interaction = getMockBuilder().createInteraction(prot);
 
-        PersisterHelper.saveOrUpdate(interaction);
+        getCorePersister().saveOrUpdate(interaction);
 
         Assert.assertNotNull(prot.getAc());
 

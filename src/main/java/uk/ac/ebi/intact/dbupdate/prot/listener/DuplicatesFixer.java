@@ -80,7 +80,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                     CvDatabase ownerDb = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( psiMiXref.getPrimaryId() );
 
                     CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
-                    PersisterHelper.saveOrUpdate(intactSecondary);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
                     InteractorXref xref = new InteractorXref(owner, ownerDb, duplicate.getAc(), intactSecondary);
                     originalProt.addXref(xref);
                 }
