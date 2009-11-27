@@ -11,11 +11,9 @@
     <bean id="remote" class="uk.ac.ebi.intact.uniprot.service.UniprotRemoteService"/>
     <!--<bean id="dummy" class="uk.ac.ebi.intact.uniprot.service.DummyUniprotService"/>-->
 
-    <bean id="UniprotBridgeAdapter" class="remote"/>
-
     <bean id="proteinLoaderBean" class="uk.ac.ebi.intact.util.protein.ProteinServiceImpl">
         <constructor-arg>
-            <ref bean="${UniprotBridgeAdapter.class}"/>
+            <ref bean="remote"/>
         </constructor-arg>
     </bean>
 
