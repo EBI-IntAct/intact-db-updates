@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -42,6 +43,7 @@ import java.util.Iterator;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
     @Autowired
@@ -145,7 +147,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
         Assert.assertTrue("An dip xref (copied from dupe1) is expected in dupe2", dipFound);
 
-        Assert.assertEquals(10, dupe2Xrefs.size());
+        Assert.assertEquals(8, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
         final File preProcessedFile = new File(dir, "pre_processed.csv");

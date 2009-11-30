@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.config.CvPrimer;
@@ -36,6 +37,7 @@ import java.util.*;
  * @version $Id$
  * @since TODO artifact version
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Before

@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -32,6 +33,7 @@ import java.util.Date;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
     @Test @DirtiesContext

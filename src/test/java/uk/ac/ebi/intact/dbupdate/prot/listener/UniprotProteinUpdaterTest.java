@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -31,6 +32,7 @@ import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
     private class DummyProcessor extends ProteinProcessor {
