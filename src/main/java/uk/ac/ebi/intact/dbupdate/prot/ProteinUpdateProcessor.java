@@ -17,8 +17,16 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.*;
+import uk.ac.ebi.intact.model.meta.DbInfo;
+import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Updates the database proteins using the latest information from UniProt
@@ -40,6 +48,37 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
         super(configUpdate.getProcessBatchSize(), configUpdate.getProcessStepSize());
         this.configUpdate = configUpdate;
+    }
+
+    @Override
+    public void updateAll() throws ProcessorException {
+        super.updateAll();
+
+        // update db info accordingly
+        String lastProtUpdate = new SimpleDateFormat("dd-MMM-yy").format(new Date());
+
+        saveOrUpdateDbInfo("last_protein_update", lastProtUpdate);
+        saveOrUpdateDbInfo("uniprotkb.version", UniProtJAPI.factory.getVersion());
+
+
+    }
+
+    private void saveOrUpdateDbInfo(String key, String value) {
+        final TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        final IntactContext context = IntactContext.getCurrentInstance();
+        DbInfoDao dbInfoDao = context.getDaoFactory().getDbInfoDao();
+        DbInfo dbInfo = dbInfoDao.get(key);
+
+        if (dbInfo == null) {
+            dbInfo = new DbInfo(key, value);
+            dbInfoDao.persist(dbInfo);
+        } else {
+            dbInfo.setValue(value);
+            context.getDaoFactory().getEntityManager().merge(dbInfo);
+        }
+        
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
     }
 
     protected void registerListeners() {
