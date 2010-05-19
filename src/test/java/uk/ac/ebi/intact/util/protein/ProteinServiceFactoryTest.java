@@ -36,8 +36,13 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
 
     // implementation of the service for the sake of the test below.
     protected class DummyUniprotService extends AbstractUniprotService {
+
         public Collection<UniprotProtein> retrieve( String ac ) {
             throw new UnsupportedOperationException();
+        }
+
+        public Collection<UniprotProtein> retrieve( String ac, boolean processSpliceVars ) {
+            return null;
         }
 
         @Deprecated
@@ -47,6 +52,10 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
 
         public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs ) {
             throw new UnsupportedOperationException();
+        }
+
+        public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs, boolean processSpliceVars ) {
+            return null;
         }
 
         @Deprecated

@@ -47,6 +47,10 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
         return myProteins;
     }
 
+    public Collection<UniprotProtein> retrieve( String ac, boolean processSpliceVars ) {
+        throw new UnsupportedOperationException();
+    }
+
     @Deprecated
     public Collection<UniprotProtein> retreive(String s) {
         return retrieve(s);
@@ -58,6 +62,10 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
             results.put( ac, retrieve( ac ) );
         }
         return results;
+    }
+
+    public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs, boolean processSpliceVars ) {
+        throw new UnsupportedOperationException();        
     }
 
     @Deprecated

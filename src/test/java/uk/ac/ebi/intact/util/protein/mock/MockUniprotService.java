@@ -46,8 +46,6 @@ public class MockUniprotService extends AbstractUniprotService {
         proteins.put( "P21181-4", Arrays.asList( cdc42canfa, cdc42human ) );
     }
 
-
-
     ////////////////////////////
     // AbstractUniprotService
 
@@ -55,6 +53,10 @@ public class MockUniprotService extends AbstractUniprotService {
         Collection<UniprotProtein> myProteins = new ArrayList<UniprotProtein>( 2 );
         myProteins.addAll( proteins.get( ac ) );
         return myProteins;
+    }
+
+    public Collection<UniprotProtein> retrieve( String ac, boolean processSpliceVars ) {
+        throw new UnsupportedOperationException( );
     }
 
     @Deprecated
@@ -68,6 +70,10 @@ public class MockUniprotService extends AbstractUniprotService {
             results.put( ac, retrieve( ac ) );
         }
         return results;
+    }
+
+    public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs, boolean processSpliceVars ) {
+        throw new UnsupportedOperationException( );
     }
 
     @Deprecated

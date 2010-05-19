@@ -108,32 +108,32 @@ public class ProteinServiceImpl implements ProteinService {
     //////////////////////////
     // ProteinLoaderService
 
-    public UniprotServiceResult retrieve( String uniprotId ) {
-        if ( uniprotId == null ) {
+    public UniprotServiceResult retrieve( String uniprotAc ) {
+        if ( uniprotAc == null ) {
             throw new IllegalArgumentException( "You must give a non null UniProt AC" );
         }
 
-        uniprotId = uniprotId.trim();
+        uniprotAc = uniprotAc.trim();
 
-        if ( uniprotId.length() == 0 ) {
+        if ( uniprotAc.length() == 0 ) {
             throw new IllegalArgumentException( "You must give a non empty UniProt AC" );
         }
         // Instanciate the uniprotServiceResult that is going to hold the proteins collection, the information messages
         // and the error message.
-        uniprotServiceResult = new UniprotServiceResult(uniprotId);
+        uniprotServiceResult = new UniprotServiceResult(uniprotAc);
 
-        Collection<UniprotProtein> uniprotProteins = retrieveFromUniprot( uniprotId );
+        Collection<UniprotProtein> uniprotProteins = retrieveFromUniprot( uniprotAc );
 
         try{
             if(uniprotProteins.size() == 0){
                 ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
-                List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotId);
+                List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
                 if(proteinsInIntact.size() != 0){
-                    uniprotServiceResult.addError("Couldn't update protein with uniprot id = " + uniprotId + ". It was found" +
+                    uniprotServiceResult.addError("Couldn't update protein with uniprot id = " + uniprotAc + ". It was found" +
                             " in IntAct but was not found in Uniprot.", UniprotServiceResult.PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE);
                     return uniprotServiceResult;
                 }else{
-                    uniprotServiceResult.addError("Could not udpate protein with uniprot id = " + uniprotId + ". No " +
+                    uniprotServiceResult.addError("Could not udpate protein with uniprot id = " + uniprotAc + ". No " +
                             "corresponding entry found in uniprot.", UniprotServiceResult.PROTEIN_NOT_IN_INTACT_NOT_IN_UNIPROT_ERROR_TYPE);
                 }
             }else if ( uniprotProteins.size() > 1 ) {
@@ -145,10 +145,10 @@ public class ProteinServiceImpl implements ProteinService {
                             + " returned a set of proteins belonging to the same organism.",UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_SAME_ORGA_ERROR_TYPE);
                 } else {
                     // Send an error message because this should just not happen anymore in IntAct at all. In IntAct, all
-                    // the dimerged has taken care of the dimerged proteins have been dealed with and replaced manually by
+                    // the demerged has taken care of the demerged proteins have been dealed with and replaced manually by
                     // the correct uniprot protein.
-                    // Ex of dimerged protein :P00001 was standing for the Cytochrome c of the human and the chimpanzee.
-                    // It has now been dimerged in one entry for the human P99998 and one for the chimpanzee P99999.
+                    // Ex of demerged protein :P00001 was standing for the Cytochrome c of the human and the chimpanzee.
+                    // It has now been demerged in one entry for the human P99998 and one for the chimpanzee P99999.
                     uniprotServiceResult.addError("Trying to update " + uniprotServiceResult.getQuerySentToService()
                             + " returned a set of proteins belonging to different organisms.", UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE);
                 }
@@ -294,8 +294,6 @@ public class ProteinServiceImpl implements ProteinService {
 
             if ( countPrimary > 1 && countSecondary == 0 ) {
                 //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
-                StringBuilder sb = new StringBuilder();
-
                 uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
 
                 Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
@@ -309,7 +307,7 @@ public class ProteinServiceImpl implements ProteinService {
 
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
                 uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProtein.getPrimaryAc() + ") " + pCount + ", " +
-                        "Please fix this problem manualy.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
+                        "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
 
             }
         }
@@ -319,6 +317,10 @@ public class ProteinServiceImpl implements ProteinService {
         return proteins;
     }
 
+    /**
+     * Note that the subclass is used in the global protein update and this one only in the editor.
+     *
+     */
     protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
@@ -337,6 +339,7 @@ public class ProteinServiceImpl implements ProteinService {
 
         //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
         Institution owner = IntactContext.getCurrentInstance().getInstitution();
+        // TODO make sure we are using the owner of the protein, not directly IntAct
         CvDatabase intact = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
                 .getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
@@ -349,6 +352,8 @@ public class ProteinServiceImpl implements ProteinService {
             xref.setParent(protToBeKept);
             protToBeKept.addXref(xref);
             protToDelete.getActiveInstances().clear();
+
+            // TODO harmonise with DuplicateFixer
             deleteProtein(protToDelete);
         }
 
