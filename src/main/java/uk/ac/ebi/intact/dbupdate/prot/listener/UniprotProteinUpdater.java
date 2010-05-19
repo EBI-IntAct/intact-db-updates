@@ -102,7 +102,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
      */
     private void safeRetrieve(InteractorXref uniprotXref) {
         if (uniprotXref == null) {
-            throw new NullPointerException("Traying to safe-retrieve a null uniprotXref");
+            throw new NullPointerException("Trying to safe-retrieve a null uniprotXref");
         }
 
         try {
