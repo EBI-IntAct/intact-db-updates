@@ -319,13 +319,9 @@ public class DatasetWriter {
         log.info("Start transaction...");
         try {
 
-            // create the file where to write the report
-            File file = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
-            Writer writer = new FileWriter(file);
-
             Set<String> proteinSelected = this.proteinSelector.getSelectionOfProteinAccessionsInIntact();
 
-            writer.write(proteinSelected.size() + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
+            log.info(proteinSelected.size() + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
 
             int totalNumberOfExperiments = 0;
             // for each protein of interest
@@ -337,29 +333,40 @@ public class DatasetWriter {
 
                 totalNumberOfExperiments += experimentToAddDataset.size();
 
-                writer.write("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
+                log.info("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
                 addDatasetToExperiments(experimentToAddDataset);
 
                 //this.context.getDataContext().commitTransaction(transactionStatus);
-                writer.flush();
             }
+            log.info("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
 
-            writer.write("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
-            writePublicationUpdated(writer);
-            
-            writer.close();
-
-            if (!isFileWriterEnabled()){
-                file.delete();
-            }
+            writeDatasetReport(proteinSelected.size(), totalNumberOfExperiments);
         } catch (IOException e) {
             throw new ProteinSelectorException("We can't write the results of the dataset update.");
         }
     }
 
-    private void writePublicationUpdated(Writer writer) throws IOException {
-        for (String p : this.listOfpublicationUpdated){
-            writer.write(p + "\n");
+    /**
+     * Write a report about the experiment dataset update
+     * @param numberOfProteinSelected
+     * @param totalNumberOfExperiments
+     * @throws IOException
+     */
+    private void writeDatasetReport(int numberOfProteinSelected, int totalNumberOfExperiments) throws IOException {
+        if (isFileWriterEnabled){
+            // create the file where to write the report
+            File file = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
+            Writer writer = new FileWriter(file);
+
+            writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
+
+            writer.write("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
+
+            for (String p : this.listOfpublicationUpdated){
+                writer.write(p + "\n");
+            }
+
+            writer.close();
         }
     }
 
