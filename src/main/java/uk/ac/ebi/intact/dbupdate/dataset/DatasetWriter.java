@@ -228,7 +228,7 @@ public class DatasetWriter {
     private void addDatasetToExperiments(List<Experiment> experiments) throws IOException, ProteinSelectorException {
         for (Experiment e : experiments){
             String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
-            this.listOfpublicationUpdated.add(pubId + " : " + e.getFullName());
+            this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName());
             Annotation annotation = createNewDataset();
             e.addAnnotation(annotation);
             this.context.getCorePersister().saveOrUpdate(e);
@@ -333,7 +333,7 @@ public class DatasetWriter {
 
                 totalNumberOfExperiments += experimentToAddDataset.size();
 
-                log.info("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
+                log.info("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
                 addDatasetToExperiments(experimentToAddDataset);
 
                 //this.context.getDataContext().commitTransaction(transactionStatus);
