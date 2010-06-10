@@ -360,10 +360,10 @@ public class DatasetWriter {
 
             writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
 
-            writer.write("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
+            writer.write("\nThe dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
 
             for (String p : this.listOfpublicationUpdated){
-                writer.write(p + "\n");
+                writer.write(p + "\n \n");
             }
 
             writer.close();
