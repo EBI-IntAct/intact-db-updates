@@ -14,10 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A DatasetWriter will add a dataset annotation to all the experiments of a same publication with at least one experiment
@@ -43,6 +40,11 @@ public class DatasetWriter {
      * The intact context
      */
     private IntactContext context;
+
+    /**
+     * Contains the list of publications updated
+     */
+    private HashSet<String> listOfpublicationUpdated = new HashSet<String>();
 
     /**
      * To know if a file should be written with the results of the update
@@ -223,10 +225,10 @@ public class DatasetWriter {
      * Add the dataset annotation for each experiment in the list
      * @param experiments : the experiments
      */
-    private void addDatasetToExperiments(List<Experiment> experiments, Writer writer) throws IOException, ProteinSelectorException {
-
+    private void addDatasetToExperiments(List<Experiment> experiments) throws IOException, ProteinSelectorException {
         for (Experiment e : experiments){
-            writer.write("Experiment " + e.getAc() + " "+e.getShortLabel() + "\n");
+            String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
+            this.listOfpublicationUpdated.add(pubId + " : " + e.getFullName());
             Annotation annotation = createNewDataset();
             e.addAnnotation(annotation);
             this.context.getCorePersister().saveOrUpdate(e);
@@ -336,14 +338,15 @@ public class DatasetWriter {
                 totalNumberOfExperiments += experimentToAddDataset.size();
 
                 writer.write("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
-                addDatasetToExperiments(experimentToAddDataset, writer);
+                addDatasetToExperiments(experimentToAddDataset);
 
                 //this.context.getDataContext().commitTransaction(transactionStatus);
                 writer.flush();
             }
 
             writer.write("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
-
+            writePublicationUpdated(writer);
+            
             writer.close();
 
             if (!isFileWriterEnabled()){
@@ -351,6 +354,12 @@ public class DatasetWriter {
             }
         } catch (IOException e) {
             throw new ProteinSelectorException("We can't write the results of the dataset update.");
+        }
+    }
+
+    private void writePublicationUpdated(Writer writer) throws IOException {
+        for (String p : this.listOfpublicationUpdated){
+            writer.write(p + "\n");
         }
     }
 
@@ -427,6 +436,22 @@ public class DatasetWriter {
 
             //this.context.getDataContext().commitTransaction(transactionStatus);
         }
+    }
+
+    /**
+     *
+     * @return the list of pubmed Id and title of the publications updated
+     */
+    public HashSet<String> getListOfpublicationUpdated() {
+        return listOfpublicationUpdated;
+    }
+
+    /**
+     * Set the list of Publications updated
+     * @param listOfpublicationUpdated
+     */
+    public void setListOfpublicationUpdated(HashSet<String> listOfpublicationUpdated) {
+        this.listOfpublicationUpdated = listOfpublicationUpdated;
     }
 }
 
