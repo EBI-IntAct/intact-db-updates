@@ -3,21 +3,30 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 import org.junit.Assert;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.model.BioSource;
-import uk.ac.ebi.intact.model.InteractorAlias;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
+
+import java.util.Collection;
 
 /**
- * TODO comment this
+ * Abstract class to enter data for testing
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>10-Jun-2010</pre>
  */
 
-public class BasicDatasetTest extends IntactBasicTestCase {
+public abstract class BasicDatasetTest extends IntactBasicTestCase {
 
     protected IntactContext intactContext;
+    protected Protein prot1;
+    protected Protein prot2;
+    protected Protein prot3;
+    protected Protein prot4;
+    protected Protein prot5;
+    protected Protein prot6;
+    protected Publication p1;
+    protected Publication p2;
+    protected Publication p3;
 
     public void createProteinsHumanMouseAndRat(){
         BioSource human = getMockBuilder().createBioSource(9606, "human");
@@ -28,12 +37,12 @@ public class BasicDatasetTest extends IntactBasicTestCase {
         intactContext.getCorePersister().saveOrUpdate(mouse);
         intactContext.getCorePersister().saveOrUpdate(rat);
 
-        Protein prot1 = getMockBuilder().createProtein("P01234", "amph_human", human);
-        Protein prot2 = getMockBuilder().createProtein("P01235", "amph_mouse", mouse);
-        Protein prot3 = getMockBuilder().createProtein("P01236", "amph_rat", rat);
-        Protein prot4 = getMockBuilder().createProtein("P01237", "apba1_human", human);
-        Protein prot5 = getMockBuilder().createProtein("P01238", "apba1_mouse", mouse);
-        Protein prot6 = getMockBuilder().createProtein("P01239", "apba2_human", human);
+        prot1 = getMockBuilder().createProtein("P01234", "amph_human", human);
+        prot2 = getMockBuilder().createProtein("P01235", "amph_mouse", mouse);
+        prot3 = getMockBuilder().createProtein("P01236", "amph_rat", rat);
+        prot4 = getMockBuilder().createProtein("P01237", "apba1_human", human);
+        prot5 = getMockBuilder().createProtein("P01238", "apba1_mouse", mouse);
+        prot6 = getMockBuilder().createProtein("P01239", "apba2_human", human);
 
         prot1.getAliases().iterator().next().setName("AMPH");
         prot2.getAliases().iterator().next().setName("AMPH");
@@ -52,9 +61,53 @@ public class BasicDatasetTest extends IntactBasicTestCase {
         Assert.assertEquals(intactContext.getDaoFactory().getAliasDao(InteractorAlias.class).countAll(), 6);
     }
 
+    public void createExperimentsWithProteinOfInterest(){
+        Experiment exp1 = getMockBuilder().createExperimentRandom("amph_2020_1",10);
+        Experiment exp2 = getMockBuilder().createExperimentRandom("apba1_2010_1", 3);
+        Experiment exp3 = getMockBuilder().createExperimentRandom("apba2_2010_1", 7);
+        Experiment exp4 = getMockBuilder().createExperimentRandom("apba2_2010_2", 2);
+        Experiment exp5 = getMockBuilder().createExperimentRandom("amph_2020_2",5);
+
+        p1 = getMockBuilder().createPublication("123456789");
+        p2 = getMockBuilder().createPublication("123456790");
+        p3 = getMockBuilder().createPublication("123456791");
+
+        exp1.setPublication(p1);
+        exp1.getXrefs().iterator().next().setPrimaryId(p1.getPublicationId());
+        Collection<Component> components1 = exp1.getInteractions().iterator().next().getComponents();
+        components1.iterator().next().setInteractor(prot1);
+        exp2.setPublication(p2);
+        exp2.getXrefs().iterator().next().setPrimaryId(p2.getPublicationId());
+        Collection<Component> components2 = exp2.getInteractions().iterator().next().getComponents();
+        components2.iterator().next().setInteractor(prot4);
+        exp3.setPublication(p3);
+        exp3.getXrefs().iterator().next().setPrimaryId(p3.getPublicationId());
+        Collection<Component> components3 = exp3.getInteractions().iterator().next().getComponents();
+        components3.iterator().next().setInteractor(prot6);
+        exp4.setPublication(p3);
+        exp4.getXrefs().iterator().next().setPrimaryId(p3.getPublicationId());
+        Collection<Component> components4 = exp4.getInteractions().iterator().next().getComponents();
+        components4.iterator().next().setInteractor(prot6);
+        exp5.setPublication(p1);
+        exp5.getXrefs().iterator().next().setPrimaryId(p1.getPublicationId());
+
+        this.intactContext.getCorePersister().saveOrUpdate(exp1);
+        this.intactContext.getCorePersister().saveOrUpdate(exp2);
+        this.intactContext.getCorePersister().saveOrUpdate(exp3);
+        this.intactContext.getCorePersister().saveOrUpdate(exp4);
+        this.intactContext.getCorePersister().saveOrUpdate(exp5);
+    }
+
+    public void createDatasetCVTopic(){
+        CvTopic topic = getMockBuilder().createCvObject(CvTopic.class, CvTopic.DATASET_MI_REF, CvTopic.DATASET);
+        this.intactContext.getCorePersister().saveOrUpdate(topic);
+    }
+
     public void setUpDatabase(){
         this.intactContext = IntactContext.getCurrentInstance();
 
         createProteinsHumanMouseAndRat();
+        createExperimentsWithProteinOfInterest();
+        createDatasetCVTopic();
     }
 }

@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -46,13 +45,33 @@ public class DatasetWriter {
     private IntactContext context;
 
     /**
-     * Create a new DatasetWriter with a specific intact context for this database
-     * @param database : the name of the database to query (zpro, zdev, ...)
+     * To know if a file should be written with the results of the update
      */
-    public DatasetWriter(String database){
+    private boolean isFileWriterEnabled = true;
+
+    /**
+     * Create a new DatasetWriter with a specific intact context for this database
+     * @param context : the intact context
+     */
+    public DatasetWriter(IntactContext context){
         this.proteinSelector = null;
-        IntactContext.initContext(new String[] {"/META-INF/"+database+".spring.xml"});
-        this.context = IntactContext.getCurrentInstance();
+        this.context = context;
+    }
+
+    /**
+     * return the isFileWriterEnabled
+     * @return
+     */
+    public boolean isFileWriterEnabled() {
+        return isFileWriterEnabled;
+    }
+
+    /**
+     * set the isFileWriterEnabled
+     * @param fileWriterEnabled
+     */
+    public void setFileWriterEnabled(boolean fileWriterEnabled) {
+        isFileWriterEnabled = fileWriterEnabled;
     }
 
     /**
@@ -189,10 +208,14 @@ public class DatasetWriter {
      *
      * @return a new Dataset annotation with the dataset value contained in the ProteinDatasetSelector of this object
      */
-    private Annotation createNewDataset(){
+    private Annotation createNewDataset() throws ProteinSelectorException {
         CvTopic dataset = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvTopic.class ).getByPsiMiRef( CvTopic.DATASET_MI_REF );
 
-        Annotation annotation = new Annotation(this.context.getInstitution(), dataset, this.proteinSelector.getDatasetValueToAdd());
+        if (dataset == null){
+            throw new ProteinSelectorException("The CVTopic " + CvTopic.DATASET_MI_REF + " : " + CvTopic.DATASET + "doesn't exist in the database.");
+        }
+
+        Annotation annotation = new Annotation(dataset, this.proteinSelector.getDatasetValueToAdd());
         return annotation;
     }
 
@@ -200,7 +223,7 @@ public class DatasetWriter {
      * Add the dataset annotation for each experiment in the list
      * @param experiments : the experiments
      */
-    private void addDatasetToExperiments(List<Experiment> experiments, Writer writer) throws IOException {
+    private void addDatasetToExperiments(List<Experiment> experiments, Writer writer) throws IOException, ProteinSelectorException {
 
         for (Experiment e : experiments){
             writer.write("Experiment " + e.getAc() + " "+e.getShortLabel() + "\n");
@@ -305,7 +328,7 @@ public class DatasetWriter {
             int totalNumberOfExperiments = 0;
             // for each protein of interest
             for (String accession : proteinSelected){
-                TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
 
                 // add the dataset annotation
                 List<Experiment> experimentToAddDataset = getExperimentsContainingProtein(accession);
@@ -315,13 +338,17 @@ public class DatasetWriter {
                 writer.write("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
                 addDatasetToExperiments(experimentToAddDataset, writer);
 
-                this.context.getDataContext().commitTransaction(transactionStatus);
+                //this.context.getDataContext().commitTransaction(transactionStatus);
                 writer.flush();
             }
 
             writer.write("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
 
             writer.close();
+
+            if (!isFileWriterEnabled()){
+                file.delete();
+            }
         } catch (IOException e) {
             throw new ProteinSelectorException("We can't write the results of the dataset update.");
         }
@@ -391,14 +418,14 @@ public class DatasetWriter {
         Set<String> proteinSelected = this.proteinSelector.getSelectionOfProteinAccessionsInIntact();
         // for each protein of interest
         for (String accession : proteinSelected){
-            TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+            //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
 
             // remove the dataset annotation
             List<Experiment> experimentToAddDataset = getExperimentsContainingDatasetToRemoveFor(accession);
             log.info("remove dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction involving the protein " + accession);
             removeDatasetToExperiments(experimentToAddDataset);
 
-            this.context.getDataContext().commitTransaction(transactionStatus);
+            //this.context.getDataContext().commitTransaction(transactionStatus);
         }
     }
 }

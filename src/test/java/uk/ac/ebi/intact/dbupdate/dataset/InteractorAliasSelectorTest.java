@@ -11,7 +11,7 @@ import uk.ac.ebi.intact.model.Protein;
 import java.util.Set;
 
 /**
- * TODO comment this
+ * InteractorAliasSelector tester
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -20,49 +20,13 @@ import java.util.Set;
 public class InteractorAliasSelectorTest extends BasicDatasetTest{
 
     private InteractorAliasSelector selector;
-    /*private IntactContext intactContext;
-
-    public void createProteinsHumanMouseAndRat(){
-        BioSource human = getMockBuilder().createBioSource(9606, "human");
-        BioSource mouse = getMockBuilder().createBioSource(10090, "mouse");
-        BioSource rat = getMockBuilder().createBioSource(10116, "rat");
-
-        intactContext.getCorePersister().saveOrUpdate(human);
-        intactContext.getCorePersister().saveOrUpdate(mouse);
-        intactContext.getCorePersister().saveOrUpdate(rat);
-
-        Protein prot1 = getMockBuilder().createProtein("P01234", "amph_human", human);
-        Protein prot2 = getMockBuilder().createProtein("P01235", "amph_mouse", mouse);
-        Protein prot3 = getMockBuilder().createProtein("P01236", "amph_rat", rat);
-        Protein prot4 = getMockBuilder().createProtein("P01237", "apba1_human", human);
-        Protein prot5 = getMockBuilder().createProtein("P01238", "apba1_mouse", mouse);
-        Protein prot6 = getMockBuilder().createProtein("P01239", "apba2_human", human);
-
-        prot1.getAliases().iterator().next().setName("AMPH");
-        prot2.getAliases().iterator().next().setName("AMPH");
-        prot3.getAliases().iterator().next().setName("AMPH");
-        prot4.getAliases().iterator().next().setName("APBA1");
-        prot5.getAliases().iterator().next().setName("APBA1");
-        prot6.getAliases().iterator().next().setName("APBA2");
-
-        intactContext.getCorePersister().saveOrUpdate(prot1);
-        intactContext.getCorePersister().saveOrUpdate(prot2);
-        intactContext.getCorePersister().saveOrUpdate(prot3);
-        intactContext.getCorePersister().saveOrUpdate(prot4);
-        intactContext.getCorePersister().saveOrUpdate(prot5);
-        intactContext.getCorePersister().saveOrUpdate(prot6);
-
-        Assert.assertEquals(intactContext.getDaoFactory().getAliasDao(InteractorAlias.class).countAll(), 6);
-    }*/
 
     @Before
     public void setUpDatabase(){
         super.setUpDatabase();
-        //this.intactContext = IntactContext.getCurrentInstance();
         this.selector = new InteractorAliasSelector();
         this.selector.setIntactContext(intactContext);
-
-        //createProteinsHumanMouseAndRat();
+        this.selector.setFileWriterEnabled(false);
     }
 
     @Test

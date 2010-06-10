@@ -82,6 +82,11 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
     private IntactContext context;
 
     /**
+     * To know if a file should be written with the results of the selection
+     */
+    private boolean isFileWriterEnabled = true;
+
+    /**
      * Create a new InteractorAliasSelector with no dataset value and no intact context. These two variables must be initialised using the set methods
      */
     public InteractorAliasSelector(){
@@ -586,6 +591,10 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
 
             writer.close();
 
+            if (!isFileWriterEnabled()){
+                file.delete();
+            }
+
         } catch (IOException e) {
             throw new ProteinSelectorException("We can't write the results of the protein selection.", e);
         }
@@ -632,5 +641,21 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
      */
     public void setListOfExcludedPublications(Set<String> listOfExcludedPublications) {
         this.listOfExcludedPublications = listOfExcludedPublications;
+    }
+
+    /**
+     * return the isFileWriterEnabled
+     * @return
+     */
+    public boolean isFileWriterEnabled() {
+        return isFileWriterEnabled;
+    }
+
+    /**
+     * set the isFileWriterEnabled
+     * @param fileWriterEnabled
+     */
+    public void setFileWriterEnabled(boolean fileWriterEnabled) {
+        isFileWriterEnabled = fileWriterEnabled;
     }
 }
