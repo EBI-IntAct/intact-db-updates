@@ -3,9 +3,8 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.BioSource;
+import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.model.Protein;
 
@@ -18,10 +17,10 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>03-Jun-2010</pre>
  */
-public class InteractorAliasSelectorTest extends IntactBasicTestCase{
+public class InteractorAliasSelectorTest extends BasicDatasetTest{
 
     private InteractorAliasSelector selector;
-    private IntactContext intactContext;
+    /*private IntactContext intactContext;
 
     public void createProteinsHumanMouseAndRat(){
         BioSource human = getMockBuilder().createBioSource(9606, "human");
@@ -54,15 +53,16 @@ public class InteractorAliasSelectorTest extends IntactBasicTestCase{
         intactContext.getCorePersister().saveOrUpdate(prot6);
 
         Assert.assertEquals(intactContext.getDaoFactory().getAliasDao(InteractorAlias.class).countAll(), 6);
-    }
+    }*/
 
     @Before
-    public void createBlastProcess(){
-        this.intactContext = IntactContext.getCurrentInstance();
+    public void setUpDatabase(){
+        super.setUpDatabase();
+        //this.intactContext = IntactContext.getCurrentInstance();
         this.selector = new InteractorAliasSelector();
         this.selector.setIntactContext(intactContext);
 
-        createProteinsHumanMouseAndRat();
+        //createProteinsHumanMouseAndRat();
     }
 
     @Test
@@ -72,7 +72,7 @@ public class InteractorAliasSelectorTest extends IntactBasicTestCase{
 
             Assert.assertEquals("Interactions of proteins with an established role in the presynapse.", selector.getDatasetValueToAdd());
             Assert.assertEquals(3, selector.getListOfPossibleTaxId().size());
-            Assert.assertEquals(2, selector.getPublicationsIdToExclude().size());
+            Assert.assertEquals(4, selector.getPublicationsIdToExclude().size());
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
             Assert.assertEquals(3, ((Set) selector.getListOfProteins().get(selector.getListOfProteins().keySet().iterator().next())).size());
 
@@ -145,4 +145,86 @@ public class InteractorAliasSelectorTest extends IntactBasicTestCase{
             Assert.assertFalse(true);
         }
     }
+
+    @Test
+    public void test_select_list_proteins_excluded_organism(){
+        try {
+            BioSource yeast = getMockBuilder().createBioSource(4932, "yeast");
+            intactContext.getCorePersister().saveOrUpdate(yeast);
+
+            Protein prot = getMockBuilder().createProtein("P01244", "amph_yeast", yeast);
+            prot.getAliases().iterator().next().setName("AMPH");
+            intactContext.getCorePersister().saveOrUpdate(prot);
+            String yeastProt = prot.getAc();
+
+            Assert.assertNotNull(yeastProt);
+
+            this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
+
+            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+
+            Assert.assertFalse(listOfAc.isEmpty());
+            Assert.assertEquals(6, listOfAc.size());
+            Assert.assertFalse(listOfAc.contains(yeastProt));
+
+        } catch (ProteinSelectorException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
+    @Test
+    public void test_select_list_proteins_excluded_geneName(){
+        try {
+            BioSource human = getMockBuilder().createBioSource(9606, "human");
+
+            Protein prot = getMockBuilder().createProtein("P01246", "amph_human", human);
+            prot.getAliases().iterator().next().setName("AMPH2");
+            intactContext.getCorePersister().saveOrUpdate(prot);
+            String humanProt = prot.getAc();
+
+            Assert.assertNotNull(humanProt);
+
+            this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
+
+            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+
+            Assert.assertFalse(listOfAc.isEmpty());
+            Assert.assertEquals(6, listOfAc.size());
+            Assert.assertFalse(listOfAc.contains(humanProt));
+
+        } catch (ProteinSelectorException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
+    @Test
+    public void test_select_list_proteins_excluded_aliasType(){
+        try {
+            BioSource human = getMockBuilder().createBioSource(9606, "human");
+
+            Protein prot = getMockBuilder().createProtein("P01250", "amph_human", human);
+            InteractorAlias alias = prot.getAliases().iterator().next();
+            alias.setName("AMPH");
+            alias.setCvAliasType(getMockBuilder().createCvObject(CvAliasType.class, "MI:xxxx", "orf"));
+            intactContext.getCorePersister().saveOrUpdate(prot);
+            String humanProt = prot.getAc();
+
+            Assert.assertNotNull(humanProt);
+
+            this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
+
+            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+
+            Assert.assertFalse(listOfAc.isEmpty());
+            Assert.assertEquals(6, listOfAc.size());
+            Assert.assertFalse(listOfAc.contains(humanProt));
+
+        } catch (ProteinSelectorException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
 }
