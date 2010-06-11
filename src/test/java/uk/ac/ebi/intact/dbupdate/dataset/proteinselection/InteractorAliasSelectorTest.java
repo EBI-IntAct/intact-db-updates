@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset;
+package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
 
 import org.junit.Assert;
 import org.junit.Before;

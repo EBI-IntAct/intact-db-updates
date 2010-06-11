@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset;
+package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;

@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset;
+package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
 
 import uk.ac.ebi.intact.core.context.IntactContext;
 
