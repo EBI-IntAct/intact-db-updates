@@ -156,7 +156,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
             Experiment exp = getMockBuilder().createExperimentRandom("amph_2010_3",12);
             exp.setPublication(p1);
             exp.getXrefs().iterator().next().setPrimaryId(p1.getPublicationId());
-            Annotation dataset = getMockBuilder().createAnnotation("Interactions of proteins with an established role in the presynapse.", getMockBuilder().createCvObject(CvTopic.class, CvTopic.DATASET_MI_REF, CvTopic.DATASET));
+            Annotation dataset = getMockBuilder().createAnnotation("Synapse - Interactions of proteins with an established role in the presynapse.", getMockBuilder().createCvObject(CvTopic.class, CvTopic.DATASET_MI_REF, CvTopic.DATASET));
             exp.addAnnotation(dataset);
             Collection<Component> components1 = exp.getInteractions().iterator().next().getComponents();
             components1.iterator().next().setInteractor(prot1);

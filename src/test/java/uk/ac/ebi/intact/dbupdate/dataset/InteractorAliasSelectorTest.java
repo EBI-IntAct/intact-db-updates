@@ -34,7 +34,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest{
         try {
             this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
 
-            Assert.assertEquals("Interactions of proteins with an established role in the presynapse.", selector.getDatasetValueToAdd());
+            Assert.assertEquals("Synapse - Interactions of proteins with an established role in the presynapse.", selector.getDatasetValueToAdd());
             Assert.assertEquals(3, selector.getListOfPossibleTaxId().size());
             Assert.assertEquals(4, selector.getPublicationsIdToExclude().size());
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
