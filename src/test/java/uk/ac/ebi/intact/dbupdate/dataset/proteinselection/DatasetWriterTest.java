@@ -167,7 +167,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p1.getPublicationId());
 
-            Assert.assertEquals("Interactions of proteins with an established role in the presynapse.", this.writer.getProteinSelector().getDatasetValueToAdd());
+            Assert.assertEquals("Synapse - Interactions of proteins with an established role in the presynapse.", this.writer.getProteinSelector().getDatasetValueToAdd());
             for (Experiment e : experiments){
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
                 Assert.assertEquals(getNumberOfDatasetFor(e), 1);

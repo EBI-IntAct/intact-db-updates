@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.ProteinImpl;
 
 import javax.persistence.Query;
 import java.io.*;
@@ -463,7 +464,7 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
 
         // we want all the interactor associated with this alias name and this alias type
         String interactorGeneQuery = "select prot.ac from InteractorAlias ia join ia.parent as prot join ia.cvAliasType as alias " +
-                "where upper(ia.name) = upper(:name) and alias = :alias";
+                "where upper(ia.name) = upper(:name) and alias = :alias and prot.objClass = :objclass";
 
         // we add the organism restrictions
         String finalQuery = addOrganismSelection(interactorGeneQuery);
@@ -474,6 +475,7 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
         // set the query parameters
         query.setParameter("name", name);
         query.setParameter("alias", type);
+        query.setParameter("objclass", ProteinImpl.class.getName());
 
         // the list of results
         final List<String> interactorAcs = query.getResultList();
