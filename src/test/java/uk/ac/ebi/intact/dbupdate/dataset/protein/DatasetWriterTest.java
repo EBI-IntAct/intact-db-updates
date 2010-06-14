@@ -1,8 +1,9 @@
-package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
+package uk.ac.ebi.intact.dbupdate.dataset.protein;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.ebi.intact.dbupdate.dataset.protein.selectors.InteractorAliasSelector;
 import uk.ac.ebi.intact.model.*;
 
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
         InteractorAliasSelector selector = new InteractorAliasSelector();
         selector.setFileWriterEnabled(false);
         this.writer = new DatasetWriter(intactContext);
-        this.writer.setFileWriterEnabled(true);
+        this.writer.setFileWriterEnabled(false);
         this.writer.setProteinSelector(selector);
     }
 

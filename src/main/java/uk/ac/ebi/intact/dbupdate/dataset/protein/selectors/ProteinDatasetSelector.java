@@ -1,6 +1,7 @@
-package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
+package uk.ac.ebi.intact.dbupdate.dataset.protein.selectors;
 
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException;
 
 import java.util.Set;
 
@@ -22,10 +23,10 @@ public interface ProteinDatasetSelector {
     /**
      *
      * @return The protein IntAct accessions which are respecting the conditions imposed by the ProteinDatasetSelector
-     * @throws ProteinSelectorException : exception if the intact context is not set or if there is no protein to retrieve
+     * @throws uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException : exception if the intact context is not set or if there is no protein to retrieve
      * or if the dataset value is not set.
      */
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws ProteinSelectorException ;
+    public Set<String> getSelectionOfProteinAccessionsInIntact() throws ProteinSelectorException;
 
     /**
      *

@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
+package uk.ac.ebi.intact.dbupdate.dataset.protein;
 
 /**
  * TODO comment this

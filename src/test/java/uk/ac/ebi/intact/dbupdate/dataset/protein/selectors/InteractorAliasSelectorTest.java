@@ -1,8 +1,10 @@
-package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
+package uk.ac.ebi.intact.dbupdate.dataset.protein.selectors;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.ebi.intact.dbupdate.dataset.protein.BasicDatasetTest;
+import uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException;
 import uk.ac.ebi.intact.model.BioSource;
 import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.InteractorAlias;
@@ -17,7 +19,7 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>03-Jun-2010</pre>
  */
-public class InteractorAliasSelectorTest extends BasicDatasetTest{
+public class InteractorAliasSelectorTest extends BasicDatasetTest {
 
     private InteractorAliasSelector selector;
 

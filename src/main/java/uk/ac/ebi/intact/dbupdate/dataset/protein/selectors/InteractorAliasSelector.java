@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset.proteinselection;
+package uk.ac.ebi.intact.dbupdate.dataset.protein.selectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException;
 import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -234,7 +235,7 @@ public class InteractorAliasSelector implements ProteinDatasetSelector {
      * This method read the columns of a line in the file and initialises either the listOfPossibleTaxIds, listOfProteins or dataset value.
      * It reads the content of the file and load the list of proteins
      * @param columns : the columns of a line in a file
-     * @throws ProteinSelectorException : if the intact context is not set
+     * @throws uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException : if the intact context is not set
      */
     private void addNewProtein(String [] columns) throws ProteinSelectorException {
         // the mi identifier of the alias type is the second column
