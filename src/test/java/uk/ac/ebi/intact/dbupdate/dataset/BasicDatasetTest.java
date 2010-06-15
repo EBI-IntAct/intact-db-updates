@@ -29,20 +29,11 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     protected Publication p3;
 
     private void createInterproXRefs(){
-        Interaction i = getMockBuilder().createInteraction(this.prot1, this.prot2);
-        Component c = i.getComponents().iterator().next();
-        c.setInteractor(prot1);
-        Feature f = getMockBuilder().createFeatureRandom();
-        f.getXrefs().clear();
-        FeatureXref x = getMockBuilder().createXref(f, "IPR001564", this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvXrefQualifier.class ).getByPsiMiRef( CvXrefQualifier.IDENTITY_MI_REF ), this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTERPRO_MI_REF ));
-        f.addXref(x);
-        c.addBindingDomain(f);
 
-        this.intactContext.getCorePersister().saveOrUpdate(i);
-        this.intactContext.getCorePersister().saveOrUpdate(c);
-        this.intactContext.getCorePersister().saveOrUpdate(f);
+        InteractorXref x = getMockBuilder().createXref(prot1, "IPR001564", null, this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTERPRO_MI_REF ));
+        prot1.addXref(x);
 
-        Assert.assertFalse(this.intactContext.getDataContext().getDaoFactory().getFeatureDao().getByXrefLike("IPR001564").isEmpty());
+        this.intactContext.getCorePersister().saveOrUpdate(prot1);
     }
 
     public void createProteinsHumanMouseAndRat(){
@@ -121,10 +112,8 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     }
 
     public void createCVXRefs(){
-        CvXrefQualifier qualifier = getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
         CvDatabase interpro = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTERPRO_MI_REF, CvDatabase.INTERPRO);
 
-        this.intactContext.getCorePersister().saveOrUpdate(qualifier);
         this.intactContext.getCorePersister().saveOrUpdate(interpro);
     }
 

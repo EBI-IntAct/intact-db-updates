@@ -3,8 +3,8 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.ebi.intact.dbupdate.dataset.selectors.component.FeatureXRefSelector;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorAliasSelector;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorXRefSelector;
 import uk.ac.ebi.intact.model.*;
 
 import java.util.Collection;
@@ -183,7 +183,7 @@ public class DatasetWriterTest extends BasicDatasetTest {
     @Test
     public void test_select_All_Experiments_containing_feature_Xrefs(){
         try {
-            FeatureXRefSelector selector = new FeatureXRefSelector();
+            InteractorXRefSelector selector = new InteractorXRefSelector();
             selector.setFileWriterEnabled(false);
             this.writer.setSelector(selector);
 
@@ -199,7 +199,7 @@ public class DatasetWriterTest extends BasicDatasetTest {
                 }
             }
 
-            Assert.assertEquals(1, numberOfDatasetAdded);
+            Assert.assertEquals(2, numberOfDatasetAdded);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);

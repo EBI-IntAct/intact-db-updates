@@ -24,7 +24,7 @@ import java.util.Set;
 
 /**
  * A DatasetWriter will add a dataset annotation to all the experiments of a same publication with at least one experiment
- * containing interaction(s) involving a specific protein. It needs a DatasetSelector to collect the specific protein accessions in Intact.
+ * containing interaction(s) involving a specific protein. It needs a DatasetSelector to collect the specific IntAct accessions of the object selected by the selector (proteins, components, etc.).
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

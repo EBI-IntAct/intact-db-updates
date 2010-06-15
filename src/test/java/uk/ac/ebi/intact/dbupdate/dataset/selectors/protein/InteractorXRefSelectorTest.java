@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset.selectors.component;
+package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -6,7 +6,6 @@ import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvDatabase;
-import uk.ac.ebi.intact.model.CvXrefQualifier;
 
 import java.util.Set;
 
@@ -18,14 +17,14 @@ import java.util.Set;
  * @since <pre>15-Jun-2010</pre>
  */
 
-public class FeatureXRefSelectorTest extends BasicDatasetTest {
+public class InteractorXRefSelectorTest extends BasicDatasetTest {
 
-    private FeatureXRefSelector selector;
+    private InteractorXRefSelector selector;
 
     @Before
     public void setUpDatabase(){
         super.setUpDatabase();
-        this.selector = new FeatureXRefSelector();
+        this.selector = new InteractorXRefSelector();
         this.selector.setIntactContext(intactContext);
         this.selector.setFileWriterEnabled(false);
     }
@@ -38,9 +37,8 @@ public class FeatureXRefSelectorTest extends BasicDatasetTest {
             Assert.assertEquals("NDPK - Interactions involving proteins containing InterPro domain IPR001564, Nucleoside diphosphate kinase, core.", selector.getDatasetValueToAdd());
             Assert.assertEquals(0, selector.getListOfPossibleTaxId().size());
             Assert.assertEquals(0, selector.getPublicationsIdToExclude().size());
-            Assert.assertEquals(CvDatabase.INTERPRO_MI_REF, selector.getDatabase().getIdentifier());
-            Assert.assertEquals("IPR001564", selector.getDatabaseId());
-            Assert.assertEquals(CvXrefQualifier.IDENTITY_MI_REF, selector.getQualifier().getIdentifier());
+            Assert.assertEquals(1, selector.getListOfXRefs().keySet().size());
+            Assert.assertEquals(1, selector.getListOfXRefs().get(selector.getListOfXRefs().keySet().iterator().next()).size());
 
         } catch (DatasetException e) {
             e.printStackTrace();
@@ -53,10 +51,11 @@ public class FeatureXRefSelectorTest extends BasicDatasetTest {
         try {
             this.selector.readDatasetFromResources("/dataset/ndpk.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfComponentAccessionsInIntact();
+            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(1, listOfAc.size());
+            Assert.assertEquals(prot1.getAc(), listOfAc.iterator().next());
 
         } catch (DatasetException e) {
             e.printStackTrace();
@@ -73,26 +72,7 @@ public class FeatureXRefSelectorTest extends BasicDatasetTest {
 
             this.selector.readDatasetFromResources("/dataset/ndpk_otherDatabase.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfComponentAccessionsInIntact();
-
-            Assert.assertTrue(listOfAc.isEmpty());
-
-        } catch (DatasetException e) {
-            e.printStackTrace();
-            Assert.assertFalse(true);
-        }
-    }
-
-    @Test
-    public void test_select_list_components_see_also_qualifier(){
-        try {
-            CvXrefQualifier seeAlso = getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.SEE_ALSO_MI_REF, CvXrefQualifier.SEE_ALSO);
-
-            this.intactContext.getCorePersister().saveOrUpdate(seeAlso);
-
-            this.selector.readDatasetFromResources("/dataset/ndpk_otherQualifier.csv");
-
-            Set<String> listOfAc = this.selector.getSelectionOfComponentAccessionsInIntact();
+            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
 
             Assert.assertTrue(listOfAc.isEmpty());
 
