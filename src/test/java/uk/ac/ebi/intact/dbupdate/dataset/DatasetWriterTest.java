@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.component.FeatureXRefSelector;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorAliasSelector;
 import uk.ac.ebi.intact.model.*;
 
@@ -173,6 +174,32 @@ public class DatasetWriterTest extends BasicDatasetTest {
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
                 Assert.assertEquals(getNumberOfDatasetFor(e), 1);
             }
+        } catch (DatasetException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
+    @Test
+    public void test_select_All_Experiments_containing_feature_Xrefs(){
+        try {
+            FeatureXRefSelector selector = new FeatureXRefSelector();
+            selector.setFileWriterEnabled(false);
+            this.writer.setSelector(selector);
+
+            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/ndpk.csv");
+
+            List<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getAll();
+
+            int numberOfDatasetAdded = 0;
+
+            for (Experiment e : experiments){
+                if (datasetHasBeenAddedToExperiment(e)){
+                    numberOfDatasetAdded ++;
+                }
+            }
+
+            Assert.assertEquals(1, numberOfDatasetAdded);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);

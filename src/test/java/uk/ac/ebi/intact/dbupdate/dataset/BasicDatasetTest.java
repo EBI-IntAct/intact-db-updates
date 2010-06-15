@@ -28,6 +28,23 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     protected Publication p2;
     protected Publication p3;
 
+    private void createInterproXRefs(){
+        Interaction i = getMockBuilder().createInteraction(this.prot1, this.prot2);
+        Component c = i.getComponents().iterator().next();
+        c.setInteractor(prot1);
+        Feature f = getMockBuilder().createFeatureRandom();
+        f.getXrefs().clear();
+        FeatureXref x = getMockBuilder().createXref(f, "IPR001564", this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvXrefQualifier.class ).getByPsiMiRef( CvXrefQualifier.IDENTITY_MI_REF ), this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTERPRO_MI_REF ));
+        f.addXref(x);
+        c.addBindingDomain(f);
+
+        this.intactContext.getCorePersister().saveOrUpdate(i);
+        this.intactContext.getCorePersister().saveOrUpdate(c);
+        this.intactContext.getCorePersister().saveOrUpdate(f);
+
+        Assert.assertFalse(this.intactContext.getDataContext().getDaoFactory().getFeatureDao().getByXrefLike("IPR001564").isEmpty());
+    }
+
     public void createProteinsHumanMouseAndRat(){
         BioSource human = getMockBuilder().createBioSource(9606, "human");
         BioSource mouse = getMockBuilder().createBioSource(10090, "mouse");
@@ -118,5 +135,6 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         createExperimentsWithProteinOfInterest();
         createDatasetCVTopic();
         createCVXRefs();
+        createInterproXRefs();
     }
 }

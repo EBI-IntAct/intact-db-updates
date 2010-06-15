@@ -5,7 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
-import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.CvDatabase;
+import uk.ac.ebi.intact.model.CvXrefQualifier;
 
 import java.util.Set;
 
@@ -21,31 +22,12 @@ public class FeatureXRefSelectorTest extends BasicDatasetTest {
 
     private FeatureXRefSelector selector;
 
-    private void createInterproXRefs(){
-        Interaction i = getMockBuilder().createInteraction(this.prot1, this.prot2);
-        i.getExperiments().clear();
-        Component c = i.getComponents().iterator().next();
-        c.setInteractor(prot1);
-        Feature f = getMockBuilder().createFeatureRandom();
-        f.getXrefs().clear();
-        FeatureXref x = getMockBuilder().createXref(f, "IPR001564", this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvXrefQualifier.class ).getByPsiMiRef( CvXrefQualifier.IDENTITY_MI_REF ), this.intactContext.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTERPRO_MI_REF ));
-        f.addXref(x);
-        c.addBindingDomain(f);
-
-        this.intactContext.getCorePersister().saveOrUpdate(i);
-        this.intactContext.getCorePersister().saveOrUpdate(c);
-        this.intactContext.getCorePersister().saveOrUpdate(f);
-
-        Assert.assertFalse(this.intactContext.getDataContext().getDaoFactory().getFeatureDao().getByXrefLike("IPR001564").isEmpty());
-    }
-
     @Before
     public void setUpDatabase(){
         super.setUpDatabase();
         this.selector = new FeatureXRefSelector();
         this.selector.setIntactContext(intactContext);
         this.selector.setFileWriterEnabled(false);
-        createInterproXRefs();
     }
 
     @Test
@@ -75,6 +57,44 @@ public class FeatureXRefSelectorTest extends BasicDatasetTest {
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(1, listOfAc.size());
+
+        } catch (DatasetException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
+    @Test
+    public void test_select_list_components_resid_Database(){
+        try {
+            CvDatabase resid = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.RESID_MI_REF, CvDatabase.RESID);
+
+            this.intactContext.getCorePersister().saveOrUpdate(resid);
+
+            this.selector.readDatasetFromResources("/dataset/ndpk_otherDatabase.csv");
+
+            Set<String> listOfAc = this.selector.getSelectionOfComponentAccessionsInIntact();
+
+            Assert.assertTrue(listOfAc.isEmpty());
+
+        } catch (DatasetException e) {
+            e.printStackTrace();
+            Assert.assertFalse(true);
+        }
+    }
+
+    @Test
+    public void test_select_list_components_see_also_qualifier(){
+        try {
+            CvXrefQualifier seeAlso = getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.SEE_ALSO_MI_REF, CvXrefQualifier.SEE_ALSO);
+
+            this.intactContext.getCorePersister().saveOrUpdate(seeAlso);
+
+            this.selector.readDatasetFromResources("/dataset/ndpk_otherQualifier.csv");
+
+            Set<String> listOfAc = this.selector.getSelectionOfComponentAccessionsInIntact();
+
+            Assert.assertTrue(listOfAc.isEmpty());
 
         } catch (DatasetException e) {
             e.printStackTrace();

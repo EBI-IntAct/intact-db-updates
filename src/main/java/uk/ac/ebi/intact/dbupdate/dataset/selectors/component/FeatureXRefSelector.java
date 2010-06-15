@@ -74,7 +74,7 @@ public class FeatureXRefSelector extends DatasetSelectorImpl implements Componen
         }
 
         // create the file where to write the report
-        File file = new File("proteins_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
+        File file = new File("component_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
         Set<String> proteinAccessions = new HashSet<String>();
 
         try {

@@ -1,0 +1,4 @@
+# type of parameter (dataset, feature database name, Xref qualifier)	identifier of the parameter (dataset, database MI number, Xref qualifier Mi number)	value
+dataset	MI:0875	NDPK - Interactions involving proteins containing InterPro domain IPR001564, Nucleoside diphosphate kinase, core.
+resid	MI:0248	IPR001564
+identity	MI:0356	
