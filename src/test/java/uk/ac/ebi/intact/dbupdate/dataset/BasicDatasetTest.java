@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.dataset.protein;
+package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.junit.Assert;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -103,11 +103,20 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         this.intactContext.getCorePersister().saveOrUpdate(topic);
     }
 
+    public void createCVXRefs(){
+        CvXrefQualifier qualifier = getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
+        CvDatabase interpro = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTERPRO_MI_REF, CvDatabase.INTERPRO);
+
+        this.intactContext.getCorePersister().saveOrUpdate(qualifier);
+        this.intactContext.getCorePersister().saveOrUpdate(interpro);
+    }
+
     public void setUpDatabase(){
         this.intactContext = IntactContext.getCurrentInstance();
 
         createProteinsHumanMouseAndRat();
         createExperimentsWithProteinOfInterest();
         createDatasetCVTopic();
+        createCVXRefs();
     }
 }

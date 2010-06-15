@@ -1,10 +1,10 @@
-package uk.ac.ebi.intact.dbupdate.dataset.protein.selectors;
+package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.ebi.intact.dbupdate.dataset.protein.BasicDatasetTest;
-import uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException;
+import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
+import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.BioSource;
 import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.InteractorAlias;
@@ -42,7 +42,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
             Assert.assertEquals(3, ((Set) selector.getListOfProteins().get(selector.getListOfProteins().keySet().iterator().next())).size());
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -58,7 +58,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
             Assert.assertEquals(3, ((Set) selector.getListOfProteins().get(selector.getListOfProteins().keySet().iterator().next())).size());
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -74,7 +74,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
             Assert.assertEquals(3, ((Set) selector.getListOfProteins().get(selector.getListOfProteins().keySet().iterator().next())).size());
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -90,7 +90,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(1, selector.getListOfProteins().keySet().size());
             Assert.assertEquals(3, ((Set) selector.getListOfProteins().get(selector.getListOfProteins().keySet().iterator().next())).size());
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -106,7 +106,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(6, listOfAc.size());
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -133,7 +133,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(6, listOfAc.size());
             Assert.assertFalse(listOfAc.contains(yeastProt));
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -159,7 +159,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(6, listOfAc.size());
             Assert.assertFalse(listOfAc.contains(humanProt));
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -187,7 +187,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
             Assert.assertEquals(6, listOfAc.size());
             Assert.assertFalse(listOfAc.contains(humanProt));
 
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }

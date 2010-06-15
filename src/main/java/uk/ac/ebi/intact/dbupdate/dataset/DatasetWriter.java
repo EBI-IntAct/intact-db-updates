@@ -1,11 +1,13 @@
-package uk.ac.ebi.intact.dbupdate.dataset.protein;
+package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.dbupdate.dataset.protein.selectors.ProteinDatasetSelector;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelector;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.component.ComponentDatasetSelector;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.ProteinDatasetSelector;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.Experiment;
@@ -15,11 +17,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A DatasetWriter will add a dataset annotation to all the experiments of a same publication with at least one experiment
- * containing interaction(s) involving a specific protein. It needs a ProteinDatasetSelector to collect the specific protein accessions in Intact.
+ * containing interaction(s) involving a specific protein. It needs a DatasetSelector to collect the specific protein accessions in Intact.
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -33,9 +38,9 @@ public class DatasetWriter {
     private static final Log log = LogFactory.getLog( DatasetWriter.class );
 
     /**
-     * The ProteinDatasetSelector instance of this object
+     * The DatasetSelector instance of this object
      */
-    private ProteinDatasetSelector proteinSelector;
+    private DatasetSelector selector;
 
     /**
      * The intact context
@@ -57,7 +62,7 @@ public class DatasetWriter {
      * @param context : the intact context
      */
     public DatasetWriter(IntactContext context){
-        this.proteinSelector = null;
+        this.selector = null;
         this.context = context;
     }
 
@@ -82,9 +87,9 @@ public class DatasetWriter {
      * @param intactAccession : the protein accession in IntAct
      * @return the list of experiments for what a dataset annotation can be added if at least one experiment of a same publication
      * has interaction(s) involving this protein and no experiment of a same publication has more than 'maximumNumberOfInteractions' interactions
-     * @throws ProteinSelectorException
+     * @throws DatasetException
      */
-    private List<Experiment> getExperimentsContainingProtein (String intactAccession) throws ProteinSelectorException {
+    private List<Experiment> getExperimentsContainingProtein (String intactAccession) throws DatasetException {
 
         // get the intact datacontext and daofactory
         final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
@@ -94,6 +99,10 @@ public class DatasetWriter {
         String componentQuery = "select exp.ac from Component c join c.interactor as i join c.interaction as inter join inter.experiments " +
                 "as exp where i.ac = :accession";
 
+        return getExperimentsWithSpecificSelection(componentQuery, intactAccession, daoFactory);
+    }
+
+    private List<Experiment> getExperimentsWithSpecificSelection (String componentQuery, String accession, DaoFactory daoFactory) throws DatasetException{
         // This query is looking for all the publications containing the experiments of the previous query : componentQuery
         String publicationsContainingSpecificProteinsQuery = "select pub.ac from Experiment exp2 join exp2.publication as pub join exp2.interactions as i2 where exp2 in " +
                 "("+componentQuery+")";
@@ -121,15 +130,35 @@ public class DatasetWriter {
         final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
 
         // Set the parameters of the query
-        query.setParameter("accession", intactAccession);
-        query.setParameter("max", (long) this.proteinSelector.getMaxNumberOfInteractionsPerExperiment());
+        query.setParameter("accession", accession);
+        query.setParameter("max", (long) this.selector.getMaxNumberOfInteractionsPerExperiment());
         query.setParameter("dataset", CvTopic.DATASET_MI_REF);
-        query.setParameter("text", this.proteinSelector.getDatasetValueToAdd());
+        query.setParameter("text", this.selector.getDatasetValueToAdd());
 
         // get the results
         final List<Experiment> experiments = query.getResultList();
 
         return experiments;
+    }
+
+    /**
+     *
+     * @param intactAccession : the component accession in IntAct
+     * @return the list of experiments for what a dataset annotation can be added if at least one experiment of a same publication
+     * has interaction(s) involving this component and no experiment of a same publication has more than 'maximumNumberOfInteractions' interactions
+     * @throws DatasetException
+     */
+    private List<Experiment> getExperimentsContainingComponent (String intactAccession) throws DatasetException {
+
+        // get the intact datacontext and daofactory
+        final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+        final DaoFactory daoFactory = dataContext.getDaoFactory();
+
+        // This query is looking for all experiences with at least one interaction involving the component of interest
+        String componentQuery = "select exp.ac from InteractionImpl i join i.components as c join i.experiments as exp " +
+                "where c.ac = :accession";
+
+        return getExperimentsWithSpecificSelection(componentQuery, intactAccession, daoFactory);
     }
 
     /**
@@ -141,14 +170,14 @@ public class DatasetWriter {
         StringBuffer query = new StringBuffer(1640);
 
         // We don't have any publication restrictions so we don't change the previous query
-        if (this.proteinSelector.getPublicationsIdToExclude().isEmpty()){
+        if (this.selector.getPublicationsIdToExclude().isEmpty()){
             return finalQuery;
         }
 
         // We want all the experiments with a publication id different from the list of publication ids to exclude
         query.append("select e2 from Experiment e2 join e2.publication as pubId where (" );
 
-        for (String t : this.proteinSelector.getPublicationsIdToExclude()){
+        for (String t : this.selector.getPublicationsIdToExclude()){
             query.append(" pubId.shortLabel <> '"+t+"' and");
         }
 
@@ -162,9 +191,9 @@ public class DatasetWriter {
      * Get a list of experiments involving this protein to remove the dataset annotation if it exists
      * @param intactAccession
      * @return
-     * @throws ProteinSelectorException
+     * @throws DatasetException
      */
-    private List<Experiment> getExperimentsContainingDatasetToRemoveFor (String intactAccession) throws ProteinSelectorException {
+    /*private List<Experiment> getExperimentsContainingDatasetToRemoveFor (String intactAccession) throws DatasetException {
 
         // get the intact datacontext and daofactory
         final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
@@ -199,26 +228,26 @@ public class DatasetWriter {
 
         // Set the parameters of the query
         query.setParameter("accession", intactAccession);
-        query.setParameter("max", (long) this.proteinSelector.getMaxNumberOfInteractionsPerExperiment());
+        query.setParameter("max", (long) this.selector.getMaxNumberOfInteractionsPerExperiment());
 
         // get the results
         final List<Experiment> experiments = query.getResultList();
 
         return experiments;
-    }
+    }*/
 
     /**
      *
-     * @return a new Dataset annotation with the dataset value contained in the ProteinDatasetSelector of this object
+     * @return a new Dataset annotation with the dataset value contained in the DatasetSelector of this object
      */
-    private Annotation createNewDataset() throws ProteinSelectorException {
+    private Annotation createNewDataset() throws DatasetException {
         CvTopic dataset = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvTopic.class ).getByPsiMiRef( CvTopic.DATASET_MI_REF );
 
         if (dataset == null){
-            throw new ProteinSelectorException("The CVTopic " + CvTopic.DATASET_MI_REF + " : " + CvTopic.DATASET + "doesn't exist in the database.");
+            throw new DatasetException("The CVTopic " + CvTopic.DATASET_MI_REF + " : " + CvTopic.DATASET + "doesn't exist in the database.");
         }
 
-        Annotation annotation = new Annotation(dataset, this.proteinSelector.getDatasetValueToAdd());
+        Annotation annotation = new Annotation(dataset, this.selector.getDatasetValueToAdd());
         return annotation;
     }
 
@@ -226,7 +255,7 @@ public class DatasetWriter {
      * Add the dataset annotation for each experiment in the list
      * @param experiments : the experiments
      */
-    private void addDatasetToExperiments(List<Experiment> experiments) throws IOException, ProteinSelectorException {
+    private void addDatasetToExperiments(List<Experiment> experiments) throws IOException, DatasetException {
         for (Experiment e : experiments){
             String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
             this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName());
@@ -240,7 +269,7 @@ public class DatasetWriter {
      * Remove the dataset annotation from the experiments in the list
      * @param experiments
      */
-    private void removeDatasetToExperiments(List<Experiment> experiments){
+    /*private void removeDatasetToExperiments(List<Experiment> experiments){
 
         for (Experiment e : experiments){
             log.info("Experiment " + e.getAc() + " "+e.getShortLabel());
@@ -250,7 +279,7 @@ public class DatasetWriter {
             for (Annotation a : annotations){
                 CvTopic topic = a.getCvTopic();
                 if (CvTopic.DATASET_MI_REF.equalsIgnoreCase(topic.getIdentifier())){
-                    if (a.getAnnotationText().equalsIgnoreCase(this.proteinSelector.getDatasetValueToAdd())){
+                    if (a.getAnnotationText().equalsIgnoreCase(this.selector.getDatasetValueToAdd())){
                         annotation = a;
                         break;
                     }
@@ -263,18 +292,18 @@ public class DatasetWriter {
                 log.info("Dataset removed");
             }
         }
-    }
+    }*/
 
     /**
      * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
      * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
      * @param file : the file containing the list of proteins. Can be null if it is not needed
-     * @param selector : the ProteinDatasetSelector
-     * @throws ProteinSelectorException
+     * @param selector : the DatasetSelector
+     * @throws DatasetException
      */
-    public void addDatasetAnnotationToExperimentsFor(String file, ProteinDatasetSelector selector) throws ProteinSelectorException {
-        // set the ProteinDatasetSelector of this object
-        setProteinSelector(selector);
+    public void addDatasetAnnotationToExperimentsFor(String file, DatasetSelector selector) throws DatasetException {
+        // set the DatasetSelector of this object
+        setSelector(selector);
 
         addDatasetAnnotationToExperimentsFor(file);
     }
@@ -283,14 +312,14 @@ public class DatasetWriter {
      * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
      * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
      * @param file : the file containing the list of proteins. Can be null if it is not needed
-     * @throws ProteinSelectorException
+     * @throws DatasetException
      */
-    public void addDatasetAnnotationToExperimentsFor(String file) throws ProteinSelectorException {
+    public void addDatasetAnnotationToExperimentsFor(String file) throws DatasetException {
 
         // if the file is null, we are supposing that the selector already contains the list of proteins and the dataset value, otherwise, we need to read the file and initialise the selector
         if (file != null){
             log.info("Load resource " + file);
-            this.proteinSelector.readDatasetFromResources(file);
+            this.selector.readDatasetFromResources(file);
         }
 
         addDatasetAnnotationToExperiments();
@@ -299,51 +328,31 @@ public class DatasetWriter {
     /**
      * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
      * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
-     * @throws ProteinSelectorException
+     * @throws DatasetException
      */
-    public void addDatasetAnnotationToExperiments() throws ProteinSelectorException {
+    public void addDatasetAnnotationToExperiments() throws DatasetException {
 
-        // The ProteinDatasetSelector must be not null
-        if (this.proteinSelector == null){
-            throw new ProteinSelectorException("The proteinSelector has not been initialised, we can't determine the list of proteins to look for.");
+        // The DatasetSelector must be not null
+        if (this.selector == null){
+            throw new DatasetException("The selector has not been initialised, we can't determine the list of proteins to look for.");
         }
 
         // The protein selector must have a dataset value
-        if (this.proteinSelector.getDatasetValueToAdd() == null){
-            throw new ProteinSelectorException("The dataset value to add for the proteinSelector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
+        if (this.selector.getDatasetValueToAdd() == null){
+            throw new DatasetException("The dataset value to add for the selector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
         }
         // The protein selector must have a maximum number of interactions per experiment
-        if (this.proteinSelector.getMaxNumberOfInteractionsPerExperiment() == 0){
-            throw new ProteinSelectorException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
+        if (this.selector.getMaxNumberOfInteractionsPerExperiment() == 0){
+            throw new DatasetException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
         }
 
         log.info("Start transaction...");
         try {
 
-            Set<String> proteinSelected = this.proteinSelector.getSelectionOfProteinAccessionsInIntact();
+            processDatasetSelection();
 
-            log.info(proteinSelected.size() + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
-
-            int totalNumberOfExperiments = 0;
-            // for each protein of interest
-            for (String accession : proteinSelected){
-                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
-
-                // add the dataset annotation
-                List<Experiment> experimentToAddDataset = getExperimentsContainingProtein(accession);
-
-                totalNumberOfExperiments += experimentToAddDataset.size();
-
-                log.info("Add dataset " + this.proteinSelector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
-                addDatasetToExperiments(experimentToAddDataset);
-
-                //this.context.getDataContext().commitTransaction(transactionStatus);
-            }
-            log.info("\n The dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n");
-
-            writeDatasetReport(proteinSelected.size(), totalNumberOfExperiments);
         } catch (IOException e) {
-            throw new ProteinSelectorException("We can't write the results of the dataset update.");
+            throw new DatasetException("We can't write the results of the dataset update.");
         }
     }
 
@@ -359,9 +368,9 @@ public class DatasetWriter {
             File file = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
             Writer writer = new FileWriter(file);
 
-            writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' \n \n");
+            writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
-            writer.write("\nThe dataset '" + this.proteinSelector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n \n");
+            writer.write("\nThe dataset '" + this.selector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n \n");
 
             for (String p : this.listOfpublicationUpdated){
                 writer.write(p + "\n \n");
@@ -373,21 +382,21 @@ public class DatasetWriter {
 
     /**
      *
-     * @return  the proteinSelector instance of this object
+     * @return  the selector instance of this object
      */
-    public ProteinDatasetSelector getProteinSelector() {
-        return proteinSelector;
+    public DatasetSelector getSelector() {
+        return selector;
     }
 
     /**
      * set the protein selector
-     * @param proteinSelector
+     * @param selector
      */
-    public void setProteinSelector(ProteinDatasetSelector proteinSelector) {
-        this.proteinSelector = proteinSelector;
+    public void setSelector(DatasetSelector selector) {
+        this.selector = selector;
 
-        if (this.proteinSelector != null){
-            this.proteinSelector.setIntactContext(this.context);
+        if (this.selector != null){
+            this.selector.setIntactContext(this.context);
         }
     }
 
@@ -406,45 +415,119 @@ public class DatasetWriter {
     public void setContext(IntactContext context) {
         this.context = context;
 
-        if (this.proteinSelector != null){
-            this.proteinSelector.setIntactContext(this.context);
+        if (this.selector != null){
+            this.selector.setIntactContext(this.context);
         }
     }
 
     /**
      * Revert the dataset annotation
-     * @throws ProteinSelectorException
+     * @throws DatasetException
      */
-    public void revertDatasetAnnotations() throws ProteinSelectorException {
-        // The ProteinDatasetSelector must be not null
-        if (this.proteinSelector == null){
-            throw new ProteinSelectorException("The proteinSelector has not been initialised, we can't determine the list of proteins to look for.");
+    /*public void revertDatasetAnnotations() throws DatasetException, IOException {
+        // The DatasetSelector must be not null
+        if (this.selector == null){
+            throw new DatasetException("The selector has not been initialised, we can't determine the list of proteins to look for.");
         }
 
         // The protein selector must have a dataset value
-        if (this.proteinSelector.getDatasetValueToAdd() == null){
-            throw new ProteinSelectorException("The dataset value to add for the proteinSelector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
+        if (this.selector.getDatasetValueToAdd() == null){
+            throw new DatasetException("The dataset value to add for the selector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
         }
         // The protein selector must have a maximum number of interactions per experiment
-        if (this.proteinSelector.getMaxNumberOfInteractionsPerExperiment() == 0){
-            throw new ProteinSelectorException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
+        if (this.selector.getMaxNumberOfInteractionsPerExperiment() == 0){
+            throw new DatasetException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
         }
 
         log.info("Start transaction...");
 
-        Set<String> proteinSelected = this.proteinSelector.getSelectionOfProteinAccessionsInIntact();
-        // for each protein of interest
-        for (String accession : proteinSelected){
-            //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+        undoDatasetSelection();
+    }*/
 
-            // remove the dataset annotation
-            List<Experiment> experimentToAddDataset = getExperimentsContainingDatasetToRemoveFor(accession);
-            log.info("remove dataset " + this.proteinSelector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction involving the protein " + accession);
-            removeDatasetToExperiments(experimentToAddDataset);
+    private void processDatasetSelection() throws DatasetException, IOException {
+
+        int numberOfElementSelected = 0;
+        int numberOfExperiments = 0;
+
+        if (this.selector instanceof ProteinDatasetSelector){
+            ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
+
+            Set<String> proteinSelected = proteinSelector.getSelectionOfProteinAccessionsInIntact();
+
+            numberOfElementSelected = proteinSelected.size();
+
+            log.info(proteinSelected.size() + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
+
+            // for each protein of interest
+            for (String accession : proteinSelected){
+                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+
+                // add the dataset annotation
+                List<Experiment> experimentToAddDataset = getExperimentsContainingProtein(accession);
+
+                numberOfExperiments += experimentToAddDataset.size();
+
+                log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
+                addDatasetToExperiments(experimentToAddDataset);
+
+                //this.context.getDataContext().commitTransaction(transactionStatus);
+            }
+        }
+        else if (this.selector instanceof ComponentDatasetSelector){
+            ComponentDatasetSelector componentSelector = (ComponentDatasetSelector) this.selector;
+
+            Set<String> componentSelected = componentSelector.getSelectionOfComponentAccessionsInIntact();
+
+            numberOfElementSelected = componentSelected.size();
+
+            log.info(componentSelected.size() + " components have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
+
+            // for each protein of interest
+            for (String accession : componentSelected){
+                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+
+                // add the dataset annotation
+                List<Experiment> experimentToAddDataset = getExperimentsContainingComponent(accession);
+
+                numberOfExperiments += experimentToAddDataset.size();
+
+                log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the component " + accession  + " \n");
+                addDatasetToExperiments(experimentToAddDataset);
+
+                //this.context.getDataContext().commitTransaction(transactionStatus);
+            }
+        }
+
+        log.info("\n The dataset '" + this.selector.getDatasetValueToAdd() + "' has been added to a total of " + numberOfExperiments + " experiments. \n");
+
+        writeDatasetReport(numberOfElementSelected, numberOfExperiments);
+    }
+
+    /*
+    private void undoDatasetSelection() throws DatasetException, IOException {
+
+        int numberOfElementSelected = 0;
+        int numberOfExperiments = 0;
+
+        if (this.selector instanceof ProteinDatasetSelector){
+            ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
+
+            Set<String> proteinSelected = proteinSelector.getSelectionOfProteinAccessionsInIntact();
+            // for each protein of interest
+            for (String accession : proteinSelected){
+                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+
+                // remove the dataset annotation
+                List<Experiment> experimentToAddDataset = getExperimentsContainingDatasetToRemoveFor(accession);
+                log.info("remove dataset " + this.selector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction involving the protein " + accession);
+                removeDatasetToExperiments(experimentToAddDataset);
+
+                //this.context.getDataContext().commitTransaction(transactionStatus);
+            }
 
             //this.context.getDataContext().commitTransaction(transactionStatus);
         }
-    }
+    } */
 
     /**
      *

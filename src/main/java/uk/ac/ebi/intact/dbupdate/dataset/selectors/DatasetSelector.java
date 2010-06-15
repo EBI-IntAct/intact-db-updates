@@ -1,7 +1,7 @@
-package uk.ac.ebi.intact.dbupdate.dataset.protein.selectors;
+package uk.ac.ebi.intact.dbupdate.dataset.selectors;
 
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException;
+import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 
 import java.util.Set;
 
@@ -9,7 +9,7 @@ import java.util.Set;
  * The interface to implement for all the classes which are collecting intact proteins with specific conditions.
  * The classes should provide a set of protein accessions we want to retrieve in Intact to add a dataset
  * annotation for the experiments involving at least of of these proteins.
- * Each ProteinDatasetSelector implementation should have a dataset value for the proteins it returned.
+ * Each DatasetSelector implementation should have a dataset value for the proteins it returned.
  * It is simpler to have the different values (dataset value, gene names, protein identifiers, organisms) in a
  * configuration file but it is not mandatory.
  *
@@ -18,24 +18,16 @@ import java.util.Set;
  * @since <pre>02-Jun-2010</pre>
  */
 
-public interface ProteinDatasetSelector {
+public interface DatasetSelector {
 
     /**
      *
-     * @return The protein IntAct accessions which are respecting the conditions imposed by the ProteinDatasetSelector
-     * @throws uk.ac.ebi.intact.dbupdate.dataset.protein.ProteinSelectorException : exception if the intact context is not set or if there is no protein to retrieve
-     * or if the dataset value is not set.
-     */
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws ProteinSelectorException;
-
-    /**
-     *
-     * @return the dataset value associated with the proteins returned by the ProteinDatasetSelector
+     * @return the dataset value associated with the proteins returned by the DatasetSelector
      */
     public String getDatasetValueToAdd();
 
     /**
-     * Set the dataset value associated with the proteins returned by the ProteinDatasetSelector.
+     * Set the dataset value associated with the proteins returned by the DatasetSelector.
      * It can be used if the selector has no configuration file where to find the dataset value associated with the proteins it is looking for.
      * @param dataset : dataset annotation
      */
@@ -63,16 +55,16 @@ public interface ProteinDatasetSelector {
     /**
      * Read the file containing the list of protein criterias (gene name, dataset value, organism, etc...) in the resources
      * @param datasetFile : name of the dataset file
-     * @throws ProteinSelectorException : exceptiom thrown if the file can't be read, found or is malformed
+     * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : exceptiom thrown if the file can't be read, found or is malformed
      */
-    public void readDatasetFromResources(String datasetFile) throws ProteinSelectorException;
+    public void readDatasetFromResources(String datasetFile) throws DatasetException;
 
     /**
      * Read the file containing the list of protein criterias (gene name, dataset value, organism, etc...)
      * @param datasetFile : name of the dataset file
-     * @throws ProteinSelectorException : exceptiom thrown if the file can't be read, found or is malformed
+     * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : exceptiom thrown if the file can't be read, found or is malformed
      */
-    public void readDataset(String datasetFile) throws ProteinSelectorException;
+    public void readDataset(String datasetFile) throws DatasetException;
 
     /**
      *

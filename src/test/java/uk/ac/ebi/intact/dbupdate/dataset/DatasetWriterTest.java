@@ -1,9 +1,9 @@
-package uk.ac.ebi.intact.dbupdate.dataset.protein;
+package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import uk.ac.ebi.intact.dbupdate.dataset.protein.selectors.InteractorAliasSelector;
+import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorAliasSelector;
 import uk.ac.ebi.intact.model.*;
 
 import java.util.Collection;
@@ -17,7 +17,7 @@ import java.util.List;
  * @since <pre>10-Jun-2010</pre>
  */
 
-public class DatasetWriterTest extends BasicDatasetTest{
+public class DatasetWriterTest extends BasicDatasetTest {
 
     private DatasetWriter writer;
 
@@ -27,7 +27,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
         for (Annotation a : annotations){
             if (a.getCvTopic() != null) {
                 if (a.getCvTopic().getIdentifier().equals(CvTopic.DATASET_MI_REF)){
-                    if (a.getAnnotationText().equalsIgnoreCase(this.writer.getProteinSelector().getDatasetValueToAdd())){
+                    if (a.getAnnotationText().equalsIgnoreCase(this.writer.getSelector().getDatasetValueToAdd())){
                         return true;
                     }
                 }
@@ -43,7 +43,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
         for (Annotation a : annotations){
             if (a.getCvTopic() != null) {
                 if (a.getCvTopic().getIdentifier().equals(CvTopic.DATASET_MI_REF)){
-                    if (a.getAnnotationText().equalsIgnoreCase(this.writer.getProteinSelector().getDatasetValueToAdd())){
+                    if (a.getAnnotationText().equalsIgnoreCase(this.writer.getSelector().getDatasetValueToAdd())){
                         d++;
                     }
                 }
@@ -59,7 +59,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
         selector.setFileWriterEnabled(false);
         this.writer = new DatasetWriter(intactContext);
         this.writer.setFileWriterEnabled(false);
-        this.writer.setProteinSelector(selector);
+        this.writer.setSelector(selector);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
             for (Experiment e : experiments){
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
             }
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -98,7 +98,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -120,7 +120,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -145,7 +145,7 @@ public class DatasetWriterTest extends BasicDatasetTest{
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
@@ -168,12 +168,12 @@ public class DatasetWriterTest extends BasicDatasetTest{
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p1.getPublicationId());
 
-            Assert.assertEquals("Synapse - Interactions of proteins with an established role in the presynapse.", this.writer.getProteinSelector().getDatasetValueToAdd());
+            Assert.assertEquals("Synapse - Interactions of proteins with an established role in the presynapse.", this.writer.getSelector().getDatasetValueToAdd());
             for (Experiment e : experiments){
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
                 Assert.assertEquals(getNumberOfDatasetFor(e), 1);
             }
-        } catch (ProteinSelectorException e) {
+        } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
         }
