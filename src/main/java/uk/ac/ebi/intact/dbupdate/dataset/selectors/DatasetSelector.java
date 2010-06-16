@@ -6,10 +6,10 @@ import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import java.util.Set;
 
 /**
- * The interface to implement for all the classes which are collecting intact proteins with specific conditions.
- * The classes should provide a set of protein accessions we want to retrieve in Intact to add a dataset
- * annotation for the experiments involving at least of of these proteins.
- * Each DatasetSelector implementation should have a dataset value for the proteins it returned.
+ * The interface to implement for all the classes which are collecting intact object (proteins, components, publications, etc..) with specific conditions.
+ * The classes should provide a set of intact accessions we want to retrieve in Intact to add a dataset
+ * annotation for the experiments involving at least one of these objects.
+ * Each DatasetSelector implementation should have a dataset value for the intact accessions it returned.
  * It is simpler to have the different values (dataset value, gene names, protein identifiers, organisms) in a
  * configuration file but it is not mandatory.
  *
@@ -22,13 +22,13 @@ public interface DatasetSelector {
 
     /**
      *
-     * @return the dataset value associated with the proteins returned by the DatasetSelector
+     * @return the dataset value associated with the intact accessions returned by the DatasetSelector
      */
     public String getDatasetValueToAdd();
 
     /**
-     * Set the dataset value associated with the proteins returned by the DatasetSelector.
-     * It can be used if the selector has no configuration file where to find the dataset value associated with the proteins it is looking for.
+     * Set the dataset value associated with the intact accessions returned by the DatasetSelector.
+     * It can be used if the selector has no configuration file where to find the dataset value associated with the intact objects it is looking for.
      * @param dataset : dataset annotation
      */
     public void setDatasetValueToAdd(String dataset);
@@ -53,14 +53,14 @@ public interface DatasetSelector {
     public void clearDatasetContent();
 
     /**
-     * Read the file containing the list of protein criterias (gene name, dataset value, organism, etc...) in the resources
+     * Read the file containing the list of object criterias (gene name, dataset value, organism, feature type, etc...) in the resources
      * @param datasetFile : name of the dataset file
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : exceptiom thrown if the file can't be read, found or is malformed
      */
     public void readDatasetFromResources(String datasetFile) throws DatasetException;
 
     /**
-     * Read the file containing the list of protein criterias (gene name, dataset value, organism, etc...)
+     * Read the file containing the list of object criterias (gene name, dataset value, organism, etc...)
      * @param datasetFile : name of the dataset file
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : exceptiom thrown if the file can't be read, found or is malformed
      */

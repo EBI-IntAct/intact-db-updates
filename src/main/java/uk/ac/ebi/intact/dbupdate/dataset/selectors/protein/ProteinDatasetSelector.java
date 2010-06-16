@@ -6,7 +6,7 @@ import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelector;
 import java.util.Set;
 
 /**
- * TODO comment this
+ * This interface is the interface to implement for all the DatasetSelectors which aim at selecting proteins
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

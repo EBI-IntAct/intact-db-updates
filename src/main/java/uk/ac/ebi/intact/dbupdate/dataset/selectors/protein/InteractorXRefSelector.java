@@ -6,6 +6,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelectorImpl;
 import uk.ac.ebi.intact.model.CvDatabase;
+import uk.ac.ebi.intact.model.ProteinImpl;
 
 import javax.persistence.Query;
 import java.io.File;
@@ -15,7 +16,15 @@ import java.io.Writer;
 import java.util.*;
 
 /**
- * TODO comment this
+ * An InteractorXRefsSelector is a DatasetSelector which is collecting proteins in IntAct with a specific
+ * cross reference and organism. Usually the list of cross references as well as the organisms and the dataset value are in a configuration file
+ * but we can use the methods setListOfXRefs, setDatasetValue and setPossibleTaxId if the data are not taken from a file.
+ * The configuration file of this selector must have 3 columns : one for the name of the parameter (ex : dataset, go, interpro), one for the mi number of this parameter (ex : MI:0875)
+ * and one for the value of the parameter (ex : Interactions of proteins with an established role in the presynapse, database identifiers).
+ * We must have a line containing the dataset value, another containing the list of organism taxIds (separated by semi-colon) which can
+ * be empty and the other lines contain database cross references (Ex of line : interpro	MI:0449	IPR001564).
+ * All the columns are tab separated.
+ * You can add an extra line containing publication to exclude (column name = publication and the pubmed ids are seperated by semi-colon)).
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -29,23 +38,37 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
      */
     private Map<CvDatabase, Set<String>> listOfXRefs = new HashMap<CvDatabase, Set<String>>();
 
+    /**
+     * Create a new InteractorXRefSelector instance. The intact context should be set with setIntactContext.
+     */
     public InteractorXRefSelector(){
         super();
     }
 
+    /**
+     * Create a new InteractorXRefSelector instance with a specific intact context
+     * @param context : the intact context
+     */
     public InteractorXRefSelector(IntactContext context){
         super(context);
     }
 
+    /**
+     *
+     * @param database : the cvDatabase
+     * @param identifier : the identifier associated with the database
+     * @return a list of protein accessions containing this cross reference.
+     * @throws DatasetException
+     */
     private List<String> getProteinAccessionsContainingXRefs(CvDatabase database, String identifier) throws DatasetException {
         // get the intact datacontext and factory
         final DataContext dataContext = this.context.getDataContext();
         final DaoFactory daoFactory = dataContext.getDaoFactory();
 
-        // we want all the interactor associated with this alias name and this alias type
+        // we want all the interactor associated with this database and this identifier
         String interactorGeneQuery = "select i.ac from InteractorImpl i join i.xrefs as x " +
                 "join x.cvDatabase as db " +
-                "where db = :database and x.primaryId = :id";
+                "where db = :database and x.primaryId = :id and objClass = :class";
 
         // we add the organism restrictions
         String finalQuery = addOrganismSelection(interactorGeneQuery);
@@ -56,6 +79,7 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         // set the query parameters
         query.setParameter("database", database);
         query.setParameter("id", identifier);
+        query.setParameter("class", ProteinImpl.class.getName());
 
         // get the intact proteins matching the cross reference
         List<String> listOfAcs = query.getResultList();
@@ -63,6 +87,11 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         return listOfAcs;
     }
 
+    /**
+     *
+     * @return the Set of protein accessions containing at least one of the cross references stored in the listOfXRefs of this object
+     * @throws DatasetException
+     */
     public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
         // we need an Intact context to query Intact
         if (this.context == null){
@@ -82,7 +111,7 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         }
 
         // create the file where to write the report
-        File file = new File("component_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
+        File file = new File("protein_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
         Set<String> proteinAccessions = new HashSet<String>();
 
         try {
@@ -114,16 +143,24 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         return proteinAccessions;
     }
 
+    /**
+     * Clear the listOfXRefs and the datasetValue
+     */
     public void clearDatasetContent() {
         super.clearDatasetContent();
         this.listOfXRefs.clear();
     }
 
+    /**
+     * Collect the cross reference contained in the columns
+     * @param columns : the columns of a line in the file
+     * @throws DatasetException
+     */
     @Override
     protected void readSpecificContent(String[] columns) throws DatasetException {
-        // the mi identifier of the type is the second column
+        // the mi identifier of the database is the second column
         String mi = columns[1];
-        // the name of the type is the first column
+        // the name of the database is the first column
         String name = columns[0];
 
         // the database
@@ -149,13 +186,13 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
                 throw new DatasetException("The database " + mi + ": "+name+" is not known and it is a mandatory field.");
             }
 
-            // we have not already loaded this alias type, we add the new alias with its alias type
+            // we have not already loaded this database, we add the new identifier with its database
             if (!this.listOfXRefs.containsKey(database)){
                 Set<String> values = new HashSet<String>();
                 values.add(columns[2]);
                 this.listOfXRefs.put(database, values);
             }
-            // the alias type is already loaded, we add the new alias only
+            // the database is already loaded, we add the new identifier only
             else {
                 Set<String> values = this.listOfXRefs.get(database);
 
@@ -164,10 +201,18 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         }
     }
 
+    /**
+     *
+     * @return the map containing all the cross references
+     */
     public Map<CvDatabase, Set<String>> getListOfXRefs() {
         return listOfXRefs;
     }
 
+    /**
+     * Set the map containing all the cross references
+     * @param listOfXRefs
+     */
     public void setListOfXRefs(Map<CvDatabase, Set<String>> listOfXRefs) {
         this.listOfXRefs = listOfXRefs;
     }

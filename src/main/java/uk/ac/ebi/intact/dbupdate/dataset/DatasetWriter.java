@@ -24,7 +24,7 @@ import java.util.Set;
 
 /**
  * A DatasetWriter will add a dataset annotation to all the experiments of a same publication with at least one experiment
- * containing interaction(s) involving a specific protein. It needs a DatasetSelector to collect the specific IntAct accessions of the object selected by the selector (proteins, components, etc.).
+ * containing interaction(s) involving a specific object (protein, component, publication). It needs a DatasetSelector to collect the specific IntAct accessions of the object selected by the selector (proteins, components, etc.).
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -102,6 +102,14 @@ public class DatasetWriter {
         return getExperimentsWithSpecificSelection(componentQuery, intactAccession, daoFactory);
     }
 
+    /**
+     *
+     * @param componentQuery : the query selecting experiments directly linked to the dataset
+     * @param accession : the accession of the object linked to the dataset (a protein, component, publication)
+     * @param daoFactory
+     * @return the list of experiments we want to add a dataset annotation to
+     * @throws DatasetException
+     */
     private List<Experiment> getExperimentsWithSpecificSelection (String componentQuery, String accession, DaoFactory daoFactory) throws DatasetException{
         // This query is looking for all the publications containing the experiments of the previous query : componentQuery
         String publicationsContainingSpecificProteinsQuery = "select pub.ac from Experiment exp2 join exp2.publication as pub join exp2.interactions as i2 where exp2 in " +
@@ -296,7 +304,7 @@ public class DatasetWriter {
 
     /**
      * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
-     * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
+     * The list of object criterias that the selector is using to select the object of interests can be stored in a file but it is not mandatory, the file can be null
      * @param file : the file containing the list of proteins. Can be null if it is not needed
      * @param selector : the DatasetSelector
      * @throws DatasetException
@@ -309,8 +317,8 @@ public class DatasetWriter {
     }
 
     /**
-     * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
-     * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
+     * Use the selector to select the list of object of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
+     * The list of object criterias that the selector is using to select the object of interests can be stored in a file but it is not mandatory, the file can be null
      * @param file : the file containing the list of proteins. Can be null if it is not needed
      * @throws DatasetException
      */
@@ -326,8 +334,8 @@ public class DatasetWriter {
     }
 
     /**
-     * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
-     * The list of protein criterias that the selector is using to select the protein of interests can be stored in a file but it is not mandatory, the file can be null
+     * Use the selector to select the list of object of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
+     * The list of object criterias that the selector is using to select the object of interests can be stored in a file but it is not mandatory, the file can be null
      * @throws DatasetException
      */
     public void addDatasetAnnotationToExperiments() throws DatasetException {
@@ -337,11 +345,11 @@ public class DatasetWriter {
             throw new DatasetException("The selector has not been initialised, we can't determine the list of proteins to look for.");
         }
 
-        // The protein selector must have a dataset value
+        // The selector must have a dataset value
         if (this.selector.getDatasetValueToAdd() == null){
             throw new DatasetException("The dataset value to add for the selector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
         }
-        // The protein selector must have a maximum number of interactions per experiment
+        // The selector must have a maximum number of interactions per experiment
         if (this.selector.getMaxNumberOfInteractionsPerExperiment() == 0){
             throw new DatasetException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
         }
@@ -389,7 +397,7 @@ public class DatasetWriter {
     }
 
     /**
-     * set the protein selector
+     * set the dataset selector
      * @param selector
      */
     public void setSelector(DatasetSelector selector) {
@@ -444,11 +452,19 @@ public class DatasetWriter {
         undoDatasetSelection();
     }*/
 
+    /**
+     * Depending on the type of selector (ProteinDatasetSelector, ComponentDatasetSelector, etc..), we will process differently the query to get the experiments we want to add a dataset to.
+     * @throws DatasetException
+     * @throws IOException
+     */
     private void processDatasetSelection() throws DatasetException, IOException {
 
+        // number of intcact object related to the dataset
         int numberOfElementSelected = 0;
+        // total number of experiments updated
         int numberOfExperiments = 0;
 
+        // we want to retrieve experiments containing interactions involving specific proteins
         if (this.selector instanceof ProteinDatasetSelector){
             ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
 
@@ -473,6 +489,7 @@ public class DatasetWriter {
                 //this.context.getDataContext().commitTransaction(transactionStatus);
             }
         }
+        // we want to retrieve experiments containing interactions involving specific components (participants)
         else if (this.selector instanceof ComponentDatasetSelector){
             ComponentDatasetSelector componentSelector = (ComponentDatasetSelector) this.selector;
 

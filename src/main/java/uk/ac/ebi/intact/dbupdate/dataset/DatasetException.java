@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.dataset;
 
 /**
- * TODO comment this
+ * The exception thrown if an error occured while processing the dataset
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

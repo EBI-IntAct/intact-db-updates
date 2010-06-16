@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * TODO comment this
+ * The base implementation of DatasetSelector
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -107,7 +107,7 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
     }
 
     /**
-     * Clear the list of proteins, the list of possible taxIds, the list of publication excluded and the dataset value of this object
+     * Clear the list of intact objects we want to select, the list of possible taxIds, the list of publication excluded and the dataset value of this object
      */
     public void clearDatasetContent(){
         this.listOfPossibleTaxId.clear();
@@ -302,10 +302,15 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
         }
     }
 
+    /**
+     * This method load columns containing specific information to retrieve intact objects. (interactor aliases, cross references, etc.)
+     * @param columns
+     * @throws DatasetException
+     */
     protected abstract void readSpecificContent(String [] columns) throws DatasetException;
 
     /**
-     * Read the file in the resources containing the list of aliases
+     * Read the file in the resources containing the dataset content
      * @param datasetFile : name of the dataset file
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException
      */
@@ -324,7 +329,7 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
     }
 
     /**
-     * Read the file containing the list of aliases
+     * Read the file containing the dataset content
      * @param datasetFile : name of the dataset file
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException
      */
@@ -344,7 +349,7 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
 
     /**
      *
-     * @param interactorQuery : the query to select interactors with specific aliases
+     * @param interactorQuery : the query to select interactors
      * @return a new query as a String adding the organism restrictions to the previous query
      */
     protected String addOrganismSelection(String interactorQuery){
@@ -355,7 +360,7 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
             return interactorQuery;
         }
 
-        // We want all the interactors with an organism which is contained in the list of organism restrictions and with a specific alias
+        // We want all the interactors with an organism which is contained in the list of organism restrictions
         query.append("select i.ac from InteractorImpl i join i.bioSource as b where (" );
 
         for (String t : listOfPossibleTaxId){
