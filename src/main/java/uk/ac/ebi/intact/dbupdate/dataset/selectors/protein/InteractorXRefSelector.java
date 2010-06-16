@@ -68,7 +68,7 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         // we want all the interactor associated with this database and this identifier
         String interactorGeneQuery = "select i.ac from InteractorImpl i join i.xrefs as x " +
                 "join x.cvDatabase as db " +
-                "where db = :database and x.primaryId = :id and objClass = :class";
+                "where db = :database and x.primaryId = :id and i.objClass = :class";
 
         // we add the organism restrictions
         String finalQuery = addOrganismSelection(interactorGeneQuery);
