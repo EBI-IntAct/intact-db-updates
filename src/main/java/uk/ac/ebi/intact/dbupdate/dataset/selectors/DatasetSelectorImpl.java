@@ -347,32 +347,6 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
         extractDatasetFromFile(file);
     }
 
-    /**
-     *
-     * @param interactorQuery : the query to select interactors
-     * @return a new query as a String adding the organism restrictions to the previous query
-     */
-    protected String addOrganismSelection(String interactorQuery){
-        StringBuffer query = new StringBuffer(1640);
-
-        // We don't have any organism restrictions so we don't change the previous query
-        if (this.listOfPossibleTaxId.isEmpty()){
-            return interactorQuery;
-        }
-
-        // We want all the interactors with an organism which is contained in the list of organism restrictions
-        query.append("select i.ac from InteractorImpl i join i.bioSource as b where (" );
-
-        for (String t : listOfPossibleTaxId){
-            query.append(" b.taxId = '"+t+"' or");
-        }
-
-        query.delete(query.lastIndexOf("or"), query.length());
-        query.append(") and i.ac in ("+interactorQuery+")");
-
-        return query.toString();
-    }
-
     /*private void addAllExperimentsFromSamePublication(List<Experiment> experiments){
         List<Experiment> otherExperiment = new ArrayList<Experiment>();
         ExperimentDao expDao = this.context.getDataContext().getDaoFactory().getExperimentDao();

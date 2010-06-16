@@ -4,15 +4,11 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
-import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelectorImpl;
 import uk.ac.ebi.intact.model.CvDatabase;
 import uk.ac.ebi.intact.model.ProteinImpl;
 
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 
 /**
@@ -31,7 +27,7 @@ import java.util.*;
  * @since <pre>15-Jun-2010</pre>
  */
 
-public class InteractorXRefSelector extends DatasetSelectorImpl implements ProteinDatasetSelector {
+public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
 
     /**
      * The map containing the database associated with a set of identifiers
@@ -60,7 +56,7 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
      * @return a list of protein accessions containing this cross reference.
      * @throws DatasetException
      */
-    private List<String> getProteinAccessionsContainingXRefs(CvDatabase database, String identifier) throws DatasetException {
+    /*private List<String> getProteinAccessionsContainingXRefs(CvDatabase database, String identifier) throws DatasetException {
         // get the intact datacontext and factory
         final DataContext dataContext = this.context.getDataContext();
         final DaoFactory daoFactory = dataContext.getDaoFactory();
@@ -85,7 +81,7 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
         List<String> listOfAcs = query.getResultList();
 
         return listOfAcs;
-    }
+    }*/
 
     /**
      *
@@ -110,31 +106,50 @@ public class InteractorXRefSelector extends DatasetSelectorImpl implements Prote
             throw new IllegalArgumentException("The dataset value has not been initialised.");
         }
 
-        // create the file where to write the report
-        File file = new File("protein_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
         Set<String> proteinAccessions = new HashSet<String>();
 
+        // get the intact datacontext and factory
+        final DataContext dataContext = this.context.getDataContext();
+        final DaoFactory daoFactory = dataContext.getDaoFactory();
+
+        StringBuffer interactorXRefQuery = new StringBuffer(1064);
+
+        // we want all the interactor associated with this database and this identifier
+        interactorXRefQuery.append("select i.ac from InteractorImpl i join i.xrefs as x " +
+                "join x.cvDatabase as db " +
+                "where (");
+
         try {
-            Writer writer = new FileWriter(file);
 
             // For each database in the file
             for (Map.Entry<CvDatabase, Set<String>> entry : this.listOfXRefs.entrySet()){
                 // For each identifier associated with this database
                 for (String id : entry.getValue()){
-                    // get the intact proteins matching the database and identifier
-                    List<String> proteinAccessionsForName = getProteinAccessionsContainingXRefs(entry.getKey(), id);
-                    // we add the proteins to the list
-                    proteinAccessions.addAll(proteinAccessionsForName);
-                    writer.write("Collect "+proteinAccessionsForName.size()+" proteins ("+proteinAccessionsForName+") associated with the cross reference " + id + " \n");
-                    writer.flush();
+
+                    interactorXRefQuery.append(" (db.ac = '"+entry.getKey().getAc()+"' and x.primaryId = '"+id+"') or");
                 }
             }
 
-            writer.close();
+            interactorXRefQuery.delete(interactorXRefQuery.lastIndexOf(" or"), interactorXRefQuery.length());
+            interactorXRefQuery.append(") and i.objClass = :class");
 
-            if (!isFileWriterEnabled()){
-                file.delete();
-            }
+            // we add the organism restrictions
+            String finalQuery = addOrganismSelection(interactorXRefQuery.toString());
+
+            // create the query
+            final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
+
+            // set the query parameters
+            query.setParameter("class", ProteinImpl.class.getName());
+
+            // get the intact proteins matching the cross reference
+            List<String> listOfAcs = query.getResultList();
+
+            // we add the proteins to the list
+            proteinAccessions.addAll(listOfAcs);
+
+            // write protein report
+            writeProteinReport(proteinAccessions);
 
         } catch (IOException e) {
             throw new DatasetException("We can't write the results of the protein selection.", e);

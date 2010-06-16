@@ -6,15 +6,11 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
-import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelectorImpl;
 import uk.ac.ebi.intact.model.CvAliasType;
 import uk.ac.ebi.intact.model.ProteinImpl;
 
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 
 /**
@@ -33,7 +29,7 @@ import java.util.*;
  * @since <pre>02-Jun-2010</pre>
  */
 
-public class InteractorAliasSelector extends DatasetSelectorImpl implements ProteinDatasetSelector{
+public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
 
     /**
      * The log for this class
@@ -139,88 +135,88 @@ public class InteractorAliasSelector extends DatasetSelectorImpl implements Prot
      * @param file : the file containing the protein aliases
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : if the file is null
      */
-   /* protected void extractDatasetFromFile(File file) throws DatasetException {
+    /* protected void extractDatasetFromFile(File file) throws DatasetException {
 
-        BufferedReader in = null;
+       BufferedReader in = null;
 
-        if (file == null){
-            throw new IllegalArgumentException("The file containing the dataset is null and we can't read the dataset. Please set a valid datasetFile of this object.");
-        }
-        try {
+       if (file == null){
+           throw new IllegalArgumentException("The file containing the dataset is null and we can't read the dataset. Please set a valid datasetFile of this object.");
+       }
+       try {
 
-            in = new BufferedReader( new FileReader( file ) );
+           in = new BufferedReader( new FileReader( file ) );
 
-            String str;
-            while ( ( str = in.readLine() ) != null ) {
-                // remove possible "
-                str = removeQuotes(str);
+           String str;
+           while ( ( str = in.readLine() ) != null ) {
+               // remove possible "
+               str = removeQuotes(str);
 
-                // we skip the comments and empty lines
-                if ( str.startsWith( "#" ) || str.length() == 0 ) {
-                    continue;
-                }
+               // we skip the comments and empty lines
+               if ( str.startsWith( "#" ) || str.length() == 0 ) {
+                   continue;
+               }
 
-                // the line contains columns
-                if (str.contains(separator)){
-                    final String[] columns = StringUtils.splitPreserveAllTokens(str,separator);
+               // the line contains columns
+               if (str.contains(separator)){
+                   final String[] columns = StringUtils.splitPreserveAllTokens(str,separator);
 
-                    // we need 3 columns
-                    if (columns.length != 3){
-                        throw new IllegalArgumentException("The file containing the dataset is malformed : we found "+columns.length+" columns instead of 3. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
-                                "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
-                    }
-                    else {
-                        // remove possible quotes
-                        for (String c : columns){
-                            c = removeQuotes(c);
-                        }
-                        // if the line contains dataset information, we initialises the dataset value of this object
-                        if (isDatasetLine(columns)){
-                            // if the dataset value is not null, it is replaced with the new one but it can be an error in the file
-                            if (this.datasetValue != null && columns[2].length() > 0){
-                                log.warn("The dataset value for the file was " + this.datasetValue + " but is replaced with the new value found in the file " + columns[2]);
-                                this.datasetValue = columns[2];
-                            }
-                            else if (columns[2].length() > 0){
-                                this.datasetValue = columns[2];
-                            }
-                        }
-                        // if the line contains organism requirements, we initialise the list of organisms taxids
-                        else if (isOrganismLine(columns)){
-                            // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
-                            if (!this.listOfPossibleTaxId.isEmpty()){
-                                log.warn("The possible organisms for the file were " + this.listOfPossibleTaxId + " but are replaced with the new value(s) found in the file " + columns[2]);
-                                this.listOfPossibleTaxId.clear();
-                            }
-                            extractListOfIdsFrom(columns[2], this.listOfPossibleTaxId);
-                        }
-                        // if the line contains publication exclusions, we initialise the list of publications to exclude
-                        else if (isPublicationLine(columns)){
-                            // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
-                            if (!this.listOfExcludedPublications.isEmpty()){
-                                log.warn("The publications to exclude for the file were " + this.listOfExcludedPublications + " but are replaced with the new value(s) found in the file " + columns[2]);
-                                this.listOfExcludedPublications.clear();
-                            }
-                            extractListOfIdsFrom(columns[2], this.listOfExcludedPublications);
-                        }
-                        // we don't have neither dataset information, nor organism requirements, it is a protein alias to load
-                        else {
-                            addNewProtein(columns);
-                        }
-                    }
-                }
-                else {
-                    throw new DatasetException("The file containing the dataset is malformed. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
-                            "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
-                }
-            }
-            in.close();
-        } catch (FileNotFoundException e) {
-            throw new DatasetException("The file " + file.getAbsolutePath() + " has not been found.", e);
-        } catch (IOException e) {
-            throw new DatasetException("The file " + file.getAbsolutePath() + " couldn't be read.", e);
-        }
-    } */
+                   // we need 3 columns
+                   if (columns.length != 3){
+                       throw new IllegalArgumentException("The file containing the dataset is malformed : we found "+columns.length+" columns instead of 3. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
+                               "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
+                   }
+                   else {
+                       // remove possible quotes
+                       for (String c : columns){
+                           c = removeQuotes(c);
+                       }
+                       // if the line contains dataset information, we initialises the dataset value of this object
+                       if (isDatasetLine(columns)){
+                           // if the dataset value is not null, it is replaced with the new one but it can be an error in the file
+                           if (this.datasetValue != null && columns[2].length() > 0){
+                               log.warn("The dataset value for the file was " + this.datasetValue + " but is replaced with the new value found in the file " + columns[2]);
+                               this.datasetValue = columns[2];
+                           }
+                           else if (columns[2].length() > 0){
+                               this.datasetValue = columns[2];
+                           }
+                       }
+                       // if the line contains organism requirements, we initialise the list of organisms taxids
+                       else if (isOrganismLine(columns)){
+                           // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
+                           if (!this.listOfPossibleTaxId.isEmpty()){
+                               log.warn("The possible organisms for the file were " + this.listOfPossibleTaxId + " but are replaced with the new value(s) found in the file " + columns[2]);
+                               this.listOfPossibleTaxId.clear();
+                           }
+                           extractListOfIdsFrom(columns[2], this.listOfPossibleTaxId);
+                       }
+                       // if the line contains publication exclusions, we initialise the list of publications to exclude
+                       else if (isPublicationLine(columns)){
+                           // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
+                           if (!this.listOfExcludedPublications.isEmpty()){
+                               log.warn("The publications to exclude for the file were " + this.listOfExcludedPublications + " but are replaced with the new value(s) found in the file " + columns[2]);
+                               this.listOfExcludedPublications.clear();
+                           }
+                           extractListOfIdsFrom(columns[2], this.listOfExcludedPublications);
+                       }
+                       // we don't have neither dataset information, nor organism requirements, it is a protein alias to load
+                       else {
+                           addNewProtein(columns);
+                       }
+                   }
+               }
+               else {
+                   throw new DatasetException("The file containing the dataset is malformed. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
+                           "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
+               }
+           }
+           in.close();
+       } catch (FileNotFoundException e) {
+           throw new DatasetException("The file " + file.getAbsolutePath() + " has not been found.", e);
+       } catch (IOException e) {
+           throw new DatasetException("The file " + file.getAbsolutePath() + " couldn't be read.", e);
+       }
+   } */
 
     /**
      *
@@ -228,7 +224,7 @@ public class InteractorAliasSelector extends DatasetSelectorImpl implements Prot
      * @param name : alias name
      * @return the list of intact proteins matching the alias name for this alias type and with an organism respecting the restrictions
      */
-    private List<String> getProteinAccessionsContainingAlias (CvAliasType type, String name){
+    /*private List<String> getProteinAccessionsContainingAlias (CvAliasType type, String name){
 
         // get the intact datacontext and factory
         final DataContext dataContext = this.context.getDataContext();
@@ -253,7 +249,7 @@ public class InteractorAliasSelector extends DatasetSelectorImpl implements Prot
         final List<String> interactorAcs = query.getResultList();
 
         return interactorAcs;
-    }
+    }*/
 
     /*private void addAllExperimentsFromSamePublication(List<Experiment> experiments){
         List<Experiment> otherExperiment = new ArrayList<Experiment>();
@@ -343,31 +339,47 @@ public class InteractorAliasSelector extends DatasetSelectorImpl implements Prot
             throw new IllegalArgumentException("The dataset value has not been initialised.");
         }
 
-        // create the file where to write the report
-        File file = new File("proteins_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
         Set<String> proteinAccessions = new HashSet<String>();
 
+        // get the intact datacontext and factory
+        final DataContext dataContext = this.context.getDataContext();
+        final DaoFactory daoFactory = dataContext.getDaoFactory();
+
+        StringBuffer interactorGeneQuery = new StringBuffer(1064);
+
+        // we want all the interactor associated with this alias name and this alias type
+        interactorGeneQuery.append("select prot.ac from InteractorAlias ia join ia.parent as prot join ia.cvAliasType as alias " +
+                "where (");
+
         try {
-            Writer writer = new FileWriter(file);
 
             // For each alias type in the file
             for (Map.Entry<CvAliasType, Set<String>> entry : this.listOfProteins.entrySet()){
                 // For each alias name associated with this alias type
                 for (String name : entry.getValue()){
-                    // get the intact proteins matching the alias name and alias type
-                    List<String> proteinAccessionsForName = getProteinAccessionsContainingAlias(entry.getKey(), name);
-                    // we add the proteins to the list
-                    proteinAccessions.addAll(proteinAccessionsForName);
-                    writer.write("Collect "+proteinAccessionsForName.size()+" proteins ("+proteinAccessionsForName+") associated with the name " + name + " \n");
-                    writer.flush();
+
+                    interactorGeneQuery.append(" (upper(name) = upper('"+name+"') and alias.ac = '"+entry.getKey().getAc()+"') or");
                 }
             }
 
-            writer.close();
+            interactorGeneQuery.delete(interactorGeneQuery.lastIndexOf(" or"), interactorGeneQuery.length());
+            interactorGeneQuery.append(") and prot.objClass = :objclass");
 
-            if (!isFileWriterEnabled()){
-                file.delete();
-            }
+            // we add the organism restrictions
+            String finalQuery = addOrganismSelection(interactorGeneQuery.toString());
+
+            // create the query
+            final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
+
+            query.setParameter("objclass", ProteinImpl.class.getName());
+
+            // the list of results
+            final List<String> interactorAcs = query.getResultList();
+
+            proteinAccessions.addAll(interactorAcs);
+
+            // write protein report if file enabled
+            writeProteinReport(proteinAccessions);
 
         } catch (IOException e) {
             throw new DatasetException("We can't write the results of the protein selection.", e);
