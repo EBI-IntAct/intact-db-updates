@@ -268,6 +268,8 @@ public class DatasetWriter {
             String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
             this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName());
             Annotation annotation = createNewDataset();
+            log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
+
             e.addAnnotation(annotation);
             this.context.getCorePersister().saveOrUpdate(e);
         }
