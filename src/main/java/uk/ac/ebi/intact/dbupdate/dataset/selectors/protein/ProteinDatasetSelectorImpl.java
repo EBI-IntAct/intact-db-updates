@@ -74,7 +74,7 @@ public abstract class ProteinDatasetSelectorImpl extends DatasetSelectorImpl imp
             File file = new File("proteins_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
             Writer writer = new FileWriter(file);
 
-            writer.write("Collect "+proteinAccessions.size()+" proteins associated with at least one of the different alias names \n");
+            writer.write("Collect "+proteinAccessions.size()+" proteins related to the dataset '"+this.datasetValue+"' \n");
 
             for (String ac : proteinAccessions){
                 writer.write(ac+"\n");
