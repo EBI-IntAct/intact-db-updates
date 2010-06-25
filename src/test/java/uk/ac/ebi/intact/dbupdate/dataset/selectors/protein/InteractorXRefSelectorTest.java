@@ -25,7 +25,6 @@ public class InteractorXRefSelectorTest extends BasicDatasetTest {
     public void setUpDatabase(){
         super.setUpDatabase();
         this.selector = new InteractorXRefSelector();
-        this.selector.setIntactContext(intactContext);
         this.selector.setFileWriterEnabled(false);
     }
 
@@ -36,7 +35,7 @@ public class InteractorXRefSelectorTest extends BasicDatasetTest {
 
             Assert.assertEquals("NDPK - Interactions involving proteins containing InterPro domain IPR001564, Nucleoside diphosphate kinase, core.", selector.getDatasetValueToAdd());
             Assert.assertEquals(0, selector.getListOfPossibleTaxId().size());
-            Assert.assertEquals(0, selector.getPublicationsIdToExclude().size());
+            Assert.assertEquals(1, selector.getPublicationsIdToExclude().size());
             Assert.assertEquals(1, selector.getListOfXRefs().keySet().size());
             Assert.assertEquals(1, selector.getListOfXRefs().get(selector.getListOfXRefs().keySet().iterator().next()).size());
 

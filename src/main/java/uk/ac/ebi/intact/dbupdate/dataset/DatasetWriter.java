@@ -43,11 +43,6 @@ public class DatasetWriter {
     private DatasetSelector selector;
 
     /**
-     * The intact context
-     */
-    private IntactContext context;
-
-    /**
      * Contains the list of publications updated
      */
     private HashSet<String> listOfpublicationUpdated = new HashSet<String>();
@@ -56,15 +51,6 @@ public class DatasetWriter {
      * To know if a file should be written with the results of the update
      */
     private boolean isFileWriterEnabled = true;
-
-    /**
-     * Create a new DatasetWriter with a specific intact context for this database
-     * @param context : the intact context
-     */
-    public DatasetWriter(IntactContext context){
-        this.selector = null;
-        this.context = context;
-    }
 
     /**
      * return the isFileWriterEnabled
@@ -249,7 +235,7 @@ public class DatasetWriter {
      * @return a new Dataset annotation with the dataset value contained in the DatasetSelector of this object
      */
     private Annotation createNewDataset() throws DatasetException {
-        CvTopic dataset = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvTopic.class ).getByPsiMiRef( CvTopic.DATASET_MI_REF );
+        CvTopic dataset = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao( CvTopic.class ).getByPsiMiRef( CvTopic.DATASET_MI_REF );
 
         if (dataset == null){
             throw new DatasetException("The CVTopic " + CvTopic.DATASET_MI_REF + " : " + CvTopic.DATASET + "doesn't exist in the database.");
@@ -271,7 +257,7 @@ public class DatasetWriter {
             log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
 
             e.addAnnotation(annotation);
-            this.context.getCorePersister().saveOrUpdate(e);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e);
         }
     }
 
@@ -404,30 +390,6 @@ public class DatasetWriter {
      */
     public void setSelector(DatasetSelector selector) {
         this.selector = selector;
-
-        if (this.selector != null){
-            this.selector.setIntactContext(this.context);
-        }
-    }
-
-    /**
-     *
-     * @return  the intact context
-     */
-    public IntactContext getContext() {
-        return context;
-    }
-
-    /**
-     * Set the intact context
-     * @param context
-     */
-    public void setContext(IntactContext context) {
-        this.context = context;
-
-        if (this.selector != null){
-            this.selector.setIntactContext(this.context);
-        }
     }
 
     /**

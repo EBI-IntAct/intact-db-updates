@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelectorImpl;
 
 import java.io.File;
@@ -26,14 +25,6 @@ public abstract class ProteinDatasetSelectorImpl extends DatasetSelectorImpl imp
      */
     public ProteinDatasetSelectorImpl(){
         super();
-    }
-
-    /**
-     * Create a new ProteinDatasetSelectorImpl with no dataset value and an intact context. The dataset must be initialised using the set method
-     * @param context
-     */
-    public ProteinDatasetSelectorImpl(IntactContext context){
-        super(context);
     }
 
     /**

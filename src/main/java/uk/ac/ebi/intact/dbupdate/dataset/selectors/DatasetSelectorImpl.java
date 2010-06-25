@@ -3,7 +3,6 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvTopic;
 
@@ -62,11 +61,6 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
     protected static final int maxNumberOfInteractions = 100;
 
     /**
-     * the intact context
-     */
-    protected IntactContext context;
-
-    /**
      * To know if a file should be written with the results of the selection
      */
     protected boolean isFileWriterEnabled = true;
@@ -76,34 +70,6 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
      */
     public DatasetSelectorImpl(){
         this.datasetValue = null;
-
-        this.context = null;
-    }
-
-    /**
-     * Create a new DatasetSelectorImpl with no dataset value and an intact context. The dataset must be initialised using the set method
-     * @param context
-     */
-    public DatasetSelectorImpl(IntactContext context){
-        this.datasetValue = null;
-
-        this.context = context;
-    }
-
-    /**
-     *
-     * @return the intact context
-     */
-    public IntactContext getIntactContext() {
-        return context;
-    }
-
-    /**
-     * set the intact context
-     * @param context : the intact context
-     */
-    public void setIntactContext(IntactContext context) {
-        this.context = context;
     }
 
     /**

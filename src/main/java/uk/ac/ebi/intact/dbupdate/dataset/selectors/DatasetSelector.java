@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.dataset.selectors;
 
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 
 import java.util.Set;
@@ -41,11 +40,6 @@ public interface DatasetSelector {
      */
     public int getMaxNumberOfInteractionsPerExperiment();
 
-    /**
-     * Set the intact context
-     * @param context : the intact context
-     */
-    public void setIntactContext(IntactContext context);
 
     /**
      * Clear all possible variables that the Selector keep in memory. Usually, a list of names, organisms loaded from a file

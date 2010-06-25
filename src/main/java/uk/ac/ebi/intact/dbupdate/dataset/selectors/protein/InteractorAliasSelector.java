@@ -49,14 +49,6 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
     }
 
     /**
-     * Create a new InteractorAliasSelector with no dataset value and an intact context. The dataset must be initialised using the set method
-     * @param context
-     */
-    public InteractorAliasSelector(IntactContext context){
-        super(context);
-    }
-
-    /**
      * Clear the list of proteins, the list of possible taxIds, the list of publication excluded and the dataset value of this object
      */
     public void clearDatasetContent(){
@@ -95,19 +87,16 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
         // The alias type
         CvAliasType aliasType = null;
 
-        // we need an Intact context
-        if (this.context == null){
-            throw new DatasetException("The intact context must be not null, otherwise the protein selector can't query the Intact database.");
-        }
+        IntactContext context = IntactContext.getCurrentInstance();
 
         if (columns [2].length() > 0){
             // get the aliastype instance
             if (mi != null && mi.length() > 0){
-                aliasType = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvAliasType.class ).getByPsiMiRef( mi );
+                aliasType = context.getDataContext().getDaoFactory().getCvObjectDao( CvAliasType.class ).getByPsiMiRef( mi );
             }
             else {
                 if (name.length() > 0){
-                    aliasType = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvAliasType.class ).getByShortLabel( name );
+                    aliasType = context.getDataContext().getDaoFactory().getCvObjectDao( CvAliasType.class ).getByShortLabel( name );
                 }
             }
 
@@ -323,10 +312,6 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException
      */
     public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
-        // we need an Intact context to query Intact
-        if (this.context == null){
-            throw new DatasetException("The intact context must be not null, otherwise the protein selector can't query the Intact database.");
-        }
 
         log.info("Collect proteins in Intact...");
 
@@ -342,7 +327,7 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
         Set<String> proteinAccessions = new HashSet<String>();
 
         // get the intact datacontext and factory
-        final DataContext dataContext = this.context.getDataContext();
+        final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         final DaoFactory daoFactory = dataContext.getDaoFactory();
 
         StringBuffer interactorGeneQuery = new StringBuffer(1064);

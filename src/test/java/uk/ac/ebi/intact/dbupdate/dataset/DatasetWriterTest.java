@@ -58,7 +58,7 @@ public class DatasetWriterTest extends BasicDatasetTest {
         super.setUpDatabase();
         InteractorAliasSelector selector = new InteractorAliasSelector();
         selector.setFileWriterEnabled(false);
-        this.writer = new DatasetWriter(intactContext);
+        this.writer = new DatasetWriter();
         this.writer.setFileWriterEnabled(false);
         this.writer.setSelector(selector);
     }

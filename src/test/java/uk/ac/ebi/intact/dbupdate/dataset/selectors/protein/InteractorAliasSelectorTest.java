@@ -27,7 +27,6 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
     public void setUpDatabase(){
         super.setUpDatabase();
         this.selector = new InteractorAliasSelector();
-        this.selector.setIntactContext(intactContext);
         this.selector.setFileWriterEnabled(false);
     }
 

@@ -42,14 +42,6 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
     }
 
     /**
-     * Create a new InteractorXRefSelector instance with a specific intact context
-     * @param context : the intact context
-     */
-    public InteractorXRefSelector(IntactContext context){
-        super(context);
-    }
-
-    /**
      *
      * @param database : the cvDatabase
      * @param identifier : the identifier associated with the database
@@ -89,10 +81,6 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
      * @throws DatasetException
      */
     public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
-        // we need an Intact context to query Intact
-        if (this.context == null){
-            throw new DatasetException("The intact context must be not null, otherwise the protein selector can't query the Intact database.");
-        }
 
         log.info("Collect proteins in Intact...");
 
@@ -109,7 +97,7 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
         Set<String> proteinAccessions = new HashSet<String>();
 
         // get the intact datacontext and factory
-        final DataContext dataContext = this.context.getDataContext();
+        final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         final DaoFactory daoFactory = dataContext.getDaoFactory();
 
         StringBuffer interactorXRefQuery = new StringBuffer(1064);
@@ -181,19 +169,16 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
         // the database
         CvDatabase database = null;
 
-        // we need an Intact context
-        if (this.context == null){
-            throw new DatasetException("The intact context must be not null, otherwise the protein selector can't query the Intact database.");
-        }
+        IntactContext context = IntactContext.getCurrentInstance();
 
         if (columns [2].length() > 0){
             // get the cvDatabase instance
             if (mi != null && mi.length() > 0){
-                database = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( mi );
+                database = context.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByPsiMiRef( mi );
             }
             else {
                 if (name.length() > 0){
-                    database = this.context.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByShortLabel( name );
+                    database = context.getDataContext().getDaoFactory().getCvObjectDao( CvDatabase.class ).getByShortLabel( name );
                 }
             }
 
