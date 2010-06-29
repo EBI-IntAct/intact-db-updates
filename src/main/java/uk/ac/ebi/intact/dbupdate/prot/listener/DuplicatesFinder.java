@@ -23,6 +23,8 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.model.CvDatabase;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -42,8 +44,8 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
 
     @Override
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        DataContext dataContext = evt.getDataContext();
-        Protein protein = evt.getProtein();
+        final DataContext dataContext = evt.getDataContext();
+        final Protein protein = evt.getProtein();
 
         if (protein.getAc() == null) {
             throw new IllegalArgumentException("We need an AC to check for duplicates: "+protInfo(protein));
@@ -57,40 +59,52 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
             return;
         }
 
-        // ignore splice variants for now, as they follow additional criteria to distinguish between them
-        if (ProteinUtils.isSpliceVariant(protein)) {
-            if (log.isDebugEnabled()) log.debug("Duplicate search ignored for splice variant: "+protInfo(protein));
+//        // ignore splice variants for now, as they follow additional criteria to distinguish between them
+//        if (ProteinUtils.isSpliceVariant(protein)) {
+//            // TODO do handle splice variant duplicate, as well as feature chains
+//            if (log.isDebugEnabled()) log.debug("--- [NEW] --- Duplicated splice variant: "+protInfo(protein));
+////            if (log.isDebugEnabled()) log.debug("Duplicate search ignored for splice variant: "+protInfo(protein));
+////            return;
+//        }
+
+        final List<InteractorXref> identities = ProteinUtils.getIdentityXrefs( protein );
+        if( identities.size() != 1 ) {
+            if ( log.isDebugEnabled() )
+                log.debug( "Protein " + protInfo(protein)+ " has " + identities.size() + " Xref(identity), expected only 1. Skip.");
+            return;
+        }
+
+        final InteractorXref identity = identities.iterator().next();
+        if( ! CvDatabase.UNIPROT_MI_REF.equals( identity.getCvDatabase().getIdentifier() ) ) {
+            if ( log.isDebugEnabled() )
+                log.debug( "Protein " + protInfo(protein)+ " has an Xref("+ identity.getCvDatabase().getShortLabel() +
+                           ", identity) while uniprotkb expected. Skip.");
             return;
         }
 
         ProteinDao proteinDao = dataContext.getDaoFactory().getProteinDao();
-
-        // param checks
-        if (protein.getCrc64() == null) {
-            if (log.isErrorEnabled()) log.error("Protein without CRC64 found: "+protInfo(protein));
-            return;
-        }
-
-        if (protein.getBioSource() == null) {
-            if (log.isErrorEnabled()) log.error("Protein without BioSource: "+protInfo(protein));
-            return;
-        }
-
-        // create a list of possible duplicates, by retrieving from the database
-        // those proteins with the same CRC64 and organism - then remove the processed protein
-        // from the results
-        List<ProteinImpl> possibleDuplicates = proteinDao.getByCrcAndTaxId(protein.getCrc64(), protein.getBioSource().getTaxId());
+        final List<ProteinImpl> possibleDuplicates =
+                proteinDao.getByXrefLike( identity.getCvDatabase(),
+                                          identity.getCvXrefQualifier(),
+                                          identity.getPrimaryId() );
 
         // if there are possible duplicates (more than 1 result), check and fix when necessary
         if (possibleDuplicates.size() > 1) {
-            checkAndFixDuplication(possibleDuplicates, evt);
+            final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                                                              evt.getDataContext(),
+                                                                              new ArrayList<Protein>(possibleDuplicates)));
+//            checkAndFixDuplication(protein, possibleDuplicates, evt);
         } else {
-            if (log.isDebugEnabled()) log.debug("No duplicates found for: "+protInfo(protein));
+            if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protein) );
         }
     }
 
     private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt) {
         List<Protein> realDuplicates = new ArrayList<Protein>();
+
+        // here there is a chance we keep proteins that have an other identity than the one of the original
+        // protein we were processing. Say in the case where it is at index > 0 in the list.
 
         Protein firstProtein = possibleDuplicates.get(0);
 

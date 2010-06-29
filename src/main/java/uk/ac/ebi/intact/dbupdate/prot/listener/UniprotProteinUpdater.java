@@ -39,7 +39,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Updates the current protein in the database, using information from uniprot
+ * Updates the current protein in the database, using information from uniprot.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -93,7 +93,6 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         } else {
             if (log.isWarnEnabled()) log.warn("Protein without uniprot xref: "+protToUpdate.getAc()+" ("+protToUpdate.getShortLabel()+")");
         }
-
     }
 
     /**

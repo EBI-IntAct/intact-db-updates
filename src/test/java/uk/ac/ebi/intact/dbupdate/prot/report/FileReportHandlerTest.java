@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.model.*;
@@ -38,7 +39,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 /**
- * TODO comment that class header
+ * FileReportHandler Tester.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -49,15 +50,14 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
     @Autowired
     private PersisterHelper persisterHelper;
 
-
-    @Test @DirtiesContext
+    @Test
+    @DirtiesContext
     public void simulation() throws Exception {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
 
         final File dir = new File("target/simulation");
         UpdateReportHandler reportHandler = new FileReportHandler(dir);
-
-        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig(reportHandler);
+        ProteinUpdateContext.getInstance().getConfig().setReportHandler( reportHandler );
 
         getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
 
@@ -119,7 +119,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
         // try the updater
-        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
         protUpdateProcessor.updateAll();
 
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
@@ -179,8 +179,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, countLinesInFile(updateCasesFile));
         Assert.assertEquals(4, countLinesInFile(sequenceChangedFile));
         Assert.assertEquals(2, countLinesInFile(rangeChangedFile));
-
-
     }
 
     private static int countLinesInFile(File file) {

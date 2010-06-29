@@ -27,6 +27,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
@@ -52,6 +53,8 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
     protected void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
+        // TODO check if duplicated proteins do have isoform/chain, if so, their respective *-parent needs updating.
+
         // add the interactions from the duplicated proteins to the protein
         // that was created first in the database
 
@@ -62,7 +65,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         // move the interactions from the rest of proteins to the original
         for (Protein duplicate : duplicates) {
             // don't process the original protein with itself
-            if ( ! duplicate.getAc().equals(originalProt.getAc()) ) {
+            if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
                 ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
                 List<InteractorXref> copiedXrefs = ProteinTools.copyNonIdentityXrefs(originalProt, duplicate);
 
@@ -74,15 +77,38 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 // create an "intact-secondary" xref to the protein to be kept.
                 // This will allow the user to search using old ACs
                 Institution owner = duplicate.getOwner();
-                InstitutionXref psiMiXref = XrefUtils.getPsiMiIdentityXref(owner);
-                if (psiMiXref != null) {
-                    DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-                    CvDatabase ownerDb = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( psiMiXref.getPrimaryId() );
+                InstitutionXref ownerXref = XrefUtils.getPsiMiIdentityXref(owner);
+                DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+                // TODO set an owner Xref in the test !!!Aurelie Hoareau
+                if (ownerXref != null) {
+                    CvDatabase ownerDb = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( ownerXref.getPrimaryId() );
 
                     CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
                     InteractorXref xref = new InteractorXref(owner, ownerDb, duplicate.getAc(), intactSecondary);
                     originalProt.addXref(xref);
+                    log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
+                }
+
+                final List<ProteinImpl> isoforms = daoFactory.getProteinDao().getSpliceVariants( duplicate );
+                for ( ProteinImpl isoform : isoforms ) {
+                    // each isoform should now point to the original protein
+                    final Collection<InteractorXref> isoformParents =
+                            AnnotatedObjectUtils.searchXrefs( isoform,
+                                                              CvDatabase.INTACT_MI_REF,
+                                                              CvXrefQualifier.ISOFORM_PARENT_MI_REF );
+
+                    if( isoformParents.size() != 1 ) {
+                        log.warn( "More than one isoform-parent Xref found on splice variant: " + isoform.getAc() );
+                    } else {
+                        final InteractorXref xref = isoformParents.iterator().next();
+                        xref.setPrimaryId( originalProt.getAc() );
+                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(duplicate);
+//                        daoFactory.getXrefDao( InteractorXref.class ).update( xref );
+                        log.debug( "Fixing isoform-parent Xref for isoform '"+isoform.getShortLabel()+
+                                   "' ("+ isoform.getAc()+") so that it points to the merges master protein '"+
+                                   originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
+                    }
                 }
 
                 // and delete the duplicate

@@ -29,7 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Updates the database proteins using the latest information from UniProt
+ * Updates the database proteins using the latest information from UniProt.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -38,20 +38,21 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     private static final Log log = LogFactory.getLog( ProteinUpdateProcessor.class );
 
-    private ProteinUpdateProcessorConfig configUpdate;
 
     public ProteinUpdateProcessor(){
-        super(60, 20);
-        this.configUpdate = new ProteinUpdateProcessorConfig();
+        super();
     }
 
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
-        super(configUpdate.getProcessBatchSize(), configUpdate.getProcessStepSize());
-        this.configUpdate = configUpdate;
+        this();
+        ProteinUpdateContext.getInstance().setConfig( configUpdate );
     }
 
     @Override
     public void updateAll() throws ProcessorException {
+
+        ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( true );
+        
         super.updateAll();
 
         // update db info accordingly
@@ -59,8 +60,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         saveOrUpdateDbInfo("last_protein_update", lastProtUpdate);
         saveOrUpdateDbInfo("uniprotkb.version", UniProtJAPI.factory.getVersion());
-
-
     }
 
     private void saveOrUpdateDbInfo(String key, String value) {
@@ -86,15 +85,18 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         boolean forceDeleteOfProteins = false;
 
-        if (configUpdate.isFixDuplicates()) {
+        final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+        if (config.isFixDuplicates()) {
             addListener(new DuplicatesFinder());
             addListener(new DuplicatesFixer());
             forceDeleteOfProteins = true;
         }
 
-        if (configUpdate.isDeleteProtsWithoutInteractions()) {
+        if (config.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
-            deleter.setDeleteSpliceVariantsWithoutInteractions(configUpdate.isDeleteSpliceVariantsWithoutInteractions());
+            deleter.setDeleteSpliceVariantsWithoutInteractions(config.isDeleteSpliceVariantsWithoutInteractions());
+            deleter.setDeleteChainsWithoutInteractions(config.isDeleteFeatureChainsWithoutInteractions());
             addListener(deleter);
             forceDeleteOfProteins = true;
         }
@@ -103,10 +105,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             addListener(new ProteinDeleter());
         }
         
-        addListener(new UniprotProteinUpdater(configUpdate.getUniprotService(), configUpdate.getTaxonomyService()));
+        addListener(new UniprotProteinUpdater(config.getUniprotService(), config.getTaxonomyService()));
 
-        if (configUpdate.getReportHandler() != null) {
-            addListener(new ReportWriterListener(configUpdate.getReportHandler()));
+        if (config.getReportHandler() != null) {
+            addListener(new ReportWriterListener(config.getReportHandler()));
         }
 
         //addListener(new SequenceChangedListener());
@@ -154,5 +156,4 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             listener.onRangeChanged(evt);
         }
     }
-
 }

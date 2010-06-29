@@ -602,7 +602,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
     @Test @DirtiesContext
-    public void retrieve_uniprotAcReturningMoreThen1EntryWithDifferentSpecies() throws Exception {
+    public void retrieve_uniprotAcReturningMoreThan1EntryWithDifferentSpecies() throws Exception {
 
         // Create in the db, the CANFA protein with primary Ac P60952
         
@@ -648,7 +648,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
     @Test @DirtiesContext
-    public void retrieve_uniprotAcReturningMoreThen1EntryWithSameSpecies() throws Exception{
+    public void retrieve_uniprotAcReturningMoreThan1EntryWithSameSpecies() throws Exception{
 
         /*----------------------------------------------------------
        Create in the db, the CANFA protein with primary Ac P60952

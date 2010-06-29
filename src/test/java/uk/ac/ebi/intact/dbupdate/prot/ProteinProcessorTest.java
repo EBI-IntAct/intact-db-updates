@@ -36,7 +36,8 @@ import java.util.Date;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
-    @Test @DirtiesContext
+    @Test
+    @DirtiesContext
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
 
          final Protein protMain = getMockBuilder().createProtein("P12345", "main");

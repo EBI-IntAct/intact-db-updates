@@ -12,6 +12,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
@@ -309,5 +310,25 @@ public final class XrefUpdaterUtils {
         }
 
         XrefUpdaterUtils.updateXrefCollection( intactSpliceVariant, uniprot, ux );
+    }
+
+    public static void updateFeatureChainUniprotXrefs( Protein intactChain,
+                                                       UniprotFeatureChain uniprotFeatureChain,
+                                                       UniprotProtein uniprotProtein ) {
+
+        CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
+        CvXrefQualifier identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
+        CvXrefQualifier secondaryAc = CvHelper.getQualifierByMi( CvXrefQualifier.SECONDARY_AC_MI_REF );
+        Institution owner = CvHelper.getInstitution();
+
+        String dbRelease = uniprotProtein.getReleaseVersion();
+
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Building UniProt Xref collection prior to update of " + intactChain.getShortLabel() );
+        }
+        Collection<Xref> ux = new ArrayList<Xref>();
+        ux.add( new InteractorXref( owner, uniprot, uniprotFeatureChain.getId(), null, dbRelease, identity ) );
+
+        XrefUpdaterUtils.updateXrefCollection( intactChain, uniprot, ux );
     }
 }

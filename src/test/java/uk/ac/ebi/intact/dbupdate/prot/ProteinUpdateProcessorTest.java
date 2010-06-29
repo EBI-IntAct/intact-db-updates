@@ -15,26 +15,32 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
+import uk.ac.ebi.intact.core.persister.CorePersister;
+import uk.ac.ebi.intact.core.persister.CorePersisterImpl;
+import uk.ac.ebi.intact.core.persister.finder.DefaultFinder;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.model.Interaction;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
- * TODO comment that class header
+ * ProteinUpdateProcessor Tester.
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -55,12 +61,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setProcessBatchSize(3);
-        configUpdate.setProcessStepSize(2);
+        configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
-        masterProt1.getBioSource().setTaxId("9986"); // rabit
+        masterProt1.getBioSource().setTaxId("9986"); // rabbit
 
         getCorePersister().saveOrUpdate(masterProt1);
 
@@ -103,7 +108,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     }
 
-
     /**
      * Delete: master prot does not have interactions, but has splice variants with interactions
      * Delete splice vars without interactions too
@@ -112,8 +116,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setProcessBatchSize(3);
-        configUpdate.setProcessStepSize(2);
         configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
 
         // interaction: no
@@ -156,9 +158,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel("aatm_rabit")); // renamed master prot
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar11.getShortLabel()));
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(randomProt.getShortLabel()));
-
     }
-
 
     /**
      * Delete: master prot does not have interactions, neither its splice variants
@@ -167,12 +167,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setProcessBatchSize(3);
-        configUpdate.setProcessStepSize(2);
+        configUpdate.setDeleteSpliceVariantsWithoutInteractions( true );
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
-        masterProt1.getBioSource().setTaxId("9986"); // rabit
+        masterProt1.getBioSource().setTaxId("9986"); // rabbit
 
         getCorePersister().saveOrUpdate(masterProt1);
 
@@ -184,6 +183,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         // interaction: no
         Protein spliceVar12 = getMockBuilder().createProteinSpliceVariant(masterProt1, "P12345-2", "sv12");
 
+        // this will generate 2 random proteins
         Interaction interaction = getMockBuilder().createInteractionRandomBinary();
 
         getCorePersister().saveOrUpdate(spliceVar11, spliceVar12, interaction);
@@ -198,6 +198,9 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         protUpdateProcessor.updateAll();
 
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // the only 2 remaining protein should be the 2 random one as the master and its 2 splice variants do not have interactions attached.
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
@@ -214,8 +217,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setProcessBatchSize(3);
-        configUpdate.setProcessStepSize(2);
+        configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.getBioSource().setTaxId("9986"); // rabit
@@ -266,8 +268,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateProteinWithNullBiosource() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setProcessBatchSize(3);
-        configUpdate.setProcessStepSize(2);
 
         Protein prot = getMockBuilder().createProtein("P42898", "riboflavin");
         prot.setBioSource(null);
@@ -291,5 +291,364 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(refreshedProt.getSequence());
         Assert.assertNotNull(refreshedProt.getBioSource());
     }
+
+    @Test
+    @DirtiesContext
+    public void updateAll_updateProteinChains_chainWithoutInteraction() throws Exception {
+
+        // master protein with interaction, linked chain with no interaction ...
+
+        Protein master = getMockBuilder().createProtein("P03362", "pol_htl1a");
+        final Interaction interaction = getMockBuilder().createInteraction( master );
+        getCorePersister().saveOrUpdate(interaction);
+        Assert.assertNotNull(master.getAc());
+
+        // now create a protein chain
+        CvDatabase intact = getMockBuilder().createCvObject( CvDatabase.class, CvDatabase.INTACT_MI_REF, "intact");
+        CvXrefQualifier chainParent = getMockBuilder().createCvObject( CvXrefQualifier.class, "MI:0951", "chain-parent");
+
+        Protein chain = getMockBuilder().createProtein("P03362-PRO_0000038873", "Reverse transcriptase/ribonuclease H");
+
+        chain.addXref( new InteractorXref( chain.getOwner(), intact, master.getAc(), chainParent ) );
+
+        getCorePersister().saveOrUpdate(chain);
+
+        // Run update on both the master and the chain
+        final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setDeleteSpliceVariantsWithoutInteractions( true );
+        config.setDeleteFeatureChainsWithoutInteractions( true );
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor( config );
+
+        protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        final ProteinImpl refreshedMaster = getDaoFactory().getProteinDao().getByAc(master.getAc());
+        Assert.assertNotNull( refreshedMaster );
+        Assert.assertNotNull(refreshedMaster.getCrc64());
+        Assert.assertNotNull(refreshedMaster.getSequence());
+        Assert.assertNotNull(refreshedMaster.getBioSource());
+
+        final ProteinImpl refreshedChain = getDaoFactory().getProteinDao().getByAc(chain.getAc());
+        Assert.assertNull( refreshedChain );
+    }
+
+    @Test
+    @DirtiesContext
+    public void updateAll_updateProteinChains_chainWithInteraction() throws Exception {
+
+        // master protein with interaction, linked chain with no interaction ...
+
+
+        Protein master = getMockBuilder().createProtein("P03362", "pol_htl1a");
+        final Interaction interaction = getMockBuilder().createInteraction( master );
+        getCorePersister().saveOrUpdate(interaction);
+        Assert.assertNotNull(master.getAc());
+
+        // now create a protein chain
+        CvDatabase intact = getMockBuilder().createCvObject( CvDatabase.class, CvDatabase.INTACT_MI_REF, "intact");
+        CvXrefQualifier chainParent = getMockBuilder().createCvObject( CvXrefQualifier.class, "MI:0951", "chain-parent");
+
+        Protein chain = getMockBuilder().createProtein("P03362-PRO_0000038873", "Reverse transcriptase/ribonuclease H");
+
+        chain.addXref( new InteractorXref( chain.getOwner(), intact, master.getAc(), chainParent ) );
+
+        final Interaction interaction2 = getMockBuilder().createInteraction( chain );
+        getCorePersister().saveOrUpdate(interaction2);
+
+        // Run update on both the master and the chain
+        ProteinUpdateProcessorConfig config = new ProteinUpdateProcessorConfig();
+        config.setDeleteFeatureChainsWithoutInteractions( true );
+        config.setDeleteSpliceVariantsWithoutInteractions( true );
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(config);
+        protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        final ProteinImpl refreshedMaster = getDaoFactory().getProteinDao().getByAc(master.getAc());
+        Assert.assertNotNull( refreshedMaster );
+        Assert.assertNotNull(refreshedMaster.getCrc64());
+        Assert.assertNotNull(refreshedMaster.getSequence());
+        Assert.assertNotNull(refreshedMaster.getBioSource());
+
+        final ProteinImpl refreshedChain = getDaoFactory().getProteinDao().getByAc(chain.getAc());
+        Assert.assertNotNull( refreshedChain );
+        Assert.assertNotNull(refreshedChain.getCrc64());
+        Assert.assertNotNull(refreshedChain.getSequence());
+        Assert.assertNotNull(refreshedChain.getBioSource());
+    }
     
+    @Test
+    @DirtiesContext
+    public void updateAll_updateProteinChains_masterWithoutInteraction() throws Exception {
+
+        // master protein with interaction, linked chain with no interaction ... both proteins should still be there post update
+
+        Protein master = getMockBuilder().createProtein("P03362", "pol_htl1a");
+//        final Interaction interaction = getMockBuilder().createInteraction( master );
+        getCorePersister().saveOrUpdate(master);
+        Assert.assertNotNull(master.getAc());
+
+        // now create a protein chain
+        CvDatabase intact = getMockBuilder().createCvObject( CvDatabase.class, CvDatabase.INTACT_MI_REF, "intact");
+        CvXrefQualifier chainParent = getMockBuilder().createCvObject( CvXrefQualifier.class, "MI:0951", "chain-parent");
+
+        Protein chain = getMockBuilder().createProtein("P03362-PRO_0000038873", "Reverse transcriptase/ribonuclease H");
+
+        chain.addXref( new InteractorXref( chain.getOwner(), intact, master.getAc(), chainParent ) );
+
+        final Interaction interaction = getMockBuilder().createInteraction( chain );
+        getCorePersister().saveOrUpdate(interaction);
+
+        // Run update on both the master and the chain
+        ProteinUpdateProcessorConfig config = new ProteinUpdateProcessorConfig();
+        config.setDeleteFeatureChainsWithoutInteractions( true );
+        config.setDeleteSpliceVariantsWithoutInteractions( true );
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(config);
+
+        protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // the master protein should not be deleted as we have a chain
+
+        final ProteinImpl refreshedMaster = getDaoFactory().getProteinDao().getByAc(master.getAc());
+        Assert.assertNotNull( refreshedMaster );
+        Assert.assertNotNull(refreshedMaster.getCrc64());
+        Assert.assertNotNull(refreshedMaster.getSequence());
+        Assert.assertNotNull(refreshedMaster.getBioSource());
+
+        final ProteinImpl refreshedChain = getDaoFactory().getProteinDao().getByAc(chain.getAc());
+        Assert.assertNotNull( refreshedChain );
+        Assert.assertNotNull(refreshedChain.getCrc64());
+        Assert.assertNotNull(refreshedChain.getSequence());
+        Assert.assertNotNull(refreshedChain.getBioSource());
+    }
+
+    @Test
+    @DirtiesContext
+    public void updateAll_duplicatedIsoform_isoformParent() throws Exception {
+
+        // we have M1-SV1 and M2-SV2, M1 and M2 are duplicated, when merging, both splice variants should have
+        // they isoform-parent Xref pointing to the remaining master. Add secondary-ac ??
+
+        final TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        Protein[] proteins = createDuplicatedSpliceVariants();
+        Assert.assertEquals( 4, proteins.length );
+
+        final ProteinDao proteinDao = getDaoFactory().getProteinDao();
+
+        Protein master1 = proteins[0];
+        Protein isoform1 = proteins[1];
+        Protein master2 = proteins[2];
+        Protein isoform2 = proteins[3];
+
+        Assert.assertEquals(4, proteinDao.countAll());
+        Assert.assertEquals(2, proteinDao.countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(1, proteinDao.getSpliceVariants(master2).size());
+        Assert.assertEquals(2, getDaoFactory().getInteractionDao().countAll());
+        assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
+        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master2.getAc() );
+
+        // note that master1.created < master2.created so that master will be retained as part of the merge procedure.
+
+        // try the updater
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction( transactionStatus );
+
+        // reload all proteins from scratch
+        master1 = proteinDao.getByAc( master1.getAc() );
+        Assert.assertNotNull( master1 );
+
+        isoform1 = proteinDao.getByAc( isoform1.getAc() );
+        Assert.assertNotNull( isoform1 );
+
+        // master2 should have been merged into master1
+        final String master2ac = master2.getAc();
+        master2 = proteinDao.getByAc( master2.getAc() );
+        Assert.assertNull( master2 );
+
+        // isoform2 should have been merged into isoform1
+        final String isoform2ac = isoform2.getAc();
+        isoform2 = proteinDao.getByAc( isoform2ac );
+        Assert.assertNull( isoform2 );
+
+        // isoform-parent Xref should have been updated to reflect the parent merge
+        assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
+//        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
+
+        // master/isoform 1 should have an xref pointing to the former master/isoform 2 AC
+        assertHasXref( master1, CvDatabase.INTACT_MI_REF, "intact-secondary", master2ac );
+        assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, "intact-secondary", isoform2ac );
+
+        Assert.assertEquals(2, proteinDao.countAll());
+        Assert.assertEquals(1, proteinDao.countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(2, getDaoFactory().getInteractionDao().countAll());
+
+        // interactions should have been moved onto the remaining isoform
+        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+        Assert.assertEquals( 0, daoFactory.getInteractionDao().getInteractionsByInteractorAc( master1.getAc() ).size() );
+        Assert.assertEquals( 2, daoFactory.getInteractionDao().getInteractionsByInteractorAc( isoform1.getAc() ).size() );
+    }
+
+    private void assertHasXref( AnnotatedObject ao, String db, String qualifier, String primaryId ) {
+
+        Assert.assertNotNull( ao );
+
+        for ( Iterator iterator = ao.getXrefs().iterator(); iterator.hasNext(); ) {
+            Xref xref = (Xref) iterator.next();
+
+            if( (xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db) ) &&
+                (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier) ) &&
+                xref.getPrimaryId().equals( primaryId ) ) {
+                // found it
+                return;
+            }
+        }
+
+        Assert.fail( "Could not find an Xref with db='"+db+"' qualifier='"+qualifier+"' and primaryId='"+primaryId+"'." );
+    }
+
+    /**
+     * created 2 identical master and isoform (both of which do have interactions).
+     *
+     * @return
+     */
+    private Protein[] createDuplicatedSpliceVariants() throws Exception {
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        // we use our own persister to make sure we can duplicate master and isoform.
+        CorePersister persister = new CorePersisterImpl( IntactContext.getCurrentInstance(), new DefaultFinder( ){
+            @Override
+            protected <T extends InteractorImpl> String findAcForInteractor( T interactor ) {
+                // do not reuse interactors, always create new one
+                return null;
+            }
+        });
+
+        // make sure the owner has an Xref(psi-mi, intact_mi, identity)
+        getMockBuilder().createInstitution( CvDatabase.INTACT_MI_REF, "intact" );
+
+        DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+
+        // interaction: no
+        Protein master1 = getMockBuilder().createProtein("P18459", "master1");
+        master1.setCreated( formatter.parse( "2010/06/23" ) );
+
+        persister.saveOrUpdate(master1);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+        Protein isoform1 = getMockBuilder().createProteinSpliceVariant(master1, "P18459-1", "isoform1");
+        isoform1.setCreated( formatter.parse( "2010/06/23" ) );
+        Interaction interaction = getMockBuilder().createInteraction( isoform1 );
+
+        persister.saveOrUpdate(isoform1, interaction);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getSpliceVariants(master1).size());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        // interaction: no
+        Protein master2 = getMockBuilder().createProtein("P18459", "master2");
+        master2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than master 1
+
+        persister.saveOrUpdate(master2);
+
+        // interaction: yes
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(master2, "P18459-1", "isoform2");
+        isoform2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than isoform 1
+        Interaction interaction2 = getMockBuilder().createInteraction( isoform2 );
+
+        persister.saveOrUpdate(isoform2, interaction2);
+
+        return new Protein[]{ master1, isoform1, master2, isoform2 };
+    }
+
+    @Test
+    @DirtiesContext
+    public void spliceVariantGetGeneName() throws Exception {
+
+        // check that splice variants do get gene names like the masters do.
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteSpliceVariantsWithoutInteractions( true );
+        
+        // interaction: no
+        Protein master1 = getMockBuilder().createProtein("P18459", "master1");
+        master1.getBioSource().setTaxId( "7227" );
+        master1.getBioSource().setShortLabel( "drome" );
+        master1.getAliases().clear();
+
+        getCorePersister().saveOrUpdate(master1);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+        Protein isoform1 = getMockBuilder().createProteinSpliceVariant(master1, "P18459-1", "isoform1");
+        isoform1.getBioSource().setTaxId( "7227" );
+        isoform1.getBioSource().setShortLabel( "drome" );
+        isoform1.getAliases().clear();
+
+        Interaction interaction = getMockBuilder().createInteraction( isoform1 );
+
+        getCorePersister().saveOrUpdate(isoform1, interaction);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getSpliceVariants(master1).size());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
+        Protein reloadedMaster = getDaoFactory().getProteinDao().getByAc( master1.getAc() );
+
+        assertHasAlias( reloadedMaster, CvAliasType.GENE_NAME_MI_REF, "ple" );
+        assertHasAlias( reloadedMaster, CvAliasType.GENE_NAME_SYNONYM_MI_REF, "TH", "Tyrosine 3-hydroxylase", "Protein Pale" );
+        assertHasAlias( reloadedMaster, CvAliasType.ORF_NAME_MI_REF, "CG10118" );
+
+        Protein reloadedIsoform = getDaoFactory().getProteinDao().getByAc( isoform1.getAc() );
+
+        assertHasAlias( reloadedIsoform, CvAliasType.GENE_NAME_MI_REF, "ple" );
+        assertHasAlias( reloadedIsoform, CvAliasType.GENE_NAME_SYNONYM_MI_REF, "TH", "Tyrosine 3-hydroxylase", "Protein Pale" );
+        assertHasAlias( reloadedIsoform, CvAliasType.ORF_NAME_MI_REF, "CG10118" );
+    }
+
+    @Test
+    public void updateAll_updateRange() throws Exception {
+         // TODO
+    }
+
+    // TODO test effect of config on deletion of molecules with interactions (proteins, chains, isoforms)
+
+    private void assertHasAlias( AnnotatedObject ao, String aliasLabelOrMi, String... expectedAliasNames ) {
+        final Collection<Alias> aliases = AnnotatedObjectUtils.getAliasByType( ao, aliasLabelOrMi );
+        Assert.assertEquals( expectedAliasNames.length, aliases.size() );
+
+        List<String> expectedList = Arrays.asList( expectedAliasNames );
+        for ( Alias alias : aliases ) {
+            Assert.assertTrue( "Expected aliases: " + expectedList + ". Found: " + alias.getName(),
+                               expectedList.contains( alias.getName() ) );
+        }
+    }
+
+    // seems like the global protein update bring in new splice variant if they were not in the db yet.
+    // But given that they don't have interaction we don't need them be added in the first place.
 }

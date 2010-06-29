@@ -43,9 +43,6 @@ public abstract class ProteinProcessor {
     // to allow listener
     protected EventListenerList listenerList = new EventListenerList();
 
-    private int batchSize = 50;
-    private int stepSize = 10;
-
     private List<String> previousBatchACs;
 
     private boolean finalizationRequested;
@@ -57,10 +54,15 @@ public abstract class ProteinProcessor {
         previousBatchACs = new ArrayList<String>();
     }
 
+    /**
+     *
+     * @param batchSize
+     * @param stepSize
+     * @deprecated please use the default constructor instead.
+     */
+    @Deprecated
     public ProteinProcessor(int batchSize, int stepSize){
         this();
-        this.batchSize = batchSize;
-        this.stepSize = stepSize;
     }
 
     protected abstract void registerListeners();
@@ -80,7 +82,6 @@ public abstract class ProteinProcessor {
         commitTransaction(transactionStatus);
 
         updateByACs(acs);
-
     }
 
     public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {

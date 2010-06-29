@@ -21,20 +21,26 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
- * Will check if the protein participate in any interaction and if not it will be deleted.
+ * Will check if the protein participate in any interaction and if not it will be (configuration allowing) deleted.
  *
- * If a protein has splice variants, and any of the splice variants have interactions, none
+ * If a protein has splice variants or chains, and any of them have interactions, none
  * of the proteins will be deleted unless <code>deleteSpliceVariantsWithoutInteractions</code> is true, which would remove
  * the splice vars (without interactions) as well.
  *
+ * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig
+ *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
+ * @author Samuel Kerrien (skerrien@ebi.ac.uk)
+ * 
  * @version $Id$
  */
 public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcessorListener {
@@ -42,14 +48,14 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
     private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleter.class );
 
     private boolean deleteSpliceVariantsWithoutInteractions;
+    private boolean deleteChainsWithoutInteractions;
 
     @Override
     public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        Protein protein = evt.getProtein();
+        final Protein protein = evt.getProtein();
 
         if (log.isDebugEnabled()) {
-
-            log.debug("Checking if the protein has interactions: "+ protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
+            log.debug("Checking if the protein has interactions: "+ protInfo(protein) );
         }
 
         if (protein.getAc() == null) {
@@ -57,61 +63,105 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
             return;
         }
 
+        final boolean isSpliceVariant = ProteinUtils.isSpliceVariant(protein);
+        final boolean isFeatureChain = isFeatureChain(protein);
+        // TODO migrate later
+//        final boolean isFeatureChain = ProteinUtils.isFeatureChain(protein);
+        final boolean isProtein = ! isSpliceVariant && ! isFeatureChain;
+
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-        // check the number of interactions where this protein can be found. If none are found,
-        // check if the protein has splice variants as then it cannot be removed
-        if (proteinDao.countInteractionsForInteractorWithAc(protein.getAc()) == 0) {
+        final Integer interactionCount = proteinDao.countInteractionsForInteractorWithAc( protein.getAc() );
 
-            boolean isSpliceVariant = ProteinUtils.isSpliceVariant(protein);
-            boolean containsSpliceVarsWithInteractions = false;
+        if( isProtein ) {
 
-            List<ProteinImpl> spliceVars = proteinDao.getSpliceVariants(protein);
+            // check the number of interactions in which this protein is involved. If none,
+            // check if the protein has splice variants/chains as they cannot be removed
 
-            if (!isSpliceVariant) {
-                for (Protein spliceVar : spliceVars) {
-                    if (proteinDao.countInteractionsForInteractorWithAc(spliceVar.getAc()) > 0) {
-                        containsSpliceVarsWithInteractions = true;
-                    } else if (isDeleteSpliceVariantsWithoutInteractions()) {
-                        if (log.isDebugEnabled()) log.debug("Splice variant for protein '"+protein.getShortLabel()+"' will be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
-                        evt.setMessage("Splice variant without interactions");
-                        deleteProtein(spliceVar, evt);
-                    }
-                }
-            }
-            // if any of the splice variants does not contain interactions, delete the splice variant
+            // Checking is any splice variant is involved in interactions
+            boolean hasIsoformAttached = false;
+            List<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants(protein);
 
-            if (!containsSpliceVarsWithInteractions) {
-                if (!isSpliceVariant) {
-                    if (log.isDebugEnabled()) log.debug("Protein will be deleted (no interactions, no splice variants): "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
-                    evt.setMessage("No interactions");
-                    deleteProtein(protein, evt);
-
-                    // if the master protein does not have interactions, nor any of the splice variants, we remove all of them.
-                    // note that the previous algorithm above that iterates spliceVariants only removes the ones without interactions
-                    // if the corresponding configuration is set. This iteration, removes all the splice variants for the master prot
-                    for (Protein spliceVar : spliceVars) {
-                        evt.setMessage("Splice variant without interactions (master without interactions as well)");
-                        deleteProtein(spliceVar, evt);
-                    }
-
+            for (Protein isoform : spliceVariants) {
+                if (proteinDao.countInteractionsForInteractorWithAc(isoform.getAc()) > 0) {
+                    hasIsoformAttached = true;
                 } else if (isDeleteSpliceVariantsWithoutInteractions()) {
-                    if (log.isDebugEnabled()) log.debug("Splice variant will be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
-                    evt.setMessage("Splice variant without interactions - however master does");
-                    deleteProtein(protein, evt);
+                    if (log.isDebugEnabled()) log.debug("Splice variant for protein '"+protein.getShortLabel()+"' will be deleted: "+protInfo( isoform ));
+                    evt.setMessage("Splice variant without interactions");
+                    deleteProtein(isoform, evt);
                 } else {
-                    if (log.isDebugEnabled()) log.debug("Protein is a splice variant (without interactions) and won't be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
+                    hasIsoformAttached = true;
                 }
-
-            } else {
-                if (log.isTraceEnabled())
-                    log.trace("Protein contains splice variants with interactions, so it won't be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
             }
-        } else {
-            if (log.isTraceEnabled())
-                log.trace("Protein contains interactions, so it won't be deleted: "+protein.getShortLabel()+" ("+evt.getProtein().getAc()+")");
-        }
 
+            // Checking if any chain is involved in interactions
+            boolean hasChainsAttached = false;
+            // TODO migrate later
+            List<ProteinImpl> chains = getFeatureChains(protein, evt);
+//            List<ProteinImpl> chains = proteinDao.getFeatureChains(protein);
+
+            for (Protein chain : chains) {
+                if (proteinDao.countInteractionsForInteractorWithAc(chain.getAc()) > 0) {
+                    hasChainsAttached = true;
+                } else if (isDeleteChainsWithoutInteractions()) {
+                    if ( log.isDebugEnabled() )
+                        log.debug("Feature chain for protein '"+protein.getShortLabel()+"' will be deleted: "+ protInfo( chain ) );
+                    evt.setMessage("Feature chain without interactions");
+                    deleteProtein(chain, evt);
+                } else {
+                    hasChainsAttached = true;
+                }
+            }
+
+            // if no splice variant/chain attached to that master either and it is not involved in interactions, then delete it.
+            if ( interactionCount == 0 && ! hasIsoformAttached && ! hasChainsAttached ) {
+                if (log.isDebugEnabled()) log.debug("Protein '"+protInfo(protein)+"' will be deleted as it doesn't have interaction and has no isoform/chain attached." );
+                evt.setMessage("Protein without interactions");
+                deleteProtein(protein, evt);
+            }
+
+        } else if ( isSpliceVariant && interactionCount == 0 && isDeleteSpliceVariantsWithoutInteractions() ) {
+
+            if (log.isDebugEnabled()) log.debug("Splice variant will be deleted: "+protInfo(protein));
+            evt.setMessage("Splice variant without interactions - however master does");
+            deleteProtein(protein, evt);
+
+        } else if ( isFeatureChain && interactionCount == 0 && isDeleteChainsWithoutInteractions()) {
+
+            if (log.isDebugEnabled()) log.debug("Splice variant will be deleted: "+protInfo(protein));
+            evt.setMessage("Splice variant without interactions - however master does");
+            deleteProtein(protein, evt);
+        }
+    }
+
+    private List<ProteinImpl> getFeatureChains( Protein protein, ProteinEvent evt ) {
+//        List<ProteinImpl> chains = new ArrayList<ProteinImpl>( );
+        final ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
+        return proteinDao.getByXrefLike( CvDatabase.INTACT_MI_REF, "MI:0951", protein.getAc() );
+//        final Collection<InteractorXref> xrefs = AnnotatedObjectUtils.searchXrefs( protein, CvDatabase.INTACT_MI_REF, "MI:0951" );
+//        for ( InteractorXref xref : xrefs ) {
+//            chains.add( proteinDao.getByAc( xref.getPrimaryId() ) );
+//        }
+//        return chains;
+    }
+
+    /**
+     * Checks if the given protein is a feature chain.
+     *
+     * @param protein the protein to check
+     * @return true if the protein is a feature chain
+     */
+    public boolean isFeatureChain(Protein protein) {
+        Collection<InteractorXref> xrefs = protein.getXrefs();
+        for (InteractorXref xref : xrefs) {
+            if (xref.getCvXrefQualifier() != null) {
+                String qualifierIdentity = xref.getCvXrefQualifier().getIdentifier();
+                if ( "MI:0951".equals(qualifierIdentity)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void deleteProtein(Protein protein, ProteinEvent evt) {
@@ -125,5 +175,13 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
 
     public void setDeleteSpliceVariantsWithoutInteractions(boolean deleteSpliceVariantsWithoutInteractions) {
         this.deleteSpliceVariantsWithoutInteractions = deleteSpliceVariantsWithoutInteractions;
+    }
+
+    public boolean isDeleteChainsWithoutInteractions() {
+        return deleteChainsWithoutInteractions;
+    }
+
+    public void setDeleteChainsWithoutInteractions(boolean deleteChainsWithoutInteractions) {
+        this.deleteChainsWithoutInteractions = deleteChainsWithoutInteractions;
     }
 }

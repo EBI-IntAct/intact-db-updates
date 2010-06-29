@@ -42,6 +42,12 @@
         </dependency>
 
         <dependency>
+            <groupId>uk.ac.ebi.uniprot.kraken</groupId>
+            <artifactId>uniprotjapi</artifactId>
+            <version>2010.07</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.biojava</groupId>
             <artifactId>biojava</artifactId>
             <version>1.5</version>

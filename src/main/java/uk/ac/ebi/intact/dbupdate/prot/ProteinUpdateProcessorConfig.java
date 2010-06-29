@@ -15,7 +15,6 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
-import uk.ac.ebi.intact.bridges.taxonomy.NewtTaxonomyService;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
@@ -25,7 +24,10 @@ import uk.ac.ebi.intact.util.biosource.BioSourceService;
 
 /**
  * Protein update processor config.
+ * <p/>
+ * It is recommended to get access to this configuration through the <code>ProteinUpdateContext</code>.
  *
+ * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
@@ -33,28 +35,42 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean fixDuplicates = true;
 
+    /**
+     * If true, the processor will actively look at deleting protein, isoforms and chains that are not involved in interactions.
+     *
+     * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig#deleteSpliceVariantsWithoutInteractions
+     * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig#deleteFeatureChainsWithoutInteractions
+     */
     private boolean deleteProtsWithoutInteractions = true;
 
+    /**
+     * If true, will delete any isoforms not involved in interactions.
+     */
     private boolean deleteSpliceVariantsWithoutInteractions = false;
+
+    /**
+     * If true, will delete any chains not involved in interactions.
+     */
+    private boolean deleteFeatureChainsWithoutInteractions = false;
 
     private UpdateReportHandler reportHandler;
 
     private UniprotService uniprotService;
+
     private TaxonomyService taxonomyService;
 
-    private int processBatchSize = 20;
-    private int processStepSize = 10;
+    private boolean isGlobalProteinUpdate = false;
 
-    public ProteinUpdateProcessorConfig() {
+    ProteinUpdateProcessorConfig() {
         this.uniprotService = new UniprotRemoteService();
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
         this.taxonomyService = bioSourceService.getTaxonomyService();
     }
 
-    public ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
-        this();
-        this.reportHandler = reportHandler;
-    }
+//    ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
+//        this();
+//        this.reportHandler = reportHandler;
+//    }
 
     public boolean isFixDuplicates() {
         return fixDuplicates;
@@ -72,28 +88,20 @@ public class ProteinUpdateProcessorConfig {
         this.deleteProtsWithoutInteractions = deleteProtsWithoutInteractions;
     }
 
-    public int getProcessBatchSize() {
-        return processBatchSize;
-    }
-
-    public void setProcessBatchSize(int processBatchSize) {
-        this.processBatchSize = processBatchSize;
-    }
-
-    public int getProcessStepSize() {
-        return processStepSize;
-    }
-
-    public void setProcessStepSize(int processStepSize) {
-        this.processStepSize = processStepSize;
-    }
-
     public boolean isDeleteSpliceVariantsWithoutInteractions() {
         return deleteSpliceVariantsWithoutInteractions;
     }
 
     public void setDeleteSpliceVariantsWithoutInteractions(boolean deleteSpliceVariantsWithoutInteractions) {
         this.deleteSpliceVariantsWithoutInteractions = deleteSpliceVariantsWithoutInteractions;
+    }
+
+    public boolean isDeleteFeatureChainsWithoutInteractions() {
+        return deleteFeatureChainsWithoutInteractions;
+    }
+
+    public void setDeleteFeatureChainsWithoutInteractions( boolean deleteFeatureChainsWithoutInteractions ) {
+        this.deleteFeatureChainsWithoutInteractions = deleteFeatureChainsWithoutInteractions;
     }
 
     public UpdateReportHandler getReportHandler() {
@@ -118,5 +126,13 @@ public class ProteinUpdateProcessorConfig {
 
     public void setTaxonomyService(TaxonomyService taxonomyService) {
         this.taxonomyService = taxonomyService;
+    }
+
+    public boolean isGlobalProteinUpdate() {
+        return isGlobalProteinUpdate;
+    }
+
+    public void setGlobalProteinUpdate( boolean globalProteinUpdate ) {
+        isGlobalProteinUpdate = globalProteinUpdate;
     }
 }
