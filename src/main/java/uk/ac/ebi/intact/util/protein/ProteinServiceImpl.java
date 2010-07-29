@@ -174,8 +174,6 @@ public class ProteinServiceImpl implements ProteinService {
         return uniprotServiceResult;
     }
 
-
-
     /**
      * Count the number of differents species the proteins are spread on and return the count.
      * @param proteins a Collection of Uniprot Proteins
@@ -386,7 +384,6 @@ public class ProteinServiceImpl implements ProteinService {
             }
         }
     }
-
 
     /**
      * Given the protein "protein" it will add to it an annotation with cvTopic to-delete.
@@ -622,6 +619,8 @@ public class ProteinServiceImpl implements ProteinService {
                 final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
                 final boolean globalProteinUpdate = config.isGlobalProteinUpdate();
                 final boolean deleteSpliceVariant = config.isDeleteSpliceVariantsWithoutInteractions();
+
+                // TODO check that this test is correct.
                 if( ! globalProteinUpdate && deleteSpliceVariant ) {
                     // create shallow
                     Protein intactSpliceVariant = createMinimalisticSpliceVariant( match.getUniprotSpliceVariant(),
