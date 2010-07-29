@@ -57,6 +57,7 @@ public class IntactCrossReferenceFilter implements CrossReferenceFilter {
         db2mi.put( format( "sgd" ), "MI:0484" );
         db2mi.put( format( "uniprotkb"), "MI:0486" );
         db2mi.put( format( "ipi"), "MI:0675" );
+        db2mi.put( format( "dictybase"), "MI:1015" );
     }
 
     private String format( String s ) {
