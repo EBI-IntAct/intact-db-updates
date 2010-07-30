@@ -78,7 +78,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
         oldRange.prepareSequence(oldSequence);
 
         String newSequence = "ABZDEDF";
-        Range newRange = getMockBuilder().createRange(-1, -1, -1, -1);
+        Range newRange = getMockBuilder().createRange(1, 1, 1, 1);
         newRange.prepareSequence(newSequence);
 
         UpdatedRange updated = new UpdatedRange(oldRange, newRange);
