@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
@@ -40,6 +41,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionNo() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
 
         String oldSequence = "ABCD";
         String newSequence = "ABCD";
@@ -47,20 +49,23 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                                                                         prot, oldSequence));
+                prot, oldSequence));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());
     }
-    
+
     @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
 
         String oldSequence = "ABCD";
         String newSequence = "ZZZZ";
@@ -68,12 +73,14 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                                                                         prot, oldSequence));
+                prot, oldSequence));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -83,6 +90,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
 
         String oldSequence = "ABCD";
         String newSequence = "ZZCD";
@@ -90,12 +98,14 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                                                                         prot, oldSequence));
+                prot, oldSequence));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -104,6 +114,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionYes3() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
 
         String oldSequence = "ABCD";
         String newSequence = "ZZZD";
@@ -111,33 +122,38 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                                                                         prot, oldSequence));
+                prot, oldSequence));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
     }
-    
+
     @Test @DirtiesContext
     public void onProteinSequenceChanged_cautionNo2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+        
         String oldSequence = "ABCD";
         String newSequence = "ZBCD";
 
         Protein prot = getMockBuilder().createProteinRandom();
         prot.setSequence(newSequence);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsBefore.size());
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                                                                         prot, oldSequence));
+                prot, oldSequence));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());
