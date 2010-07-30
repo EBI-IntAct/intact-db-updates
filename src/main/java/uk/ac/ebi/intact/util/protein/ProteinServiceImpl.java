@@ -14,7 +14,6 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
-import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
@@ -620,15 +619,14 @@ public class ProteinServiceImpl implements ProteinService {
                 final boolean globalProteinUpdate = config.isGlobalProteinUpdate();
                 final boolean deleteSpliceVariant = config.isDeleteSpliceVariantsWithoutInteractions();
 
-                // TODO check that this test is correct.
-                if( ! globalProteinUpdate && deleteSpliceVariant ) {
+                if( ! globalProteinUpdate && !deleteSpliceVariant ) {
                     // create shallow
                     Protein intactSpliceVariant = createMinimalisticSpliceVariant( match.getUniprotSpliceVariant(),
                                                                                    protein,
                                                                                    uniprotProtein );
                     // update
                     final UniprotSpliceVariant uniprotSpliceVariant = match.getUniprotSpliceVariant();
-                    //updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein, false );
+                    updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein);
 
                     proteinCreated(intactSpliceVariant);
 
@@ -816,8 +814,8 @@ public class ProteinServiceImpl implements ProteinService {
         // update UniProt Xrefs
         XrefUpdaterUtils.updateSpliceVariantUniprotXrefs( spliceVariant, uniprotSpliceVariant, uniprotProtein );
 
-        // Update Aliases from the master protein aliases
-        AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotProtein );
+        // Update Aliases from the uniprot protein aliases
+        AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotSpliceVariant );
 
         if (sequenceUpdated) {
             sequenceChanged(spliceVariant, oldSequence);
