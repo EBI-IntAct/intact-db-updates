@@ -815,7 +815,7 @@ public class ProteinServiceImpl implements ProteinService {
         XrefUpdaterUtils.updateSpliceVariantUniprotXrefs( spliceVariant, uniprotSpliceVariant, uniprotProtein );
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotSpliceVariant );
+        AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotSpliceVariant, uniprotProtein );
 
         if (sequenceUpdated) {
             sequenceChanged(spliceVariant, oldSequence);

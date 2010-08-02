@@ -40,9 +40,9 @@ public class AliasUpdaterUtils {
         updateAliasCollection( protein, buildAliases( uniprotProtein, protein ) );
     }
 
-    public static void updateAllAliases( Protein protein, UniprotSpliceVariant uniprotSpliceVariant ) {
+    public static void updateAllAliases( Protein protein, UniprotSpliceVariant uniprotSpliceVariant, UniprotProtein uniprotProtein ) {
 
-        updateAliasCollection( protein, buildAliases( uniprotSpliceVariant, protein ) );
+        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotSpliceVariant, protein ) );
     }
 
     public static boolean addNewAlias( AnnotatedObject current, InteractorAlias alias ) {
@@ -184,12 +184,13 @@ public class AliasUpdaterUtils {
     /**
      * Read the splice variant and create a collection of Alias we want to update on the given protein.
      *
+     * @param master
      * @param uniprotSpliceVariant the uniprot protein from which we will read the synonym information.
      * @param protein              the protein we want to update
      *
      * @return a collection (never null) of Alias. The collection may be empty.
      */
-    public static Collection<Alias> buildAliases( UniprotSpliceVariant uniprotSpliceVariant, Protein protein ) {
+    public static Collection<Alias> buildAliases( UniprotProtein master, UniprotSpliceVariant uniprotSpliceVariant, Protein protein ) {
 
         CvAliasType isoformSynonym = CvHelper.getAliasTypeByMi( CvAliasType.ISOFORM_SYNONYM_MI_REF );
 
@@ -198,6 +199,8 @@ public class AliasUpdaterUtils {
         for ( String syn : uniprotSpliceVariant.getSynomyms() ) {
             aliases.add( new InteractorAlias( CvHelper.getInstitution(), protein, isoformSynonym, syn ) );
         }
+
+        aliases.addAll(buildAliases(master, protein));
 
         return aliases;
     }
