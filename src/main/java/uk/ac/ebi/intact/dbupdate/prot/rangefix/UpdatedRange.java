@@ -80,7 +80,7 @@ public class UpdatedRange {
 
         String rseq = "";
 
-        final String rangeSequence = range.getSequence();
+        final String rangeSequence = range.getFullSequence();
 
         if (length <= 0 || rangeSequence == null) {
             return rseq;

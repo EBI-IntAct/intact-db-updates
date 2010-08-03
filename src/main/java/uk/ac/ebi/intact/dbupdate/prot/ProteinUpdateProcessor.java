@@ -51,9 +51,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     @Override
     public void updateAll() throws ProcessorException {
 
+        boolean global = ProteinUpdateContext.getInstance().getConfig().isGlobalProteinUpdate();
         ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( true );
         
         super.updateAll();
+
+        ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( global );
 
         // update db info accordingly
         String lastProtUpdate = new SimpleDateFormat("dd-MMM-yy").format(new Date());
@@ -95,8 +98,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         if (config.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
-            deleter.setDeleteSpliceVariantsWithoutInteractions(config.isDeleteSpliceVariantsWithoutInteractions());
-            deleter.setDeleteChainsWithoutInteractions(config.isDeleteFeatureChainsWithoutInteractions());
+            deleter.setDeleteSpliceVariantsWithoutInteractions(config.isDeleteProteinTranscriptWithoutInteractions());
             addListener(deleter);
             forceDeleteOfProteins = true;
         }

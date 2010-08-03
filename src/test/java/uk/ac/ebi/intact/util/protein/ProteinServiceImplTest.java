@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -48,7 +49,10 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
-
+        ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( false );
+        ProteinUpdateContext.getInstance().getConfig().setDeleteProteinTranscriptWithoutInteractions( false );
+        ProteinUpdateContext.getInstance().getConfig().setFixDuplicates( true );
+        ProteinUpdateContext.getInstance().getConfig().setDeleteProtsWithoutInteractions( true );
 
     }
 
@@ -103,9 +107,10 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void retrieve_CDC42_CANFA() throws Exception {
 
-
         ProteinService service = buildProteinService();
+
         UniprotServiceResult uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC); /* CDC42_CANFA */
+
         Collection<Protein> proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );

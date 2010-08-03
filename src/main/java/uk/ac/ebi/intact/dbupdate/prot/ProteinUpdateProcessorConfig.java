@@ -19,8 +19,8 @@ import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
-import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
+import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 
 /**
  * Protein update processor config.
@@ -38,20 +38,14 @@ public class ProteinUpdateProcessorConfig {
     /**
      * If true, the processor will actively look at deleting protein, isoforms and chains that are not involved in interactions.
      *
-     * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig#deleteSpliceVariantsWithoutInteractions
-     * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig#deleteFeatureChainsWithoutInteractions
+     * @see uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig#deleteProteinTranscriptWithoutInteractions
      */
     private boolean deleteProtsWithoutInteractions = true;
 
     /**
-     * If true, will delete any isoforms not involved in interactions.
+     * If true, will delete any protein transcript not involved in interactions.
      */
-    private boolean deleteSpliceVariantsWithoutInteractions = false;
-
-    /**
-     * If true, will delete any chains not involved in interactions.
-     */
-    private boolean deleteFeatureChainsWithoutInteractions = false;
+    private boolean deleteProteinTranscriptWithoutInteractions = false;
 
     private UpdateReportHandler reportHandler;
 
@@ -88,20 +82,12 @@ public class ProteinUpdateProcessorConfig {
         this.deleteProtsWithoutInteractions = deleteProtsWithoutInteractions;
     }
 
-    public boolean isDeleteSpliceVariantsWithoutInteractions() {
-        return deleteSpliceVariantsWithoutInteractions;
+    public boolean isDeleteProteinTranscriptWithoutInteractions() {
+        return deleteProteinTranscriptWithoutInteractions;
     }
 
-    public void setDeleteSpliceVariantsWithoutInteractions(boolean deleteSpliceVariantsWithoutInteractions) {
-        this.deleteSpliceVariantsWithoutInteractions = deleteSpliceVariantsWithoutInteractions;
-    }
-
-    public boolean isDeleteFeatureChainsWithoutInteractions() {
-        return deleteFeatureChainsWithoutInteractions;
-    }
-
-    public void setDeleteFeatureChainsWithoutInteractions( boolean deleteFeatureChainsWithoutInteractions ) {
-        this.deleteFeatureChainsWithoutInteractions = deleteFeatureChainsWithoutInteractions;
+    public void setDeleteProteinTranscriptWithoutInteractions(boolean deleteProteinTranscriptWithoutInteractions) {
+        this.deleteProteinTranscriptWithoutInteractions = deleteProteinTranscriptWithoutInteractions;
     }
 
     public UpdateReportHandler getReportHandler() {

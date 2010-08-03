@@ -14,7 +14,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 
@@ -248,7 +248,8 @@ public final class XrefUpdaterUtils {
         }
 
         // add the xref to the AnnotatedObject
-        xref.setParent(current);
+        IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                            .getXrefDao().persist(xref);
         current.addXref( xref );
 
         return true;
@@ -284,8 +285,8 @@ public final class XrefUpdaterUtils {
         return XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux );
     }
 
-    public static void updateSpliceVariantUniprotXrefs( Protein intactSpliceVariant,
-                                                        UniprotSpliceVariant uniprotSpliceVariant,
+    public static void updateProteinTranscriptUniprotXrefs( Protein intactTranscript,
+                                                        UniprotProteinTranscript uniprotProteinTranscript,
                                                         UniprotProtein uniprotProtein ) {
 
         CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
@@ -296,12 +297,12 @@ public final class XrefUpdaterUtils {
         String dbRelease = uniprotProtein.getReleaseVersion();
 
         if ( log.isDebugEnabled() ) {
-            log.debug( "Building UniProt Xref collection prior to update of " + intactSpliceVariant.getShortLabel() );
+            log.debug( "Building UniProt Xref collection prior to update of " + intactTranscript.getShortLabel() );
         }
-        Collection<Xref> ux = new ArrayList<Xref>( uniprotSpliceVariant.getSecondaryAcs().size() + 1 );
-        ux.add( new InteractorXref( owner, uniprot, uniprotSpliceVariant.getPrimaryAc(), null, dbRelease, identity ) );
+        Collection<Xref> ux = new ArrayList<Xref>( uniprotProteinTranscript.getSecondaryAcs().size() + 1 );
+        ux.add( new InteractorXref( owner, uniprot, uniprotProteinTranscript.getPrimaryAc(), null, dbRelease, identity ) );
 
-        for ( String ac : uniprotSpliceVariant.getSecondaryAcs() ) {
+        for ( String ac : uniprotProteinTranscript.getSecondaryAcs() ) {
             ux.add( new InteractorXref( owner, uniprot, ac, null, dbRelease, secondaryAc ) );
         }
 
@@ -309,7 +310,7 @@ public final class XrefUpdaterUtils {
             log.debug( "Built " + ux.size() + " Xref(s)." );
         }
 
-        XrefUpdaterUtils.updateXrefCollection( intactSpliceVariant, uniprot, ux );
+        XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux );
     }
 
     public static void updateFeatureChainUniprotXrefs( Protein intactChain,
@@ -327,7 +328,7 @@ public final class XrefUpdaterUtils {
             log.debug( "Building UniProt Xref collection prior to update of " + intactChain.getShortLabel() );
         }
         Collection<Xref> ux = new ArrayList<Xref>();
-        ux.add( new InteractorXref( owner, uniprot, uniprotFeatureChain.getId(), null, dbRelease, identity ) );
+        ux.add( new InteractorXref( owner, uniprot, uniprotFeatureChain.getPrimaryAc(), null, dbRelease, identity ) );
 
         XrefUpdaterUtils.updateXrefCollection( intactChain, uniprot, ux );
     }

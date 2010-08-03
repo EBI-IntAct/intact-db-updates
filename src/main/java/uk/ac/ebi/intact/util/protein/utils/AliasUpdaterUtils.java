@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 
 import java.util.ArrayList;
@@ -40,9 +40,9 @@ public class AliasUpdaterUtils {
         updateAliasCollection( protein, buildAliases( uniprotProtein, protein ) );
     }
 
-    public static void updateAllAliases( Protein protein, UniprotSpliceVariant uniprotSpliceVariant, UniprotProtein uniprotProtein ) {
+    public static void updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein ) {
 
-        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotSpliceVariant, protein ) );
+        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ) );
     }
 
     public static boolean addNewAlias( AnnotatedObject current, InteractorAlias alias ) {
@@ -60,6 +60,8 @@ public class AliasUpdaterUtils {
         }
 
         // add the alias to the AnnotatedObject
+        IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                            .getAliasDao().persist(alias);
         current.addAlias( alias );
 
         // That test is done to avoid to record in the database an Alias
@@ -135,6 +137,9 @@ public class AliasUpdaterUtils {
             // delete remaining outdated/unrecycled aliases
             InteractorAlias alias = toDeleteIterator.next();
             protein.removeAlias( alias );
+            
+            IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                    .getAliasDao(InteractorAlias.class).delete(alias);
             //aliasDao.delete( alias );
 
             updated = true;
@@ -185,18 +190,18 @@ public class AliasUpdaterUtils {
      * Read the splice variant and create a collection of Alias we want to update on the given protein.
      *
      * @param master
-     * @param uniprotSpliceVariant the uniprot protein from which we will read the synonym information.
+     * @param uniprotProteinTranscript the uniprot protein from which we will read the synonym information.
      * @param protein              the protein we want to update
      *
      * @return a collection (never null) of Alias. The collection may be empty.
      */
-    public static Collection<Alias> buildAliases( UniprotProtein master, UniprotSpliceVariant uniprotSpliceVariant, Protein protein ) {
+    public static Collection<Alias> buildAliases( UniprotProtein master, UniprotProteinTranscript uniprotProteinTranscript, Protein protein ) {
 
         CvAliasType isoformSynonym = CvHelper.getAliasTypeByMi( CvAliasType.ISOFORM_SYNONYM_MI_REF );
 
         Collection<Alias> aliases = new ArrayList( 2 );
 
-        for ( String syn : uniprotSpliceVariant.getSynomyms() ) {
+        for ( String syn : uniprotProteinTranscript.getSynomyms() ) {
             aliases.add( new InteractorAlias( CvHelper.getInstitution(), protein, isoformSynonym, syn ) );
         }
 

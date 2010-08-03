@@ -6,7 +6,7 @@
 package uk.ac.ebi.intact.util.protein;
 
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 
 /**
  * Representation of the association between an intact protein and uniprot splice variant.
@@ -15,21 +15,21 @@ import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
  * @version $Id$
  * @since 1.1.2
  */
-public class SpliceVariantMatch {
+public class ProteinTranscriptMatch {
 
     private Protein intactProtein;
 
-    private UniprotSpliceVariant uniprotSpliceVariant;
+    private UniprotProteinTranscript uniprotTranscript;
 
 
-    public SpliceVariantMatch( Protein intactProtein, UniprotSpliceVariant uniprotSpliceVariant ) {
+    public ProteinTranscriptMatch( Protein intactProtein, UniprotProteinTranscript uniprotProteinTranscript ) {
 
-        if( intactProtein== null && uniprotSpliceVariant == null ) {
+        if( intactProtein== null && uniprotProteinTranscript == null ) {
             throw new IllegalArgumentException( "Either intact or uniprot protein must not be null." );
         }
 
         this.intactProtein = intactProtein;
-        this.uniprotSpliceVariant = uniprotSpliceVariant;
+        this.uniprotTranscript = uniprotProteinTranscript;
     }
 
     ////////////////////////
@@ -39,22 +39,22 @@ public class SpliceVariantMatch {
         return intactProtein;
     }
 
-    public UniprotSpliceVariant getUniprotSpliceVariant() {
-        return uniprotSpliceVariant;
+    public UniprotProteinTranscript getUniprotTranscript() {
+        return uniprotTranscript;
     }
 
     ///////////////////////////
     // Questions to a match
 
     public boolean isSuccessful() {
-        return ( uniprotSpliceVariant != null && intactProtein != null );
+        return ( uniprotTranscript != null && intactProtein != null );
     }
 
     public boolean hasNoIntact() {
-        return ( uniprotSpliceVariant != null && intactProtein == null );
+        return ( uniprotTranscript != null && intactProtein == null );
     }
 
     public boolean hasNoUniprot() {
-        return ( uniprotSpliceVariant == null && intactProtein != null );
+        return ( uniprotTranscript == null && intactProtein != null );
     }
 }

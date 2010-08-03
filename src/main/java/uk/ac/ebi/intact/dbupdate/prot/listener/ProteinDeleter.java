@@ -48,6 +48,7 @@ public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
             ProteinProcessor processor = (ProteinProcessor) evt.getSource();
 
             if (!proteinDao.isTransient((ProteinImpl) protein)) {
+
                 proteinDao.delete((ProteinImpl) protein);
             } else {
                 proteinDao.deleteByAc(protein.getAc());

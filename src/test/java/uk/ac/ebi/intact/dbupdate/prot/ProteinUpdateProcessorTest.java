@@ -15,7 +15,6 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -116,7 +115,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -167,7 +166,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteSpliceVariantsWithoutInteractions( true );
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -217,7 +216,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @DirtiesContext
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteSpliceVariantsWithoutInteractions(true);
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.getBioSource().setTaxId("9986"); // rabit
@@ -315,8 +314,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // Run update on both the master and the chain
         final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-        config.setDeleteSpliceVariantsWithoutInteractions( true );
-        config.setDeleteFeatureChainsWithoutInteractions( true );
+        config.setDeleteProteinTranscriptWithoutInteractions( true );
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor( config );
 
         protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
@@ -330,7 +328,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(refreshedMaster.getBioSource());
 
         final ProteinImpl refreshedChain = getDaoFactory().getProteinDao().getByAc(chain.getAc());
-        Assert.assertNull( refreshedChain );
+        Assert.assertNotNull( refreshedChain );
     }
 
     @Test
@@ -358,8 +356,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // Run update on both the master and the chain
         ProteinUpdateProcessorConfig config = new ProteinUpdateProcessorConfig();
-        config.setDeleteFeatureChainsWithoutInteractions( true );
-        config.setDeleteSpliceVariantsWithoutInteractions( true );
+        config.setDeleteProteinTranscriptWithoutInteractions( true );
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(config);
         protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
 
@@ -402,8 +399,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // Run update on both the master and the chain
         ProteinUpdateProcessorConfig config = new ProteinUpdateProcessorConfig();
-        config.setDeleteFeatureChainsWithoutInteractions( true );
-        config.setDeleteSpliceVariantsWithoutInteractions( true );
+        config.setDeleteProteinTranscriptWithoutInteractions( true );
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(config);
 
         protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
@@ -582,7 +578,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         // http://www.uniprot.org/uniprot/P18459
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteSpliceVariantsWithoutInteractions( true );
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
         
         // interaction: no
         Protein master1 = getMockBuilder().createProtein("P18459", "master1");
@@ -632,6 +628,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void updateAll_updateRange() throws Exception {
          // TODO
     }

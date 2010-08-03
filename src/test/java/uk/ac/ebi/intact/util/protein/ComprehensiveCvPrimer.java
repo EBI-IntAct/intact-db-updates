@@ -41,6 +41,7 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvDatabase.class, CvDatabase.INTERPRO, CvDatabase.INTERPRO_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.SECONDARY_AC, CvXrefQualifier.SECONDARY_AC_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT, CvXrefQualifier.ISOFORM_PARENT_MI_REF);
+        getCvObject(CvXrefQualifier.class, "chain-parent", "MI:0951");
         getCvObject(CvAliasType.class, CvAliasType.GENE_NAME, CvAliasType.GENE_NAME_MI_REF);
         getCvObject(CvAliasType.class, CvAliasType.GENE_NAME_SYNONYM, CvAliasType.GENE_NAME_SYNONYM_MI_REF);
         getCvObject(CvAliasType.class, CvAliasType.ISOFORM_SYNONYM, CvAliasType.ISOFORM_SYNONYM_MI_REF);

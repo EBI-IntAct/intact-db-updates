@@ -25,7 +25,7 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
@@ -523,7 +523,7 @@ public class ProteinServiceImpl implements ProteinService {
         if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
             uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
                     " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein " +
-                     getProteinDescription(protein) + " by BioSource( " + t2 + "," +
+                    getProteinDescription(protein) + " by BioSource( " + t2 + "," +
                     organism2.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
 
             return proteins;
@@ -581,31 +581,35 @@ public class ProteinServiceImpl implements ProteinService {
         pdao.update( ( ProteinImpl ) protein );
 
         ///////////////////////////////
-        // Update Splice Variants
+        // Update Splice Variants and feature chains
 
         // search intact
+        // splice variants
         Collection<ProteinImpl> variants = pdao.getSpliceVariants( protein );
-        // We create a copy of the collection that hold the spliceVariants as the findMatches remove the splice variants
-        // from the collection when a match is found. Therefore the first time it runs, it finds the match, the splice
-        // variants are correctly created, the uniprotSpliceVariant are deleted from the collection so that the second
+        // feature chains
+        variants.addAll(pdao.getProteinChains( protein ));
+
+        // We create a copy of the collection that hold the protein transcripts as the findMatches remove the protein transcripts
+        // from the collection when a match is found. Therefore the first time it runs, it finds the match, protein transcripts
+        //  are correctly created, the protein transcripts are deleted from the collection so that the second
         // you run it, the splice variant are not linked anymore to the uniprotProtein and therefore they are not correctly
         // updated.
-        Collection<UniprotSpliceVariant> spliceVariantsClone = new ArrayList<UniprotSpliceVariant>();
-        for(UniprotSpliceVariant sv : uniprotProtein.getSpliceVariants()){
-            spliceVariantsClone.add(sv);
-        }
+        Collection<UniprotProteinTranscript> variantsClone = new ArrayList<UniprotProteinTranscript>();
 
-//        Collection<SpliceVariantMatch> matches = findMatches( variants, uniprotProtein.getSpliceVariants() );
-        Collection<SpliceVariantMatch> matches = findMatches( variants, spliceVariantsClone );
-        for ( SpliceVariantMatch match : matches ) {
+        variantsClone.addAll(uniprotProtein.getSpliceVariants());
+        variantsClone.addAll(uniprotProtein.getFeatureChains());
+
+//        Collection<ProteinTranscriptMatch> matches = findMatches( variants, variantsClone) );
+        Collection<ProteinTranscriptMatch> matches = findMatches( variants, variantsClone );
+        for ( ProteinTranscriptMatch match : matches ) {
 
             if ( match.isSuccessful() ) {
                 // update
-                final UniprotSpliceVariant variant = match.getUniprotSpliceVariant();
+                final UniprotProteinTranscript variant = match.getUniprotTranscript();
                 final Protein intactProtein = match.getIntactProtein();
-                updateSpliceVariant(intactProtein, protein, variant, uniprotProtein );
+                updateProteinTranscript(intactProtein, protein, variant, uniprotProtein );
 
-                if (variant.getSequence() != null) {
+                if (variant.getSequence() != null || (variant.getSequence() == null && variant.isNullSequenceAllowed())) {
                     proteins.add(intactProtein);
                 }
 
@@ -617,54 +621,43 @@ public class ProteinServiceImpl implements ProteinService {
                 // TODO test this
                 final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
                 final boolean globalProteinUpdate = config.isGlobalProteinUpdate();
-                final boolean deleteSpliceVariant = config.isDeleteSpliceVariantsWithoutInteractions();
+                final boolean deleteProteinTranscript = config.isDeleteProteinTranscriptWithoutInteractions();
 
-                if( ! globalProteinUpdate && !deleteSpliceVariant ) {
+                if( ! globalProteinUpdate && !deleteProteinTranscript) {
                     // create shallow
-                    Protein intactSpliceVariant = createMinimalisticSpliceVariant( match.getUniprotSpliceVariant(),
-                                                                                   protein,
-                                                                                   uniprotProtein );
+                    Protein intactTranscript = createMinimalisticProteinTranscript( match.getUniprotTranscript(),
+                            protein,
+                            uniprotProtein );
                     // update
-                    final UniprotSpliceVariant uniprotSpliceVariant = match.getUniprotSpliceVariant();
-                    updateSpliceVariant( intactSpliceVariant, protein, uniprotSpliceVariant, uniprotProtein);
+                    final UniprotProteinTranscript uniprotTranscript = match.getUniprotTranscript();
+                    updateProteinTranscript( intactTranscript, protein, uniprotTranscript, uniprotProtein);
 
-                    proteinCreated(intactSpliceVariant);
+                    proteinCreated(intactTranscript);
 
-                    if (uniprotSpliceVariant.getSequence() != null) {
-                        proteins.add(intactSpliceVariant);
+                    if (uniprotTranscript.getSequence() != null || (uniprotTranscript.getSequence() == null && uniprotTranscript.isNullSequenceAllowed())) {
+                        proteins.add(intactTranscript);
                     }
                 }
 
             } else {
-                Protein intactSpliceVariant = match.getIntactProtein();
+                Protein intactProteinTranscript = match.getIntactProtein();
 
-                if(intactSpliceVariant.getActiveInstances().size() == 0){
-                    deleteProtein(intactSpliceVariant);
+                if(intactProteinTranscript.getActiveInstances().size() == 0){
+                    deleteProtein(intactProteinTranscript);
 
-                    uniprotServiceResult.addMessage("The protein " + getProteinDescription(intactSpliceVariant) +
-                            " is a splice variant of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
+                    uniprotServiceResult.addMessage("The protein " + getProteinDescription(intactProteinTranscript) +
+                            " is a protein transcript of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
                             " As it is not part of any interactions in IntAct we have deleted it."  );
 
                 }else{
                     uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
-                            "In Intact the protein "+ getProteinDescription(intactSpliceVariant) +
-                            " is a splice variant of protein "+ getProteinDescription(protein)+
-                            " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
-                            "delete it.");
+                            "In Intact the protein "+ getProteinDescription(intactProteinTranscript) +
+                                    " is a protein transcript of protein "+ getProteinDescription(protein)+
+                                    " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
+                                    "delete it.");
                 }
             }
         }
-
-        ///////////////////////
-        // TODO Update Chains
-
-        // 1. collect those existing in the database
-
-        // 2. attempt to match these present in the UniProt entry
-
-        // Perform update
-
-
         return proteins;
     }
 
@@ -695,24 +688,24 @@ public class ProteinServiceImpl implements ProteinService {
      * Compares the two given collections and try to associate intact proteins to uniprot splice variants based on their AC.
      *
      * @param intactProteins        collection of intact protein (splice variant).
-     * @param uniprotSpliceVariants collection of uniprot splice variants.
+     * @param uniprotProteinTranscripts collection of uniprot splice variants and feature chains.
      *
      * @return a non null collection of matches.
      *
      * @throws ProteinServiceException when an intact protein doesn't have an identity.
      */
-    private Collection<SpliceVariantMatch> findMatches( Collection<ProteinImpl> intactProteins,
-                                                        Collection<UniprotSpliceVariant> uniprotSpliceVariants
+    private Collection<ProteinTranscriptMatch> findMatches( Collection<ProteinImpl> intactProteins,
+                                                            Collection<UniprotProteinTranscript> uniprotProteinTranscripts
     ) throws ProteinServiceException {
 
-        int max = intactProteins.size() + uniprotSpliceVariants.size();
-        Collection<SpliceVariantMatch> matches = new ArrayList<SpliceVariantMatch>( max );
+        int max = intactProteins.size() + uniprotProteinTranscripts.size();
+        Collection<ProteinTranscriptMatch> matches = new ArrayList<ProteinTranscriptMatch>( max );
 
         // copy the intact collection
         Collection<Protein> proteins = new ArrayList<Protein>( intactProteins );
 
-        for ( Iterator<UniprotSpliceVariant> itsv = uniprotSpliceVariants.iterator(); itsv.hasNext(); ) {
-            UniprotSpliceVariant usv = itsv.next();
+        for ( Iterator<UniprotProteinTranscript> itsv = uniprotProteinTranscripts.iterator(); itsv.hasNext(); ) {
+            UniprotProteinTranscript usv = itsv.next();
 
             boolean found = false;
             for ( Iterator<Protein> itp = proteins.iterator(); itp.hasNext() && false == found; ) {
@@ -726,17 +719,17 @@ public class ProteinServiceImpl implements ProteinService {
                         deleteProtein(protein);
 
                         uniprotServiceResult.addMessage("The protein " + getProteinDescription(protein) +
-                                " is a splice which had multiple or no identity, as it is not involved in any interaction" +
+                                " is a protein transcript which had multiple or no identity, as it is not involved in any interaction" +
                                 " we deleted it.");
                     } else {
                         if (xrefs.size() > 1){
                             uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_WITH_MULTIPLE_IDENTITY,
-                                    "Found " + xrefs.size() + "identities to UniProt for splice variant: "
+                                    "Found " + xrefs.size() + "identities to UniProt for protein transcript: "
                                             + protein.getAc() + ". Couldn't be deleted as it is involved in interaction(s)" );
                         } else if (xrefs.size() == 0){
                             uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_WITH_NO_IDENTITY,
-                                    "Could not find a UniProt identity for splice variant: " + protein.getAc() +
-                                    ". Couldn't be deleted as it is involved in interaction(s)" );
+                                    "Could not find a UniProt identity for protein transcript: " + protein.getAc() +
+                                            ". Couldn't be deleted as it is involved in interaction(s)" );
                         }
                     }
                     continue;
@@ -744,7 +737,7 @@ public class ProteinServiceImpl implements ProteinService {
 
                 if ( usv.getPrimaryAc().equals( upac ) ) {
                     // found it
-                    matches.add( new SpliceVariantMatch( protein, usv ) );
+                    matches.add( new ProteinTranscriptMatch( protein, usv ) );
                     itp.remove(); // that protein was matched !
                     itsv.remove(); // that splice variant was matched !
                     found = true;
@@ -758,7 +751,7 @@ public class ProteinServiceImpl implements ProteinService {
 
                         if ( ac.equals( upac ) ) {
                             // found it
-                            matches.add( new SpliceVariantMatch( protein, usv ) );
+                            matches.add( new ProteinTranscriptMatch( protein, usv ) );
                             itp.remove(); // that protein was matched !
                             itsv.remove(); // that splice variant was matched !
                             found = true;
@@ -768,13 +761,13 @@ public class ProteinServiceImpl implements ProteinService {
             } // for - intact proteins
 
             if ( !found ) {
-                matches.add( new SpliceVariantMatch( null, usv ) ); // no mapping found
+                matches.add( new ProteinTranscriptMatch( null, usv ) ); // no mapping found
             }
 
-        } // for - uniprot splice variants
+        } // for - uniprot transcripts
 
         for ( Protein protein : proteins ) {
-            matches.add( new SpliceVariantMatch( protein, null ) ); // no mapping found
+            matches.add( new ProteinTranscriptMatch( protein, null ) ); // no mapping found
         }
 
         return matches;
@@ -783,46 +776,54 @@ public class ProteinServiceImpl implements ProteinService {
     /**
      * Update an existing splice variant.
      *
-     * @param spliceVariant
-     * @param uniprotSpliceVariant
+     * @param transcript
+     * @param uniprotTranscript
      */
-    private void updateSpliceVariant( Protein spliceVariant, Protein master,
-                                      UniprotSpliceVariant uniprotSpliceVariant,
-                                      UniprotProtein uniprotProtein ) throws ProteinServiceException {
+    private void updateProteinTranscript( Protein transcript, Protein master,
+                                          UniprotProteinTranscript uniprotTranscript,
+                                          UniprotProtein uniprotProtein ) throws ProteinServiceException {
 
-        spliceVariant.setShortLabel( uniprotSpliceVariant.getPrimaryAc() );
-        spliceVariant.setFullName( master.getFullName() );
+        transcript.setShortLabel( uniprotTranscript.getPrimaryAc() );
+
+        // we have a feature chain
+        if (uniprotTranscript.getDescription() != null){
+            transcript.setFullName(uniprotTranscript.getDescription());
+        }
+        // we have a splice variant
+        else {
+            transcript.setFullName( master.getFullName() );
+        }
 
         boolean sequenceUpdated = false;
-        final String oldSequence = spliceVariant.getSequence();
+        final String oldSequence = transcript.getSequence();
 
-        if ( uniprotSpliceVariant.getSequence() == null ) {
+        if ( uniprotTranscript.getSequence() == null && !uniprotTranscript.isNullSequenceAllowed()) {
             if ( log.isDebugEnabled() ) {
-                log.error( "Splice variant " + uniprotSpliceVariant.getPrimaryAc() + " has no sequence" );
+                log.error( "Splice variant " + uniprotTranscript.getPrimaryAc() + " has no sequence" );
             }
         } else {
-            if ( !uniprotSpliceVariant.getSequence().equals(oldSequence) ) {
-                spliceVariant.setSequence( uniprotSpliceVariant.getSequence() );
+            if ( !uniprotTranscript.getSequence().equals(oldSequence) ) {
+                transcript.setSequence( uniprotTranscript.getSequence() );
                 sequenceUpdated = true;
             }
 
-            spliceVariant.setCrc64( Crc64.getCrc64(uniprotSpliceVariant.getSequence()) );
+            transcript.setCrc64( Crc64.getCrc64(uniprotTranscript.getSequence()) );
         }
 
         // Add IntAct Xref
 
         // update UniProt Xrefs
-        XrefUpdaterUtils.updateSpliceVariantUniprotXrefs( spliceVariant, uniprotSpliceVariant, uniprotProtein );
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( transcript, uniprotTranscript, uniprotProtein );
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( spliceVariant, uniprotSpliceVariant, uniprotProtein );
+        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein );
 
         if (sequenceUpdated) {
-            sequenceChanged(spliceVariant, oldSequence);
+            sequenceChanged(transcript, oldSequence);
         }
 
         // Update Note
-        String note = uniprotSpliceVariant.getNote();
+        String note = uniprotTranscript.getNote();
         if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
             Institution owner = IntactContext.getCurrentInstance().getInstitution();
             DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
@@ -835,7 +836,7 @@ public class ProteinServiceImpl implements ProteinService {
 
             Annotation annotation = new Annotation( owner, comment );
             annotation.setAnnotationText( note );
-            AnnotationUpdaterUtils.addNewAnnotation( spliceVariant, annotation );
+            AnnotationUpdaterUtils.addNewAnnotation( transcript, annotation );
         }
     }
 
@@ -851,7 +852,7 @@ public class ProteinServiceImpl implements ProteinService {
                               UniprotProtein uniprotProtein ) throws ProteinServiceException {
 
         // TODO enlarge that field in the editor
-        chain.setShortLabel( uniprotFeatureChain.getId() );
+        chain.setShortLabel( uniprotFeatureChain.getPrimaryAc() );
 
         chain.setFullName( (uniprotFeatureChain.getDescription() == null ? master.getFullName() : uniprotFeatureChain.getDescription() ) );
 
@@ -860,7 +861,7 @@ public class ProteinServiceImpl implements ProteinService {
 
         if ( uniprotFeatureChain.getSequence() == null ) {
             if ( log.isDebugEnabled() ) {
-                log.error( "Feature chain " + uniprotFeatureChain.getId() + " has no sequence" );
+                log.error( "Feature chain " + uniprotFeatureChain.getPrimaryAc() + " has no sequence" );
             }
         } else {
             if ( !uniprotFeatureChain.getSequence().equals(oldSequence) ) {
@@ -885,17 +886,17 @@ public class ProteinServiceImpl implements ProteinService {
     }
 
     /**
-     * Create a simple splice variant in view of updating it.
+     * Create a simple splice variant or feature chain in view of updating it.
      * <p/>
      * It should contain the following elements: Shorltabel, Biosource and UniProt Xrefs.
      *
-     * @param uniprotSpliceVariant the Uniprot splice variant we are going to build the intact on from.
+     * @param uniprotProteinTranscript the Uniprot transcript we are going to build the intact on from.
      *
      * @return a non null, persisted intact protein.
      */
-    private Protein createMinimalisticSpliceVariant( UniprotSpliceVariant uniprotSpliceVariant,
-                                                     Protein master,
-                                                     UniprotProtein uniprotProtein
+    private Protein createMinimalisticProteinTranscript( UniprotProteinTranscript uniprotProteinTranscript,
+                                                         Protein master,
+                                                         UniprotProtein uniprotProtein
     ) {
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
@@ -903,20 +904,20 @@ public class ProteinServiceImpl implements ProteinService {
 
         Protein variant = new ProteinImpl( CvHelper.getInstitution(),
                 master.getBioSource(),
-                uniprotSpliceVariant.getPrimaryAc(),
+                uniprotProteinTranscript.getPrimaryAc(),
                 CvHelper.getProteinType() );
 
-        if (uniprotSpliceVariant.getSequence() != null) {
-            variant.setSequence(uniprotSpliceVariant.getSequence());
+        if (uniprotProteinTranscript.getSequence() != null) {
+            variant.setSequence(uniprotProteinTranscript.getSequence());
             variant.setCrc64(Crc64.getCrc64(variant.getSequence()));
-        } else {
+        } else if (!uniprotProteinTranscript.isNullSequenceAllowed()){
             log.warn("Uniprot splice variant without sequence: "+variant);
         }
 
         pdao.persist( ( ProteinImpl ) variant );
 
-        // Create isoform-parent Xref
-        CvXrefQualifier isoformParent = CvHelper.getQualifierByMi( CvXrefQualifier.ISOFORM_PARENT_MI_REF );
+        // Create isoform-parent or chain-parent Xref
+        CvXrefQualifier isoformParent = CvHelper.getQualifierByMi( uniprotProteinTranscript.getParentXRefQualifier() );
         CvDatabase intact = CvHelper.getDatabaseByMi( CvDatabase.INTACT_MI_REF );
         InteractorXref xref = new InteractorXref( CvHelper.getInstitution(), intact, master.getAc(), isoformParent );
         variant.addXref( xref );
@@ -924,7 +925,7 @@ public class ProteinServiceImpl implements ProteinService {
         xdao.persist( xref );
 
         // Create UniProt Xrefs
-        XrefUpdaterUtils.updateSpliceVariantUniprotXrefs( variant, uniprotSpliceVariant, uniprotProtein );
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein );
 
         pdao.update( ( ProteinImpl ) variant );
 
@@ -948,9 +949,9 @@ public class ProteinServiceImpl implements ProteinService {
         ProteinDao pdao = daoFactory.getProteinDao();
 
         Protein chain = new ProteinImpl( CvHelper.getInstitution(),
-                                         master.getBioSource(),
-                                         uniprotFeatureChain.getId(),
-                                         CvHelper.getProteinType() );
+                master.getBioSource(),
+                uniprotFeatureChain.getPrimaryAc(),
+                CvHelper.getProteinType() );
 
         if (uniprotFeatureChain.getSequence() != null) {
             chain.setSequence(uniprotFeatureChain.getSequence());
@@ -987,49 +988,49 @@ public class ProteinServiceImpl implements ProteinService {
      * @return a non null, persisted intact protein.
      */
     private Protein createMinimalisticProtein( UniprotProtein uniprotProtein ) throws ProteinServiceException {
-     try{
-        if (uniprotProtein == null) {
-            throw new NullPointerException("Passed a null UniprotProtein");
-        }
+        try{
+            if (uniprotProtein == null) {
+                throw new NullPointerException("Passed a null UniprotProtein");
+            }
 
-        if (bioSourceService == null) {
-            throw new IllegalStateException("BioSourceService should not be null");
-        }
+            if (bioSourceService == null) {
+                throw new IllegalStateException("BioSourceService should not be null");
+            }
 
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
+            DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+            ProteinDao pdao = daoFactory.getProteinDao();
 
-        if (uniprotProtein.getOrganism() == null) {
-            throw new IllegalStateException("Uniprot protein without organism: "+uniprotProtein);
-        }
+            if (uniprotProtein.getOrganism() == null) {
+                throw new IllegalStateException("Uniprot protein without organism: "+uniprotProtein);
+            }
 
-        BioSource biosource = null;
-        try {
-            biosource = bioSourceService.getBiosourceByTaxid( String.valueOf( uniprotProtein.getOrganism().getTaxid() ) );
-        } catch ( BioSourceServiceException e ) {
+            BioSource biosource = null;
+            try {
+                biosource = bioSourceService.getBiosourceByTaxid( String.valueOf( uniprotProtein.getOrganism().getTaxid() ) );
+            } catch ( BioSourceServiceException e ) {
+                throw new ProteinServiceException(e);
+            }
+
+            TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+            Protein protein = new ProteinImpl( CvHelper.getInstitution(),
+                    biosource,
+                    generateProteinShortlabel( uniprotProtein ),
+                    CvHelper.getProteinType() );
+
+            pdao.persist( ( ProteinImpl ) protein );
+
+            // Create UniProt Xrefs
+            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
+
+            pdao.update( ( ProteinImpl ) protein );
+            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
+            return protein;
+
+        }catch( IntactTransactionException e){
             throw new ProteinServiceException(e);
         }
 
-         TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-
-         Protein protein = new ProteinImpl( CvHelper.getInstitution(),
-                biosource,
-                generateProteinShortlabel( uniprotProtein ),
-                CvHelper.getProteinType() );
-
-        pdao.persist( ( ProteinImpl ) protein );
-
-        // Create UniProt Xrefs
-        XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
-
-        pdao.update( ( ProteinImpl ) protein );
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
-        return protein;
-
-     }catch( IntactTransactionException e){
-        throw new ProteinServiceException(e);
-     }
-    
     }
 
     private Collection<UniprotProtein> retrieveFromUniprot( String uniprotId ) {
