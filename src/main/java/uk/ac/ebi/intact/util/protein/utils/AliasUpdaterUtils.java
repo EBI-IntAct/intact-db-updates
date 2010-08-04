@@ -9,6 +9,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
@@ -49,33 +50,27 @@ public class AliasUpdaterUtils {
 
         // Make sure the alias does not yet exist in the object
         Collection aliases = current.getAliases();
-        for ( Iterator iterator = aliases.iterator(); iterator.hasNext(); ) {
-            Alias anAlias = ( Alias ) iterator.next();
-            if ( anAlias.equals( alias ) ) {
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "SKIPPED: [" + alias + "] already exists" );
-                }
-                return false; // already in, exit
-            }
+
+        if (aliases.contains(alias)){
+            if ( log.isDebugEnabled() ) log.debug("SKIPPED: [" + alias + "] already exists" );
+            return false; // already in, exit
         }
 
         // add the alias to the AnnotatedObject
-        IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
-                            .getAliasDao().persist(alias);
         current.addAlias( alias );
 
         // That test is done to avoid to record in the database an Alias
         // which is already linked to that AnnotatedObject.
-        if ( alias.getParentAc() == current.getAc() ) {
-            try {
-                IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao( InteractorAlias.class ).persist( alias );
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "CREATED: [" + alias + "]" );
-                }
-            } catch ( Exception e_alias ) {
-                log.error( "Error when creating an Alias for protein " + current, e_alias );
-                return false;
+        AliasDao<InteractorAlias> aliasAliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class);
+
+        try {
+            aliasAliasDao.persist( alias );
+            if ( log.isDebugEnabled() ) {
+                log.debug( "CREATED: [" + alias + "]" );
             }
+        } catch ( Exception e_alias ) {
+            log.error( "Error when creating an Alias for protein " + current, e_alias );
+            return false;
         }
 
         return true;
@@ -124,7 +119,7 @@ public class AliasUpdaterUtils {
                 recycledAlias.setName( alias.getName() );
                 recycledAlias.setCvAliasType( alias.getCvAliasType() );
 
-                //aliasDao.update( recycledAlias );
+                IntactContext.getCurrentInstance().getDaoFactory().getAliasDao(InteractorAlias.class).update( recycledAlias );
                 updated = true;
 
             } else {
@@ -137,7 +132,7 @@ public class AliasUpdaterUtils {
             // delete remaining outdated/unrecycled aliases
             InteractorAlias alias = toDeleteIterator.next();
             protein.removeAlias( alias );
-            
+
             IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
                     .getAliasDao(InteractorAlias.class).delete(alias);
             //aliasDao.delete( alias );

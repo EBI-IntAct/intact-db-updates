@@ -215,11 +215,12 @@ public class UpdateDeadProteins {
         List<Component> components = cdao.getByInteractorAc( protein.getAc() );
         for ( Component component : components ) {
             ComponentXref xref = new ComponentXref( owner, uniprot, formerUniprotId, secondaryAc );
-            xdao.persist( xref );
 
             if ( component.getXrefs().contains( xref ) ) {
                 log.info( "  This component has already that Xref(uniprotkb, " + formerUniprotId + ", secondary-ac)." );
             } else {
+                xdao.persist( xref );
+                
                 log.info( "  Adding Xref(uniprotkb, " + formerUniprotId + ", secondary-ac) on Component(" + component.getAc() + ")" );
                 component.addXref( xref );
                 cdao.update( component );
