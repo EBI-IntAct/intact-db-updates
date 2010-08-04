@@ -17,14 +17,13 @@ package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -122,6 +121,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
         protUpdateProcessor.updateAll();
 
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());

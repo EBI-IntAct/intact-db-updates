@@ -19,7 +19,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -53,8 +52,6 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
     protected void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
-        // TODO check if duplicated proteins do have isoform/chain, if so, their respective *-parent needs updating.
-
         // add the interactions from the duplicated proteins to the protein
         // that was created first in the database
 
@@ -85,7 +82,10 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                     CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+
                     InteractorXref xref = new InteractorXref(owner, ownerDb, duplicate.getAc(), intactSecondary);
+                    daoFactory.getXrefDao(InteractorXref.class).persist(xref);
+                    
                     originalProt.addXref(xref);
                     log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
                 }
@@ -98,17 +98,18 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                                                               CvDatabase.INTACT_MI_REF,
                                                               CvXrefQualifier.ISOFORM_PARENT_MI_REF );
 
-                    if( isoformParents.size() != 1 ) {
-                        log.warn( "More than one isoform-parent Xref found on splice variant: " + isoform.getAc() );
-                    } else {
-                        final InteractorXref xref = isoformParents.iterator().next();
-                        xref.setPrimaryId( originalProt.getAc() );
-                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(duplicate);
-//                        daoFactory.getXrefDao( InteractorXref.class ).update( xref );
-                        log.debug( "Fixing isoform-parent Xref for isoform '"+isoform.getShortLabel()+
-                                   "' ("+ isoform.getAc()+") so that it points to the merges master protein '"+
-                                   originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
-                    }
+                    remapTranscriptParent(originalProt, isoform, isoformParents);
+                }
+
+                final List<ProteinImpl> proteinChains = daoFactory.getProteinDao().getProteinChains( duplicate );
+                for ( ProteinImpl chain : proteinChains ) {
+                    // each chain should now point to the original protein
+                    final Collection<InteractorXref> chainParents =
+                            AnnotatedObjectUtils.searchXrefs(chain,
+                                                              CvDatabase.INTACT_MI_REF,
+                                                              CvXrefQualifier.CHAIN_PARENT_MI_REF );
+
+                    remapTranscriptParent(originalProt, chain, chainParents);
                 }
 
                 // and delete the duplicate
@@ -119,7 +120,23 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 }
             }
         }
+
     }
+
+    protected void remapTranscriptParent(Protein originalProt, ProteinImpl transcript, Collection<InteractorXref> transcriptParents) {
+        if( transcriptParents.size() != 1 ) {
+            log.warn( "More than one transcript-parent Xref found on protein transcript: " + transcript.getAc() );
+        } else {
+            final InteractorXref xref = transcriptParents.iterator().next();
+            xref.setPrimaryId( originalProt.getAc() );
+            IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(xref);
+//                        daoFactory.getXrefDao( InteractorXref.class ).update( xref );
+            log.debug( "Fixing transcript-parent Xref for transcript '"+ transcript.getShortLabel()+
+                       "' ("+ transcript.getAc()+") so that it points to the merges master protein '"+
+                       originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
+        }
+    }
+
 
     protected static Protein calculateOriginalProtein(List<? extends Protein> duplicates) {
         Protein originalProt = duplicates.get(0);

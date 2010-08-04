@@ -290,7 +290,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
 
 
-        uniprotServiceResult = uniprotServiceResult = proteinService.retrieve( "P60952-2" );
+        uniprotServiceResult = proteinService.retrieve( "P60952-2" );
         Collection<Protein> resultProteins = uniprotServiceResult.getProteins();
         assertEquals(3, resultProteins.size());
         boolean found = false;
