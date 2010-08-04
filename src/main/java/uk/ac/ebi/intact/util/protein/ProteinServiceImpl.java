@@ -23,7 +23,6 @@ import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
-import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
@@ -841,51 +840,6 @@ public class ProteinServiceImpl implements ProteinService {
     }
 
     /**
-     * Update an existing splice variant.
-     *
-     * @param chain the intact chain
-     * @param uniprotFeatureChain
-     * @param uniprotProtein the master protein in uniprot
-     */
-    private void updateChain( Protein chain, Protein master,
-                              UniprotFeatureChain uniprotFeatureChain,
-                              UniprotProtein uniprotProtein ) throws ProteinServiceException {
-
-        // TODO enlarge that field in the editor
-        chain.setShortLabel( uniprotFeatureChain.getPrimaryAc() );
-
-        chain.setFullName( (uniprotFeatureChain.getDescription() == null ? master.getFullName() : uniprotFeatureChain.getDescription() ) );
-
-        boolean sequenceUpdated = false;
-        final String oldSequence = chain.getSequence();
-
-        if ( uniprotFeatureChain.getSequence() == null ) {
-            if ( log.isDebugEnabled() ) {
-                log.error( "Feature chain " + uniprotFeatureChain.getPrimaryAc() + " has no sequence" );
-            }
-        } else {
-            if ( !uniprotFeatureChain.getSequence().equals(oldSequence) ) {
-                chain.setSequence( uniprotFeatureChain.getSequence() );
-                sequenceUpdated = true;
-            }
-
-            chain.setCrc64( Crc64.getCrc64(uniprotFeatureChain.getSequence()) );
-        }
-
-        // Add IntAct Xref
-
-        // update UniProt Xrefs
-        XrefUpdaterUtils.updateFeatureChainUniprotXrefs( chain, uniprotFeatureChain, uniprotProtein );
-
-        // Update Aliases from the master protein aliases
-        AliasUpdaterUtils.updateAllAliases( chain, uniprotProtein );
-
-        if (sequenceUpdated) {
-            sequenceChanged(chain, oldSequence);
-        }
-    }
-
-    /**
      * Create a simple splice variant or feature chain in view of updating it.
      * <p/>
      * It should contain the following elements: Shorltabel, Biosource and UniProt Xrefs.
@@ -930,52 +884,6 @@ public class ProteinServiceImpl implements ProteinService {
         pdao.update( ( ProteinImpl ) variant );
 
         return variant;
-    }
-
-    /**
-     * Create a simple chain in view of updating it.
-     * <p/>
-     * It should contain the following elements: Shorltabel, Biosource and UniProt Xrefs.
-     *
-     * @param uniprotFeatureChain the Uniprot chain we are going to build the intact on from.
-     *
-     * @return a non null, persisted intact protein.
-     */
-    private Protein createMinimalisticSpliceVariant( UniprotFeatureChain uniprotFeatureChain,
-                                                     Protein master,
-                                                     UniprotProtein uniprotProtein ) {
-
-        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
-
-        Protein chain = new ProteinImpl( CvHelper.getInstitution(),
-                master.getBioSource(),
-                uniprotFeatureChain.getPrimaryAc(),
-                CvHelper.getProteinType() );
-
-        if (uniprotFeatureChain.getSequence() != null) {
-            chain.setSequence(uniprotFeatureChain.getSequence());
-            chain.setCrc64(Crc64.getCrc64(chain.getSequence()));
-        } else {
-            log.warn("Uniprot chain without sequence: " + chain);
-        }
-
-        pdao.persist( ( ProteinImpl ) chain );
-
-        // Create chain-parent Xref
-        CvXrefQualifier chainParent = CvHelper.getQualifierByMi( "MI:0951" );
-        CvDatabase intact = CvHelper.getDatabaseByMi( CvDatabase.INTACT_MI_REF );
-        InteractorXref xref = new InteractorXref( CvHelper.getInstitution(), intact, master.getAc(), chainParent );
-        chain.addXref( xref );
-        XrefDao xdao = daoFactory.getXrefDao();
-        xdao.persist( xref );
-
-        // Create UniProt Xrefs
-        XrefUpdaterUtils.updateFeatureChainUniprotXrefs( chain, uniprotFeatureChain, uniprotProtein );
-
-        pdao.update( ( ProteinImpl ) chain );
-
-        return chain;
     }
 
     /**
