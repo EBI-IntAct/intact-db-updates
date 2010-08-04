@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.prot.util;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -31,6 +32,7 @@ public class ProteinTools {
     public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein) {
         for (Component component : sourceProtein.getActiveInstances()) {
             component.setInteractor(destinationProtein);
+            IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().update(component);
         }
         destinationProtein.getActiveInstances().addAll(sourceProtein.getActiveInstances());
         sourceProtein.getActiveInstances().clear();

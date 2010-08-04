@@ -48,6 +48,7 @@ public class DeleteDeadProteins {
     private File proteinFilterFile;
 
     private CvXrefQualifier isoParent = null;
+    private CvXrefQualifier chainParent = null;
     private CvXrefQualifier identity = null;
     private CvDatabase intact = null;
 
@@ -79,7 +80,6 @@ public class DeleteDeadProteins {
         TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-        ProteinDao proteinDao = daoFactory.getProteinDao();
         CvObjectDao<CvObject> cvDao = daoFactory.getCvObjectDao();
 
         // Loading of necessary CVs to the processing of these proteins
@@ -88,8 +88,13 @@ public class DeleteDeadProteins {
             throw new IllegalStateException( "Could not find CvXrefQualifier( isoParent ) in the database. abort." );
         }
 
+        chainParent = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF );
+        if ( chainParent == null ) {
+            throw new IllegalStateException( "Could not find CvXrefQualifier( chainParent ) in the database. abort." );
+        }
+
         identity = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF );
-        if ( isoParent == null ) {
+        if ( identity == null ) {
             throw new IllegalStateException( "Could not find CvXrefQualifier( identity ) in the database. abort." );
         }
 
@@ -219,29 +224,32 @@ public class DeleteDeadProteins {
 
         int count = 0;
 
-        String parentAc = getIsoformParentAc( protein );
+        String parentAc = getProteinTranscriptParentAc( protein );
         if ( parentAc != null ) {
-            // we are handling a splice variant
+            // we are handling a splice variant or a feature chain
             if ( !hasInteraction( protein ) ) {
                 count += deleteProtein( protein, proteinDao );
             }
 
         } else {
             // then a protein
-            Collection<ProteinImpl> variants = getSpliceVariant( protein, proteinDao );
+            // get splice variants
+            Collection<ProteinImpl> variants = proteinDao.getSpliceVariants( protein);
+            // get feature chains
+            variants.addAll(proteinDao.getProteinChains(protein));
 
-            log.debug( "Found " + variants.size() + " splice variants associated." );
+            log.debug( "Found " + variants.size() + " protein transcripts associated." );
 
             boolean hasInteraction = hasInteraction( protein );
             boolean hasVariantWithInteraction = false;
 
             for ( ProteinImpl variant : variants ) {
                 if ( hasInteraction( variant ) ) {
-                    log.debug( "Splice variant " + variant.getShortLabel() + " (" + variant.getAc() + ") has interactions" );
+                    log.debug( "Protein transcript " + variant.getShortLabel() + " (" + variant.getAc() + ") has interactions" );
                     hasVariantWithInteraction = true;
                 } else {
                     // no interaction, we delete
-                    log.debug( "Splice variant " + variant.getShortLabel() + " (" + variant.getAc() + ") has no interactions" );
+                    log.debug( "Protein transcript " + variant.getShortLabel() + " (" + variant.getAc() + ") has no interactions" );
                     count += deleteProtein( variant, proteinDao );
                 }
             } // variants
@@ -249,7 +257,7 @@ public class DeleteDeadProteins {
 
             if ( !hasInteraction && !hasVariantWithInteraction ) {
 
-                log.debug( "This protein has no interaction or any splice variant having interactions, will delete it." );
+                log.debug( "This protein has no interaction or any splice variant/chains having interactions, will delete it." );
                 count += deleteProtein( protein, proteinDao );
 
             } else {
@@ -262,7 +270,7 @@ public class DeleteDeadProteins {
                     }
 
                     if ( hasVariantWithInteraction ) {
-                        log.debug( "No deletion of " + info + ", it has at least a splice variant with interactions." );
+                        log.debug( "No deletion of " + info + ", it has at least a splice variant/chain with interactions." );
                     }
                 }
             }
@@ -302,9 +310,10 @@ public class DeleteDeadProteins {
         return ids;
     }
 
-    private String getIsoformParentAc( Protein protein ) {
+    private String getProteinTranscriptParentAc( Protein protein ) {
         for ( Xref xref : protein.getXrefs() ) {
-            if ( isoParent.equals( xref.getCvXrefQualifier() ) ) {
+            CvXrefQualifier qualifier = xref.getCvXrefQualifier();
+            if ( isoParent.equals( qualifier ) || chainParent.equals(qualifier )) {
                 return xref.getPrimaryId();
             }
         }
@@ -322,11 +331,6 @@ public class DeleteDeadProteins {
 
     private boolean hasInteraction( Protein protein ) {
         return !protein.getActiveInstances().isEmpty();
-    }
-
-    private Collection<ProteinImpl> getSpliceVariant( ProteinImpl protein, ProteinDao proteinDao ) {
-        List<ProteinImpl> variants = proteinDao.getByXrefLike( intact, isoParent, protein.getAc() );
-        return variants;
     }
 
     ////////////////////////
