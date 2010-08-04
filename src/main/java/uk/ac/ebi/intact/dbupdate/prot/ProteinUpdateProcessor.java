@@ -98,7 +98,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         if (config.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
-            deleter.setDeleteSpliceVariantsWithoutInteractions(config.isDeleteProteinTranscriptWithoutInteractions());
+            deleter.setDeleteProteinTranscriptsWithoutInteractions(config.isDeleteProteinTranscriptWithoutInteractions());
             addListener(deleter);
             forceDeleteOfProteins = true;
         }

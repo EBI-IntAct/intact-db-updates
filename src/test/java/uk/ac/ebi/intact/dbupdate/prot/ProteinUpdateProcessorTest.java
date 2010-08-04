@@ -328,7 +328,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(refreshedMaster.getBioSource());
 
         final ProteinImpl refreshedChain = getDaoFactory().getProteinDao().getByAc(chain.getAc());
-        Assert.assertNotNull( refreshedChain );
+        Assert.assertNull( refreshedChain );
     }
 
     @Test
