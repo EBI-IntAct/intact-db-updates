@@ -158,4 +158,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             listener.onRangeChanged(evt);
         }
     }
+
+    public void fireOnRangeOutOfBound(RangeOutOfBoundEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onRangeOutOfBound(evt);
+        }
+    }
 }

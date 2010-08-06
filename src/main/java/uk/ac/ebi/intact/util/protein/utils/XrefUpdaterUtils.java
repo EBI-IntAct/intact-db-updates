@@ -141,7 +141,7 @@ public final class XrefUpdaterUtils {
             CvDatabase cvDb = xref.getCvDatabase();
             String cvDbMi = cvDb.getMiIdentifier();
 
-            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi)){
+            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi) || CvDatabase.INTACT_MI_REF.equals(cvDbMi)){
                 continue;
             }
             // If the protein xref does not exist in the uniprot entry anymore delete it.

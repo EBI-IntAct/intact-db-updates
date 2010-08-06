@@ -106,7 +106,7 @@ public class UpdatedRangeTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void isRangeChanged_yes2() throws Exception {
         Range oldRange = getMockBuilder().createRange(2, 2, 4, 4);
-        Range newRange = getMockBuilder().createRange(-1, -1, -1, -1);
+        Range newRange = getMockBuilder().createRange(1, 1, 1, 1);
 
         UpdatedRange updated = new UpdatedRange(oldRange, newRange);
         Assert.assertTrue(updated.isRangeLengthChanged());

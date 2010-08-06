@@ -145,9 +145,9 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         }
 
         Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
-        Assert.assertTrue("An dip xref (copied from dupe1) is expected in dupe2", dipFound);
+        Assert.assertFalse("An dip xref (copied from dupe1) is not expected in dupe2 because not present in uniprot", dipFound);
 
-        Assert.assertEquals(8, dupe2Xrefs.size());
+        Assert.assertEquals(7, dupe2Xrefs.size());
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
         final File preProcessedFile = new File(dir, "pre_processed.csv");

@@ -19,6 +19,8 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.RangeOutOfBoundEvent;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.Component;
@@ -42,8 +44,14 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
 
             for (Component component : evt.getProtein().getActiveInstances()) {
                 for (Feature feature : component.getBindingDomains()) {
+                    Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, evt.getOldSequence());
                     Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence());
 
+                    // fire the events for the range out of bound
+                    for (OutOfBoundRange outOfBoundRange : outOfBoundRanges) {
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnRangeOutOfBound(new RangeOutOfBoundEvent(evt.getDataContext(), outOfBoundRange));
+                    }
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();

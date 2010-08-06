@@ -36,4 +36,5 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getUpdateCasesWriter() throws IOException;
     ReportWriter getSequenceChangedWriter() throws IOException;
     ReportWriter getRangeChangedWriter() throws IOException;
+    ReportWriter getRangeOutOfBoundWriter() throws IOException;
 }

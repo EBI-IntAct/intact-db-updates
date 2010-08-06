@@ -121,6 +121,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
             }
         }
 
+        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) originalProt);
     }
 
     protected void remapTranscriptParent(Protein originalProt, ProteinImpl transcript, Collection<InteractorXref> transcriptParents) {

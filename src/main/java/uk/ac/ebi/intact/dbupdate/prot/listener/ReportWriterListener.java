@@ -17,8 +17,10 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
@@ -27,7 +29,6 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
-import uk.ac.ebi.intact.commons.util.Crc64;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -224,6 +225,44 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                                      interactor.getShortLabel(),
                                      uniprotAc,
                                      dashIfNull(updatedRange.getMessage()));
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing update case to stream", e);
+        }
+    }
+
+    @Override
+    public void onRangeOutOfBound(RangeOutOfBoundEvent evt) throws ProcessorException {
+        OutOfBoundRange outOfBoundRange = evt.getOutOfBoundRange();
+        Feature feature = outOfBoundRange.getOutOfBoundRange().getFeature();
+        Component component = feature.getComponent();
+        Interactor interactor = component.getInteractor();
+
+        final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
+        String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+
+        try {
+            ReportWriter writer = reportHandler.getRangeOutOfBoundWriter();
+            writer.writeHeaderIfNecessary("Range AC",
+                                          "Pos.",
+                                          "Sequence length.",
+                                          "Feature AC",
+                                          "Feature Label",
+                                          "Comp. AC",
+                                          "Prot. AC",
+                                          "Prot. Label",
+                                          "Prot. Uniprot",
+                                          "Message");
+            writer.writeColumnValues(outOfBoundRange.getOutOfBoundRange().getAc(),
+                                     outOfBoundRange.getOutOfBoundRange().toString(),
+                                     Integer.toString(outOfBoundRange.getSequence().length()),
+                                     feature.getAc(),
+                                     feature.getShortLabel(),
+                                     component.getAc(),
+                                     interactor.getAc(),
+                                     interactor.getShortLabel(),
+                                     uniprotAc,
+                                     dashIfNull(outOfBoundRange.getMessage()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);

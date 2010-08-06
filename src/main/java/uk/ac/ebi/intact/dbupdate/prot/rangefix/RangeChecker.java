@@ -42,6 +42,28 @@ public class RangeChecker {
     private static final Log log = LogFactory.getLog( RangeChecker.class );
 
     /**
+     *
+     * @param feature : the feature to check
+     * @param sequence : the sequence
+     * @return a collection of outOfBoundRanges for all the ranges of the feature which are not within the sequence
+     */
+    public Collection<OutOfBoundRange> collectOutOfBoundRanges(Feature feature, String sequence){
+        if (feature == null) throw new NullPointerException("Feature was null");
+        if (sequence == null) throw new NullPointerException("Sequence was null");
+
+        List<OutOfBoundRange> outOfBoundRanges = new ArrayList<OutOfBoundRange>();
+
+        for (Range range : feature.getRanges()) {
+
+            if (!isRangeWithinSequence(sequence, range)){
+                outOfBoundRanges.add(new OutOfBoundRange(range, sequence));
+            }
+        }
+
+        return outOfBoundRanges;
+    }
+
+    /**
      * Changes the features ranges by analysing the shift in positions after a sequence is changed.
      * @param feature The feature to update
      * @param oldSequence The old sequence
@@ -66,19 +88,33 @@ public class RangeChecker {
                 throw new IntactException("Could not clone range: "+range, e);
             }
 
-            boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence);
+            if (isRangeWithinSequence(oldSequence, range)){
+                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence);
 
-            range.prepareSequence(newSequence);
+                range.prepareSequence(newSequence);
 
-            if (rangeShifted) {
-                if (log.isInfoEnabled())
-                    log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
-                
-                updatedRanges.add(new UpdatedRange(oldRange, range));
+                if (rangeShifted) {
+                    if (log.isInfoEnabled())
+                        log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
+
+                    updatedRanges.add(new UpdatedRange(oldRange, range));
+                }
             }
         }
 
         return updatedRanges;
+    }
+
+    protected boolean isRangeWithinSequence(String sequence, Range range){
+        if (sequence == null){
+            return true;
+        }
+
+        int sequenceLength = sequence.length();
+        if (range.getFromIntervalEnd() > sequenceLength || range.getToIntervalEnd() > sequenceLength || range.getFromIntervalStart() > sequenceLength || range.getToIntervalStart() > sequenceLength){
+            return false;
+        }
+        return true;
     }
 
     protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
@@ -87,8 +123,8 @@ public class RangeChecker {
 
         // case: n-terminal or c-terminal
         if (range.getToCvFuzzyType() != null &&
-            (range.getToCvFuzzyType().isCTerminal() ||
-            range.getToCvFuzzyType().isNTerminal())) {
+                (range.getToCvFuzzyType().isCTerminal() ||
+                        range.getToCvFuzzyType().isNTerminal())) {
             return rangeShifted;
         }
 
@@ -105,7 +141,7 @@ public class RangeChecker {
                 range.setToIntervalStart(newSequence.length());
                 range.setToIntervalEnd(newSequence.length());
             }
-            
+
             if (rangeShifted) {
                 return rangeShifted;
             }
@@ -115,9 +151,9 @@ public class RangeChecker {
         if (range.isUndetermined()) {
 
             if (range.getFromIntervalStart() != 0 ||
-                range.getToIntervalStart() != 0 ||
-                range.getFromIntervalEnd() != 0 ||
-                range.getToIntervalEnd() != 0) {
+                    range.getToIntervalStart() != 0 ||
+                    range.getFromIntervalEnd() != 0 ||
+                    range.getToIntervalEnd() != 0) {
                 rangeShifted = true;
             }
 
@@ -165,11 +201,11 @@ public class RangeChecker {
 
         if (lengthBefore != lengthAfter && log.isWarnEnabled()) {
             log.warn("Range length changed after shifting its position when updating the sequence from "+
-                     lengthBefore+" to "+lengthAfter+": "+logInfo(range));
+                    lengthBefore+" to "+lengthAfter+": "+logInfo(range));
         }
 
         if (range.getFromIntervalStart() <= 0 ||
-            range.getToIntervalEnd() <= 0) {
+                range.getToIntervalEnd() <= 0) {
             range.setUndetermined(true);
         }
 
@@ -211,6 +247,6 @@ public class RangeChecker {
         final Component component = feature.getComponent();
         final Interactor interactor = component.getInteractor();
         return "Range["+range.getAc()+"], Feature["+ feature.getAc()+","+ feature.getShortLabel()+"], Component["+ component.getAc()+
-           "], Protein["+ interactor.getAc()+","+ interactor.getShortLabel()+"]";
+                "], Protein["+ interactor.getAc()+","+ interactor.getShortLabel()+"]";
     }
 }

@@ -73,7 +73,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String rangeAfterFix = newSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
-    
+
     @Test @DirtiesContext
     public void shiftFeatureRanges_substitutionWithinRange() throws Exception {
         String oldSequence = "ABCDEF";
@@ -121,7 +121,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertEquals(1, updatedRanges.size());
-        
+
         Assert.assertEquals(3, range.getFromIntervalStart());
         Assert.assertEquals(3, range.getFromIntervalEnd());
         Assert.assertEquals(5, range.getToIntervalStart());
@@ -157,7 +157,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
 
-     @Test @DirtiesContext
+    @Test @DirtiesContext
     public void shiftFeatureRanges_differentSeq() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ZZAZZDZFEZZZZZZ";
@@ -193,7 +193,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
         Assert.assertEquals('C',range.getSequence().charAt(0));
-        
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(1, updatedRanges.size());
 
@@ -215,7 +215,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         range.setUndetermined(true);
         range.prepareSequence(oldSequence);
         feature.addRange(range);
-        
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -315,7 +315,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getToIntervalStart());
         Assert.assertEquals(0, range.getToIntervalEnd());
     }
-    
+
     @Test @DirtiesContext
     public void shiftFeatureRanges_nTerminal_to() throws Exception {
         String oldSequence = "ABCDEF";
@@ -342,11 +342,11 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     @Test @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds() throws Exception {
         String oldSequence = "MDNCLAAAALNGVDRRSLQRSAKLALEVLERAKRRAVDWHALERPKGCMGVLAREAPHLEKQPAAGPQRVLPGEREERPP" +
-                             "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
-                             "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
+                "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
+                "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
         String newSequence = "MDNCLAAAALNGVDRRSLQRSARLALEVLERAKRRAVDWHALERPKGCMGVLAREAPHLEKQPAAGPQRVLPGEREERPP" +
-                             "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
-                             "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
+                "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
+                "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -354,25 +354,24 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 220, 220);
         feature.addRange(range);
 
+        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
+        Assert.assertEquals(1, outOfBoundRanges.size());
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
-        Assert.assertEquals(1, updatedRanges.size());
-        
-        UpdatedRange updatedRange = updatedRanges.iterator().next();
-        Assert.assertTrue(updatedRange.isRangeLengthChanged());
-        Assert.assertTrue(updatedRange.isSequenceChanged());
+        Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(1, range.getFromIntervalStart());
         Assert.assertEquals(1, range.getFromIntervalEnd());
-        Assert.assertEquals(210, range.getToIntervalStart());
-        Assert.assertEquals(210, range.getToIntervalEnd());
+        Assert.assertEquals(220, range.getToIntervalStart());
+        Assert.assertEquals(220, range.getToIntervalEnd());
     }
 
-     @Test @DirtiesContext
+    @Test @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds2() throws Exception {
         String oldSequence = "MDNCLAAAAL";
         String newSequence = "MDNCLAAAALNGVDRRSLQRSARLALEVLERAKRRAVDWHALERPKGCMGVLAREAPHLEKQPAAGPQRVLPGEREERPP" +
-                             "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
-                             "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
+                "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
+                "SQPAENISKDLYIEVYPGTYSVTVGSNDLTKKTHVVAVDSGQSVDLVFPV";
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -380,20 +379,19 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
-        Assert.assertEquals(1, updatedRanges.size());
+        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
+        Assert.assertEquals(1, outOfBoundRanges.size());
 
-        UpdatedRange updatedRange = updatedRanges.iterator().next();
-        Assert.assertTrue(updatedRange.isRangeLengthChanged());
-        Assert.assertTrue(updatedRange.isSequenceChanged());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(1, range.getFromIntervalStart());
         Assert.assertEquals(1, range.getFromIntervalEnd());
-        Assert.assertEquals(210, range.getToIntervalStart());
-        Assert.assertEquals(210, range.getToIntervalEnd());
+        Assert.assertEquals(40, range.getToIntervalStart());
+        Assert.assertEquals(40, range.getToIntervalEnd());
     }
 
-     @Test @DirtiesContext
+    @Test @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds3() throws Exception {
         String oldSequence = "MDNCLAAAAL";
         String newSequence = "MDNCLA";
@@ -404,17 +402,16 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
-        Assert.assertEquals(1, updatedRanges.size());
+        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
+        Assert.assertEquals(1, outOfBoundRanges.size());
 
-        UpdatedRange updatedRange = updatedRanges.iterator().next();
-        Assert.assertTrue(updatedRange.isRangeLengthChanged());
-        Assert.assertTrue(updatedRange.isSequenceChanged());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(1, range.getFromIntervalStart());
         Assert.assertEquals(1, range.getFromIntervalEnd());
-        Assert.assertEquals(6, range.getToIntervalStart());
-        Assert.assertEquals(6, range.getToIntervalEnd());
+        Assert.assertEquals(40, range.getToIntervalStart());
+        Assert.assertEquals(40, range.getToIntervalEnd());
     }
 
     @Test @DirtiesContext
@@ -431,6 +428,9 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(20, 20, 20, 20);
         feature.addRange(range);
 
+        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
+        Assert.assertEquals(0, outOfBoundRanges.size());
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(1, updatedRanges.size());
 
@@ -442,5 +442,78 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(6, range.getFromIntervalEnd());
         Assert.assertEquals(6, range.getToIntervalStart());
         Assert.assertEquals(6, range.getToIntervalEnd());
+    }
+
+    @Test @DirtiesContext
+    public void isSequenceChanged_yes3() throws Exception {
+        String oldSequence = "MALKSINISGNFEWCPFEEYKNYLLCFNSHNLLYSNNNSLNNYIYLLDINLNSEIRNLEIVNKYNFEDALKYDNDVIKGG" +
+                "NKKNNKNNKNNHNNNSVNEYVTCFEWMNSNNFVDINNNEELSKGIIVGGLTNGDIVLLNAKNLFETNRNYDNFILSKTNI" +
+                "HDNGINCLEYNRHKNNLIATGGNDGQLFITDIENLYSPTSYDPYLDKNNLQKITCLNWNKKVSHILATSSNNGNTVIWDL" +
+                "KIKKSAVSFRDPHSRTKTSSLSWLSNQPTQVLISYDDDKNPCLQLWDLRNSNYPIKEIIGHSKGINNICFSPIDTNLLLS" +
+                "SGKDVTKCWYLDNNNFDIFNEINNSANNIYSKWSPYIPDLFASSTNMDTIQINSINNGNKMTSKYIPTFYKKEAGICIGF" +
+                "GGKICTFDNSTNNMSNVNNMNNVNNMNNINSFNNDNSCDGEYDSNKGKNKSTQKKFLIKYHIYPTDMELISEADNFEKYI" +
+                "TSGNYKEFCESKINKCDDDHEKLTWQILQLLCTSQRGDIVKYLGHDINNIVDKIMQTIGKQPGFIFKTLIDEKENNNNNN" +
+                "NNNSTNQMYQNDVLLHNDPNLMNNYLLKDNMNPNIMLNNNNNNINNRTGTNVMYSNGQNLLGDTNHNEENFNGNFDIDPE" +
+                "KFFRELGEKTENEKIKQNEEDISGNDEHLLNSSIKGKENKTKNKKSGLGTDDNNDNGDHNKNEGSNINGEHVSEHILNEK" +
+                "NNTNNWNLGIEAIIKECVLIGNIETAVELCLHKNRMADALLLSSFGGEQLWHKTKTIYIKKQNDNFLKNINYVLDDKLEN" +
+                "LINNVDLNSWEEALSILCTYAINNPNFNSLCEMLAKRLQNEKFDIRAASICYLCACNFSETVEIWNNMPSKKTSLLNVLQ" +
+                "DIVEKMTILKMIIKYENFNSIMNQKISQYAELLANSGRLKAAMTFLCLIQHDQSIESLILRDRIYNSANHVLCQQIKPPI" +
+                "SPFQIVDIKPSPNVYQNNMYNNNNNNNNININSSSNNNNNNNNNKVLSSMHHPMQQFNQCNVNKMYTSTSNIINNNTMNS" +
+                "NFKSVIPPPLPMNTQMNNSTSSIQPPPSVPPTKFHTQIINNTMNSRSSIATTTKNYPTSNLNSVIPTSMNNMNTNISHGN" +
+                "NVTPPYMSQTNVAVPNMNNNNNNNNTMNPTYPSLPKFPNYNLNSQVQQNSIIPEKQLTSPMFSSNSYGNINKTHTTNNAV" +
+                "PPPPNVTSSVVTPPMPSNQLNNTRSSFADIQNVVSPPRNKNQSISSTANLNYQHDNQFNKRECMEQPVYPMTNQSSMFSM" +
+                "NNTMQKKNVPGGFQDNTSQMNYGMQPTGSPPPSSLSTTSPIAGALTVTPGMPVPWPIPTTTQQLGSTTQSTANENKKIQT" +
+                "ATKEQNGVLMNRNHIENIKKTISNLLNIYTSQESVKKKADDVSSKVYELFEKLDCGAFNEQINDSLLNLVNCINANDFKT" +
+                "TNKIIVDLSRNLWDGSNKAW";
+        String newSequence = "MALKSINISGNFEWCPFEEYKNYLLCFNSHNLLYSNNNSLNNYIYLLDINLNSEIRNLEIVNKYNFEDALKYDNDVIKGG" +
+                "NKKNNKNNKNNHNNNSVNEYVTCFEWMNSNNFVDINNNEELSKGIIVGGLTNGDIVLLNAKNLFETNRNYDNFILSKTNI" +
+                "HDNGINCLEYNRHKNNLIATGGNDGQLFITDIENLYSPTSYDPYLDKNNLQKITCLNWNKKVSHILATSSNNGNTVIWDL" +
+                "KIKKSAVSFRDPHSRTKTSSLSWLSNQPTQVLISYDDDKNPCLQLWDLRNSNYPIKEIIGHSKGINNICFSPIDTNLLLS" +
+                "SGKDVTKCWYLDNNNFDIFNEINNSANNIYSKWSPYIPDLFASSTNMDTIQINSINNGNKMTSKYIPTFYKKEAGICIGF" +
+                "GGKICTFDNSTNNMSNVNNMNNVNNMNNINSFNNDNSCDGEYDSNKGKNKSTQKKFLIKYHIYPTDMELISEADNFEKYI" +
+                "TSGNYKEFCESKINKCDDDHEKLTWQILQLLCTSQRGDIVKYLGHDINNIVDKIMQTIGKQPGFIFKTLIDEKENNNNNN" +
+                "NNNSTNQMYQNDVLLHNDPNLMNNYLLKDNMNPNIMLNNNNNNINNRTGTNVMYSNGQNLLGDTNHNEENFNGNFDIDPE" +
+                "KFFRELGEKTENEKIKQNEEDISGNDEHLLNSSIKGKENKTKNKKSGLGTDDNNDNGDHNKNEGSNINGEHVSEHILNEK" +
+                "NNTNNWNLGIEAIIKECVLIGNIETAVELCLHKNRMADALLLSSFGGEQLWHKTKTIYIKKQNDNFLKNINYVLDDKLEN" +
+                "LINNVDLNSWEEALSILCTYAINNPNFNSLCEMLAKRLQNEKFDIRAASICYLCACNFSETVEIWNNMPSKKTSLLNVLQ" +
+                "DIVEKMTILKMIIKYENFNSIMNQKISQYAELLANSGRLKAAMTFLCLIQHDQSIESLILRDRIYNSANHVLCQQIKPPI" +
+                "SPFQIVDIKPSPNVYQNNMYNNNNNNNNININSSSNNNNNNNNNKVLSSMHHPMQQFNQCNVNKMYTSTSNIINNNTMNS" +
+                "NFKSVIPPPLPMNTQMNNSTSSIQPPPSVPPTKFHTQIINNTMNSRSSIATTTKNYPTSNLNSVIPTSMNNMNTNISHGN" +
+                "NVTPPYMSQTNVAVPNMNNNNNNNNTMNPTYPSLPKFPNYNLNSQVQQNSIIPEKQLTSPMFSSNSYGNINKTHTTNNAV" +
+                "PPPPNVTSSVVTPPMPSNQLNNTRSSFADIQNVVSPPRNKNQSISSTANLNYQHDNQFNKRECMEQPVYPMTNQSSMFSM" +
+                "NNTMQKKNVPGGFQDNTSQMNYGMQPTGSPPPSSLSTTSPIAGALTVTPGMPVPWPIPTTTQQLGSTTQSTANENKKIQT" +
+                "ATKEQNGVLMNRNHIENIKKTISNLLNIYTSQESVKKKADDVSSKVYELFEKLDCGAFNEQINDSLLNLVNCINANDFKT" +
+                "TNKIIVDLSRNLWDGSNKAWIMGVKHIIPKC";
+
+        Assert.assertEquals(1460, oldSequence.length());
+        Assert.assertEquals(1471, newSequence.length());
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range oldRange = getMockBuilder().createRange(1300, 1300, 1460, 1460);
+        oldRange.prepareSequence(oldSequence);
+        feature.addRange(oldRange);
+
+        Assert.assertNotNull(oldRange.getFullSequence());
+        Assert.assertNotNull(oldRange.getSequence());
+
+        String oldSeq = oldRange.getFullSequence();
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+        Assert.assertEquals(1, updatedRanges.size());
+
+        UpdatedRange updatedRange = updatedRanges.iterator().next();
+        Assert.assertTrue(updatedRange.isRangeLengthChanged());
+        Assert.assertTrue(updatedRange.isSequenceChanged());
+
+        String newSeq = oldRange.getFullSequence();
+
+        //Assert.assertEquals(oldSeq, newSeq);
+
+        Assert.assertEquals(1300, oldRange.getFromIntervalStart());
+        Assert.assertEquals(1300, oldRange.getFromIntervalEnd());
+        Assert.assertEquals(1471, oldRange.getToIntervalStart());
+        Assert.assertEquals(1471, oldRange.getToIntervalEnd());
     }
 }

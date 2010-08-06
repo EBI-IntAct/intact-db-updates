@@ -73,5 +73,10 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
                                             ") changed from "+evt.getUpdatedRange().getOldRange()+" to "+evt.getUpdatedRange().getNewRange());
     }
 
+    public void onRangeOutOfBound(RangeOutOfBoundEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Range "+evt.getOutOfBoundRange().getOutOfBoundRange().getAc()+" wasn't updated because it " +
+                "is invalid (range "+evt.getOutOfBoundRange().getOutOfBoundRange()+" doesn't fit in sequence of length "+evt.getOutOfBoundRange().getSequence().length()+")");
+    }
+
 
 }
