@@ -44,6 +44,8 @@ public class ProteinServiceImpl implements ProteinService {
 
     private UniprotServiceResult uniprotServiceResult;
 
+    private static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
+
     public static final Log log = LogFactory.getLog( ProteinServiceImpl.class );
 
     // TODO Factory could coordinate a shared cache between multiple instances of the service (eg. multiple services running in threads)
@@ -795,6 +797,67 @@ public class ProteinServiceImpl implements ProteinService {
 
         boolean sequenceUpdated = false;
         final String oldSequence = transcript.getSequence();
+
+        // in case the protin transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
+        if (CvXrefQualifier.CHAIN_PARENT_MI_REF.equalsIgnoreCase(uniprotTranscript.getParentXRefQualifier())){
+            boolean hasStartPosition = false;
+            boolean hasEndPosition = false;
+            String startToString = Integer.toString(uniprotTranscript.getStart());
+            String endToString = Integer.toString(uniprotTranscript.getEnd());
+
+            DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+            // check if the annotated object already contains a start and or end position
+            for (Annotation annot : transcript.getAnnotations()) {
+                if (CvTopic.CHAIN_SEQ_START.equals(annot.getCvTopic().getShortLabel())) {
+                   hasStartPosition = true;
+                   if (uniprotTranscript.getStart() == -1){
+                        annot.setAnnotationText(FEATURE_CHAIN_UNKNOWN_POSITION);
+                   }
+                    else {
+                       annot.setAnnotationText(startToString);
+                   }
+                    factory.getAnnotationDao().update(annot);
+                }
+                else if (CvTopic.CHAIN_SEQ_END.equals(annot.getCvTopic().getShortLabel())) {
+                   hasEndPosition = true;
+                   if (uniprotTranscript.getEnd() == -1){
+                        annot.setAnnotationText(FEATURE_CHAIN_UNKNOWN_POSITION);
+                   }
+                    else {
+                       annot.setAnnotationText(endToString);
+                   }
+                    factory.getAnnotationDao().update(annot);
+                }
+            }
+
+            CvObjectDao<CvTopic> cvTopicDao = factory.getCvObjectDao(CvTopic.class);
+
+            if (!hasStartPosition){
+                CvTopic startPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_START);
+
+                if (startPosition == null){
+                    throw new IllegalStateException("The chain_seq_start CvTopic doesn't exist in the database.");
+                }
+                Annotation start = new Annotation(startPosition, startToString);
+                factory.getAnnotationDao().persist(start);
+
+                transcript.addAnnotation(start);
+            }
+            if (!hasEndPosition){
+                CvTopic endPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_END);
+
+                if (endPosition == null){
+                    throw new IllegalStateException("The chain_seq_end CvTopic doesn't exist in the database.");
+                }
+                Annotation end = new Annotation(endPosition, endToString);
+                factory.getAnnotationDao().persist(end);
+
+                transcript.addAnnotation(end);
+            }
+            
+            factory.getProteinDao().update((ProteinImpl) transcript);
+        }
 
         if ( uniprotTranscript.getSequence() == null && !uniprotTranscript.isNullSequenceAllowed()) {
             if ( log.isDebugEnabled() ) {

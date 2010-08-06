@@ -173,9 +173,9 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         assertEquals( "Cell division control protein 42 homolog precursor (G25K GTP-binding protein)", protein.getFullName() );
         assertEquals( "34B44F9225EC106B", protein.getCrc64() );
         assertEquals( "MQTIKCVVVGDGAVGKTCLLISYTTNKFPSEYVPTVFDNYAVTVMIGGEPYTLGLFDTAG" +
-                      "QEDYDRLRPLSYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHHCPKTPFLLVGTQIDLR" +
-                      "DDPSTIEKLAKNKQKPITPETAEKLARDLKAVKYVECSALTQRGLKNVFDEAILAALEPP" +
-                      "ETQPKRKCCIF", protein.getSequence() );
+                "QEDYDRLRPLSYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHHCPKTPFLLVGTQIDLR" +
+                "DDPSTIEKLAKNKQKPITPETAEKLARDLKAVKYVECSALTQRGLKNVFDEAILAALEPP" +
+                "ETQPKRKCCIF", protein.getSequence() );
         assertNotNull( protein.getBioSource() );
         assertNotNull( protein.getBioSource().getAc() );
         assertEquals( "9615", protein.getBioSource().getTaxId() );

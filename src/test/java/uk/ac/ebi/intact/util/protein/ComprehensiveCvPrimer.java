@@ -52,5 +52,7 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvBiologicalRole.class, CvBiologicalRole.COFACTOR, CvBiologicalRole.COFACTOR_MI_REF);
 
         getCvObject(CvTopic.class, CvTopic.ISOFORM_COMMENT);
+        getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_START);
+        getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_END);
     }
 }

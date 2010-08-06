@@ -382,6 +382,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         // master protein with interaction, linked chain with no interaction ... both proteins should still be there post update
 
         Protein master = getMockBuilder().createProtein("P03362", "pol_htl1a");
+        master.getBioSource().setTaxId("11926");
 //        final Interaction interaction = getMockBuilder().createInteraction( master );
         getCorePersister().saveOrUpdate(master);
         Assert.assertNotNull(master.getAc());
@@ -391,6 +392,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         CvXrefQualifier chainParent = getMockBuilder().createCvObject( CvXrefQualifier.class, "MI:0951", "chain-parent");
 
         Protein chain = getMockBuilder().createProtein("P03362-PRO_0000038873", "Reverse transcriptase/ribonuclease H");
+        chain.setBioSource(master.getBioSource());
 
         chain.addXref( new InteractorXref( chain.getOwner(), intact, master.getAc(), chainParent ) );
 
@@ -419,6 +421,23 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(refreshedChain.getCrc64());
         Assert.assertNotNull(refreshedChain.getSequence());
         Assert.assertNotNull(refreshedChain.getBioSource());
+        Assert.assertEquals(2, refreshedChain.getAnnotations().size());
+
+        boolean hasStart = false;
+        boolean hasEnd = false;
+        for (Annotation a : refreshedChain.getAnnotations()){
+            if (CvTopic.CHAIN_SEQ_START.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
+                hasStart = true;
+                System.out.println("start : " + a.getAnnotationText());
+            }
+            else if (CvTopic.CHAIN_SEQ_END.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
+                hasEnd = true;
+                System.out.println("end : " + a.getAnnotationText());
+            }
+        }
+
+        Assert.assertTrue(hasStart);
+        Assert.assertTrue(hasEnd);
     }
 
     @Test
