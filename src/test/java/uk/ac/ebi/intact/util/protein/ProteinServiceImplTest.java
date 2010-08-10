@@ -445,67 +445,6 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    //@Test @DirtiesContext
-    /*public void retrieve_sequenceUpdateBadRanges() throws ProteinServiceException, IntactTransactionException {
-        CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
-        
-        Protein prot = getMockBuilder().createProtein("P60952", "canfa");
-        prot.getBioSource().setTaxId("9615");
-        int sequenceLength = prot.getSequence().length();
-        String oldSeq = prot.getSequence();
-
-        Range range = getMockBuilder().createRange(2, 2, sequenceLength, sequenceLength);
-        Feature feature = getMockBuilder().createFeatureRandom();
-        feature.getRanges().clear();
-        feature.addRange(range);
-
-        Interaction interaction = getMockBuilder().createInteraction(prot);
-        Component component = interaction.getComponents().iterator().next();
-        component.getBindingDomains().clear();
-        component.addBindingDomain(feature);
-
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
-
-        String featureAc = feature.getAc();
-
-        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
-        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getFeatureDao().countAll());
-        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
-
-        FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
-        UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
-        uniprotService.add( "P60952", canfa );
-
-        // try the updater
-        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
-        protUpdateProcessor.updateAll();
-
-        String proteinSeq = prot.getSequence();
-        String proteinCrc = prot.getCrc64();
-
-        // Update the seqence/CRC of the protein
-        System.out.println("SEQ: "+proteinSeq);
-        assertTrue( proteinSeq.length() == sequenceLength );
-        assertEquals( proteinSeq, oldSeq);
-
-        Feature f = IntactContext.getCurrentInstance().getDaoFactory().getFeatureDao().getByAc(featureAc);
-        //Collection<Annotation> ann = IntactContext.getCurrentInstance().getDaoFactory().getAnnotationDao().getAll();
-        //Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getAnnotationDao().countAll());
-        Assert.assertEquals(1, f.getAnnotations().size());
-        boolean hasRangeCaution = false;
-
-        for (Annotation a : f.getAnnotations()){
-             if (CvTopic.CAUTION_MI_REF.equals(a.getCvTopic())){
-                 if ("Range out of bound".equalsIgnoreCase(a.getAnnotationText())){
-                     hasRangeCaution = true;
-                 }
-             }
-        }
-        Assert.assertTrue(hasRangeCaution);
-    }*/
-
     @Test @DirtiesContext
     public void retrieve_intact1_uniprot0() throws Exception{
 

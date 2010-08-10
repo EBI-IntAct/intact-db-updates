@@ -80,7 +80,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
             for (Component comp : evt.getProtein().getActiveInstances()) {
                 addCaution(comp.getInteraction(), message);
-                IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
+                //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
             }
         }
     }

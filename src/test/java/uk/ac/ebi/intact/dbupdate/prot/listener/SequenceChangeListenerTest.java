@@ -24,6 +24,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 
@@ -109,6 +110,34 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
+    }
+
+    @Test @DirtiesContext
+    public void onProteinSequenceChanged_cautionOnInteraction() throws Exception {
+        CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+
+        String oldSequence = "ABCD";
+        String newSequence = "ZZCD";
+
+        Protein prot = getMockBuilder().createProteinRandom();
+        prot.setSequence(newSequence);
+
+        Interaction interaction = getMockBuilder().createInteraction(prot);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(0, cautionsBefore.size());
+
+        SequenceChangedListener listener = new SequenceChangedListener(0.50);
+        listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
+                prot, oldSequence));
+
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
+        Assert.assertEquals(1, cautionsAfter.size());
+        final Collection<Annotation> interactionCautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot.getActiveInstances().iterator().next().getInteraction(), Collections.singleton(caution));
+        Assert.assertEquals(1, interactionCautionsAfter.size());
     }
 
     @Test @DirtiesContext
