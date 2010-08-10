@@ -504,7 +504,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
              }
         }
         Assert.assertTrue(hasRangeCaution);
-    }
+    }*/
 
     @Test @DirtiesContext
     public void retrieve_intact1_uniprot0() throws Exception{
@@ -576,7 +576,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         }
 
 
-    }@/
+    }
 
     /**
      * Test that the protein xref and the protein are udpated when : countPrimary == 0 && countSecondary == 1
