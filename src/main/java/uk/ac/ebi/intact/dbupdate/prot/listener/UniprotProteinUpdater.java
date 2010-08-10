@@ -24,9 +24,11 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.model.Range;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
@@ -135,6 +137,11 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     @Override
     protected void sequenceChanged(Protein protein, String oldSequence) {
         proteinProcessor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence));
+    }
+
+    @Override
+    protected void rangeOutOfBoundFound(Range range, String sequence){
+        proteinProcessor.fireOnRangeOutOfBound(new RangeOutOfBoundEvent(IntactContext.getCurrentInstance().getDataContext(), new OutOfBoundRange(range, sequence)));        
     }
 
     @Override

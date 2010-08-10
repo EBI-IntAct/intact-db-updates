@@ -15,16 +15,19 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.RangeOutOfBoundEvent;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
-import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.Feature;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.util.Collection;
 
@@ -36,6 +39,10 @@ import java.util.Collection;
  */
 public class RangeFixer extends AbstractProteinUpdateProcessorListener {
 
+    private static final Log log = LogFactory.getLog( RangeFixer.class );
+
+    private static final String outOfBoundMessage = "Range out of bound.";
+
     @Override
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         RangeChecker rangeChecker = new RangeChecker();
@@ -44,20 +51,55 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
 
             for (Component component : evt.getProtein().getActiveInstances()) {
                 for (Feature feature : component.getBindingDomains()) {
-                    Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, evt.getOldSequence());
+
                     Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence());
 
-                    // fire the events for the range out of bound
-                    for (OutOfBoundRange outOfBoundRange : outOfBoundRanges) {
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnRangeOutOfBound(new RangeOutOfBoundEvent(evt.getDataContext(), outOfBoundRange));
-                    }
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         processor.fireOnRangeChange(new RangeChangedEvent(evt.getDataContext(), updatedRange));
                     }
                 }
+            }
+        }
+    }
+
+    @Override
+    public void onRangeOutOfBound(RangeOutOfBoundEvent evt){
+        Range range = evt.getOutOfBoundRange().getOutOfBoundRange();
+
+        if (range != null){
+            Feature feature = range.getFeature();
+
+            if (feature != null){
+                // get the caution from the DB or create it and persist it
+                final DaoFactory daoFactory = IntactContext.getCurrentInstance().getDaoFactory();
+                CvTopic caution = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+
+                if (caution == null) {
+                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+                }
+
+                Collection<Annotation> annotations = feature.getAnnotations();
+
+                for (Annotation a : annotations){
+                    if (caution.equals(a.getCvTopic())){
+                        if (outOfBoundMessage.equals(a.getAnnotationText())){
+                            if (log.isDebugEnabled()) {
+                                log.debug("Feature object already contains a caution. Not adding another one: "+a);
+                            }
+                            return;
+                        }
+                    }
+                }
+
+                Annotation cautionRange = new Annotation(caution, outOfBoundMessage);
+                daoFactory.getAnnotationDao().persist(cautionRange);
+
+                feature.addAnnotation(cautionRange);
+                daoFactory.getFeatureDao().update(feature);
             }
         }
     }

@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.model.Interactor;
 import uk.ac.ebi.intact.model.Range;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.clone.IntactClonerException;
+import uk.ac.ebi.intact.model.util.FeatureUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,28 +41,6 @@ import java.util.List;
 public class RangeChecker {
 
     private static final Log log = LogFactory.getLog( RangeChecker.class );
-
-    /**
-     *
-     * @param feature : the feature to check
-     * @param sequence : the sequence
-     * @return a collection of outOfBoundRanges for all the ranges of the feature which are not within the sequence
-     */
-    public Collection<OutOfBoundRange> collectOutOfBoundRanges(Feature feature, String sequence){
-        if (feature == null) throw new NullPointerException("Feature was null");
-        if (sequence == null) throw new NullPointerException("Sequence was null");
-
-        List<OutOfBoundRange> outOfBoundRanges = new ArrayList<OutOfBoundRange>();
-
-        for (Range range : feature.getRanges()) {
-
-            if (!isRangeWithinSequence(sequence, range)){
-                outOfBoundRanges.add(new OutOfBoundRange(range, sequence));
-            }
-        }
-
-        return outOfBoundRanges;
-    }
 
     /**
      * Changes the features ranges by analysing the shift in positions after a sequence is changed.
@@ -88,7 +67,7 @@ public class RangeChecker {
                 throw new IntactException("Could not clone range: "+range, e);
             }
 
-            if (isRangeWithinSequence(oldSequence, range)){
+            if (FeatureUtils.isRangeWithinSequence(range, oldSequence)){
                 boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence);
 
                 range.prepareSequence(newSequence);
@@ -103,18 +82,6 @@ public class RangeChecker {
         }
 
         return updatedRanges;
-    }
-
-    protected boolean isRangeWithinSequence(String sequence, Range range){
-        if (sequence == null){
-            return true;
-        }
-
-        int sequenceLength = sequence.length();
-        if (range.getFromIntervalEnd() > sequenceLength || range.getToIntervalEnd() > sequenceLength || range.getFromIntervalStart() > sequenceLength || range.getToIntervalStart() > sequenceLength){
-            return false;
-        }
-        return true;
     }
 
     protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {

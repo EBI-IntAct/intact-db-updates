@@ -80,6 +80,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
             for (Component comp : evt.getProtein().getActiveInstances()) {
                 addCaution(comp.getInteraction(), message);
+                IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
             }
         }
     }
@@ -103,11 +104,12 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
         if (caution == null) {
             caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
         }
 
         // add the caution to the annotated object
         Annotation annotation = new Annotation(IntactContext.getCurrentInstance().getInstitution(), caution, cautionMessage);
+        daoFactory.getAnnotationDao().persist(annotation);
         ao.addAnnotation(annotation);
     }
 }

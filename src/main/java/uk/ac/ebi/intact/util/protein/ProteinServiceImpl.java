@@ -21,6 +21,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -554,26 +555,47 @@ public class ProteinServiceImpl implements ProteinService {
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein );
 
         // Sequence
-        boolean sequenceUpdated = false;
+        boolean sequenceToBeUpdated = false;
         String oldSequence = protein.getSequence();
         String sequence = uniprotProtein.getSequence();
-        if ( sequence == null || !sequence.equals( oldSequence ) ) {
+        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
             if ( log.isDebugEnabled() ) {
                 log.debug( "Sequence requires update." );
             }
+            sequenceToBeUpdated = true;
+        }
+
+        if ( sequenceToBeUpdated && !protein.getActiveInstances().isEmpty() ) {
+
+            Set<Range> badRanges = FeatureUtils.getBadRanges(protein);
+
+            if (badRanges.isEmpty()){
+                protein.setSequence( sequence );
+
+                // CRC64
+                String crc64 = uniprotProtein.getCrc64();
+                if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    protein.setCrc64( crc64 );
+                }
+
+                sequenceChanged(protein, oldSequence);
+            }
+            else {
+                for (Range range : badRanges){
+                    rangeOutOfBoundFound(range, oldSequence);
+                }
+            }
+        }
+        else if (sequenceToBeUpdated && protein.getActiveInstances().isEmpty()){
             protein.setSequence( sequence );
-            sequenceUpdated = true;
-        }
 
-        // CRC64
-        String crc64 = uniprotProtein.getCrc64();
-        if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
-            log.debug( "CRC64 requires update." );
-            protein.setCrc64( crc64 );
-        }
-
-        if ( sequenceUpdated && !protein.getActiveInstances().isEmpty() ) {
-            sequenceChanged(protein, oldSequence);
+            // CRC64
+            String crc64 = uniprotProtein.getCrc64();
+            if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
+                log.debug( "CRC64 requires update." );
+                protein.setCrc64( crc64 );
+            }
         }
 
         // Persist changes
@@ -669,6 +691,12 @@ public class ProteinServiceImpl implements ProteinService {
     protected void sequenceChanged(Protein protein, String oldSequence) {
         if ( log.isDebugEnabled() ) {
             log.debug( "Request a Range check on Protein " + protein.getShortLabel() + " " + protein.getAc() );
+        }
+    }
+
+    protected void rangeOutOfBoundFound(Range range, String sequence) {
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Can't update a feature range " + range.getAc());
         }
     }
 
@@ -795,9 +823,6 @@ public class ProteinServiceImpl implements ProteinService {
             transcript.setFullName( master.getFullName() );
         }
 
-        boolean sequenceUpdated = false;
-        final String oldSequence = transcript.getSequence();
-
         // in case the protin transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
         if (CvXrefQualifier.CHAIN_PARENT_MI_REF.equalsIgnoreCase(uniprotTranscript.getParentXRefQualifier())){
             boolean hasStartPosition = false;
@@ -810,23 +835,23 @@ public class ProteinServiceImpl implements ProteinService {
             // check if the annotated object already contains a start and or end position
             for (Annotation annot : transcript.getAnnotations()) {
                 if (CvTopic.CHAIN_SEQ_START.equals(annot.getCvTopic().getShortLabel())) {
-                   hasStartPosition = true;
-                   if (uniprotTranscript.getStart() == -1){
+                    hasStartPosition = true;
+                    if (uniprotTranscript.getStart() == -1){
                         annot.setAnnotationText(FEATURE_CHAIN_UNKNOWN_POSITION);
-                   }
+                    }
                     else {
-                       annot.setAnnotationText(startToString);
-                   }
+                        annot.setAnnotationText(startToString);
+                    }
                     factory.getAnnotationDao().update(annot);
                 }
                 else if (CvTopic.CHAIN_SEQ_END.equals(annot.getCvTopic().getShortLabel())) {
-                   hasEndPosition = true;
-                   if (uniprotTranscript.getEnd() == -1){
+                    hasEndPosition = true;
+                    if (uniprotTranscript.getEnd() == -1){
                         annot.setAnnotationText(FEATURE_CHAIN_UNKNOWN_POSITION);
-                   }
+                    }
                     else {
-                       annot.setAnnotationText(endToString);
-                   }
+                        annot.setAnnotationText(endToString);
+                    }
                     factory.getAnnotationDao().update(annot);
                 }
             }
@@ -855,21 +880,52 @@ public class ProteinServiceImpl implements ProteinService {
 
                 transcript.addAnnotation(end);
             }
-            
+
             factory.getProteinDao().update((ProteinImpl) transcript);
         }
 
-        if ( uniprotTranscript.getSequence() == null && !uniprotTranscript.isNullSequenceAllowed()) {
+         // Sequence
+        boolean sequenceToBeUpdated = false;
+        String oldSequence = transcript.getSequence();
+        String sequence = uniprotTranscript.getSequence();
+        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
             if ( log.isDebugEnabled() ) {
-                log.error( "Splice variant " + uniprotTranscript.getPrimaryAc() + " has no sequence" );
+                log.debug( "Sequence requires update." );
             }
-        } else {
-            if ( !uniprotTranscript.getSequence().equals(oldSequence) ) {
-                transcript.setSequence( uniprotTranscript.getSequence() );
-                sequenceUpdated = true;
-            }
+            sequenceToBeUpdated = true;
+        }
 
-            transcript.setCrc64( Crc64.getCrc64(uniprotTranscript.getSequence()) );
+        if ( sequenceToBeUpdated && !transcript.getActiveInstances().isEmpty() ) {
+
+            Set<Range> badRanges = FeatureUtils.getBadRanges(transcript);
+
+            if (badRanges.isEmpty()){
+                transcript.setSequence( sequence );
+
+                // CRC64
+                String crc64 = uniprotProtein.getCrc64();
+                if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    transcript.setCrc64( crc64 );
+                }
+
+                sequenceChanged(transcript, oldSequence);
+            }
+            else {
+                for (Range range : badRanges){
+                    rangeOutOfBoundFound(range, oldSequence);
+                }
+            }
+        }
+        else if (sequenceToBeUpdated && transcript.getActiveInstances().isEmpty()){
+            transcript.setSequence( sequence );
+
+            // CRC64
+            String crc64 = uniprotProtein.getCrc64();
+            if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
+                log.debug( "CRC64 requires update." );
+                transcript.setCrc64( crc64 );
+            }
         }
 
         // Add IntAct Xref
@@ -879,10 +935,6 @@ public class ProteinServiceImpl implements ProteinService {
 
         // Update Aliases from the uniprot protein aliases
         AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein );
-
-        if (sequenceUpdated) {
-            sequenceChanged(transcript, oldSequence);
-        }
 
         // Update Note
         String note = uniprotTranscript.getNote();

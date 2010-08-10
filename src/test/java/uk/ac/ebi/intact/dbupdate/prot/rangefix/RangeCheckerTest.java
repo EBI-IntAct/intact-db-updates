@@ -354,8 +354,6 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 220, 220);
         feature.addRange(range);
 
-        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
-        Assert.assertEquals(1, outOfBoundRanges.size());
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -379,9 +377,6 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
 
-        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
-        Assert.assertEquals(1, outOfBoundRanges.size());
-
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -401,9 +396,6 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
-
-        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
-        Assert.assertEquals(1, outOfBoundRanges.size());
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -427,9 +419,6 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(20, 20, 20, 20);
         feature.addRange(range);
-
-        final Collection<OutOfBoundRange> outOfBoundRanges = rangeChecker.collectOutOfBoundRanges(feature, oldSequence);
-        Assert.assertEquals(0, outOfBoundRanges.size());
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(1, updatedRanges.size());
