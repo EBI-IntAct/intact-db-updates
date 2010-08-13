@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 
 /**
  * TODO comment this
@@ -11,20 +11,20 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
  * @since <pre>06-Aug-2010</pre>
  */
 
-public class RangeOutOfBoundEvent implements ProteinProcessorEvent {
+public class InvalidRangeEvent implements ProteinProcessorEvent {
     private DataContext dataContext;
 
-    private OutOfBoundRange outOfBoundRange;
+    private InvalidRange invalidRange;
 
-    public RangeOutOfBoundEvent(DataContext dataContext, OutOfBoundRange range) {
+    public InvalidRangeEvent(DataContext dataContext, InvalidRange range) {
         this.dataContext = dataContext;
-        this.outOfBoundRange = range;
+        this.invalidRange = range;
     }
     public DataContext getDataContext() {
         return this.dataContext;
     }
 
-        public OutOfBoundRange getOutOfBoundRange() {
-        return outOfBoundRange;
+        public InvalidRange getInvalidRange() {
+        return invalidRange;
     }
 }

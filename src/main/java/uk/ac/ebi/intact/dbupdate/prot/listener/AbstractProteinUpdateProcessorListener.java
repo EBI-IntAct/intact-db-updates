@@ -67,7 +67,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinP
         // nothing
     }
 
-    public void onRangeOutOfBound(RangeOutOfBoundEvent evt) throws ProcessorException {
+    public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
         // nothing
     }
 

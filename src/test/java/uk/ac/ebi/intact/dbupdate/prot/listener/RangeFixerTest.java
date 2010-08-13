@@ -5,8 +5,8 @@ import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.event.RangeOutOfBoundEvent;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
+import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 
@@ -50,7 +50,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, cautionsBefore.size());
 
         RangeFixer listener = new RangeFixer();
-        listener.onRangeOutOfBound(new RangeOutOfBoundEvent(getDataContext(), new OutOfBoundRange(range, oldSequence)));
+        listener.onInvalidRange(new InvalidRangeEvent(getDataContext(), new InvalidRange(range, oldSequence, "out of bound")));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());

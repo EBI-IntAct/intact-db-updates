@@ -36,7 +36,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter updateCasesWriter;
     private ReportWriter sequenceChangedWriter;
     private ReportWriter rangeChangedWriter;
-    private ReportWriter rangeOutOfBoundWriter;
+    private ReportWriter invalidRangeWriter;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -56,7 +56,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.updateCasesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "update_cases.csv")));
         this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
-        this.rangeOutOfBoundWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_out_of_bound_error.csv")));
+        this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_out_of_bound_error.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {
@@ -95,8 +95,8 @@ public class FileReportHandler implements UpdateReportHandler{
         return rangeChangedWriter;
     }
 
-    public ReportWriter getRangeOutOfBoundWriter() throws IOException {
-        return rangeOutOfBoundWriter;
+    public ReportWriter getInvalidRangeWriter() throws IOException {
+        return invalidRangeWriter;
     }
 
     public void close() throws IOException {
@@ -108,6 +108,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.nonUniprotProteinWriter.close();
         this.sequenceChangedWriter.close();
         this.rangeChangedWriter.close();
-        this.rangeOutOfBoundWriter.close();
+        this.invalidRangeWriter.close();
     }
 }

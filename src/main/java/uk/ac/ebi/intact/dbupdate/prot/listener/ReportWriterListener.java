@@ -20,7 +20,7 @@ import org.joda.time.DateTime;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.OutOfBoundRange;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.report.ReportWriter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
@@ -232,9 +232,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
-    public void onRangeOutOfBound(RangeOutOfBoundEvent evt) throws ProcessorException {
-        OutOfBoundRange outOfBoundRange = evt.getOutOfBoundRange();
-        Feature feature = outOfBoundRange.getOutOfBoundRange().getFeature();
+    public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
+        InvalidRange outOfBoundRange = evt.getInvalidRange();
+        Feature feature = outOfBoundRange.getInvalidRange().getFeature();
         Component component = feature.getComponent();
         Interactor interactor = component.getInteractor();
 
@@ -242,9 +242,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
 
         try {
-            ReportWriter writer = reportHandler.getRangeOutOfBoundWriter();
+            ReportWriter writer = reportHandler.getInvalidRangeWriter();
             writer.writeHeaderIfNecessary("Range AC",
                                           "Pos.",
+                                          "Computed Pos.",
                                           "Sequence length.",
                                           "Feature AC",
                                           "Feature Label",
@@ -253,8 +254,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                                           "Prot. Label",
                                           "Prot. Uniprot",
                                           "Message");
-            writer.writeColumnValues(outOfBoundRange.getOutOfBoundRange().getAc(),
-                                     outOfBoundRange.getOutOfBoundRange().toString(),
+            writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
+                                     outOfBoundRange.getInvalidRange().toString(),
+                                     dashIfNull(outOfBoundRange.getNewRanges()),
                                      Integer.toString(outOfBoundRange.getSequence().length()),
                                      feature.getAc(),
                                      feature.getShortLabel(),

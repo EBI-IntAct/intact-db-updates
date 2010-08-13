@@ -159,9 +159,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnRangeOutOfBound(RangeOutOfBoundEvent evt) {
+    public void fireOnInvalidRange(InvalidRangeEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
-            listener.onRangeOutOfBound(evt);
+            listener.onInvalidRange(evt);
         }
     }
 }

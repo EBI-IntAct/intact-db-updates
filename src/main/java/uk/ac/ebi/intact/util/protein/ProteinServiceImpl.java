@@ -583,7 +583,7 @@ public class ProteinServiceImpl implements ProteinService {
             }
             else {
                 for (Range range : badRanges){
-                    rangeOutOfBoundFound(range, oldSequence);
+                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
                 }
             }
         }
@@ -694,7 +694,7 @@ public class ProteinServiceImpl implements ProteinService {
         }
     }
 
-    protected void rangeOutOfBoundFound(Range range, String sequence) {
+    protected void invalidRangeFound(Range range, String sequence, String message) {
         if ( log.isDebugEnabled() ) {
             log.debug( "Can't update a feature range " + range.getAc());
         }
@@ -913,7 +913,7 @@ public class ProteinServiceImpl implements ProteinService {
             }
             else {
                 for (Range range : badRanges){
-                    rangeOutOfBoundFound(range, oldSequence);
+                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
                 }
             }
         }
