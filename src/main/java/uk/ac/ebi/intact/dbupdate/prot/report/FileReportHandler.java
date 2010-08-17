@@ -56,7 +56,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.updateCasesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "update_cases.csv")));
         this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
-        this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_out_of_bound_error.csv")));
+        this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {

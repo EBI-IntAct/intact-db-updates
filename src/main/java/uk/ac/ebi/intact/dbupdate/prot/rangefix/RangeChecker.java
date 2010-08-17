@@ -78,6 +78,7 @@ public class RangeChecker {
                         log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
 
                     range.prepareSequence(newSequence);
+                    IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
 
                     updatedRanges.add(new UpdatedRange(oldRange, range));
                 }
@@ -88,32 +89,33 @@ public class RangeChecker {
     }
 
     protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, ProteinUpdateProcessor processor) {
+        // to know if we have shifted a position
         boolean rangeShifted = false;
-        boolean canShiftToCvFuzzyType = false;
-        boolean canShiftFromCvFuzzyType = false;
+        // to know if it is possible to shift the positions of the range
+        boolean canShiftCvFuzzyType = false;
 
+        // the old full feature sequence
         String oldFullFeatureSequence = range.getFullSequence();
+        // the old truncated sequence (100 aa)
         String oldTruncatedFeatureSequence = range.getSequence();
 
-        // case: n-terminal or c-terminal
+        // case 'to': n-terminal or c-terminal. In case of C,N terminal and undetermined, the from and to fuzzyTypes are equal
         if (range.getToCvFuzzyType() != null) {
+            // if not C, N terminal or undetermined, we can shift the ranges.
             if (!range.getToCvFuzzyType().isCTerminal() && !range.getToCvFuzzyType().isNTerminal() && !range.getToCvFuzzyType().isUndetermined()){
-                canShiftToCvFuzzyType = true;
+                canShiftCvFuzzyType = true;
+            }
+            // if C, N terminal or undetermined, we can't shift the ranges but we can update the sequence chunk we keep in the database for this range.
+            else {
+                range.prepareSequence(newSequence);
             }
         }
+        // It is not a fuzzy type, we can shift the ranges
         else {
-            canShiftToCvFuzzyType = true;
+            canShiftCvFuzzyType = true;
         }
 
-        if (range.getFromCvFuzzyType() != null) {
-            if (!range.getFromCvFuzzyType().isCTerminal() && !range.getFromCvFuzzyType().isNTerminal() && !range.getFromCvFuzzyType().isUndetermined()){
-                canShiftFromCvFuzzyType = true;
-            }
-        }
-        else {
-            canShiftFromCvFuzzyType = true;
-        }
-
+        // we create a clone to test the new range positions
         Range clone = new Range(range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToIntervalStart(), range.getToIntervalEnd(), oldSequence);
         clone.setFromCvFuzzyType(range.getFromCvFuzzyType());
         clone.setToCvFuzzyType(range.getToCvFuzzyType());
@@ -121,32 +123,35 @@ public class RangeChecker {
         // If we can shift the positions, calculate the shift of each position based on the diffs between the old and the new sequences.
         // We need to apply a correction (-1/+1) because the shift calculation is index based (0 is the first position),
         // whereas the range positions are not (first position is 1)
+        int shiftedFromIntervalStart;
+        int shiftedFromIntervalEnd;
+        int shiftedToIntervalStart;
+        int shiftedToIntervalEnd;
 
-        if (canShiftFromCvFuzzyType){
-            int shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart(), oldSequence);
+        // we can shift the positions, the range is not C, N terminal nor undetermined
+        if (canShiftCvFuzzyType){
+            shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart(), oldSequence);
 
             if (shiftedFromIntervalStart != range.getFromIntervalStart()) {
                 clone.setFromIntervalStart(shiftedFromIntervalStart);
                 rangeShifted = true;
             }
 
-            int shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd(), oldSequence);
+            shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd(), oldSequence);
 
             if (shiftedFromIntervalEnd != range.getFromIntervalEnd()) {
                 clone.setFromIntervalEnd(shiftedFromIntervalEnd);
                 rangeShifted = true;
             }
-        }
 
-        if (canShiftToCvFuzzyType){
-            int shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart(), oldSequence);
+            shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart(), oldSequence);
 
             if (shiftedToIntervalStart != range.getToIntervalStart()) {
                 clone.setToIntervalStart(shiftedToIntervalStart);
                 rangeShifted = true;
             }
 
-            int shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd(), oldSequence);
+            shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd(), oldSequence);
 
             if (shiftedToIntervalEnd != range.getToIntervalEnd()) {
                 clone.setToIntervalEnd(shiftedToIntervalEnd);
@@ -154,78 +159,67 @@ public class RangeChecker {
             }
         }
 
+        // One of the range positions has been shifted
         if (rangeShifted){
+            // check that the new shifted range is within the new sequence and consistent
             if (!FeatureUtils.isABadRange(clone, newSequence)){
 
-                if ((range.getFromIntervalEnd() == oldSequence.length() && clone.getFromIntervalEnd() != newSequence.length())
-                        || (range.getToIntervalEnd() == oldSequence.length() && clone.getToIntervalEnd() != newSequence.length())){
+                // the end position was at the end of the sequence and now is not anymore
+                if (range.getToIntervalEnd() == oldSequence.length() && clone.getToIntervalEnd() != newSequence.length()){
                     // the range has been shifted but the feature is not at the C-terminal position anymore
                     processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The feature ranges have been successfully shifted ("+clone.toString()+") but need to be reviewed because the global sequence of the protein length has been changed and it affects the feature positions (not N or C terminal anymore).", clone.toString())));
                     rangeShifted = false;
                 }
-                else if ((range.getFromIntervalStart() == 1 && clone.getFromIntervalStart() != 1)
-                        || (range.getToIntervalStart() == 1 && clone.getToIntervalStart() != 1)){
+                // the start position was at the beginning of the sequence and now is not anymore
+                else if (range.getFromIntervalStart() == 1 && clone.getFromIntervalStart() != 1){
                     // the range has been shifted but the feature is not at the N-terminal position anymore
                     processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The feature ranges have been successfully shifted ("+clone.toString()+") but need to be reviewed because the global sequence of the protein length has been changed and it affects the feature positions (not N or C terminal anymore).", clone.toString())));
                     rangeShifted = false;
                 }
+                // the intern range has been shifted
                 else {
+
+                    // we prepare the new feature sequence
                     clone.prepareSequence(newSequence);
+                    // the new full feature sequence
                     String newFullFeatureSequence = clone.getFullSequence();
+                    // the new truncated feature sequence
                     String newTruncatedFeatureSequence = clone.getSequence();
 
+                    // the full feature sequence was and is still not null
                     if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
-                        if (newFullFeatureSequence.equals(oldFullFeatureSequence)){
-                            range.setFromIntervalStart(clone.getFromIntervalStart());
-                            range.setFromIntervalEnd(clone.getFromIntervalEnd());
-                            range.setToIntervalStart(clone.getToIntervalStart());
-                            range.setToIntervalEnd(clone.getToIntervalEnd());
 
-                            IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
-                        }
-                        else {
-                            // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                            processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString())));
-                            rangeShifted = false;
-                        }
+                        // check that the new feature sequence is the same
+                        rangeShifted = checkNewFeatureContent(range, newSequence, processor, rangeShifted, oldFullFeatureSequence, clone, newFullFeatureSequence);
                     }
+                    // the new full feature sequence is null but was not before shifting the ranges
                     else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                         // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
                         processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence cannot be computed.", clone.toString())));
                         rangeShifted = false;
                     }
+                    // the truncated sequence was and is still not null
                     else if (newTruncatedFeatureSequence != null && oldTruncatedFeatureSequence != null){
-                        if (newTruncatedFeatureSequence.equals(oldTruncatedFeatureSequence)){
-                            range.setFromIntervalStart(clone.getFromIntervalStart());
-                            range.setFromIntervalEnd(clone.getFromIntervalEnd());
-                            range.setToIntervalStart(clone.getToIntervalStart());
-                            range.setToIntervalEnd(clone.getToIntervalEnd());
-
-                            range.prepareSequence(newSequence);
-
-                            IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
-                        }
-                        else {
-                            // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                            processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new feature sequence is different from the previous one.", clone.toString())));
-                            rangeShifted = false;
-                        }
+                        // check that the new feature sequence is the same
+                        rangeShifted = checkNewFeatureContent(range, newSequence, processor, rangeShifted, oldTruncatedFeatureSequence, clone, newTruncatedFeatureSequence);
                     }
+                    // the new truncated sequence is null and was not before shifting the ranges
                     else if (newTruncatedFeatureSequence == null && oldTruncatedFeatureSequence != null){
                         // the new truncated sequence couldn't be computed, a problem occured : we can't shift the ranges
                         processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new feature sequence cannot be computed.", clone.toString())));
                         rangeShifted = false;
                     }
+                    // Either the previous feature sequence was null and is not anymore, or the previous sequence was null and is still null.
+                    // if it was null, we need to update anyway (maybe a problem from a previous bug when loading xml files)
                     else {
                         range.setFromIntervalStart(clone.getFromIntervalStart());
                         range.setFromIntervalEnd(clone.getFromIntervalEnd());
                         range.setToIntervalStart(clone.getToIntervalStart());
                         range.setToIntervalEnd(clone.getToIntervalEnd());
-
-                        IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
                     }
                 }
             }
+            // one position has been shifted but is not valid
             else {
                 // we couldn't shift the ranges properly for one reason
                 processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.", clone.toString())));
@@ -233,6 +227,68 @@ public class RangeChecker {
             }
         }
 
+        return rangeShifted;
+    }
+
+    /**
+     *
+     * @param range : the range to update
+     * @param newSequence : the new sequence of the protein
+     * @param processor : the processor in case we have an invalidRangeEvent to fire
+     * @param rangeShifted : the current value of rangeshifted
+     * @param oldFeatureSequence : the old feature sequence
+     * @param clone : the range clone with the shifted positions
+     * @param newFeatureSequence : the new feature sequence
+     * @return true if the shifted ranges are valid and the feature sequence is conserved
+     */
+    private boolean checkNewFeatureContent(Range range, String newSequence, ProteinUpdateProcessor processor, boolean rangeShifted, String oldFeatureSequence, Range clone, String newFeatureSequence) {
+        // the feature sequence is conserved, we can update the range
+        if (newFeatureSequence.equals(oldFeatureSequence)){
+            range.setFromIntervalStart(clone.getFromIntervalStart());
+            range.setFromIntervalEnd(clone.getFromIntervalEnd());
+            range.setToIntervalStart(clone.getToIntervalStart());
+            range.setToIntervalEnd(clone.getToIntervalEnd());
+        }
+        // the feature sequence is not conserved. We need to check if there have been some inserts at the beginning of the feature which could explain
+        // this problem. For that, we check if the new feature sequence contains the old feature sequence
+        else {
+            int indexOfOldFeatureSequence = newFeatureSequence.indexOf(oldFeatureSequence);
+
+            // the new feature sequence contains the old feature sequence : we can correct the positions
+            if (indexOfOldFeatureSequence != -1){
+                // in case of insertion at the begining of the feature sequence, we could not have shifted the range because the insertion
+                int correctedPosition = clone.getFromIntervalStart() + newFeatureSequence.indexOf(oldFeatureSequence);
+                // from interval end : the distance between from interval start and from interval end should be conserved. We can determine
+                // the new from interval end from that.
+                int correctedFromIntervalEnd = correctedPosition + (clone.getFromIntervalEnd() - clone.getFromIntervalStart());
+                // to interval end : we have corrected the first position of the feature, we can determine the end position by adding the length of the
+                // feature sequence to the corrected first position.
+                int correctedToIntervalEnd = correctedPosition + oldFeatureSequence.length() - 1;
+                // to interval end : the distance between to interval start and to interval end should be conserved. We can determine 
+                // the new from interval end from that.
+                int correctedToIntervalStart = correctedToIntervalEnd - (clone.getFromIntervalEnd() - clone.getFromIntervalStart());
+
+                // check that the corrected positions are not overlapping because the start/end intervals are conserved
+                if (correctedFromIntervalEnd <= correctedToIntervalStart && correctedFromIntervalEnd <= newSequence.length() && correctedToIntervalStart >= 1){
+                    range.setFromIntervalStart(correctedPosition);
+                    range.setFromIntervalEnd(correctedFromIntervalEnd);
+                    range.setToIntervalStart(correctedToIntervalStart);
+                    range.setToIntervalEnd(correctedToIntervalEnd);
+                }
+                // we can't correct the positions of the ranges to have the conserved feature sequence
+                else {
+                    // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
+                    processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping.", clone.toString())));
+                    rangeShifted = false;
+                }
+            }
+             // we can't correct the positions of the ranges to have the conserved feature sequence
+            else {
+                // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
+                processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString())));
+                rangeShifted = false;
+            }
+        }
         return rangeShifted;
     }
 

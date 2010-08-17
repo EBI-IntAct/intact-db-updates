@@ -54,5 +54,6 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvTopic.class, CvTopic.ISOFORM_COMMENT);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_START);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_END);
+        getCvObject(CvTopic.class, CvTopic.INVALID_RANGE);
     }
 }

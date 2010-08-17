@@ -97,7 +97,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
-        
+
         Assert.assertNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar12.getShortLabel()));
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel("aatm_rabit")); // renamed master prot
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByShortLabel(spliceVar11.getShortLabel()));
@@ -272,7 +272,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         prot.setBioSource(null);
         prot.setCrc64(null);
         prot.setSequence(null);
-        
+
         final Interaction interaction = getMockBuilder().createInteraction(prot);
 
         getCorePersister().saveOrUpdate(interaction);
@@ -374,7 +374,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Assert.assertNotNull(refreshedChain.getSequence());
         Assert.assertNotNull(refreshedChain.getBioSource());
     }
-    
+
     @Test
     @DirtiesContext
     public void updateAll_updateProteinChains_masterWithoutInteraction() throws Exception {
@@ -519,8 +519,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
             Xref xref = (Xref) iterator.next();
 
             if( (xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db) ) &&
-                (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier) ) &&
-                xref.getPrimaryId().equals( primaryId ) ) {
+                    (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier) ) &&
+                    xref.getPrimaryId().equals( primaryId ) ) {
                 // found it
                 return;
             }
@@ -598,7 +598,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
-        
+
         // interaction: no
         Protein master1 = getMockBuilder().createProtein("P18459", "master1");
         master1.getBioSource().setTaxId( "7227" );
@@ -648,8 +648,297 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    public void range_shifting_OutOfBoundBeforeUpdate() throws Exception {
+
+        // check that splice variants do get gene names like the masters do.
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
+
+        int oldSequenceLength = 579;
+
+        String oldFeatureSequence = "AQKN";
+        String newFeatureSequence = "AQKN";
+
+        String previousSequence = "MMAVAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDPHNMGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        String true_sequence = "MMAVAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDMNHPGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        // interaction: no
+        Protein prot = getMockBuilder().createProtein("P18459", "prot");
+        prot.getBioSource().setTaxId( "7227" );
+        prot.getBioSource().setShortLabel( "drome" );
+        prot.getAliases().clear();
+        prot.setSequence(previousSequence);
+
+        getCorePersister().saveOrUpdate(prot);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+
+        Interaction interaction = getMockBuilder().createInteraction(prot);
+        Component c = interaction.getComponents().iterator().next();
+        c.getBindingDomains().clear();
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        Range range = getMockBuilder().createRange(450,450,600,600);
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        c.addBindingDomain(feature);
+
+        getCorePersister().saveOrUpdate(interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getFeatureDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsBefore.size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Feature reloadedFeature = getDaoFactory().getFeatureDao().getByAc( feature.getAc() );
+
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
+        Assert.assertEquals(1, cautionsAfter.size());
+
+        Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
+        Assert.assertEquals(previousSequence, reloadedProtein.getSequence());
+    }
+
+    @Test
+    @DirtiesContext
+    public void range_shifting_update() throws Exception {
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
+
+        int oldSequenceLength = 579;
+
+        String oldFeatureSequence = "AQKN";
+        String newFeatureSequence = "AQKN";
+
+        String previousSequence = "MMAVAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDPHNMGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        String true_sequence = "MMAVAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDMNHPGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        // interaction: no
+        Protein prot = getMockBuilder().createProtein("P18459", "prot");
+        prot.getBioSource().setTaxId( "7227" );
+        prot.getBioSource().setShortLabel( "drome" );
+        prot.getAliases().clear();
+        prot.setSequence(previousSequence);
+
+        getCorePersister().saveOrUpdate(prot);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+
+        Interaction interaction = getMockBuilder().createInteraction(prot);
+        Component c = interaction.getComponents().iterator().next();
+        c.getBindingDomains().clear();
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        Range range = getMockBuilder().createRange(6,6,9,9);
+        range.prepareSequence(previousSequence);
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        c.addBindingDomain(feature);
+
+        getCorePersister().saveOrUpdate(interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getFeatureDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsBefore.size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Feature reloadedFeature = getDaoFactory().getFeatureDao().getByAc( feature.getAc() );
+
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsAfter.size());
+
+        // the ranges have been shifted
+        Range reloadedRange = reloadedFeature.getRanges().iterator().next();
+        Assert.assertEquals(7, reloadedRange.getFromIntervalStart());
+        Assert.assertEquals(7, reloadedRange.getFromIntervalEnd());
+        Assert.assertEquals(10, reloadedRange.getToIntervalStart());
+        Assert.assertEquals(10, reloadedRange.getToIntervalEnd());
+
+        Assert.assertEquals(oldFeatureSequence, reloadedRange.getFullSequence());
+
+        Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
+        Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
+    }
+
+    @Test
+    @DirtiesContext
+    public void range_shifting_update_featureChanged() throws Exception {
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
+
+        int oldSequenceLength = 579;
+
+        String oldFeatureSequence = "BQKN";
+        String newFeatureSequence = "AQKN";
+
+        String previousSequence = "MMAVABQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDPHNMGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        String true_sequence = "MMAVAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDMNHPGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        // interaction: no
+        Protein prot = getMockBuilder().createProtein("P18459", "prot");
+        prot.getBioSource().setTaxId( "7227" );
+        prot.getBioSource().setShortLabel( "drome" );
+        prot.getAliases().clear();
+        prot.setSequence(previousSequence);
+
+        getCorePersister().saveOrUpdate(prot);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+
+        Interaction interaction = getMockBuilder().createInteraction(prot);
+        Component c = interaction.getComponents().iterator().next();
+        c.getBindingDomains().clear();
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        Range range = getMockBuilder().createRange(6,6,9,9);
+        range.prepareSequence(previousSequence);
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        c.addBindingDomain(feature);
+
+        getCorePersister().saveOrUpdate(interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getFeatureDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsBefore.size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Feature reloadedFeature = getDaoFactory().getFeatureDao().getByAc( feature.getAc() );
+
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
+        Assert.assertEquals(1, cautionsAfter.size());
+
+        // the ranges have been shifted
+        Range reloadedRange = reloadedFeature.getRanges().iterator().next();
+        Assert.assertEquals(6, reloadedRange.getFromIntervalStart());
+        Assert.assertEquals(6, reloadedRange.getFromIntervalEnd());
+        Assert.assertEquals(9, reloadedRange.getToIntervalStart());
+        Assert.assertEquals(9, reloadedRange.getToIntervalEnd());
+
+        Assert.assertEquals(oldFeatureSequence, reloadedRange.getFullSequence());
+
+        Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
+        Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
+    }
+
+    @Test
+    @DirtiesContext
     public void updateAll_updateRange() throws Exception {
-         // TODO
+        // TODO
     }
 
     // TODO test effect of config on deletion of molecules with interactions (proteins, chains, isoforms)
@@ -661,7 +950,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         List<String> expectedList = Arrays.asList( expectedAliasNames );
         for ( Alias alias : aliases ) {
             Assert.assertTrue( "Expected aliases: " + expectedList + ". Found: " + alias.getName(),
-                               expectedList.contains( alias.getName() ) );
+                    expectedList.contains( alias.getName() ) );
         }
     }
 

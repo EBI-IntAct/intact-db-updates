@@ -27,7 +27,6 @@ import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.util.Collection;
 
@@ -74,11 +73,10 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
                 // get the caution from the DB or create it and persist it
                 final DaoFactory daoFactory = IntactContext.getCurrentInstance().getDaoFactory();
                 CvTopic caution = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.INVALID_RANGE_ID);
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.INVALID_RANGE);
 
                 if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+                    throw new IllegalStateException("The CvTopic 'invalid-range' is not existing in the database");
                 }
 
                 Collection<Annotation> annotations = feature.getAnnotations();
