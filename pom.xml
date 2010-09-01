@@ -25,6 +25,10 @@
         </plugins>
     </build>
 
+    <properties>
+        <bridges.version>2.1.3-SNAPSHOT</bridges.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.intact.core</groupId>
