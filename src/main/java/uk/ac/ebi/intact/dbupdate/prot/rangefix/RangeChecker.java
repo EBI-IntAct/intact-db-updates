@@ -91,32 +91,75 @@ public class RangeChecker {
     protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, ProteinUpdateProcessor processor) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
-        // to know if it is possible to shift the positions of the range
-        boolean canShiftCvFuzzyType = false;
+        // to know if it is possible to shift the start positions of the range
+        boolean canShiftFromCvFuzzyType = false;
+        // to know if it is possible to shift the end positions of the range
+        boolean canShiftToCvFuzzyType = false;
 
         // the old full feature sequence
         String oldFullFeatureSequence = range.getFullSequence();
         // the old truncated sequence (100 aa)
         String oldTruncatedFeatureSequence = range.getSequence();
 
-        // case 'to': n-terminal or c-terminal. In case of C,N terminal and undetermined, the from and to fuzzyTypes are equal
-        if (range.getToCvFuzzyType() != null) {
-            // if not C, N terminal or undetermined, we can shift the ranges.
-            if (!range.getToCvFuzzyType().isCTerminal() && !range.getToCvFuzzyType().isNTerminal() && !range.getToCvFuzzyType().isUndetermined()){
-                canShiftCvFuzzyType = true;
-            }
-            // if C, N terminal or undetermined, we can't shift the ranges but we can update the sequence chunk we keep in the database for this range.
-            else {
-                range.prepareSequence(newSequence);
+        // case 'from': undetermined, cannot be shifted
+        if (range.getFromCvFuzzyType() != null) {
+            // if not undetermined, we have different cases.
+            if (!range.getFromCvFuzzyType().isUndetermined()){
+
+                // if the start status is N-terminal and the end status is undetermined, we don't shift the ranges because we don't look at the sequence anyway
+                if (range.getFromCvFuzzyType().isNTerminal() && range.getToCvFuzzyType() != null){
+                    if (!range.getToCvFuzzyType().isUndetermined()){
+                        canShiftFromCvFuzzyType = true;
+                    }
+                    else {
+                        canShiftFromCvFuzzyType = false;
+                    }
+                }
+                else {
+                    canShiftFromCvFuzzyType = true;
+                }
             }
         }
         // It is not a fuzzy type, we can shift the ranges
         else {
-            canShiftCvFuzzyType = true;
+            canShiftFromCvFuzzyType = true;
+        }
+
+        // case 'to': undetermined, cannot be shifted
+        if (range.getToCvFuzzyType() != null) {
+            // if not undetermined, we can shift the ranges.
+            if (!range.getToCvFuzzyType().isUndetermined()){
+
+                // if the end status is C-terminal and the start status is undetermined, we don't shift the ranges because we don't look at the sequence anyway.
+                // However, it is necessary to update the position of the last amino acid
+                if (range.getToCvFuzzyType().isCTerminal() && range.getFromCvFuzzyType() != null){
+                    if (!range.getFromCvFuzzyType().isUndetermined()){
+                        canShiftToCvFuzzyType = true;
+                    }
+                    // we update the position of the c-terminus if the new sequence is not null
+                    else{
+                        canShiftToCvFuzzyType = false;
+
+                        if (newSequence != null){
+                            range.setToIntervalStart(newSequence.length());
+                            range.setToIntervalEnd(newSequence.length());
+
+                            IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
+                        }
+                    }
+                }
+                else {
+                    canShiftToCvFuzzyType = true;
+                }
+            }
+        }
+        // It is not a fuzzy type, we can shift the ranges
+        else {
+            canShiftToCvFuzzyType = true;
         }
 
         // we create a clone to test the new range positions
-        Range clone = new Range(range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToIntervalStart(), range.getToIntervalEnd(), oldSequence);
+        Range clone = new Range(range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
         clone.setFromCvFuzzyType(range.getFromCvFuzzyType());
         clone.setToCvFuzzyType(range.getToCvFuzzyType());
 
@@ -128,8 +171,8 @@ public class RangeChecker {
         int shiftedToIntervalStart;
         int shiftedToIntervalEnd;
 
-        // we can shift the positions, the range is not C, N terminal nor undetermined
-        if (canShiftCvFuzzyType){
+        // we can shift the start positions, the range is not undetermined
+        if (canShiftFromCvFuzzyType){
             shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart(), oldSequence);
 
             if (shiftedFromIntervalStart != range.getFromIntervalStart()) {
@@ -143,7 +186,10 @@ public class RangeChecker {
                 clone.setFromIntervalEnd(shiftedFromIntervalEnd);
                 rangeShifted = true;
             }
+        }
 
+        // we can shift the end positions, the range is not undetermined
+        if (canShiftToCvFuzzyType){
             shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart(), oldSequence);
 
             if (shiftedToIntervalStart != range.getToIntervalStart()) {
@@ -161,6 +207,7 @@ public class RangeChecker {
 
         // One of the range positions has been shifted
         if (rangeShifted){
+
             // check that the new shifted range is within the new sequence and consistent
             if (!FeatureUtils.isABadRange(clone, newSequence)){
 
@@ -264,7 +311,7 @@ public class RangeChecker {
                 // to interval end : we have corrected the first position of the feature, we can determine the end position by adding the length of the
                 // feature sequence to the corrected first position.
                 int correctedToIntervalEnd = correctedPosition + oldFeatureSequence.length() - 1;
-                // to interval end : the distance between to interval start and to interval end should be conserved. We can determine 
+                // to interval end : the distance between to interval start and to interval end should be conserved. We can determine
                 // the new from interval end from that.
                 int correctedToIntervalStart = correctedToIntervalEnd - (clone.getFromIntervalEnd() - clone.getFromIntervalStart());
 
@@ -282,7 +329,7 @@ public class RangeChecker {
                     rangeShifted = false;
                 }
             }
-             // we can't correct the positions of the ranges to have the conserved feature sequence
+            // we can't correct the positions of the ranges to have the conserved feature sequence
             else {
                 // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
                 processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString())));

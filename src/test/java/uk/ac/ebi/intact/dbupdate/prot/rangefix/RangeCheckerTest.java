@@ -212,6 +212,11 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
         range.setUndetermined(true);
+
+        CvFuzzyType undetermined = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
+
+        range.setFromCvFuzzyType(undetermined);
+        range.setToCvFuzzyType(undetermined);
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
@@ -237,6 +242,9 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
+        range.prepareSequence(oldSequence);
+        feature.addRange(range);
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -257,7 +265,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
-        range.setFromCvFuzzyType(fuzzyType);
+        range.setToCvFuzzyType(fuzzyType);
         feature.addRange(range);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
@@ -267,6 +275,133 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getFromIntervalEnd());
         Assert.assertEquals(0, range.getToIntervalStart());
         Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void shiftFeatureRanges_cTerminal_valid() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(5, 5, 6, 6);
+        range.setToCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        Assert.assertEquals(1, updatedRanges.size());
+
+        Assert.assertEquals(3, range.getFromIntervalStart());
+        Assert.assertEquals(3, range.getFromIntervalEnd());
+        Assert.assertEquals(4, range.getToIntervalStart());
+        Assert.assertEquals(4, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void dont_ShiftFeatureRanges_cTerminal() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(2, 2, 6, 6);
+        range.setToCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(6, range.getToIntervalStart());
+        Assert.assertEquals(6, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void dont_ShiftFeatureRanges_nTerminal() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(1, 1, 4, 4);
+        range.setFromCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(1, range.getFromIntervalStart());
+        Assert.assertEquals(1, range.getFromIntervalEnd());
+        Assert.assertEquals(4, range.getToIntervalStart());
+        Assert.assertEquals(4, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void IgnoreFeatureRanges_nTerminal_undetermined() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+        CvFuzzyType fuzzyType2 = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(1, 1, 0, 0);
+        range.setFromCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(1, range.getFromIntervalStart());
+        Assert.assertEquals(1, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+    }
+
+    @Test
+    public void IgnoreFeatureRanges_undetermined_cTerminal() throws Exception {
+        String oldSequence = "ABCDEF";
+        String newSequence = "CDEF";
+
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
+        CvFuzzyType fuzzyType2 = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+
+        Range range = getMockBuilder().createRange(0, 0, 1, 1);
+        range.setFromCvFuzzyType(fuzzyType);
+        feature.addRange(range);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
+
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        Assert.assertEquals(0, updatedRanges.size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(1, range.getToIntervalStart());
+        Assert.assertEquals(1, range.getToIntervalEnd());
     }
 
     @Test 

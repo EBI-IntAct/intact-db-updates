@@ -606,11 +606,21 @@ public class ProteinServiceImpl implements ProteinService {
         ///////////////////////////////
         // Update Splice Variants and feature chains
 
+        Collection<ProteinImpl> variants = new ArrayList<ProteinImpl> ();
+
         // search intact
-        // splice variants
-        Collection<ProteinImpl> variants = pdao.getSpliceVariants( protein );
+        // splice variants with no 'no-uniprot-update'
+        Collection<ProteinImpl> spliceVariantsAndChains = pdao.getSpliceVariants( protein );
+
         // feature chains
-        variants.addAll(pdao.getProteinChains( protein ));
+        spliceVariantsAndChains.addAll(pdao.getProteinChains( protein ));
+
+        // will only update variants with no annotation 'no-uniprot-update'attached to it
+        for (ProteinImpl sp : spliceVariantsAndChains){
+            if (ProteinUtils.isFromUniprot(sp)) {
+                variants.add(sp);
+            }
+        }
 
         // We create a copy of the collection that hold the protein transcripts as the findMatches remove the protein transcripts
         // from the collection when a match is found. Therefore the first time it runs, it finds the match, protein transcripts
@@ -884,7 +894,7 @@ public class ProteinServiceImpl implements ProteinService {
             factory.getProteinDao().update((ProteinImpl) transcript);
         }
 
-         // Sequence
+        // Sequence
         boolean sequenceToBeUpdated = false;
         String oldSequence = transcript.getSequence();
         String sequence = uniprotTranscript.getSequence();
