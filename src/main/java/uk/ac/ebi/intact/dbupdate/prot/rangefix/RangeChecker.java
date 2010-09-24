@@ -102,59 +102,15 @@ public class RangeChecker {
         String oldTruncatedFeatureSequence = range.getSequence();
 
         // case 'from': undetermined, cannot be shifted
-        if (range.getFromCvFuzzyType() != null) {
-            // if not undetermined, we have different cases.
-            if (!range.getFromCvFuzzyType().isUndetermined()){
+        // if not undetermined, we have different cases.
+        if (!(range.getFromCvFuzzyType().isUndetermined() || range.getFromCvFuzzyType().isCTerminalRegion() || range.getFromCvFuzzyType().isNTerminalRegion())){
 
-                // if the start status is N-terminal and the end status is undetermined, we don't shift the ranges because we don't look at the sequence anyway
-                if (range.getFromCvFuzzyType().isNTerminal() && range.getToCvFuzzyType() != null){
-                    if (!range.getToCvFuzzyType().isUndetermined()){
-                        canShiftFromCvFuzzyType = true;
-                    }
-                    else {
-                        canShiftFromCvFuzzyType = false;
-                    }
-                }
-                else {
-                    canShiftFromCvFuzzyType = true;
-                }
-            }
-        }
-        // It is not a fuzzy type, we can shift the ranges
-        else {
             canShiftFromCvFuzzyType = true;
         }
 
-        // case 'to': undetermined, cannot be shifted
-        if (range.getToCvFuzzyType() != null) {
-            // if not undetermined, we can shift the ranges.
-            if (!range.getToCvFuzzyType().isUndetermined()){
+        // if not undetermined, we can shift the ranges.
+        if (!range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion()){
 
-                // if the end status is C-terminal and the start status is undetermined, we don't shift the ranges because we don't look at the sequence anyway.
-                // However, it is necessary to update the position of the last amino acid
-                if (range.getToCvFuzzyType().isCTerminal() && range.getFromCvFuzzyType() != null){
-                    if (!range.getFromCvFuzzyType().isUndetermined()){
-                        canShiftToCvFuzzyType = true;
-                    }
-                    // we update the position of the c-terminus if the new sequence is not null
-                    else{
-                        canShiftToCvFuzzyType = false;
-
-                        if (newSequence != null){
-                            range.setToIntervalStart(newSequence.length());
-                            range.setToIntervalEnd(newSequence.length());
-
-                            IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
-                        }
-                    }
-                }
-                else {
-                    canShiftToCvFuzzyType = true;
-                }
-            }
-        }
-        // It is not a fuzzy type, we can shift the ranges
-        else {
             canShiftToCvFuzzyType = true;
         }
 
@@ -230,8 +186,6 @@ public class RangeChecker {
                     clone.prepareSequence(newSequence);
                     // the new full feature sequence
                     String newFullFeatureSequence = clone.getFullSequence();
-                    // the new truncated feature sequence
-                    String newTruncatedFeatureSequence = clone.getSequence();
 
                     // the full feature sequence was and is still not null
                     if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
@@ -243,17 +197,6 @@ public class RangeChecker {
                     else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                         // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
                         processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence cannot be computed.", clone.toString())));
-                        rangeShifted = false;
-                    }
-                    // the truncated sequence was and is still not null
-                    else if (newTruncatedFeatureSequence != null && oldTruncatedFeatureSequence != null){
-                        // check that the new feature sequence is the same
-                        rangeShifted = checkNewFeatureContent(range, newSequence, processor, rangeShifted, oldTruncatedFeatureSequence, clone, newTruncatedFeatureSequence);
-                    }
-                    // the new truncated sequence is null and was not before shifting the ranges
-                    else if (newTruncatedFeatureSequence == null && oldTruncatedFeatureSequence != null){
-                        // the new truncated sequence couldn't be computed, a problem occured : we can't shift the ranges
-                        processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new feature sequence cannot be computed.", clone.toString())));
                         rangeShifted = false;
                     }
                     // Either the previous feature sequence was null and is not anymore, or the previous sequence was null and is still null.
