@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.util.protein;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
@@ -477,14 +478,16 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
 
 
-        Map<String ,String> errors = uniprotServiceResult.getErrors();
-        Set<String> keySet = errors.keySet();
-        assertEquals(1,errors.size());
-        for(String errorType : keySet){
-            String error = errors.get(errorType);
-            assertEquals("Couldn't update protein with uniprot id = " + uniprotServiceResult.getQuerySentToService() + ". It was found" +
-                    " in IntAct but was not found in Uniprot.", error);
-        }
+        // not valid anymore because if a protein is not found in uniprot, it is a dead entry.
+        
+        //Map<String ,String> errors = uniprotServiceResult.getErrors();
+        //Set<String> keySet = errors.keySet();
+        //assertEquals(1,errors.size());
+        //for(String errorType : keySet){
+            //String error = errors.get(errorType);
+           // assertEquals("Couldn't update protein with uniprot id = " + uniprotServiceResult.getQuerySentToService() + ". It was found" +
+                    //" in IntAct but was not found in Uniprot.", error);
+        //}
 
 
 

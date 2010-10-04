@@ -140,6 +140,11 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     }
 
     @Override
+    protected void uniprotNotFound(Protein protein) {
+        proteinProcessor.fireOnUniprotDeadEntry(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
+    }
+
+    @Override
     protected void invalidRangeFound(Range range, String sequence, String message){
         proteinProcessor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, sequence, message)));
     }

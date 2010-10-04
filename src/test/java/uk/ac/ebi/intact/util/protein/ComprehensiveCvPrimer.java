@@ -55,5 +55,8 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_START);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_END);
         getCvObject(CvTopic.class, CvTopic.INVALID_RANGE);
+        getCvObject(CvTopic.class, CvTopic.NON_UNIPROT);
+        getCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION_MI_REF);
+        getCvObject(CvXrefQualifier.class, CvXrefQualifier.UNIPROT_REMOVED_AC);
     }
 }

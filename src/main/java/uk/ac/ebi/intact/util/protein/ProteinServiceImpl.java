@@ -140,9 +140,10 @@ public class ProteinServiceImpl implements ProteinService {
                 ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
                 List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
                 if(proteinsInIntact.size() != 0){
-                    uniprotServiceResult.addError("Couldn't update protein with uniprot id = " + uniprotAc + ". It was found" +
-                            " in IntAct but was not found in Uniprot.", UniprotServiceResult.PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE);
-                    return uniprotServiceResult;
+                    for (Protein prot : proteinsInIntact){
+                        uniprotNotFound(prot);
+                    }
+
                 }else{
                     uniprotServiceResult.addError("Could not udpate protein with uniprot id = " + uniprotAc + ". No " +
                             "corresponding entry found in uniprot.", UniprotServiceResult.PROTEIN_NOT_IN_INTACT_NOT_IN_UNIPROT_ERROR_TYPE);
@@ -633,14 +634,17 @@ public class ProteinServiceImpl implements ProteinService {
         variantsClone.addAll(uniprotProtein.getFeatureChains());
 
 //        Collection<ProteinTranscriptMatch> matches = findMatches( variants, variantsClone) );
-        Collection<ProteinTranscriptMatch> matches = findMatches( variants, variantsClone );
+        Collection<ProteinTranscriptMatch> matches = findMatches( spliceVariantsAndChains, variantsClone );
         for ( ProteinTranscriptMatch match : matches ) {
 
             if ( match.isSuccessful() ) {
                 // update
                 final UniprotProteinTranscript variant = match.getUniprotTranscript();
                 final Protein intactProtein = match.getIntactProtein();
-                updateProteinTranscript(intactProtein, protein, variant, uniprotProtein );
+
+                if (ProteinUtils.isFromUniprot(intactProtein)){
+                    updateProteinTranscript(intactProtein, protein, variant, uniprotProtein );
+                }
 
                 if (variant.getSequence() != null || (variant.getSequence() == null && variant.isNullSequenceAllowed())) {
                     proteins.add(intactProtein);
@@ -682,8 +686,8 @@ public class ProteinServiceImpl implements ProteinService {
                             " is a protein transcript of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
                             " As it is not part of any interactions in IntAct we have deleted it."  );
 
-                }else{
-                    uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
+                }else if (ProteinUtils.isFromUniprot(intactProteinTranscript)){
+                     uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
                             "In Intact the protein "+ getProteinDescription(intactProteinTranscript) +
                                     " is a protein transcript of protein "+ getProteinDescription(protein)+
                                     " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
@@ -701,6 +705,12 @@ public class ProteinServiceImpl implements ProteinService {
     protected void sequenceChanged(Protein protein, String oldSequence) {
         if ( log.isDebugEnabled() ) {
             log.debug( "Request a Range check on Protein " + protein.getShortLabel() + " " + protein.getAc() );
+        }
+    }
+
+    protected void uniprotNotFound(Protein protein){
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Request to put this protein as obsolete " + protein.getShortLabel() + " " + protein.getAc() );
         }
     }
 
@@ -818,9 +828,32 @@ public class ProteinServiceImpl implements ProteinService {
      * @param transcript
      * @param uniprotTranscript
      */
-    private void updateProteinTranscript( Protein transcript, Protein master,
-                                          UniprotProteinTranscript uniprotTranscript,
-                                          UniprotProtein uniprotProtein ) throws ProteinServiceException {
+    private boolean updateProteinTranscript( Protein transcript, Protein master,
+                                             UniprotProteinTranscript uniprotTranscript,
+                                             UniprotProtein uniprotProtein ) throws ProteinServiceException {
+
+        // check that both protein carry the same organism information
+        BioSource organism1 = transcript.getBioSource();
+
+        Organism organism2 = uniprotTranscript.getOrganism();
+        int t2 = organism2.getTaxid();
+
+        if (organism1 == null) {
+            if (log.isWarnEnabled()) log.warn("Protein transcript does not contain biosource. It will be assigned the Biosource from uniprot: "+organism2.getName()+" ("+organism2.getTaxid()+")");
+            organism1 = new BioSource(transcript.getOwner(), organism2.getName(), String.valueOf(t2));
+            transcript.setBioSource(organism1);
+
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(organism1);
+        }
+
+        if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
+            uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
+                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein transcript " +
+                    getProteinDescription(transcript) + " by BioSource( " + t2 + "," +
+                    organism2.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
+
+            return false;
+        }
 
         transcript.setShortLabel( uniprotTranscript.getPrimaryAc() );
 
@@ -831,6 +864,75 @@ public class ProteinServiceImpl implements ProteinService {
         // we have a splice variant
         else {
             transcript.setFullName( master.getFullName() );
+        }
+
+        // update UniProt Xrefs
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( transcript, uniprotTranscript, uniprotProtein );
+
+        // Update Aliases from the uniprot protein aliases
+        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein );
+
+        // Sequence
+        boolean sequenceToBeUpdated = false;
+        String oldSequence = transcript.getSequence();
+        String sequence = uniprotTranscript.getSequence();
+        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
+            if ( log.isDebugEnabled() ) {
+                log.debug( "Sequence requires update." );
+            }
+            sequenceToBeUpdated = true;
+        }
+
+        if ( sequenceToBeUpdated && !transcript.getActiveInstances().isEmpty() ) {
+
+            Set<Range> badRanges = FeatureUtils.getBadRanges(transcript);
+
+            if (badRanges.isEmpty()){
+                transcript.setSequence( sequence );
+
+                // CRC64
+                String crc64 = uniprotProtein.getCrc64();
+                if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    transcript.setCrc64( crc64 );
+                }
+
+                sequenceChanged(transcript, oldSequence);
+            }
+            else {
+                for (Range range : badRanges){
+                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
+                }
+            }
+        }
+        else if (sequenceToBeUpdated && transcript.getActiveInstances().isEmpty()){
+            transcript.setSequence( sequence );
+
+            // CRC64
+            String crc64 = uniprotProtein.getCrc64();
+            if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
+                log.debug( "CRC64 requires update." );
+                transcript.setCrc64( crc64 );
+            }
+        }
+
+        // Add IntAct Xref
+
+        // Update Note
+        String note = uniprotTranscript.getNote();
+        if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
+            Institution owner = IntactContext.getCurrentInstance().getInstitution();
+            DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+            CvObjectDao<CvTopic> cvDao = daoFactory.getCvObjectDao( CvTopic.class );
+            CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
+
+            if (comment == null) {
+                throw new IllegalStateException("No CvTopic found with shortlabel: "+ CvTopic.ISOFORM_COMMENT);
+            }
+
+            Annotation annotation = new Annotation( owner, comment );
+            annotation.setAnnotationText( note );
+            AnnotationUpdaterUtils.addNewAnnotation( transcript, annotation );
         }
 
         // in case the protin transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
@@ -890,78 +992,14 @@ public class ProteinServiceImpl implements ProteinService {
 
                 transcript.addAnnotation(end);
             }
-
-            factory.getProteinDao().update((ProteinImpl) transcript);
         }
 
-        // Sequence
-        boolean sequenceToBeUpdated = false;
-        String oldSequence = transcript.getSequence();
-        String sequence = uniprotTranscript.getSequence();
-        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Sequence requires update." );
-            }
-            sequenceToBeUpdated = true;
-        }
+        // Persist changes
+        DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+        ProteinDao pdao = daoFactory.getProteinDao();
+        pdao.update( ( ProteinImpl ) transcript );
 
-        if ( sequenceToBeUpdated && !transcript.getActiveInstances().isEmpty() ) {
-
-            Set<Range> badRanges = FeatureUtils.getBadRanges(transcript);
-
-            if (badRanges.isEmpty()){
-                transcript.setSequence( sequence );
-
-                // CRC64
-                String crc64 = uniprotProtein.getCrc64();
-                if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
-                    log.debug( "CRC64 requires update." );
-                    transcript.setCrc64( crc64 );
-                }
-
-                sequenceChanged(transcript, oldSequence);
-            }
-            else {
-                for (Range range : badRanges){
-                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
-                }
-            }
-        }
-        else if (sequenceToBeUpdated && transcript.getActiveInstances().isEmpty()){
-            transcript.setSequence( sequence );
-
-            // CRC64
-            String crc64 = uniprotProtein.getCrc64();
-            if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
-                log.debug( "CRC64 requires update." );
-                transcript.setCrc64( crc64 );
-            }
-        }
-
-        // Add IntAct Xref
-
-        // update UniProt Xrefs
-        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( transcript, uniprotTranscript, uniprotProtein );
-
-        // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein );
-
-        // Update Note
-        String note = uniprotTranscript.getNote();
-        if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
-            Institution owner = IntactContext.getCurrentInstance().getInstitution();
-            DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-            CvObjectDao<CvTopic> cvDao = daoFactory.getCvObjectDao( CvTopic.class );
-            CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
-
-            if (comment == null) {
-                throw new IllegalStateException("No CvTopic found with shortlabel: "+ CvTopic.ISOFORM_COMMENT);
-            }
-
-            Annotation annotation = new Annotation( owner, comment );
-            annotation.setAnnotationText( note );
-            AnnotationUpdaterUtils.addNewAnnotation( transcript, annotation );
-        }
+        return true;
     }
 
     /**

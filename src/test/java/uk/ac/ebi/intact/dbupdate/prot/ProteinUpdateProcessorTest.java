@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.config.CvPrimer;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -78,6 +79,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // interaction: yes
         Protein randomProt = getMockBuilder().createProteinRandom();
+        randomProt.getXrefs().iterator().next().setPrimaryId("Q13948");
 
         Interaction interaction = getMockBuilder().createInteraction(spliceVar11, randomProt);
 
@@ -134,6 +136,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // interaction: yes
         Protein randomProt = getMockBuilder().createProteinRandom();
+        randomProt.getXrefs().iterator().next().setPrimaryId("Q13948");
 
         Interaction interaction = getMockBuilder().createInteraction(spliceVar11, randomProt);
 
@@ -644,6 +647,125 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         assertHasAlias( reloadedIsoform, CvAliasType.GENE_NAME_MI_REF, "ple" );
         assertHasAlias( reloadedIsoform, CvAliasType.GENE_NAME_SYNONYM_MI_REF, "TH", "Tyrosine 3-hydroxylase", "Protein Pale" );
         assertHasAlias( reloadedIsoform, CvAliasType.ORF_NAME_MI_REF, "CG10118" );
+    }
+
+    @Test
+    @DirtiesContext
+    public void deadUniprotProtein() throws Exception {
+        CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
+        cvPrimer.createCVs();
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        // interaction: no
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxxx", "dead protein");
+        deadProtein.getBioSource().setTaxId( "7227" );
+        deadProtein.getBioSource().setShortLabel( "drome" );
+        deadProtein.getAliases().clear();
+
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        Interaction interaction = getMockBuilder().createInteraction( deadProtein );
+
+        getCorePersister().saveOrUpdate(deadProtein, interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Protein reloadedMaster = getDaoFactory().getProteinDao().getByAc( deadProtein.getAc() );
+
+        assertHasXref(reloadedMaster, CvDatabase.UNIPROT, CvXrefQualifier.UNIPROT_REMOVED_AC, "Pxxxxx");
+
+        boolean hasNoUniprotUpdate = false;
+        boolean hasCaution = false;
+
+        Assert.assertEquals(2, reloadedMaster.getAnnotations().size());
+        for (Annotation a : reloadedMaster.getAnnotations()){
+            if (CvTopic.CAUTION_MI_REF.equals(a.getCvTopic().getIdentifier())){
+                hasCaution = true;
+            }
+            else if (CvTopic.NON_UNIPROT.equals(a.getCvTopic().getShortLabel())){
+                hasNoUniprotUpdate = true;
+            }
+        }
+
+        Assert.assertTrue(hasNoUniprotUpdate);
+        Assert.assertTrue(hasCaution);
+    }
+
+    @Test
+    @DirtiesContext
+    public void deadUniprotProtein_otherXRefs() throws Exception {
+        CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
+        cvPrimer.createCVs();
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        // interaction: no
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxxx", "dead protein");
+        deadProtein.getBioSource().setTaxId( "7227" );
+        deadProtein.getBioSource().setShortLabel( "drome" );
+        deadProtein.getAliases().clear();
+
+        deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx1", null, getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT)));
+        deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx2", null, getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.CHEBI_MI_REF, CvDatabase.CHEBI)));
+        deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx3", getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT)));
+
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(4, deadProtein.getXrefs().size());
+
+        Interaction interaction = getMockBuilder().createInteraction( deadProtein );
+
+        getCorePersister().saveOrUpdate(deadProtein, interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Protein reloadedMaster = getDaoFactory().getProteinDao().getByAc( deadProtein.getAc() );
+
+        Assert.assertEquals(2, reloadedMaster.getXrefs().size());
+        assertHasXref(reloadedMaster, CvDatabase.UNIPROT, CvXrefQualifier.UNIPROT_REMOVED_AC, "Pxxxxx");
+        assertHasXref(reloadedMaster, CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT, "xxxx3");
+
+        boolean hasNoUniprotUpdate = false;
+        boolean hasCaution = false;
+
+        Assert.assertEquals(2, reloadedMaster.getAnnotations().size());
+        for (Annotation a : reloadedMaster.getAnnotations()){
+            if (CvTopic.CAUTION_MI_REF.equals(a.getCvTopic().getIdentifier())){
+                hasCaution = true;
+            }
+            else if (CvTopic.NON_UNIPROT.equals(a.getCvTopic().getShortLabel())){
+                hasNoUniprotUpdate = true;
+            }
+        }
+
+        Assert.assertTrue(hasNoUniprotUpdate);
+        Assert.assertTrue(hasCaution);
     }
 
     @Test

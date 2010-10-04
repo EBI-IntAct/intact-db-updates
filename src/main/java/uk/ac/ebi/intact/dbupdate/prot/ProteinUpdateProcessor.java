@@ -115,6 +115,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         //addListener(new SequenceChangedListener());
         addListener(new RangeFixer());
+        addListener(new ProteinUniprotRemovedListener());
     }
 
     public void fireOnDelete(ProteinEvent evt) {
@@ -162,6 +163,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public void fireOnInvalidRange(InvalidRangeEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onInvalidRange(evt);
+        }
+    }
+
+    public void fireOnUniprotDeadEntry(ProteinEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onDeadProteinFound(evt);
         }
     }
 }
