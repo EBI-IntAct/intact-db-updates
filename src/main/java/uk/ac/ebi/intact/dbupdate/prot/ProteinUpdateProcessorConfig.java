@@ -47,6 +47,12 @@ public class ProteinUpdateProcessorConfig {
      */
     private boolean deleteProteinTranscriptWithoutInteractions = false;
 
+    /**
+     * If true, will put all the proteins we cannot retrieve in uniprot as dead protein, remove all the cross references which are not from intact.
+     * The XRef uniprot identity becomes uniprot uniprot-removed-ac
+     */
+    private boolean updateProteinsNotFoundInUniprot = true;
+
     private UpdateReportHandler reportHandler;
 
     private UniprotService uniprotService;
@@ -120,5 +126,13 @@ public class ProteinUpdateProcessorConfig {
 
     public void setGlobalProteinUpdate( boolean globalProteinUpdate ) {
         isGlobalProteinUpdate = globalProteinUpdate;
+    }
+
+    public boolean isUpdateProteinsNotFoundInUniprot() {
+        return updateProteinsNotFoundInUniprot;
+    }
+
+    public void setUpdateProteinsNotFoundInUniprot(boolean updateProteinsNotFoundInUniprot) {
+        this.updateProteinsNotFoundInUniprot = updateProteinsNotFoundInUniprot;
     }
 }

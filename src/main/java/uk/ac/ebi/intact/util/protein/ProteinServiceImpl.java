@@ -140,8 +140,18 @@ public class ProteinServiceImpl implements ProteinService {
                 ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
                 List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
                 if(proteinsInIntact.size() != 0){
-                    for (Protein prot : proteinsInIntact){
-                        uniprotNotFound(prot);
+
+                    final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+                    if (config != null && !config.isUpdateProteinsNotFoundInUniprot()){
+                        uniprotServiceResult.addError("Couldn't update protein with uniprot id = " + uniprotAc + ". It was found" +
+                                " in IntAct but was not found in Uniprot.", UniprotServiceResult.PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE);
+                        return uniprotServiceResult;
+                    }
+                    else {
+                        for (Protein prot : proteinsInIntact){
+                            uniprotNotFound(prot);
+                        }
                     }
 
                 }else{
@@ -687,7 +697,7 @@ public class ProteinServiceImpl implements ProteinService {
                             " As it is not part of any interactions in IntAct we have deleted it."  );
 
                 }else if (ProteinUtils.isFromUniprot(intactProteinTranscript)){
-                     uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
+                    uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
                             "In Intact the protein "+ getProteinDescription(intactProteinTranscript) +
                                     " is a protein transcript of protein "+ getProteinDescription(protein)+
                                     " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
