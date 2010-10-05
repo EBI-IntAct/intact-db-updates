@@ -271,6 +271,127 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    public void duplicates_found_isoforms() throws Exception {
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
+
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.getBioSource().setTaxId("9986"); // rabit
+
+        getCorePersister().saveOrUpdate(dupe1);
+
+        Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12345-1", "p12345-1");
+        dupe1_1.getBioSource().setTaxId("9986"); // rabit
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe1_2 = cloner.clone(dupe1_1);
+        dupe1_2.setBioSource(dupe1_1.getBioSource()); // rabit
+        dupe1_2.setCrc64(dupe1_1.getCrc64());
+        ProteinUtils.getIdentityXrefs(dupe1_2).iterator().next().setPrimaryId("P12345-2");
+
+        dupe1_2.setCreated(new Date(1)); // dupe2 is older
+
+        Protein prot1 = getMockBuilder().createProteinRandom();
+        Protein prot2 = getMockBuilder().createProteinRandom();
+        Protein prot3 = getMockBuilder().createProteinRandom();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe1_2, prot2);
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe1_1, prot3);
+
+        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, interaction1, interaction2, interaction3);
+
+        Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1_1.getCrc64(), dupe1_1.getBioSource().getTaxId()).size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345-1").size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc()));
+
+        ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        Assert.assertNotNull(dupe2FromDb);
+        Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+    }
+
+    @Test
+    @DirtiesContext
+    public void duplicates_found_isoforms_different_parents() throws Exception {
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
+
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.getBioSource().setTaxId("9986"); // rabit
+
+        Protein dupe2 = getMockBuilder().createDeterministicProtein("P12346", "dupe2");
+        dupe1.getBioSource().setTaxId("9986"); // rabit
+
+        getCorePersister().saveOrUpdate(dupe1, dupe2);
+
+        Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12345-1", "p12345-1");
+        dupe1_1.getBioSource().setTaxId("9986"); // rabit
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe1_2 = cloner.clone(dupe1_1);
+        dupe1_2.setBioSource(dupe1_1.getBioSource()); // rabit
+        dupe1_2.setCrc64(dupe1_1.getCrc64());
+        ProteinUtils.getIdentityXrefs(dupe1_2).iterator().next().setPrimaryId("P12345-2");
+        ProteinUtils.extractIsoformParentCrossReferencesFrom(dupe1_2).iterator().next().setPrimaryId("P12346");
+
+        dupe1_2.setCreated(new Date(1)); // dupe2 is older
+
+        Protein prot1 = getMockBuilder().createProteinRandom();
+        Protein prot2 = getMockBuilder().createProteinRandom();
+        Protein prot3 = getMockBuilder().createProteinRandom();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe1_2, prot2);
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe1_1, prot3);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe2, prot3);
+
+        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, interaction1, interaction2, interaction3, interaction4);
+
+        Assert.assertEquals(7, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(4, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(8, getDaoFactory().getComponentDao().countAll());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1_1.getCrc64(), dupe1_1.getBioSource().getTaxId()).size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345-1").size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        Assert.assertEquals(7, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(4, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(8, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc()));
+
+        ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        Assert.assertNotNull(dupe2FromDb);
+        Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
+    }
+
+    @Test
+    @DirtiesContext
     public void updateProteinWithNullBiosource() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
 

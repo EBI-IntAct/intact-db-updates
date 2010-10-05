@@ -37,6 +37,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter sequenceChangedWriter;
     private ReportWriter rangeChangedWriter;
     private ReportWriter invalidRangeWriter;
+    private ReportWriter deadProteinWriter;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -57,6 +58,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
         this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
+        this.deadProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead_proteins.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {
@@ -97,6 +99,10 @@ public class FileReportHandler implements UpdateReportHandler{
 
     public ReportWriter getInvalidRangeWriter() throws IOException {
         return invalidRangeWriter;
+    }
+
+    public ReportWriter getDeadProteinWriter() throws IOException {
+        return deadProteinWriter;
     }
 
     public void close() throws IOException {

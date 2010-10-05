@@ -142,6 +142,7 @@ public class MockUniprotProtein {
                 )
                 .setCrc64( "34B44F9225EC106B" )
                 .setSequence( CANFA_SEQUENCE )
+                .setSpliceVariants(null)
                 .setFeatureChains( null )
                 .build();
     }

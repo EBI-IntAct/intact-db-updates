@@ -67,8 +67,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
             duplicatedWriter.writeHeaderIfNecessary("Kept", "Active instances", "Duplicates");
             duplicatedWriter.writeColumnValues(evt.getReferenceProtein().getAc(),
-                                               String.valueOf(evt.getReferenceProtein().getActiveInstances().size()),
-                                               protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
+                    String.valueOf(evt.getReferenceProtein().getActiveInstances().size()),
+                    protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
             reportHandler.getDuplicatedWriter().flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
@@ -110,10 +110,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
             if (evt.getOldSequence() != null) {
                 writer.writeLine(">"+ protein.getAc()+"|OLD|"+
-                                 protein.getShortLabel()+"|"+
-                                 getPrimaryIdString(protein)
-                                 +"|CRC:"+ Crc64.getCrc64(evt.getOldSequence())+
-                                 "|Length:"+evt.getOldSequence().length());
+                        protein.getShortLabel()+"|"+
+                        getPrimaryIdString(protein)
+                        +"|CRC:"+ Crc64.getCrc64(evt.getOldSequence())+
+                        "|Length:"+evt.getOldSequence().length());
                 writer.writeLine(insertNewLinesIfNecessary(evt.getOldSequence(), 80));
             }
 
@@ -135,17 +135,45 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             }
 
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
-                             protein.getShortLabel()+"|"+
-                             getPrimaryIdString(protein)+
-                             "|CRC:"+protein.getCrc64()+
-                             "|Length:"+protein.getSequence().length()+
-                             "|Diff:"+seqDiff+
-                             "|Levenshtein:"+ levenshtein+
-                             "|Conservation:"+conservation);
+                    protein.getShortLabel()+"|"+
+                    getPrimaryIdString(protein)+
+                    "|CRC:"+protein.getCrc64()+
+                    "|Length:"+protein.getSequence().length()+
+                    "|Diff:"+seqDiff+
+                    "|Levenshtein:"+ levenshtein+
+                    "|Conservation:"+conservation);
             writer.writeLine(insertNewLinesIfNecessary(protein.getSequence(), 80));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing to sequence changed writer", e);
+        }
+    }
+
+    @Override
+    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+        final Protein protein = evt.getProtein();
+        try {
+            final ReportWriter writer = reportHandler.getDeadProteinWriter();
+
+            writer.writeHeaderIfNecessary("Protein accession",
+                    "Xrefs",
+                    "Other messages");
+
+            StringBuilder xRefs = new StringBuilder();
+
+            for (InteractorXref ref : protein.getXrefs()) {
+
+                String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
+
+                xRefs.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
+            }
+
+            writer.writeColumnValues(protein.getAc(),
+                    xRefs.toString(),
+                    evt.getMessage());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing to dead protein writer", e);
         }
     }
 
@@ -163,26 +191,26 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         try {
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
-                                          "Updated prots",
-                                          "IA primary c.",
-                                          "IA secondary c.",
-                                          "IA primary",
-                                          "IA secondary",
-                                          "Xrefs added",
-                                          "Xrefs removed",
-                                          "Error messages",
-                                          "Other messages");
+                    "Updated prots",
+                    "IA primary c.",
+                    "IA secondary c.",
+                    "IA primary",
+                    "IA secondary",
+                    "Xrefs added",
+                    "Xrefs removed",
+                    "Error messages",
+                    "Other messages");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
-                                     protCollectionToString(evt.getUniprotServiceResult().getProteins(), true),
-                                     String.valueOf(evt.getPrimaryProteins().size()),
-                                     String.valueOf(evt.getSecondaryProteins().size()),
-                                     protCollectionToString(evt.getPrimaryProteins(), true),
-                                     protCollectionToString(evt.getSecondaryProteins(), true),
-                                     xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
-                                     xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
-                                     evt.getUniprotServiceResult().getErrors().toString(),
-                                     evt.getUniprotServiceResult().getMessages().toString());
+                    protCollectionToString(evt.getUniprotServiceResult().getProteins(), true),
+                    String.valueOf(evt.getPrimaryProteins().size()),
+                    String.valueOf(evt.getSecondaryProteins().size()),
+                    protCollectionToString(evt.getPrimaryProteins(), true),
+                    protCollectionToString(evt.getSecondaryProteins(), true),
+                    xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                    xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                    evt.getUniprotServiceResult().getErrors().toString(),
+                    evt.getUniprotServiceResult().getMessages().toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -198,33 +226,33 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
         final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
         String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
-        
+
         try {
             ReportWriter writer = reportHandler.getRangeChangedWriter();
             writer.writeHeaderIfNecessary("Range AC",
-                                          "Old Pos.",
-                                          "New Pos.",
-                                          "Length Changed",
-                                          "Seq. Changed",
-                                          "Feature AC",
-                                          "Feature Label",
-                                          "Comp. AC",
-                                          "Prot. AC",
-                                          "Prot. Label",
-                                          "Prot. Uniprot",
-                                          "Message");
+                    "Old Pos.",
+                    "New Pos.",
+                    "Length Changed",
+                    "Seq. Changed",
+                    "Feature AC",
+                    "Feature Label",
+                    "Comp. AC",
+                    "Prot. AC",
+                    "Prot. Label",
+                    "Prot. Uniprot",
+                    "Message");
             writer.writeColumnValues(updatedRange.getNewRange().getAc(),
-                                     updatedRange.getOldRange().toString(),
-                                     updatedRange.getNewRange().toString(),
-                                     booleanToYesNo(updatedRange.isRangeLengthChanged()),
-                                     booleanToYesNo(updatedRange.isSequenceChanged()),
-                                     feature.getAc(),
-                                     feature.getShortLabel(),
-                                     component.getAc(),
-                                     interactor.getAc(),
-                                     interactor.getShortLabel(),
-                                     uniprotAc,
-                                     dashIfNull(updatedRange.getMessage()));
+                    updatedRange.getOldRange().toString(),
+                    updatedRange.getNewRange().toString(),
+                    booleanToYesNo(updatedRange.isRangeLengthChanged()),
+                    booleanToYesNo(updatedRange.isSequenceChanged()),
+                    feature.getAc(),
+                    feature.getShortLabel(),
+                    component.getAc(),
+                    interactor.getAc(),
+                    interactor.getShortLabel(),
+                    uniprotAc,
+                    dashIfNull(updatedRange.getMessage()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -244,27 +272,27 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         try {
             ReportWriter writer = reportHandler.getInvalidRangeWriter();
             writer.writeHeaderIfNecessary("Range AC",
-                                          "Pos.",
-                                          "Computed Pos.",
-                                          "Sequence length.",
-                                          "Feature AC",
-                                          "Feature Label",
-                                          "Comp. AC",
-                                          "Prot. AC",
-                                          "Prot. Label",
-                                          "Prot. Uniprot",
-                                          "Message");
+                    "Pos.",
+                    "Computed Pos.",
+                    "Sequence length.",
+                    "Feature AC",
+                    "Feature Label",
+                    "Comp. AC",
+                    "Prot. AC",
+                    "Prot. Label",
+                    "Prot. Uniprot",
+                    "Message");
             writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
-                                     outOfBoundRange.getInvalidRange().toString(),
-                                     dashIfNull(outOfBoundRange.getNewRanges()),
-                                     Integer.toString(outOfBoundRange.getSequence().length()),
-                                     feature.getAc(),
-                                     feature.getShortLabel(),
-                                     component.getAc(),
-                                     interactor.getAc(),
-                                     interactor.getShortLabel(),
-                                     uniprotAc,
-                                     dashIfNull(outOfBoundRange.getMessage()));
+                    outOfBoundRange.getInvalidRange().toString(),
+                    dashIfNull(outOfBoundRange.getNewRanges()),
+                    Integer.toString(outOfBoundRange.getSequence().length()),
+                    feature.getAc(),
+                    feature.getShortLabel(),
+                    component.getAc(),
+                    interactor.getAc(),
+                    interactor.getShortLabel(),
+                    uniprotAc,
+                    dashIfNull(outOfBoundRange.getMessage()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);

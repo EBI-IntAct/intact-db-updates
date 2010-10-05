@@ -15,22 +15,21 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.model.CvDatabase;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Duplicate detection for proteins.
@@ -78,22 +77,97 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
         if( ! CvDatabase.UNIPROT_MI_REF.equals( identity.getCvDatabase().getIdentifier() ) ) {
             if ( log.isDebugEnabled() )
                 log.debug( "Protein " + protInfo(protein)+ " has an Xref("+ identity.getCvDatabase().getShortLabel() +
-                           ", identity) while uniprotkb expected. Skip.");
+                        ", identity) while uniprotkb expected. Skip.");
             return;
         }
 
         ProteinDao proteinDao = dataContext.getDaoFactory().getProteinDao();
         final List<ProteinImpl> possibleDuplicates =
                 proteinDao.getByXrefLike( identity.getCvDatabase(),
-                                          identity.getCvXrefQualifier(),
-                                          identity.getPrimaryId() );
+                        identity.getCvXrefQualifier(),
+                        identity.getPrimaryId() );
 
         // if there are possible duplicates (more than 1 result), check and fix when necessary
         if (possibleDuplicates.size() > 1) {
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
-                                                                              evt.getDataContext(),
-                                                                              new ArrayList<Protein>(possibleDuplicates)));
+            if (ProteinUtils.isSpliceVariant(protein)){
+
+                Collection<Protein> totalProteins = new ArrayList<Protein>();
+                totalProteins.addAll(possibleDuplicates);
+
+                Collection<Protein> duplicates = new ArrayList<Protein>();
+
+                while (totalProteins.size() > 0){
+                    duplicates.clear();
+
+                    Iterator<Protein> iterator = totalProteins.iterator();
+
+                    Protein protToCompare = iterator.next();
+                    duplicates.add(protToCompare);
+
+                    Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
+
+                    while (iterator.hasNext()){
+                        Protein proteinCompared = iterator.next();
+
+                        Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                        if (CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                            duplicates.add(proteinCompared);
+                        }
+                    }
+
+                    if (duplicates.size() > 1){
+                        processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                evt.getDataContext(),
+                                duplicates));
+                    }
+
+                    totalProteins.removeAll(duplicates);
+                }
+            }
+            else if (ProteinUtils.isFeatureChain(protein)){
+
+                Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
+                totalProteins.addAll(possibleDuplicates);
+
+                Collection<Protein> duplicates = new ArrayList<Protein>();
+
+                while (totalProteins.size() > 0){
+                    duplicates.clear();
+
+                    Iterator<ProteinImpl> iterator = totalProteins.iterator();
+
+                    ProteinImpl protToCompare = iterator.next();
+                    duplicates.add(protToCompare);
+
+                    Collection<InteractorXref> chainParents = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
+
+                    while (iterator.hasNext()){
+                        ProteinImpl proteinCompared = iterator.next();
+
+                        Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+
+                        if (CollectionUtils.isEqualCollection(chainParents, chainParent2)){
+                            duplicates.add(proteinCompared);
+                        }
+                    }
+
+                    if (duplicates.size() > 1){
+                        processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                evt.getDataContext(),
+                                duplicates));
+                    }
+
+                    totalProteins.removeAll(duplicates);
+                }
+            }
+            else {
+                processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                evt.getDataContext(),
+                                new ArrayList<Protein> (possibleDuplicates)));
+            }
+
 //            checkAndFixDuplication(protein, possibleDuplicates, evt);
         } else {
             if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protein) );

@@ -5,6 +5,7 @@
  */
 package uk.ac.ebi.intact.util.protein;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
@@ -260,6 +261,183 @@ public class ProteinServiceImpl implements ProteinService {
         return uniprotServiceResult.getProteins();
     }
 
+    protected Collection<Protein> createOrUpdateProteinTranscript( UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, Protein masterProtein ) throws ProteinServiceException {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+
+        Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
+
+        final String uniprotAc = uniprotProteinTranscript.getPrimaryAc();
+        String taxid = String.valueOf( uniprotProteinTranscript.getOrganism().getTaxid() );
+
+        if (log.isDebugEnabled()) log.debug("Searching IntAct for Uniprot protein: "+ uniprotAc + ", "
+                + uniprotProteinTranscript.getOrganism().getName() +" ("+uniprotProteinTranscript.getOrganism().getTaxid()+")");
+
+        // we will assign the proteins to two collections - primary / secondary
+        Collection<ProteinImpl> primaryProteins = proteinDao.getByUniprotId(uniprotAc);
+        Collection<ProteinImpl> secondaryProteins = new ArrayList<ProteinImpl>();
+
+        for (String secondaryAc : uniprotProteinTranscript.getSecondaryAcs()) {
+            secondaryProteins.addAll(proteinDao.getByUniprotId(secondaryAc));
+        }
+
+        // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
+
+        if (taxid != null) {
+            filterNonUniprot(nonUniprotProteins, primaryProteins);
+            filterNonUniprot(nonUniprotProteins, secondaryProteins);
+        }
+
+        int countPrimary = primaryProteins.size();
+        int countSecondary = secondaryProteins.size();
+
+        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
+        // TODO returned proteins are not used here
+        uniprotServiceResult.addAllToProteins(nonUniprotProteins);
+
+        return processProteinTranscript(uniprotProteinTranscript, uniprotProtein, masterProtein, primaryProteins, secondaryProteins);
+    }
+
+    protected Collection<Protein> processProteinTranscript(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        Collection<Protein> proteins = new ArrayList<Protein>();
+        int countPrimary = primaryProteins.size();
+        int countSecondary = secondaryProteins.size();
+
+        if ( countPrimary == 0 && countSecondary == 0 ) {
+            if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
+
+            final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+            final boolean globalProteinUpdate = config.isGlobalProteinUpdate();
+            final boolean deleteProteinTranscript = config.isDeleteProteinTranscriptWithoutInteractions();
+
+            if( ! globalProteinUpdate && !deleteProteinTranscript) {
+                // create shallow
+                Protein protein = createMinimalisticProteinTranscript( uniprotProteinTranscript, masterProtein.getAc(), masterProtein.getBioSource(), uniprotProtein );
+                proteins.add( protein );
+                updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
+
+                proteinCreated(protein);
+            }
+
+        } else if ( countPrimary == 0 && countSecondary == 1 ) {
+            if (log.isDebugEnabled())
+                log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
+
+            Protein protein = secondaryProteins.iterator().next();
+            proteins.add( protein );
+
+            // update UniProt Xrefs
+            XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein );
+
+            // Update protein
+            updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
+
+        } else if ( countPrimary == 1 && countSecondary == 0 ) {
+            if (log.isDebugEnabled())
+                log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
+
+            Protein protein = primaryProteins.iterator().next();
+            proteins.add(protein);
+
+            updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
+
+        }else if ( countPrimary == 1 && countSecondary >= 1){
+            if (log.isDebugEnabled())
+                log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
+
+            Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
+            totalProteins.addAll(primaryProteins);
+            totalProteins.addAll(secondaryProteins);
+
+            Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
+
+            while (totalProteins.size() > 0){
+                duplicates.clear();
+
+                Iterator<ProteinImpl> iterator = totalProteins.iterator();
+
+                ProteinImpl protToCompare = iterator.next();
+                duplicates.add(protToCompare);
+
+                Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
+                Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
+
+                while (iterator.hasNext()){
+                    ProteinImpl proteinCompared = iterator.next();
+
+                    Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+                    Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                    if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                        duplicates.add(proteinCompared);
+                    }
+                }
+
+                if (duplicates.size() > 1){
+                    proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
+                }
+
+                totalProteins.removeAll(duplicates);
+            }
+        }else {
+
+            // Error cases
+
+            String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
+            log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
+
+            if ( countPrimary > 1 && countSecondary == 0 ) {
+                //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
+                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+
+                Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
+                totalProteins.addAll(primaryProteins);
+
+                Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
+
+                while (totalProteins.size() > 0){
+                    duplicates.clear();
+
+                    Iterator<ProteinImpl> iterator = totalProteins.iterator();
+
+                    ProteinImpl protToCompare = iterator.next();
+                    duplicates.add(protToCompare);
+
+                    Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
+                    Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
+
+                    while (iterator.hasNext()){
+                        ProteinImpl proteinCompared = iterator.next();
+
+                        Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+                        Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                        if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                            duplicates.add(proteinCompared);
+                        }
+                    }
+
+                    if (duplicates.size() > 1){
+                        proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
+                    }
+
+                    totalProteins.removeAll(duplicates);
+                }
+
+
+            } else if ( countPrimary == 0 && countSecondary > 1 ) {
+                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
+                uniprotServiceResult.addError("Possible duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
+            } else {
+
+                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
+                uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProteinTranscript.getPrimaryAc() + ") " + pCount + ", " +
+                        "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
+
+            }
+        }
+        return proteins;
+    }
+
     protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         Collection<Protein> proteins = new ArrayList<Protein>();
         int countPrimary = primaryProteins.size();
@@ -341,16 +519,77 @@ public class ProteinServiceImpl implements ProteinService {
      * Note that the subclass is used in the global protein update and this one only in the editor.
      *
      */
-    protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+    protected Protein processTranscriptDuplication(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprot, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
-        Protein primaryProt = primaryProteins.iterator().next();
+        Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
+        duplicates.addAll(primaryProteins);
+        duplicates.addAll(secondaryProteins);
 
-        Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),secondaryProteins);
+        Protein primaryProt = primaryProteins.iterator().next();
+        duplicates.remove(primaryProt);
+
+        Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),duplicates);
 
         List<Protein> proteinsToDelete = new ArrayList<Protein>();
         proteinsToDelete.addAll(secondaryProteins);
-        proteinsToDelete.add(primaryProt);
+        proteinsToDelete.addAll(primaryProteins);
+
+        proteinsToDelete.remove(protToBeKept);
+
+        ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
+
+        CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getCvObjectDao().getByShortLabel(CvXrefQualifier.class,"intact-secondary");
+
+        //            CvXrefQualifier intactSecondary = IntactContext.getCurrentInstance().getCvContext().getByLabel(CvXrefQualifier.class,"intact-secondary");
+        Institution owner = IntactContext.getCurrentInstance().getInstitution();
+        // TODO make sure we are using the owner of the protein, not directly IntAct
+        CvDatabase intact = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+                .getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
+
+        for(Protein protToDelete : proteinsToDelete ){
+
+            // On the protein that we are going to keep add the protein ac of the one we are going to delete as
+            // intact-secondary xref. That way, a user can still search for the protein ac he used to search with
+            // even if it has been deleted.
+            InteractorXref xref = new InteractorXref(owner,intact, protToDelete.getAc(), intactSecondary);
+            xref.setParent(protToBeKept);
+            protToBeKept.addXref(xref);
+            protToDelete.getActiveInstances().clear();
+
+            // TODO harmonise with DuplicateFixer
+            deleteProtein(protToDelete);
+        }
+
+        proteinDao.saveOrUpdate((ProteinImpl) protToBeKept);
+        updateProteinTranscript( protToBeKept, masterProtein, uniprotProteinTranscript, uniprot );
+        // Message being added.
+
+        uniprotServiceResult.addMessage("Duplication found");
+
+        return protToBeKept;
+    }
+
+    /**
+     * Note that the subclass is used in the global protein update and this one only in the editor.
+     *
+     */
+    protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
+
+        Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
+        duplicates.addAll(primaryProteins);
+        duplicates.addAll(secondaryProteins);
+
+        Protein primaryProt = primaryProteins.iterator().next();
+        duplicates.remove(primaryProt);
+
+        Protein protToBeKept = getProtWithMaxInteraction(primaryProteins.iterator().next(),duplicates);
+
+        List<Protein> proteinsToDelete = new ArrayList<Protein>();
+        proteinsToDelete.addAll(secondaryProteins);
+        proteinsToDelete.addAll(primaryProteins);
+
         proteinsToDelete.remove(protToBeKept);
 
         ProteinTools.moveInteractionsBetweenProteins(protToBeKept, proteinsToDelete);
@@ -520,25 +759,7 @@ public class ProteinServiceImpl implements ProteinService {
         List<Protein> proteins = new ArrayList<Protein>();
 
         // check that both protein carry the same organism information
-        BioSource organism1 = protein.getBioSource();
-
-        Organism organism2 = uniprotProtein.getOrganism();
-        int t2 = organism2.getTaxid();
-
-        if (organism1 == null) {
-            if (log.isWarnEnabled()) log.warn("Protein does not contain biosource. It will be assigned the Biosource from uniprot: "+organism2.getName()+" ("+organism2.getTaxid()+")");
-            organism1 = new BioSource(protein.getOwner(), organism2.getName(), String.valueOf(t2));
-            protein.setBioSource(organism1);
-
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(organism1);
-        }
-
-        if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
-            uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
-                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein " +
-                    getProteinDescription(protein) + " by BioSource( " + t2 + "," +
-                    organism2.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
-
+        if (!UpdateBioSource(protein, uniprotProtein.getOrganism())){
             return proteins;
         }
 
@@ -566,48 +787,7 @@ public class ProteinServiceImpl implements ProteinService {
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein );
 
         // Sequence
-        boolean sequenceToBeUpdated = false;
-        String oldSequence = protein.getSequence();
-        String sequence = uniprotProtein.getSequence();
-        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Sequence requires update." );
-            }
-            sequenceToBeUpdated = true;
-        }
-
-        if ( sequenceToBeUpdated && !protein.getActiveInstances().isEmpty() ) {
-
-            Set<Range> badRanges = FeatureUtils.getBadRanges(protein);
-
-            if (badRanges.isEmpty()){
-                protein.setSequence( sequence );
-
-                // CRC64
-                String crc64 = uniprotProtein.getCrc64();
-                if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
-                    log.debug( "CRC64 requires update." );
-                    protein.setCrc64( crc64 );
-                }
-
-                sequenceChanged(protein, oldSequence);
-            }
-            else {
-                for (Range range : badRanges){
-                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
-                }
-            }
-        }
-        else if (sequenceToBeUpdated && protein.getActiveInstances().isEmpty()){
-            protein.setSequence( sequence );
-
-            // CRC64
-            String crc64 = uniprotProtein.getCrc64();
-            if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
-                log.debug( "CRC64 requires update." );
-                protein.setCrc64( crc64 );
-            }
-        }
+        updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64());
 
         // Persist changes
         DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
@@ -617,7 +797,6 @@ public class ProteinServiceImpl implements ProteinService {
         ///////////////////////////////
         // Update Splice Variants and feature chains
 
-        Collection<ProteinImpl> variants = new ArrayList<ProteinImpl> ();
 
         // search intact
         // splice variants with no 'no-uniprot-update'
@@ -625,13 +804,6 @@ public class ProteinServiceImpl implements ProteinService {
 
         // feature chains
         spliceVariantsAndChains.addAll(pdao.getProteinChains( protein ));
-
-        // will only update variants with no annotation 'no-uniprot-update'attached to it
-        for (ProteinImpl sp : spliceVariantsAndChains){
-            if (ProteinUtils.isFromUniprot(sp)) {
-                variants.add(sp);
-            }
-        }
 
         // We create a copy of the collection that hold the protein transcripts as the findMatches remove the protein transcripts
         // from the collection when a match is found. Therefore the first time it runs, it finds the match, protein transcripts
@@ -643,8 +815,58 @@ public class ProteinServiceImpl implements ProteinService {
         variantsClone.addAll(uniprotProtein.getSpliceVariants());
         variantsClone.addAll(uniprotProtein.getFeatureChains());
 
+        for (UniprotProteinTranscript transcript : variantsClone){
+            proteins.addAll(createOrUpdateProteinTranscript(transcript, uniprotProtein, protein));
+        }
+
+        if (!proteins.containsAll(spliceVariantsAndChains)){
+
+            if ( proteins.size() < spliceVariantsAndChains.size()){
+                for (Object protNotUpdated : CollectionUtils.subtract(spliceVariantsAndChains, proteins)){
+                    Protein prot = (Protein) protNotUpdated;
+
+                    if(prot.getActiveInstances().size() == 0){
+                        deleteProtein(prot);
+
+                        uniprotServiceResult.addMessage("The protein " + getProteinDescription(prot) +
+                                " is a protein transcript of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
+                                " As it is not part of any interactions in IntAct we have deleted it."  );
+
+                    }else if (ProteinUtils.isFromUniprot(prot)){
+                        uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
+                                "In Intact the protein "+ getProteinDescription(prot) +
+                                        " is a protein transcript of protein "+ getProteinDescription(protein)+
+                                        " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
+                                        "delete it.");
+                    }
+                }
+            }
+            else {
+                Collection<Protein> spliceVariantsNotUpdated = new ArrayList<Protein>(spliceVariantsAndChains);
+                spliceVariantsNotUpdated.removeAll(CollectionUtils.intersection(spliceVariantsAndChains, proteins));
+
+                for (Protein protNotUpdated : spliceVariantsNotUpdated){
+
+                    if(protNotUpdated.getActiveInstances().size() == 0){
+                        deleteProtein(protNotUpdated);
+
+                        uniprotServiceResult.addMessage("The protein " + getProteinDescription(protNotUpdated) +
+                                " is a protein transcript of " + getProteinDescription(protein) + " in IntAct but not in Uniprot." +
+                                " As it is not part of any interactions in IntAct we have deleted it."  );
+
+                    }else if (ProteinUtils.isFromUniprot(protNotUpdated)){
+                        uniprotServiceResult.addError(UniprotServiceResult.SPLICE_VARIANT_IN_INTACT_BUT_NOT_IN_UNIPROT,
+                                "In Intact the protein "+ getProteinDescription(protNotUpdated) +
+                                        " is a protein transcript of protein "+ getProteinDescription(protein)+
+                                        " but in Uniprot it is not the case. As it is part of interactions in IntAct we couldn't " +
+                                        "delete it.");
+                    }
+                }
+            }
+        }
+
 //        Collection<ProteinTranscriptMatch> matches = findMatches( variants, variantsClone) );
-        Collection<ProteinTranscriptMatch> matches = findMatches( spliceVariantsAndChains, variantsClone );
+        /*Collection<ProteinTranscriptMatch> matches = findMatches( spliceVariantsAndChains, variantsClone );
         for ( ProteinTranscriptMatch match : matches ) {
 
             if ( match.isSuccessful() ) {
@@ -673,7 +895,8 @@ public class ProteinServiceImpl implements ProteinService {
                 if( ! globalProteinUpdate && !deleteProteinTranscript) {
                     // create shallow
                     Protein intactTranscript = createMinimalisticProteinTranscript( match.getUniprotTranscript(),
-                            protein,
+                            protein.getAc(),
+                            protein.getBioSource(),
                             uniprotProtein );
                     // update
                     final UniprotProteinTranscript uniprotTranscript = match.getUniprotTranscript();
@@ -704,8 +927,53 @@ public class ProteinServiceImpl implements ProteinService {
                                     "delete it.");
                 }
             }
-        }
+        }*/
         return proteins;
+    }
+
+    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64) {
+        boolean sequenceToBeUpdated = false;
+        String oldSequence = protein.getSequence();
+        String sequence = uniprotSequence;
+        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
+            if ( log.isDebugEnabled() ) {
+                log.debug( "Sequence requires update." );
+            }
+            sequenceToBeUpdated = true;
+        }
+
+        if ( sequenceToBeUpdated && !protein.getActiveInstances().isEmpty() ) {
+
+            Set<Range> badRanges = FeatureUtils.getBadRanges(protein);
+
+            if (badRanges.isEmpty()){
+                protein.setSequence( sequence );
+
+                // CRC64
+                String crc64 = uniprotCrC64;
+                if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    protein.setCrc64( crc64 );
+                }
+
+                sequenceChanged(protein, oldSequence);
+            }
+            else {
+                for (Range range : badRanges){
+                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
+                }
+            }
+        }
+        else if (sequenceToBeUpdated && protein.getActiveInstances().isEmpty()){
+            protein.setSequence( sequence );
+
+            // CRC64
+            String crc64 = uniprotCrC64;
+            if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
+                log.debug( "CRC64 requires update." );
+                protein.setCrc64( crc64 );
+            }
+        }
     }
 
     protected void proteinCreated(Protein protein) {
@@ -842,26 +1110,7 @@ public class ProteinServiceImpl implements ProteinService {
                                              UniprotProteinTranscript uniprotTranscript,
                                              UniprotProtein uniprotProtein ) throws ProteinServiceException {
 
-        // check that both protein carry the same organism information
-        BioSource organism1 = transcript.getBioSource();
-
-        Organism organism2 = uniprotTranscript.getOrganism();
-        int t2 = organism2.getTaxid();
-
-        if (organism1 == null) {
-            if (log.isWarnEnabled()) log.warn("Protein transcript does not contain biosource. It will be assigned the Biosource from uniprot: "+organism2.getName()+" ("+organism2.getTaxid()+")");
-            organism1 = new BioSource(transcript.getOwner(), organism2.getName(), String.valueOf(t2));
-            transcript.setBioSource(organism1);
-
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(organism1);
-        }
-
-        if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
-            uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
-                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein transcript " +
-                    getProteinDescription(transcript) + " by BioSource( " + t2 + "," +
-                    organism2.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
-
+        if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism())){
             return false;
         }
 
@@ -883,49 +1132,7 @@ public class ProteinServiceImpl implements ProteinService {
         AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein );
 
         // Sequence
-        boolean sequenceToBeUpdated = false;
-        String oldSequence = transcript.getSequence();
-        String sequence = uniprotTranscript.getSequence();
-        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Sequence requires update." );
-            }
-            sequenceToBeUpdated = true;
-        }
-
-        if ( sequenceToBeUpdated && !transcript.getActiveInstances().isEmpty() ) {
-
-            Set<Range> badRanges = FeatureUtils.getBadRanges(transcript);
-
-            if (badRanges.isEmpty()){
-                transcript.setSequence( sequence );
-
-                // CRC64
-                String crc64 = uniprotProtein.getCrc64();
-                if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
-                    log.debug( "CRC64 requires update." );
-                    transcript.setCrc64( crc64 );
-                }
-
-                sequenceChanged(transcript, oldSequence);
-            }
-            else {
-                for (Range range : badRanges){
-                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
-                }
-            }
-        }
-        else if (sequenceToBeUpdated && transcript.getActiveInstances().isEmpty()){
-            transcript.setSequence( sequence );
-
-            // CRC64
-            String crc64 = uniprotProtein.getCrc64();
-            if ( transcript.getCrc64() == null || !transcript.getCrc64().equals( crc64 ) ) {
-                log.debug( "CRC64 requires update." );
-                transcript.setCrc64( crc64 );
-            }
-        }
-
+        updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()));
         // Add IntAct Xref
 
         // Update Note
@@ -1012,6 +1219,31 @@ public class ProteinServiceImpl implements ProteinService {
         return true;
     }
 
+    private boolean UpdateBioSource(Protein protein, Organism organism) {
+        // check that both protein carry the same organism information
+        BioSource organism1 = protein.getBioSource();
+
+        int t2 = organism.getTaxid();
+
+        if (organism1 == null) {
+            if (log.isWarnEnabled()) log.warn("Protein protein does not contain biosource. It will be assigned the Biosource from uniprot: "+organism.getName()+" ("+organism.getTaxid()+")");
+            organism1 = new BioSource(protein.getOwner(), organism.getName(), String.valueOf(t2));
+            protein.setBioSource(organism1);
+
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(organism1);
+        }
+
+        if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
+            uniprotServiceResult.addError(UniprotServiceResult.BIOSOURCE_MISMATCH, "UpdateProteins is trying to modify" +
+                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein protein " +
+                    getProteinDescription(protein) + " by BioSource( " + t2 + "," +
+                    organism.getName() + " ). Changing the organism of an existing protein is a forbidden operation.");
+
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Create a simple splice variant or feature chain in view of updating it.
      * <p/>
@@ -1022,7 +1254,8 @@ public class ProteinServiceImpl implements ProteinService {
      * @return a non null, persisted intact protein.
      */
     private Protein createMinimalisticProteinTranscript( UniprotProteinTranscript uniprotProteinTranscript,
-                                                         Protein master,
+                                                         String masterAc,
+                                                         BioSource masterBiosource,
                                                          UniprotProtein uniprotProtein
     ) {
 
@@ -1030,7 +1263,7 @@ public class ProteinServiceImpl implements ProteinService {
         ProteinDao pdao = daoFactory.getProteinDao();
 
         Protein variant = new ProteinImpl( CvHelper.getInstitution(),
-                master.getBioSource(),
+                masterBiosource,
                 uniprotProteinTranscript.getPrimaryAc(),
                 CvHelper.getProteinType() );
 
@@ -1046,7 +1279,7 @@ public class ProteinServiceImpl implements ProteinService {
         // Create isoform-parent or chain-parent Xref
         CvXrefQualifier isoformParent = CvHelper.getQualifierByMi( uniprotProteinTranscript.getParentXRefQualifier() );
         CvDatabase intact = CvHelper.getDatabaseByMi( CvDatabase.INTACT_MI_REF );
-        InteractorXref xref = new InteractorXref( CvHelper.getInstitution(), intact, master.getAc(), isoformParent );
+        InteractorXref xref = new InteractorXref( CvHelper.getInstitution(), intact, masterAc, isoformParent );
         variant.addXref( xref );
         XrefDao xdao = daoFactory.getXrefDao();
         xdao.persist( xref );
