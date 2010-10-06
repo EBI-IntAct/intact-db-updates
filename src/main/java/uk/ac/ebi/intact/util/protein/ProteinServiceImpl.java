@@ -137,14 +137,17 @@ public class ProteinServiceImpl implements ProteinService {
         Collection<UniprotProtein> uniprotProteins = retrieveFromUniprot( uniprotAc );
 
         try{
+            // no uniprot protein matches this uniprot ac
             if(uniprotProteins.size() == 0){
                 ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
                 List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
+                // several proteins in IntAct refers to uniprot protein which are not existing anymore (dead entries)
                 if(proteinsInIntact.size() != 0){
 
                     final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
-                    if (config != null && !config.isUpdateProteinsNotFoundInUniprot()){
+                    // if we can update the dead proteins, we update them, otherwise we add an error in uniprotServiceResult
+                    if (config != null && !config.isProcessProteinNotFoundInUniprot()){
                         uniprotServiceResult.addError("Couldn't update protein with uniprot id = " + uniprotAc + ". It was found" +
                                 " in IntAct but was not found in Uniprot.", UniprotServiceResult.PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE);
                         return uniprotServiceResult;
@@ -159,7 +162,9 @@ public class ProteinServiceImpl implements ProteinService {
                     uniprotServiceResult.addError("Could not udpate protein with uniprot id = " + uniprotAc + ". No " +
                             "corresponding entry found in uniprot.", UniprotServiceResult.PROTEIN_NOT_IN_INTACT_NOT_IN_UNIPROT_ERROR_TYPE);
                 }
-            }else if ( uniprotProteins.size() > 1 ) {
+            }
+            // TODO : specific cases of splice variants attached to several master proteins will not be updated!!!
+            else if ( uniprotProteins.size() > 1 ) {
                 if ( 1 == getSpeciesCount( uniprotProteins ) ) {
                     // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
                     // in uniprot we should not update it automatically but send a message to the curators so that they
@@ -244,11 +249,8 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
-
-        if (taxid != null) {
-            filterNonUniprot(nonUniprotProteins, primaryProteins);
-            filterNonUniprot(nonUniprotProteins, secondaryProteins);
-        }
+        filterNonUniprot(nonUniprotProteins, primaryProteins);
+        filterNonUniprot(nonUniprotProteins, secondaryProteins);
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -261,12 +263,22 @@ public class ProteinServiceImpl implements ProteinService {
         return uniprotServiceResult.getProteins();
     }
 
+    /**
+     * create or update a protein transcript
+     * @param uniprotProteinTranscript : the uniprot protein transcript
+     * @param uniprotProtein : the uniprot protein
+     * @param masterProtein : the IntAct master protein
+     * @return the list of protein transcripts created or updated
+     * @throws ProteinServiceException
+     */
     protected Collection<Protein> createOrUpdateProteinTranscript( UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, Protein masterProtein ) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
 
+        // getThe primary ac of the transcript
         final String uniprotAc = uniprotProteinTranscript.getPrimaryAc();
+        // get the taxId of the uniprot transcript
         String taxid = String.valueOf( uniprotProteinTranscript.getOrganism().getTaxid() );
 
         if (log.isDebugEnabled()) log.debug("Searching IntAct for Uniprot protein: "+ uniprotAc + ", "
@@ -276,16 +288,14 @@ public class ProteinServiceImpl implements ProteinService {
         Collection<ProteinImpl> primaryProteins = proteinDao.getByUniprotId(uniprotAc);
         Collection<ProteinImpl> secondaryProteins = new ArrayList<ProteinImpl>();
 
+        // get the secondary accessions of the protein transcripts
         for (String secondaryAc : uniprotProteinTranscript.getSecondaryAcs()) {
             secondaryProteins.addAll(proteinDao.getByUniprotId(secondaryAc));
         }
 
         // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
-
-        if (taxid != null) {
-            filterNonUniprot(nonUniprotProteins, primaryProteins);
-            filterNonUniprot(nonUniprotProteins, secondaryProteins);
-        }
+        filterNonUniprot(nonUniprotProteins, primaryProteins);
+        filterNonUniprot(nonUniprotProteins, secondaryProteins);
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -297,6 +307,16 @@ public class ProteinServiceImpl implements ProteinService {
         return processProteinTranscript(uniprotProteinTranscript, uniprotProtein, masterProtein, primaryProteins, secondaryProteins);
     }
 
+    /**
+     * Process the protein transcript and update it
+     * @param uniprotProteinTranscript
+     * @param uniprotProtein
+     * @param masterProtein
+     * @param primaryProteins
+     * @param secondaryProteins
+     * @return
+     * @throws ProteinServiceException
+     */
     protected Collection<Protein> processProteinTranscript(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         Collection<Protein> proteins = new ArrayList<Protein>();
         int countPrimary = primaryProteins.size();

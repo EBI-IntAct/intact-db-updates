@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * TODO comment this
+ * This listener is fixing proteins in IntAct which cannot match any uniprot protein anymore and update them as dead proteins
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -33,6 +33,10 @@ public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcesso
         updateXRefs(protein);
     }
 
+    /**
+     * Two new annotations will be added : a 'no-uniprot-update' and a 'caution' explaining that this protein is now obsolete in uniprot
+     * @param protein :the dead protein in IntAct
+     */
     private void updateAnnotations(Protein protein){
 
         Collection<Annotation> annotations = protein.getAnnotations();
@@ -83,6 +87,10 @@ public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcesso
         }
     }
 
+    /**
+     * This method removes all the cross references which are not intact cross references and replace the uniprot identity with 'uniprot-removed-ac'
+     * @param protein : the dead protein in IntAct
+     */
     private void updateXRefs(Protein protein){
 
         Collection<InteractorXref> xRefs = protein.getXrefs();

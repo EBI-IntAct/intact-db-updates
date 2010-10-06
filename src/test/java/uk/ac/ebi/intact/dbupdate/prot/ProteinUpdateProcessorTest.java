@@ -62,7 +62,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
-        configUpdate.setUpdateProteinsNotFoundInUniprot(false);
+        configUpdate.setProcessProteinNotFoundInUniprot(false);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -119,7 +119,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
-        configUpdate.setUpdateProteinsNotFoundInUniprot(false);
+        configUpdate.setProcessProteinNotFoundInUniprot(false);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -172,7 +172,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
-        configUpdate.setUpdateProteinsNotFoundInUniprot(false);
+        configUpdate.setProcessProteinNotFoundInUniprot(false);
 
         // interaction: no
         Protein masterProt1 = getMockBuilder().createProtein("P12345", "master1");
@@ -529,7 +529,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         // Run update on both the master and the chain
         ProteinUpdateProcessorConfig config = new ProteinUpdateProcessorConfig();
         config.setDeleteProteinTranscriptWithoutInteractions( true );
-        config.setUpdateProteinsNotFoundInUniprot(false);
+        config.setProcessProteinNotFoundInUniprot(false);
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(config);
 
         protUpdateProcessor.updateByACs( Arrays.asList( master.getAc(), chain.getAc() ) );
