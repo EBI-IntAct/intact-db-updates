@@ -1384,7 +1384,7 @@ public class ProteinServiceImpl implements ProteinService {
         return name.toLowerCase();
     }
 
-    protected UniprotServiceResult getUniprotServiceResult() {
+    public UniprotServiceResult getUniprotServiceResult() {
         return uniprotServiceResult;
     }
 }

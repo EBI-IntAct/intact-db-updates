@@ -23,12 +23,13 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.UniprotProteinUpdater;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import javax.swing.event.EventListenerList;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Iterates through the proteins
@@ -73,7 +74,7 @@ public abstract class ProteinProcessor {
      */
     public void updateAll() throws ProcessorException {
         registerListenersIfNotDoneYet();
-         
+
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
         TransactionStatus transactionStatus = dataContext.beginTransaction();
@@ -86,6 +87,8 @@ public abstract class ProteinProcessor {
 
     public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
+        Set<String> processedIntactProteins = new HashSet<String>();
 
         for (String protAc : protACsToUpdate) {
             TransactionStatus transactionStatus = dataContext.beginTransaction();
@@ -100,7 +103,9 @@ public abstract class ProteinProcessor {
             prot.getXrefs().size();
             prot.getAnnotations().size();
 
-            update(prot);
+            if (!processedIntactProteins.contains(prot.getAc())){
+                processedIntactProteins.addAll(update(prot));
+            }
 
             try {
                 dataContext.commitTransaction(transactionStatus);
@@ -111,18 +116,23 @@ public abstract class ProteinProcessor {
     }
 
     public void update(List<? extends Protein> protsToUpdate) throws ProcessorException {
-       registerListenersIfNotDoneYet();
+        registerListenersIfNotDoneYet();
 
         if (log.isTraceEnabled()) log.trace("Going to process "+protsToUpdate.size()+" proteins");
 
-       for (Protein protToUpdate : protsToUpdate) {
-           update(protToUpdate);
-       }
+        for (Protein protToUpdate : protsToUpdate) {
+            update(protToUpdate);
+        }
     }
 
-    public void update(Protein protToUpdate) throws ProcessorException {
+    public Set<String> update(Protein protToUpdate) throws ProcessorException {
+        Set<String> updatedProteins = new HashSet<String>();
+        List<UniprotProteinUpdater> listOfUniprotUpdater = getListeners(UniprotProteinUpdater.class);
+
         this.currentProtein = protToUpdate;
-        
+
+        updatedProteins.add(protToUpdate.getAc());
+
         registerListenersIfNotDoneYet();
 
         finalizationRequested = false;
@@ -143,7 +153,24 @@ public abstract class ProteinProcessor {
 
         if (isFinalizationRequested()) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Pre-Process phase");
-            return;
+
+            if (!listOfUniprotUpdater.isEmpty()){
+
+                for (UniprotProteinUpdater updater : listOfUniprotUpdater){
+                    UniprotServiceResult serviceResult = updater.getUniprotServiceResult();
+
+                    if (serviceResult != null){
+                        Collection<Protein> prots = updater.getUniprotServiceResult().getProteins();
+
+                        for (Protein prot : prots){
+                            if (prot != null){
+                                updatedProteins.add(prot.getAc());
+                            }
+                        }
+                    }
+                }
+            }
+            return updatedProteins;
         }
 
         TransactionStatus transactionStatus2 = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -155,9 +182,28 @@ public abstract class ProteinProcessor {
 
         try {
             IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
+
+            if (!listOfUniprotUpdater.isEmpty()){
+
+                for (UniprotProteinUpdater updater : listOfUniprotUpdater){
+                    UniprotServiceResult serviceResult = updater.getUniprotServiceResult();
+
+                    if (serviceResult != null){
+                        Collection<Protein> prots = updater.getUniprotServiceResult().getProteins();
+
+                        for (Protein prot : prots){
+                            if (prot != null){
+                                updatedProteins.add(prot.getAc());
+                            }
+                        }
+                    }
+                }
+            }
         } catch (IntactTransactionException e) {
             throw new ProcessorException(e);
         }
+
+        return updatedProteins;
     }
 
     public void finalizeAfterCurrentPhase() {
