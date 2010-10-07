@@ -83,11 +83,23 @@ public class RangeChecker {
                     updatedRanges.add(new UpdatedRange(oldRange, range));
                 }
             }
+            else {
+                processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, FeatureUtils.getBadRangeInfo(range, oldSequence), range.toString())));                
+            }
         }
 
         return updatedRanges;
     }
 
+    /**
+     * Shift the range positions according to the new sequence
+     * @param diffs
+     * @param range
+     * @param oldSequence
+     * @param newSequence
+     * @param processor
+     * @return
+     */
     protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, ProteinUpdateProcessor processor) {
         // to know if we have shifted a position
         boolean rangeShifted = false;

@@ -16,7 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot;
 
 /**
- * TODO comment that class header
+ * The Exception thrown by a Processor
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

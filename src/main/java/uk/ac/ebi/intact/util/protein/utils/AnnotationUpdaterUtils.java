@@ -41,10 +41,11 @@ public class AnnotationUpdaterUtils {
             return; // already in, exit
         }
 
+        IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao().persist( annotation );
+
         // add the alias to the AnnotatedObject
         current.addAnnotation( annotation );
 
-        IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao().persist( annotation );
         // update current as well !
         log.debug( "ADDED " + annotation + " to: " + current.getShortLabel() );
     }

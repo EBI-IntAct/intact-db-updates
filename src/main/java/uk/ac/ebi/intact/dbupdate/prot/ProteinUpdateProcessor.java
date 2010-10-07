@@ -103,6 +103,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             forceDeleteOfProteins = true;
         }
 
+        if (config.isProcessProteinNotFoundInUniprot()){
+            DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
+            addListener(deadUniprotListener);
+        }
+
         if (forceDeleteOfProteins) {
             addListener(new ProteinDeleter());
         }
@@ -115,7 +120,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         //addListener(new SequenceChangedListener());
         addListener(new RangeFixer());
-        addListener(new ProteinUniprotRemovedListener());
     }
 
     public void fireOnDelete(ProteinEvent evt) {

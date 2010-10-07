@@ -10,7 +10,7 @@ import uk.ac.ebi.intact.model.Protein;
 import java.util.*;
 
 /**
- * TODO comment this
+ * The class conatining all the results and information of a protein update
  *
  * @author Catherine Leroy (cleroy@ebi.ac.uk)
  * @version $Id$

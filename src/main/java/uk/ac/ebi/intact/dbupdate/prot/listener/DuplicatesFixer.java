@@ -49,6 +49,11 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         mergeDuplicates(evt.getProteins(), evt);
     }
 
+    /**
+     * Merge tha duplicates, the interactions are moved and the cross references as well
+     * @param duplicates
+     * @param evt
+     */
     protected void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
@@ -74,31 +79,34 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 // create an "intact-secondary" xref to the protein to be kept.
                 // This will allow the user to search using old ACs
                 Institution owner = duplicate.getOwner();
-                InstitutionXref ownerXref = XrefUtils.getPsiMiIdentityXref(owner);
                 DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
-                // TODO set an owner Xref in the test !!!Aurelie Hoareau
-                if (ownerXref != null) {
-                    CvDatabase ownerDb = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( ownerXref.getPrimaryId() );
 
-                    CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+                // the database is always intact because the framework is the intact framework and when we merge two proteins of this framework, it becomes 'intact-secondary'
+                CvDatabase db = daoFactory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
-                    InteractorXref xref = new InteractorXref(owner, ownerDb, duplicate.getAc(), intactSecondary);
-                    daoFactory.getXrefDao(InteractorXref.class).persist(xref);
-                    
-                    originalProt.addXref(xref);
-                    log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
+                if (db == null){
+                    db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
                 }
+
+                CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+
+                InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
+                daoFactory.getXrefDao(InteractorXref.class).persist(xref);
+
+                originalProt.addXref(xref);
+                log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
 
                 final List<ProteinImpl> isoforms = daoFactory.getProteinDao().getSpliceVariants( duplicate );
                 for ( ProteinImpl isoform : isoforms ) {
                     // each isoform should now point to the original protein
                     final Collection<InteractorXref> isoformParents =
                             AnnotatedObjectUtils.searchXrefs( isoform,
-                                                              CvDatabase.INTACT_MI_REF,
-                                                              CvXrefQualifier.ISOFORM_PARENT_MI_REF );
+                                    CvDatabase.INTACT_MI_REF,
+                                    CvXrefQualifier.ISOFORM_PARENT_MI_REF );
 
-                    remapTranscriptParent(originalProt, isoform, isoformParents);
+                    remapTranscriptParent(originalProt, duplicate.getAc(), isoform, isoformParents);
                 }
 
                 final List<ProteinImpl> proteinChains = daoFactory.getProteinDao().getProteinChains( duplicate );
@@ -106,10 +114,10 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                     // each chain should now point to the original protein
                     final Collection<InteractorXref> chainParents =
                             AnnotatedObjectUtils.searchXrefs(chain,
-                                                              CvDatabase.INTACT_MI_REF,
-                                                              CvXrefQualifier.CHAIN_PARENT_MI_REF );
+                                    CvDatabase.INTACT_MI_REF,
+                                    CvXrefQualifier.CHAIN_PARENT_MI_REF );
 
-                    remapTranscriptParent(originalProt, chain, chainParents);
+                    remapTranscriptParent(originalProt, duplicate.getAc(), chain, chainParents);
                 }
 
                 // and delete the duplicate
@@ -124,21 +132,39 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) originalProt);
     }
 
-    protected void remapTranscriptParent(Protein originalProt, ProteinImpl transcript, Collection<InteractorXref> transcriptParents) {
-        if( transcriptParents.size() != 1 ) {
-            log.warn( "More than one transcript-parent Xref found on protein transcript: " + transcript.getAc() );
-        } else {
-            final InteractorXref xref = transcriptParents.iterator().next();
-            xref.setPrimaryId( originalProt.getAc() );
-            IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(xref);
+    /**
+     * Remap the transcripts attached to this duplicate to the original protein
+     * @param originalProt
+     * @param transcript
+     * @param transcriptParents
+     */
+    protected void remapTranscriptParent(Protein originalProt, String duplicateAc, ProteinImpl transcript, Collection<InteractorXref> transcriptParents) {
+
+        boolean hasRemappedParentAc = false;
+
+        for (InteractorXref xref : transcriptParents){
+
+            if (xref.getPrimaryId().equals(duplicateAc)){
+                xref.setPrimaryId( originalProt.getAc() );
+                IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(xref);
 //                        daoFactory.getXrefDao( InteractorXref.class ).update( xref );
-            log.debug( "Fixing transcript-parent Xref for transcript '"+ transcript.getShortLabel()+
-                       "' ("+ transcript.getAc()+") so that it points to the merges master protein '"+
-                       originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
+                log.debug( "Fixing transcript-parent Xref for transcript '"+ transcript.getShortLabel()+
+                        "' ("+ transcript.getAc()+") so that it points to the merges master protein '"+
+                        originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
+                break;
+            }
+        }
+
+        if (!hasRemappedParentAc){
+            log.error( "No isoform parent cross reference refers to the duplicate : " + duplicateAc );
         }
     }
 
-
+    /**
+     *
+     * @param duplicates
+     * @return  the first protein created
+     */
     protected static Protein calculateOriginalProtein(List<? extends Protein> duplicates) {
         Protein originalProt = duplicates.get(0);
 
@@ -149,10 +175,15 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 originalProt = duplicate;
             }
         }
-        
+
         return originalProt;
     }
 
+    /**
+     * Fire a delete event for this protein
+     * @param protein
+     * @param evt
+     */
     private void deleteProtein(Protein protein, ProteinEvent evt) {
         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
         processor.fireOnDelete(new ProteinEvent(evt.getSource(), evt.getDataContext(), protein, evt.getMessage()));

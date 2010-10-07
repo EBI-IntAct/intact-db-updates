@@ -9,6 +9,7 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,9 +22,9 @@ import java.util.Collection;
  * @since <pre>01-Oct-2010</pre>
  */
 
-public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcessorListener {
+public class DeadUniprotListener extends AbstractProteinUpdateProcessorListener {
 
-    private static final Log log = LogFactory.getLog( ProteinUniprotRemovedListener.class );
+    private static final Log log = LogFactory.getLog( DeadUniprotListener.class );
 
     @Override
     public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
@@ -43,12 +44,14 @@ public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcesso
         CvTopic no_uniprot_update = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
         if (no_uniprot_update == null){
-            throw new ProcessorException("The CvTopic 'no-uniprot-update' doesn't exist in the database.");
+            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(no_uniprot_update);
         }
         CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
-        if (caution == null){
-            throw new ProcessorException("The CvTopic 'caution' doesn't exist in the database.");
+        if (caution == null) {
+            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
         }
 
         boolean has_no_uniprot_update = false;
@@ -111,14 +114,14 @@ public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcesso
                     if (cvQualifier != null){
                         if (cvQualifier.getIdentifier() != null){
                             if (cvQualifier.getIdentifier().equals(CvXrefQualifier.IDENTITY_MI_REF)){
-                                 isUniprotIdentity = true;
+                                isUniprotIdentity = true;
                             }
                             else {
                                 toDelete = true;
                             }
                         }
                         else if (CvXrefQualifier.IDENTITY.equalsIgnoreCase(cvQualifier.getShortLabel())){
-                             isUniprotIdentity = true;
+                            isUniprotIdentity = true;
                         }
                         else {
                             toDelete = true;
@@ -137,10 +140,11 @@ public class ProteinUniprotRemovedListener extends AbstractProteinUpdateProcesso
                 xRefsToRemove.add(ref);
             }
             else if (isUniprotIdentity){
-                 CvXrefQualifier uniprot_removed_ac = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
+                CvXrefQualifier uniprot_removed_ac = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
 
                 if (uniprot_removed_ac == null){
-                     throw new ProcessorException("The CvTopic 'uniprot-removed-ac' doesn't exist in the database.");
+                    uniprot_removed_ac = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, null, CvXrefQualifier.UNIPROT_REMOVED_AC);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(uniprot_removed_ac);
                 }
 
                 ref.setCvXrefQualifier(uniprot_removed_ac);

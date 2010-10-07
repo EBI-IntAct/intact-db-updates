@@ -5,7 +5,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import java.io.Serializable;
 
 /**
- * TODO comment this
+ * The interface to implement for each Event involved in the protein update
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

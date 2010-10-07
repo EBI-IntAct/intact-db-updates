@@ -4,13 +4,16 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.model.Protein;
 
 /**
- * TODO comment this
+ * Event fired when a protein sequence is changed
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
 public class ProteinSequenceChangeEvent extends ProteinEvent {
 
+    /**
+     * previous sequence of the protein
+     */
     private String oldSequence;
 
     /**

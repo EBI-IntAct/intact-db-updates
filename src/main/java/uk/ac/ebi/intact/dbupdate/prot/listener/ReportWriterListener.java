@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * TODO comment that class header
+ * Listener for logging the actions during the update
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

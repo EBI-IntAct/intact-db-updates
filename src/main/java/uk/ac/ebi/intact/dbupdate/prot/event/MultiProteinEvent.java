@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.EventObject;
 
 /**
- * TODO comment that class header
+ * Super class for the DuplicatesFoundEvent, contains a list of duplicated proteins 
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

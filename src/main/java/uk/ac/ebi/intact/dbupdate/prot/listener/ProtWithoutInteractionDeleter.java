@@ -65,7 +65,6 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
 
         final boolean isProteinTranscript = isProteinTranscript(protein);
 
-        // TODO migrate later
 //        final boolean isFeatureChain = ProteinUtils.isFeatureChain(protein);
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
@@ -86,6 +85,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
             trasncripts.addAll(proteinDao.getProteinChains(protein));
 
             for (Protein transcript : trasncripts) {
+
                 if (proteinDao.countInteractionsForInteractorWithAc(transcript.getAc()) > 0) {
                     hasProteinTranscriptAttached = true;
                 } else if (isDeleteProteinTranscriptsWithoutInteractions()) {
@@ -104,10 +104,10 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
                 deleteProtein(protein, evt);
             }
 
-        } else if ( isProteinTranscript && interactionCount == 0 && isDeleteProteinTranscriptsWithoutInteractions() ) {
+        } else if ( isProteinTranscript && interactionCount == 0) {
 
             if (log.isDebugEnabled()) log.debug("Protein transcript will be deleted: "+protInfo(protein));
-            evt.setMessage("Protein transcript without interactions - however master does");
+            evt.setMessage("Protein transcript without interactions");
             deleteProtein(protein, evt);
 
         }

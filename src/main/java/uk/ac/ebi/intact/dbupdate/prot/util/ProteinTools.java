@@ -4,17 +4,14 @@ import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.CvXrefQualifier;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * TODO comment this
+ * Helper containing methods for handling proteins
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -29,6 +26,11 @@ public class ProteinTools {
         }
     }
 
+    /**
+     * Move the interactions attached to the source protein to the destination protein
+     * @param destinationProtein : protein where to move the interactions
+     * @param sourceProtein : the protein for what we want to move the interactions
+     */
     public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein) {
         for (Component component : sourceProtein.getActiveInstances()) {
             component.setInteractor(destinationProtein);
@@ -38,6 +40,12 @@ public class ProteinTools {
         sourceProtein.getActiveInstances().clear();
     }
 
+    /**
+     * Copy the non identity cross reference from a source protein to a destination protein
+     * @param destinationProtein
+     * @param sourceProtein
+     * @return the list of cross references we copied
+     */
     public static List<InteractorXref> copyNonIdentityXrefs(Protein destinationProtein, Protein sourceProtein) {
         List<InteractorXref> copied = new ArrayList<InteractorXref>();
 
@@ -47,10 +55,11 @@ public class ProteinTools {
                 continue;
             }
             if (!destinationProtein.getXrefs().contains(xref)) {
-                    final InteractorXref clonedXref = new InteractorXref(xref.getOwner(), xref.getCvDatabase(),
-                                                                         xref.getPrimaryId(), xref.getSecondaryId(),
-                                                                         xref.getDbRelease(), xref.getCvXrefQualifier());
-                    destinationProtein.addXref(clonedXref);
+                final InteractorXref clonedXref = new InteractorXref(xref.getOwner(), xref.getCvDatabase(),
+                        xref.getPrimaryId(), xref.getSecondaryId(),
+                        xref.getDbRelease(), xref.getCvXrefQualifier());
+
+                destinationProtein.addXref(clonedXref);
                 copied.add(xref);
             }
         }

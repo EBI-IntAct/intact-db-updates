@@ -22,7 +22,7 @@ import uk.ac.ebi.intact.uniprot.service.referenceFilter.CrossReferenceFilter;
 import java.util.*;
 
 /**
- * TODO comment this
+ * Filter for IntAct cross references
  *
  * @author Samuel Kerrien (skerrien@ebi.ac.uk)
  * @version $Id$

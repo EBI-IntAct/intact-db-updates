@@ -92,8 +92,16 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
         if (uniprotXref != null) {
             safeRetrieve(uniprotXref);
-        } else {
-            if (log.isWarnEnabled()) log.warn("Protein without uniprot xref: "+protToUpdate.getAc()+" ("+protToUpdate.getShortLabel()+")");
+        }
+        // no uniprot identity, it is a protein not from uniprot
+        else {
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                updateProcessor.fireNonUniprotProteinFound(evt);
+            }
+
+            if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt");
+                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
     }
 

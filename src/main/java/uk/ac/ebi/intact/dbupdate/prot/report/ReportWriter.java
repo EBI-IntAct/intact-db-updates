@@ -5,7 +5,7 @@ import java.io.Flushable;
 import java.io.IOException;
 
 /**
- * TODO comment that class header
+ * The interface to implement for the writers during a protein update
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

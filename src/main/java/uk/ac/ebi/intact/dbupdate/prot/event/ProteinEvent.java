@@ -21,15 +21,26 @@ import uk.ac.ebi.intact.model.Protein;
 import java.util.EventObject;
 
 /**
- * TODO comment that class header
+ * Event fired when a protein is updated
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
 public class ProteinEvent extends EventObject implements ProteinProcessorEvent, MessageContainer {
 
+    /**
+     * the protein updated
+     */
     private Protein protein;
+
+    /**
+     * the data context
+     */
     private DataContext dataContext;
+
+    /**
+     * the message 
+     */
     private String message;
 
     /**

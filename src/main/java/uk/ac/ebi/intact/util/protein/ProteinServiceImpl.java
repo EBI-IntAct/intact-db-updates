@@ -36,7 +36,7 @@ import uk.ac.ebi.intact.util.protein.utils.*;
 import java.util.*;
 
 /**
- * TODO comment this
+ * The class to extend for updating a protein
  *
  * @author Samuel Kerrien (skerrien@ebi.ac.uk)
  * @version $Id$
@@ -44,6 +44,9 @@ import java.util.*;
  */
 public class ProteinServiceImpl implements ProteinService {
 
+    /**
+     * The results
+     */
     private UniprotServiceResult uniprotServiceResult;
 
     private static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
@@ -70,6 +73,9 @@ public class ProteinServiceImpl implements ProteinService {
      */
     private Map<String, String> databaseName2mi = new HashMap<String, String>();
 
+    /**
+     * boolean value to know if we are working with a global update
+     */
     private boolean isGlobalProteinUpdate = false;
 
     //////////////////////////
@@ -120,6 +126,11 @@ public class ProteinServiceImpl implements ProteinService {
     //////////////////////////
     // ProteinLoaderService
 
+    /**
+     *
+     * @param uniprotAc
+     * @return the results of the update of this protein in IntAct
+     */
     public UniprotServiceResult retrieve( String uniprotAc ) {
         if ( uniprotAc == null ) {
             throw new IllegalArgumentException( "You must give a non null UniProt AC" );
@@ -567,6 +578,11 @@ public class ProteinServiceImpl implements ProteinService {
         CvDatabase intact = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
                 .getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
+        if (intact == null){
+            intact = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intact);
+        }
+
         for(Protein protToDelete : proteinsToDelete ){
 
             // On the protein that we are going to keep add the protein ac of the one we are going to delete as
@@ -622,6 +638,11 @@ public class ProteinServiceImpl implements ProteinService {
         CvDatabase intact = IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
                 .getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
+        if (intact == null){
+            intact = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intact);
+        }
+
         for(Protein protToDelete : proteinsToDelete ){
 
             // On the protein that we are going to keep add the protein ac of the one we are going to delete as
@@ -676,7 +697,9 @@ public class ProteinServiceImpl implements ProteinService {
                 " as it is not reflecting what is not in UniprotKB and is not involved in any interactions.");
         //AnnotationDao annotationDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao();
         //annotationDao.saveOrUpdate(annot);
+        IntactContext.getCurrentInstance().getDaoFactory().getAnnotationDao().persist(annot);
         protein.addAnnotation(annot);
+        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
     }
 
     /**
@@ -1134,7 +1157,7 @@ public class ProteinServiceImpl implements ProteinService {
             return false;
         }
 
-        transcript.setShortLabel( uniprotTranscript.getPrimaryAc() );
+        transcript.setShortLabel( uniprotTranscript.getPrimaryAc().toLowerCase() );
 
         // we have a feature chain
         if (uniprotTranscript.getDescription() != null){
@@ -1164,7 +1187,8 @@ public class ProteinServiceImpl implements ProteinService {
             CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
 
             if (comment == null) {
-                throw new IllegalStateException("No CvTopic found with shortlabel: "+ CvTopic.ISOFORM_COMMENT);
+                comment = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(comment);
             }
 
             Annotation annotation = new Annotation( owner, comment );
@@ -1211,7 +1235,8 @@ public class ProteinServiceImpl implements ProteinService {
                 CvTopic startPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_START);
 
                 if (startPosition == null){
-                    throw new IllegalStateException("The chain_seq_start CvTopic doesn't exist in the database.");
+                    startPosition = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.CHAIN_SEQ_START);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(startPosition);
                 }
                 Annotation start = new Annotation(startPosition, startToString);
                 factory.getAnnotationDao().persist(start);
@@ -1222,7 +1247,8 @@ public class ProteinServiceImpl implements ProteinService {
                 CvTopic endPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_END);
 
                 if (endPosition == null){
-                    throw new IllegalStateException("The chain_seq_end CvTopic doesn't exist in the database.");
+                    endPosition = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.CHAIN_SEQ_END);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(endPosition);
                 }
                 Annotation end = new Annotation(endPosition, endToString);
                 factory.getAnnotationDao().persist(end);
@@ -1284,7 +1310,7 @@ public class ProteinServiceImpl implements ProteinService {
 
         Protein variant = new ProteinImpl( CvHelper.getInstitution(),
                 masterBiosource,
-                uniprotProteinTranscript.getPrimaryAc(),
+                uniprotProteinTranscript.getPrimaryAc().toLowerCase(),
                 CvHelper.getProteinType() );
 
         if (uniprotProteinTranscript.getSequence() != null) {

@@ -20,7 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * TODO comment that class header
+ * The handler containing the possible writers for a protein update
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

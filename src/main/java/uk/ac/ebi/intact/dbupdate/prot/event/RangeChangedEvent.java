@@ -19,14 +19,21 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 
 /**
- * TODO comment that class header
+ * Event fired when a range is updated
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
 public class RangeChangedEvent implements ProteinProcessorEvent {
 
+    /**
+     * the data context
+     */
     private DataContext dataContext;
+
+    /**
+     * The range updated
+     */
     private UpdatedRange updatedRange;
 
     public RangeChangedEvent(DataContext dataContext, UpdatedRange updatedRange) {

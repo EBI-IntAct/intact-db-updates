@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 import uk.ac.ebi.intact.model.Range;
 
 /**
- * TODO comment this
+ * This class contains informations about the invalid range
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -12,12 +12,24 @@ import uk.ac.ebi.intact.model.Range;
 
 public class InvalidRange {
 
+    /**
+     * The sequence of the feature
+     */
     String sequence;
 
+    /**
+     * The new range positions
+     */
     String newRanges;
 
+    /**
+     * The invalid range
+     */
     Range invalidRange;
 
+    /**
+     * The message to add at the feature level
+     */
     String message;
 
     public InvalidRange(Range range, String sequence, String message) {

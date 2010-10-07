@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 /**
- * TODO comment that class header
+ * Message container
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

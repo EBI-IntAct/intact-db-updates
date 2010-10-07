@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -85,22 +86,26 @@ public class DeleteDeadProteins {
         // Loading of necessary CVs to the processing of these proteins
         isoParent = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT_MI_REF );
         if ( isoParent == null ) {
-            throw new IllegalStateException( "Could not find CvXrefQualifier( isoParent ) in the database. abort." );
+            isoParent = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT_MI_REF, CvXrefQualifier.ISOFORM_PARENT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoParent);
         }
 
         chainParent = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF );
         if ( chainParent == null ) {
-            throw new IllegalStateException( "Could not find CvXrefQualifier( chainParent ) in the database. abort." );
+            chainParent = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chainParent);
         }
 
         identity = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF );
         if ( identity == null ) {
-            throw new IllegalStateException( "Could not find CvXrefQualifier( identity ) in the database. abort." );
+            identity = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(identity);
         }
 
         intact = cvDao.getByPrimaryId( CvDatabase.class, CvDatabase.INTACT_MI_REF );
         if ( intact == null ) {
-            throw new IllegalStateException( "Could not find CvDatabase( intact ) in the database. abort." );
+            intact = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intact);
         }
 
         try {

@@ -4,7 +4,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 
 /**
- * TODO comment this
+ * This event is thrwn when an invalid range is found
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -12,8 +12,14 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
  */
 
 public class InvalidRangeEvent implements ProteinProcessorEvent {
+    /**
+     * the data context
+     */
     private DataContext dataContext;
 
+    /**
+     * the invalid range
+     */
     private InvalidRange invalidRange;
 
     public InvalidRangeEvent(DataContext dataContext, InvalidRange range) {
@@ -24,7 +30,7 @@ public class InvalidRangeEvent implements ProteinProcessorEvent {
         return this.dataContext;
     }
 
-        public InvalidRange getInvalidRange() {
+    public InvalidRange getInvalidRange() {
         return invalidRange;
     }
 }

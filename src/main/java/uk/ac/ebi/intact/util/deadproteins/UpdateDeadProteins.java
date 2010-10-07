@@ -12,6 +12,7 @@ import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.*;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.uniprot.UniprotServiceException;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
@@ -159,7 +160,7 @@ public class UpdateDeadProteins {
             } else {
                 if ( t != taxid ) {
                     throw new IllegalStateException( uniprotId + " matches proteins in IntAct having different taxid: "
-                                                     + t + ", " + taxid + "." );
+                            + t + ", " + taxid + "." );
                 }
             }
         }
@@ -200,7 +201,8 @@ public class UpdateDeadProteins {
         CvObjectDao<CvObject> cvdao = daoFactory.getCvObjectDao();
         CvDatabase uniprot = cvdao.getByPrimaryId( CvDatabase.class, CvDatabase.UNIPROT_MI_REF );
         if ( uniprot == null ) {
-            throw new IllegalStateException();
+            uniprot = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(uniprot);
         }
 
         CvXrefQualifier secondaryAc = cvdao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.SECONDARY_AC_MI_REF );
@@ -220,7 +222,7 @@ public class UpdateDeadProteins {
                 log.info( "  This component has already that Xref(uniprotkb, " + formerUniprotId + ", secondary-ac)." );
             } else {
                 xdao.persist( xref );
-                
+
                 log.info( "  Adding Xref(uniprotkb, " + formerUniprotId + ", secondary-ac) on Component(" + component.getAc() + ")" );
                 component.addXref( xref );
                 cdao.update( component );
@@ -233,7 +235,8 @@ public class UpdateDeadProteins {
         CvObjectDao<CvObject> cvdao = daoFactory.getCvObjectDao();
         CvTopic noUniprotUpdate = cvdao.getByShortLabel( CvTopic.class, CvTopic.NON_UNIPROT );
         if ( noUniprotUpdate == null ) {
-            throw new IllegalStateException();
+            noUniprotUpdate = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(noUniprotUpdate);
         }
         AnnotationDao adao = daoFactory.getAnnotationDao();
         ProteinDao pdao = daoFactory.getProteinDao();
@@ -321,7 +324,7 @@ public class UpdateDeadProteins {
 
             Interaction inter = component.getInteraction();
             log.info( "Replacing protein " + protein.getShortLabel() + "(" + protein.getAc() + ") by " +
-                      newProtein.getShortLabel() + "(" + newProtein.getAc() + ") in interaction " + inter.getShortLabel() + "(" + inter.getAc() + ")" );
+                    newProtein.getShortLabel() + "(" + newProtein.getAc() + ") in interaction " + inter.getShortLabel() + "(" + inter.getAc() + ")" );
 
             protein.removeActiveInstance( component ); // Note: this sets interactor to null !
             component.setInteractor( newProtein );
@@ -344,19 +347,21 @@ public class UpdateDeadProteins {
 
         CvDatabase uniprot = cvDao.getByPrimaryId( CvDatabase.class, CvDatabase.UNIPROT_MI_REF );
         if ( uniprot == null ) {
-            throw new IllegalStateException();
+            uniprot = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(uniprot);
         }
 
         CvXrefQualifier identity = cvDao.getByPrimaryId( CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF );
         if ( identity == null ) {
-            throw new IllegalStateException();
+            identity = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(identity);
         }
 
         // search for the xref identity now and update it.
         Xref identityXref = searchXref( protein, uniprot, identity );
         if ( identityXref == null ) {
             throw new IllegalStateException( "Could not find an Xref( uniprot, identity ) for protein " +
-                                             protein.getShortLabel() + "(" + protein.getAc() + "). Abort." );
+                    protein.getShortLabel() + "(" + protein.getAc() + "). Abort." );
         } else {
             // update it
             log.info( "Updated UniProt identity to " + uniprotId );
@@ -384,7 +389,7 @@ public class UpdateDeadProteins {
         Xref identityXref = searchXref( protein, uniprot, identity );
         if ( identityXref == null ) {
             throw new IllegalStateException( "Could not find an Xref( uniprot, identity ) for protein " +
-                                             protein.getShortLabel() + "(" + protein.getAc() + "). Abort." );
+                    protein.getShortLabel() + "(" + protein.getAc() + "). Abort." );
         } else {
             // update it
             log.info( "Updated UniProt identity to UniParc " + upi );

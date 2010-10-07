@@ -39,6 +39,11 @@ public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
         deleteProtein(evt.getProtein(), evt);
     }
 
+    /**
+     * Delete the protein if it is not already done
+     * @param protein
+     * @param evt
+     */
     private void deleteProtein(Protein protein, ProteinEvent evt) {
         if (log.isDebugEnabled()) log.debug("Deleting protein: "+protInfo(protein));
         

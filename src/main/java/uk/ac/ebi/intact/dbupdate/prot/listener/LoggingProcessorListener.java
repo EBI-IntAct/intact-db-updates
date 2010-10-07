@@ -22,7 +22,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 
 /**
- * TODO comment that class header
+ * Listener for logging which event is fired
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

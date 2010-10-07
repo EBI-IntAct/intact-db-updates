@@ -191,6 +191,13 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
         }
     }
 
+    /**
+     *
+     * @param possibleDuplicates
+     * @param evt
+     * @deprecated use the DuplicateFuxer listener
+     */
+    @Deprecated
     private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt) {
         List<Protein> realDuplicates = new ArrayList<Protein>();
 

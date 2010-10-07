@@ -39,9 +39,9 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
     private static final Log log = LogFactory.getLog( SequenceChangedListener.class );
 
     private static final String SEQCHANGED_CAUTION = "Protein [uniprotkb] has undergone a significant sequence change since this"  +
-                                                     "entry was originally annotated which may effect the results shown. For " +
-                                                     "further information, please access the IntAct curation manual and for " +
-                                                     "details of the sequence change go to [unisave]";
+            "entry was originally annotated which may effect the results shown. For " +
+            "further information, please access the IntAct curation manual and for " +
+            "details of the sequence change go to [unisave]";
 
     private double conservationThreshold = 0.35;
 
@@ -65,7 +65,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
         // if the sequences are considerably different, create a caution for the protein and the interactions
         if ( relativeConservation <= conservationThreshold) {
-                    final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
+            final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
             String uniprotAc = null;
 
             if (xref != null) {
@@ -85,6 +85,11 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
         }
     }
 
+    /**
+     * Add a caution to the protein if the new sequence is very different from the previous one
+     * @param ao
+     * @param cautionMessage
+     */
     protected void addCaution(AnnotatedObject<?, ?> ao, String cautionMessage) {
         // check if the annotated object already contains a caution for the sequence change
         for (Annotation annot : ao.getAnnotations()) {

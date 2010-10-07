@@ -36,16 +36,33 @@ public class AliasUpdaterUtils {
      */
     public static final Log log = LogFactory.getLog( AliasUpdaterUtils.class );
 
+    /**
+     * Update all the aliases of a master protein
+     * @param protein
+     * @param uniprotProtein
+     */
     public static void updateAllAliases( Protein protein, UniprotProtein uniprotProtein ) {
 
         updateAliasCollection( protein, buildAliases( uniprotProtein, protein ) );
     }
 
+    /**
+     * Update all the aliases of a protein transcript
+     * @param protein
+     * @param uniprotProteinTranscript
+     * @param uniprotProtein
+     */
     public static void updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein ) {
 
         updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ) );
     }
 
+    /**
+     *
+     * @param current
+     * @param alias
+     * @return true if the new alias has been added to the annotated object
+     */
     public static boolean addNewAlias( AnnotatedObject current, InteractorAlias alias ) {
 
         // Make sure the alias does not yet exist in the object
@@ -55,9 +72,6 @@ public class AliasUpdaterUtils {
             if ( log.isDebugEnabled() ) log.debug("SKIPPED: [" + alias + "] already exists" );
             return false; // already in, exit
         }
-
-        // add the alias to the AnnotatedObject
-        current.addAlias( alias );
 
         // That test is done to avoid to record in the database an Alias
         // which is already linked to that AnnotatedObject.
@@ -72,6 +86,9 @@ public class AliasUpdaterUtils {
             log.error( "Error when creating an Alias for protein " + current, e_alias );
             return false;
         }
+
+        // add the alias to the AnnotatedObject
+        current.addAlias( alias );
 
         return true;
     }
@@ -140,6 +157,7 @@ public class AliasUpdaterUtils {
             updated = true;
         }
 
+        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
         return updated;
     }
 
