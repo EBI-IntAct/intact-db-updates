@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
@@ -25,7 +24,6 @@ import java.util.Collections;
 public class RangeFixerTest extends IntactBasicTestCase {
 
     @Test
-    @DirtiesContext
     public void onRangeOutOfBound_beforeUpdate() throws Exception {
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();

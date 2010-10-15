@@ -17,10 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import uk.ac.ebi.intact.core.persister.PersisterHelper;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -46,11 +43,7 @@ import java.util.Iterator;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
-    @Autowired
-    private PersisterHelper persisterHelper;
-
     @Test
-    @DirtiesContext
     public void simulation() throws Exception {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
 
@@ -103,7 +96,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
 
         // persist the interactions
-        persisterHelper.save(dupe1, dupe2, interaction1, interaction2, interaction3);
+        getCorePersister().saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());

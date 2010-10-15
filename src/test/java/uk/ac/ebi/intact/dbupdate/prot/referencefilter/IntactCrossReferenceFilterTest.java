@@ -19,7 +19,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.uniprot.service.referenceFilter.CrossReferenceFilter;
 
 /**
@@ -44,7 +43,6 @@ public class IntactCrossReferenceFilterTest {
     }
 
     @Test
-    @DirtiesContext
     public void isSelected() {
         Assert.assertTrue( filter.isSelected( "GO" ) );
         Assert.assertTrue( filter.isSelected( "go" ) );
@@ -64,13 +62,11 @@ public class IntactCrossReferenceFilterTest {
     }
     
     @Test (expected = IllegalArgumentException.class)
-    @DirtiesContext
     public void isSelected_null() throws Exception {
         filter.isSelected( null );
     }
 
     @Test (expected = IllegalArgumentException.class)
-    @DirtiesContext
     public void isSelected_empty() throws Exception {
         filter.isSelected( "" );
     }

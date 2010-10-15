@@ -17,7 +17,6 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -36,7 +35,6 @@ import java.util.Date;
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
     @Test
-    @DirtiesContext
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
 
          final Protein protMain = getMockBuilder().createProtein("P12345", "main");

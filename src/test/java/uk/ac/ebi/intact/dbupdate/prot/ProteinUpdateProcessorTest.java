@@ -18,7 +18,6 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.config.CvPrimer;
@@ -58,7 +57,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, but has splice variants with interactions
      */
     @Test
-    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -115,7 +113,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete splice vars without interactions too
      */
     @Test
-    @DirtiesContext
+    
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -168,7 +166,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, neither its splice variants
      */
     @Test
-    @DirtiesContext
+    
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
@@ -219,7 +217,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Duplicates: fix duplicates
      */
     @Test
-    @DirtiesContext
+    
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -270,7 +268,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void duplicates_found_isoforms() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -328,7 +326,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void duplicates_found_isoforms_different_parents() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -391,7 +389,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateProteinWithNullBiosource() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
 
@@ -419,7 +417,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateAll_updateProteinChains_chainWithoutInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ...
@@ -459,7 +457,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateAll_updateProteinChains_chainWithInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ...
@@ -503,7 +501,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateAll_updateProteinChains_masterWithoutInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ... both proteins should still be there post update
@@ -569,7 +567,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateAll_duplicatedIsoform_isoformParent() throws Exception {
 
         // we have M1-SV1 and M2-SV2, M1 and M2 are duplicated, when merging, both splice variants should have
@@ -717,7 +715,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void spliceVariantGetGeneName() throws Exception {
 
         // check that splice variants do get gene names like the masters do.
@@ -775,7 +773,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void deadUniprotProtein() throws Exception {
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
@@ -832,7 +830,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void deadUniprotProtein_otherXRefs() throws Exception {
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
@@ -894,7 +892,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void range_shifting_OutOfBoundBeforeUpdate() throws Exception {
 
         // check that splice variants do get gene names like the masters do.
@@ -985,7 +983,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void range_shifting_update() throws Exception {
 
         // http://www.uniprot.org/uniprot/P18459
@@ -1084,7 +1082,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void range_shifting_update_featureChanged() throws Exception {
 
         // http://www.uniprot.org/uniprot/P18459
@@ -1183,7 +1181,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
+    
     public void updateAll_updateRange() throws Exception {
         // TODO
     }
