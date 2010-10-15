@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.util.protein;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.core.IntactTransactionException;
@@ -39,6 +40,7 @@ import static org.junit.Assert.*;
  * @since TODO artifact version
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     @Before
