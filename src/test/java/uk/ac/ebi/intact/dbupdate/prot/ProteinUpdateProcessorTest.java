@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.config.CvPrimer;
@@ -45,6 +46,7 @@ import java.util.*;
  * @version $Id$
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Before
