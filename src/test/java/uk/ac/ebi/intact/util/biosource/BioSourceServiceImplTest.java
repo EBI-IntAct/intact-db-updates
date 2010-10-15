@@ -3,7 +3,6 @@ package uk.ac.ebi.intact.util.biosource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
@@ -40,7 +39,7 @@ public class BioSourceServiceImplTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
     }
 
-    @Test @DirtiesContext
+    @Test
     public void testGetBiosource_existingOne() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
@@ -48,7 +47,7 @@ public class BioSourceServiceImplTest extends IntactBasicTestCase {
         Assert.assertNotNull( bs );
     }
 
-    @Test @DirtiesContext
+    @Test
     public void testGetBiosource_newBioSource() throws Exception {
         TaxonomyService taxService = new DummyTaxonomyService();
         BioSourceService service = new BioSourceServiceImpl( taxService );
