@@ -1,9 +1,7 @@
 package uk.ac.ebi.intact.util.protein;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
 import uk.ac.ebi.intact.core.IntactTransactionException;
@@ -105,7 +103,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     ////////////////////
     // Tests
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_CDC42_CANFA() throws Exception {
 
         ProteinService service = buildProteinService();
@@ -258,7 +256,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_spliceVariant() throws Exception {
 
 
@@ -314,7 +312,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_update_CDC42_CANFA() throws Exception {
 
 
@@ -398,7 +396,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -446,7 +444,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_intact1_uniprot0() throws Exception{
 
 
@@ -493,7 +491,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_intact0_uniprot0() throws Exception{
 
 
@@ -523,7 +521,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     /**
      * Test that the protein xref and the protein are udpated when : countPrimary == 0 && countSecondary == 1
      */
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_primaryCount0_secondaryCount1() throws Exception{
 
         /*----------------------------------------------------------
@@ -610,7 +608,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     /**
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_uniprotAcReturningMoreThan1EntryWithDifferentSpecies() throws Exception {
 
         // Create in the db, the CANFA protein with primary Ac P60952
@@ -656,7 +654,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     /**
      * Check that nothing is update if more then 1 proteins are found in uniprot.
      */
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_uniprotAcReturningMoreThan1EntryWithSameSpecies() throws Exception{
 
         /*----------------------------------------------------------
@@ -709,7 +707,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 //        }
 //    }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_primaryCount0_secondaryCount2() throws Exception{
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -784,7 +782,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_primaryCount1_secondaryCount1() throws Exception{
 
 
@@ -874,7 +872,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_throwException() throws Exception{
 
 
@@ -930,7 +928,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 //
 //    }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_primaryCount2_secondaryCount1() throws Exception{
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -1041,7 +1039,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_spliceVariantFoundInIntactNotInUniprot() throws Exception{
 
 
@@ -1099,7 +1097,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_1spliceVariantFoundInIntact2InUniprot() throws Exception{
 
 
@@ -1174,7 +1172,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void retrieve_TrEMBL_to_SP() throws Exception {
         // checks that protein moving from TrEMBL to SP are detected and updated accordingly.
         // Essentially, that means having a new Primary AC and the current on in the databse becoming secondary.
@@ -1224,7 +1222,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void setBioSource() throws Exception{
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
 
@@ -1237,7 +1235,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         }
     }
 
-    @Test @DirtiesContext
+    @Test 
     public void alias_update() throws Exception {
         // Aim: load a protein from uniprot into IntAct, then change its gene name and check that on the next update
         //      the intact object has been updated accordingly.
