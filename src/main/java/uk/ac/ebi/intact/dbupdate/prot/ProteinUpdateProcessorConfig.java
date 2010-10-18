@@ -67,10 +67,10 @@ public class ProteinUpdateProcessorConfig {
         this.taxonomyService = bioSourceService.getTaxonomyService();
     }
 
-//    ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
-//        this();
-//        this.reportHandler = reportHandler;
-//    }
+    public ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
+        this();
+        this.reportHandler = reportHandler;
+    }
 
     public boolean isFixDuplicates() {
         return fixDuplicates;
