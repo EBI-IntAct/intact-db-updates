@@ -61,7 +61,7 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean isGlobalProteinUpdate = false;
 
-    ProteinUpdateProcessorConfig() {
+    public ProteinUpdateProcessorConfig() {
         this.uniprotService = new UniprotRemoteService();
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
         this.taxonomyService = bioSourceService.getTaxonomyService();
