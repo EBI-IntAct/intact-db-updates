@@ -231,8 +231,14 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
                 }
 
-                CvXrefQualifier intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, "intact-secondary");
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+                final String intactSecondaryLabel = "intact-secondary";
+
+                CvXrefQualifier intactSecondary = daoFactory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
+
+                if (intactSecondary == null) {
+                   intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
+                   IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+                }
 
                 InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
                 daoFactory.getXrefDao(InteractorXref.class).persist(xref);
