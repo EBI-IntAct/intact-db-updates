@@ -49,7 +49,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
 
     @Test
-    
+    @DirtiesContext
     public void deadUniprotProtein() throws Exception {
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
@@ -106,7 +106,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void deadUniprotProtein_otherXRefs() throws Exception {
         CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
         cvPrimer.createCVs();
@@ -168,7 +168,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void range_shifting_OutOfBoundBeforeUpdate() throws Exception {
 
         // check that splice variants do get gene names like the masters do.
@@ -259,7 +259,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void range_shifting_update() throws Exception {
 
         // http://www.uniprot.org/uniprot/P18459
@@ -358,7 +358,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void range_shifting_update_featureChanged() throws Exception {
 
         // http://www.uniprot.org/uniprot/P18459

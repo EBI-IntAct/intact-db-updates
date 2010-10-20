@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 
 import java.util.Collection;
 
@@ -34,10 +35,12 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
      */
     private AdditionalInfoMap<Integer> originalActiveInstancesCount;
 
+    private String uniprotSequence;
+
     /**
      * An event involving a list of proteins.
      */
-    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins) {
+    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence) {
         super(source, dataContext, proteins);
 
         this.originalActiveInstancesCount = new AdditionalInfoMap<Integer>();
@@ -45,6 +48,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         for (Protein prot : proteins) {
             originalActiveInstancesCount.put(prot.getAc(), prot.getActiveInstances().size());
         }
+        this.uniprotSequence = uniprotSequence;
     }
 
     public AdditionalInfoMap<Integer> getOriginalActiveInstancesCount() {
@@ -59,5 +63,13 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         }
 
         return count;
+    }
+
+    public String getUniprotSequence() {
+        return uniprotSequence;
+    }
+
+    public void setUniprotSequence(String uniprotSequence) {
+        this.uniprotSequence = uniprotSequence;
     }
 }

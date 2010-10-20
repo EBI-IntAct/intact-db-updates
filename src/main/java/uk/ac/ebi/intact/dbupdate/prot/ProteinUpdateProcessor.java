@@ -111,8 +111,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         if (forceDeleteOfProteins) {
             addListener(new ProteinDeleter());
         }
+
+        UniprotProteinUpdater updater = new UniprotProteinUpdater(config.getUniprotService(), config.getTaxonomyService());
+        updater.setGlobalProteinUpdate(config.isGlobalProteinUpdate());
         
-        addListener(new UniprotProteinUpdater(config.getUniprotService(), config.getTaxonomyService()));
+        addListener(updater);
 
         if (config.getReportHandler() != null) {
             addListener(new ReportWriterListener(config.getReportHandler()));

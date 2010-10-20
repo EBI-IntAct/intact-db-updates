@@ -38,6 +38,7 @@ public class UniprotServiceResult {
     public static final String SPLICE_VARIANT_WITH_MULTIPLE_IDENTITY = "Splice variants with multiple identity.";
     public static final String SPLICE_VARIANT_WITH_NO_IDENTITY = "Splice variant with no identity.";
     public static final String UNEXPECTED_EXCEPTION_ERROR_TYPE = "Unexpected exception";
+    public static final String UNIPROT_SEQUENCE_NULL = "Sequence of the uniprot protein is null.";
 
 
     /**

@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
@@ -44,6 +45,7 @@ import java.util.Iterator;
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void simulation() throws Exception {
         new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
 

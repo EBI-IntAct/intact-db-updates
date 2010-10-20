@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
@@ -39,6 +40,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void onPreProcess_uniprot() throws Exception{
         Protein prot = getMockBuilder().createProteinRandom();
         ProteinProcessor processor = new DummyProcessor();
@@ -52,6 +54,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
     }
     
     @Test
+    @DirtiesContext
     public void onPreProcess_nonUniprot() throws Exception{
         Protein prot = getMockBuilder().createProteinRandom();
         prot.getXrefs().clear();

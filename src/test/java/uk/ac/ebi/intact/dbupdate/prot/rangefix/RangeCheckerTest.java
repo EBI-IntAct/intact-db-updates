@@ -19,6 +19,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -48,7 +49,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         rangeChecker = null;
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_noChanges() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ABCDEF";
@@ -75,7 +77,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_substitutionWithinRange() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ABZDEF";
@@ -106,7 +109,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertNotSame(rangeAfterFix, rangeSeq);
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_upstreamInsertion() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ZABCDEF";
@@ -134,7 +138,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_insertionDownstream() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ABCDEFZZZZZZ";
@@ -160,7 +165,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(rangeAfterFix, rangeSeq);
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_differentSeq() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ZZAZZDZFEZZZZZZ";
@@ -180,7 +186,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(4, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_substitutionInExactPosition() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "ABZDEF";
@@ -202,7 +209,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_undeterminedRange() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -229,7 +237,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_undeterminedRange_reset() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -254,7 +263,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_cTerminal_from() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -278,6 +288,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void shiftFeatureRanges_cTerminal_valid() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -303,6 +314,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void dont_ShiftFeatureRanges_cTerminal() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -328,6 +340,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void dont_ShiftFeatureRanges_nTerminal() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -353,6 +366,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void IgnoreFeatureRanges_nTerminal_undetermined() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -379,6 +393,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void IgnoreFeatureRanges_undetermined_cTerminal() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -404,7 +419,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(1, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_cTerminal_to() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -427,7 +443,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_nTerminal_from() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -450,7 +467,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_nTerminal_to() throws Exception {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
@@ -473,7 +491,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds() throws Exception {
         String oldSequence = "MDNCLAAAALNGVDRRSLQRSAKLALEVLERAKRRAVDWHALERPKGCMGVLAREAPHLEKQPAAGPQRVLPGEREERPP" +
                 "TLSASFRTMAEFMDYTSSQCGKYYSSVPEEGGATHVYRYHRGESKLHMCLDIGNGQRKDRKKTSLGPGGSYQISEHAPEA" +
@@ -498,7 +517,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(220, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds2() throws Exception {
         String oldSequence = "MDNCLAAAAL";
         String newSequence = "MDNCLAAAALNGVDRRSLQRSARLALEVLERAKRRAVDWHALERPKGCMGVLAREAPHLEKQPAAGPQRVLPGEREERPP" +
@@ -520,7 +540,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(40, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds3() throws Exception {
         String oldSequence = "MDNCLAAAAL";
         String newSequence = "MDNCLA";
@@ -540,7 +561,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(40, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void shiftFeatureRanges_toOutOfBounds4() throws Exception {
         String oldSequence = "MDNCLAHAHAHAHAHAAAAL";
         String newSequence = "MDNCLA";
@@ -563,7 +585,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(20, range.getToIntervalEnd());
     }
 
-    @Test 
+    @Test
+    @DirtiesContext
     public void isSequenceChanged_yes3() throws Exception {
         String oldSequence = "MALKSINISGNFEWCPFEEYKNYLLCFNSHNLLYSNNNSLNNYIYLLDINLNSEIRNLEIVNKYNFEDALKYDNDVIKGG" +
                 "NKKNNKNNKNNHNNNSVNEYVTCFEWMNSNNFVDINNNEELSKGIIVGGLTNGDIVLLNAKNLFETNRNYDNFILSKTNI" +

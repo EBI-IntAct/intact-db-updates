@@ -58,6 +58,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, but has splice variants with interactions
      */
     @Test
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -114,7 +115,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete splice vars without interactions too
      */
     @Test
-    
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -167,7 +168,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, neither its splice variants
      */
     @Test
-    
+    @DirtiesContext
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
@@ -218,7 +219,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Duplicates: fix duplicates
      */
     @Test
-    
+    @DirtiesContext
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -269,24 +270,36 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void duplicates_found_isoforms() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
 
-        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
-        dupe1.getBioSource().setTaxId("9986"); // rabit
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12346", "dupe1");
+        dupe1.getBioSource().setTaxId("10116");
 
         getCorePersister().saveOrUpdate(dupe1);
 
-        Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12345-1", "p12345-1");
-        dupe1_1.getBioSource().setTaxId("9986"); // rabit
+        Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12346-1", "p12346-1");
+        dupe1_1.getBioSource().setTaxId("10116");
+        dupe1_1.setSequence("MRFAVGALLACAALGLCLAVPDKTVKWCAVSEHENTKCISFRDHMKTVLPADGPRLACVK" +
+                "KTSYQDCIKAISGGEADAITLDGGWVYDAGLTPNNLKPVAAEFYGSLEHPQTHYLAVAVV" +
+                "KKGTDFQLNQLQGKKSCHTGLGRSAGWIIPIGLLFCNLPEPRKPLEKAVASFFSGSCVPC" +
+                "ADPVAFPQLCQLCPGCGCSPTQPFFGYVGAFKCLRDGGGDVAFVKHTTIFEVLPQKADRD" +
+                "QYELLCLDNTRKPVDQYEDCYLARIPSHAVVARNGDGKEDLIWEILKVAQEHFGKGKSKD" +
+                "FQLFGSPLGKDLLFKDSAFGLLRVPPRMDYRLYLGHSYVTAIRNQREGVCPEGSIDSAPV" +
+                "KWCALSHQERAKCDEWSVSSNGQIECESAESTEDCIDKIVNGEADAMSLDGGHAYIAGQC" +
+                "GLVPVMAENYDISSCTNPQSDVFPKGYYAVAVVKASDSSINWNNLKGKKSCHTGVDRTAG" +
+                "WNIPMGLLFSRINHCKFDEFFSQGCAPGYKKNSTLCDLCIGPAKCAPNNREGYNGYTGAF" +
+                "QCLVEKGDVAFVKHQTVLENTNGKNTAAWAKDLKQEDFQLLCPDGTKKPVTEFATCHLAQ" +
+                "APNHVVVSRKEKAARVSTVLTAQKDLFWKGDKDCTGNFCLFRSSTKDLLFRDDTKCLTKL" +
+                "PEGTTYEEYLGAEYLQAVGNIRKCSTSRLLEACTFHKS");
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe1_2 = cloner.clone(dupe1_1);
-        dupe1_2.setBioSource(dupe1_1.getBioSource()); // rabit
+        dupe1_2.setBioSource(dupe1_1.getBioSource());
         dupe1_2.setCrc64(dupe1_1.getCrc64());
-        ProteinUtils.getIdentityXrefs(dupe1_2).iterator().next().setPrimaryId("P12345-2");
+        ProteinUtils.getIdentityXrefs(dupe1_2).iterator().next().setPrimaryId("P12346-2");
 
         dupe1_2.setCreated(new Date(1)); // dupe2 is older
 
@@ -306,11 +319,11 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
-        uniprotXref.setPrimaryId("P12345-1");
+        uniprotXref.setPrimaryId("P12346-1");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1_1.getCrc64(), dupe1_1.getBioSource().getTaxId()).size());
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345-1").size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12346-1").size());
 
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
@@ -327,7 +340,91 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
+    public void duplicates_found_isoforms_differentSequence() throws Exception {
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
+        configUpdate.setGlobalProteinUpdate(true);
+
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12346", "dupe1");
+        dupe1.getBioSource().setTaxId("10116");
+
+        getCorePersister().saveOrUpdate(dupe1);
+
+        Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12346-1", "p12346-1");
+        dupe1_1.getBioSource().setTaxId("10116");
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe1_2 = cloner.clone(dupe1_1);
+        dupe1_2.setBioSource(dupe1_1.getBioSource());
+        dupe1_2.setCrc64(dupe1_1.getCrc64());
+        dupe1_2.setSequence("MRFAVGALLACAALGLCLAVPDKTVKWCAVSEHENTKCISFRDHMKTVLPADGPRLACVK" +
+                "KTSYQDCIKAISGGEADAITLDGGWVYDAGLTPNNLKPVAAEFYGSLEHPQTHYLAVAVV" +
+                "KKGTDFQLNQLQGKKSCHTGLGRSAGWIIPIGLLFCNLPEPRKPLEKAVASFFSGSCVPC" +
+                "ADPVAFPQLCQLCPGCGCSPTQPFFGYVGAFKCLRDGGGDVAFVKHTTIFEVLPQKADRD" +
+                "QYELLCLDNTRKPVDQYEDCYLARIPSHAVVARNGDGKEDLIWEILKVAQEHFGKGKSKD" +
+                "FQLFGSPLGKDLLFKDSAFGLLRVPPRMDYRLYLGHSYVTAIRNQREGVCPEGSIDSAPV" +
+                "KWCALSHQERAKCDEWSVSSNGQIECESAESTEDCIDKIVNGEADAMSLDGGHAYIAGQC" +
+                "GLVPVMAENYDISSCTNPQSDVFPKGYYAVAVVKASDSSINWNNLKGKKSCHTGVDRTAG" +
+                "WNIPMGLLFSRINHCKFDEFFSQGCAPGYKKNSTLCDLCIGPAKCAPNNREGYNGYTGAF" +
+                "QCLVEKGDVAFVKHQTVLENTNGKNTAAWAKDLKQEDFQLLCPDGTKKPVTEFATCHLAQ" +
+                "APNHVVVSRKEKAARVSTVLTAQKDLFWKGDKDCTGNFCLFRSSTKDLLFRDDTKCLTKL" +
+                "PEGTTYEEYLGAEYLQAVGNIRKCSTSRLLEACTFHKS");
+        ProteinUtils.getIdentityXrefs(dupe1_2).iterator().next().setPrimaryId("P12346-2");
+
+        dupe1_2.setCreated(new Date(1)); // dupe2 is older
+
+        Protein prot1 = getMockBuilder().createProteinRandom();
+        Protein prot2 = getMockBuilder().createProteinRandom();
+        Protein prot3 = getMockBuilder().createProteinRandom();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe1_2, prot2);
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe1_1, prot3);
+
+        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, interaction1, interaction2, interaction3);
+
+        Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12346-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1_1.getCrc64(), dupe1_1.getBioSource().getTaxId()).size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12346-1").size());
+
+        boolean hasCautionBefore = false;
+
+        for (Annotation a : dupe1_1.getAnnotations()){
+            if (a.getCvTopic().getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
+                hasCautionBefore = true;
+            }
+        }
+
+        Assert.assertFalse(hasCautionBefore);
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc()));
+
+        ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
+        Assert.assertNotNull(dupe2FromDb);
+        Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
+
+        ProteinImpl dupe1FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc());
+        Assert.assertNotNull(dupe1FromDb);
+    }
+
+    @Test
+    @DirtiesContext
     public void duplicates_found_isoforms_different_parents() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -390,7 +487,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void updateProteinWithNullBiosource() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
 
@@ -418,7 +515,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void updateAll_updateProteinChains_chainWithoutInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ...
@@ -458,7 +555,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void updateAll_updateProteinChains_chainWithInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ...
@@ -502,7 +599,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void updateAll_updateProteinChains_masterWithoutInteraction() throws Exception {
 
         // master protein with interaction, linked chain with no interaction ... both proteins should still be there post update
@@ -568,7 +665,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void updateAll_duplicatedIsoform_isoformParent() throws Exception {
 
         // we have M1-SV1 and M2-SV2, M1 and M2 are duplicated, when merging, both splice variants should have
@@ -702,12 +799,14 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         // interaction: no
         Protein master2 = getMockBuilder().createProtein("P18459", "master2");
         master2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than master 1
+        master2.setSequence(master1.getSequence());
 
         persister.saveOrUpdate(master2);
 
         // interaction: yes
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(master2, "P18459-1", "isoform2");
         isoform2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than isoform 1
+        isoform2.setSequence(isoform1.getSequence());
         Interaction interaction2 = getMockBuilder().createInteraction( isoform2 );
 
         persister.saveOrUpdate(isoform2, interaction2);
@@ -716,7 +815,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    
+    @DirtiesContext
     public void spliceVariantGetGeneName() throws Exception {
 
         // check that splice variants do get gene names like the masters do.

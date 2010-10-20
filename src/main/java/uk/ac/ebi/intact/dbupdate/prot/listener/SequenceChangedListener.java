@@ -56,8 +56,11 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         String oldSeq = evt.getOldSequence();
         String newSeq = evt.getProtein().getSequence();
+        double relativeConservation = 0;
 
-        double relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
+        if (oldSeq != null){
+             relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("After sequence update, the relative sequence conservation is "+relativeConservation);

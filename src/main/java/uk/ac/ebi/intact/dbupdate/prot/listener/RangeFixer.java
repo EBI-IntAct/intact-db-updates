@@ -60,6 +60,20 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
                 }
             }
         }
+        else if (evt.getOldSequence() == null && evt.getProtein().getSequence() != null){
+            for (Component component : evt.getProtein().getActiveInstances()) {
+                for (Feature feature : component.getBindingDomains()) {
+
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, evt.getProtein().getSequence(), (ProteinUpdateProcessor) evt.getSource());
+
+                    // fire the events for the range changes
+                    for (UpdatedRange updatedRange : updatedRanges) {
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnRangeChange(new RangeChangedEvent(evt.getDataContext(), updatedRange));
+                    }
+                }
+            }
+        }
     }
 
     @Override

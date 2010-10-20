@@ -84,7 +84,38 @@ public class RangeChecker {
                 }
             }
             else {
-                processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, FeatureUtils.getBadRangeInfo(range, oldSequence), range.toString())));                
+                processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, FeatureUtils.getBadRangeInfo(range, oldSequence), range.toString())));
+            }
+        }
+
+        return updatedRanges;
+    }
+
+    public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence, ProteinUpdateProcessor processor) {
+        if (feature == null) throw new NullPointerException("Feature was null");
+
+        List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
+
+        for (Range range : feature.getRanges()) {
+            if (!FeatureUtils.isABadRange(range, newSequence)){
+                final IntactCloner intactCloner = new IntactCloner();
+                Range oldRange = null;
+                try {
+                    oldRange = intactCloner.clone(range);
+                } catch (IntactClonerException e) {
+                    throw new IntactException("Could not clone range: "+range, e);
+                }
+
+                if (log.isInfoEnabled())
+                    log.info("Prepare sequence of the range " + logInfo(range));
+
+                range.prepareSequence(newSequence);
+                IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
+
+                updatedRanges.add(new UpdatedRange(oldRange, range));
+            }
+            else {
+                processor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), new InvalidRange(range, newSequence, FeatureUtils.getBadRangeInfo(range, newSequence), range.toString())));
             }
         }
 
@@ -233,6 +264,141 @@ public class RangeChecker {
     }
 
     /**
+     * Shift the range positions according to the new sequence
+     * @param diffs
+     * @param range
+     * @param oldSequence
+     * @param newSequence
+     * @return
+     */
+    protected boolean isPossibleToShiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
+        // to know if we have shifted a position
+        boolean rangeShifted = false;
+        // to know if it is possible to shift the start positions of the range
+        boolean canShiftFromCvFuzzyType = false;
+        // to know if it is possible to shift the end positions of the range
+        boolean canShiftToCvFuzzyType = false;
+
+        boolean canBeShifted = true;
+
+        // the old full feature sequence
+        String oldFullFeatureSequence = range.getFullSequence();
+        // the old truncated sequence (100 aa)
+        String oldTruncatedFeatureSequence = range.getSequence();
+
+        // case 'from': undetermined, cannot be shifted
+        // if not undetermined, we have different cases.
+        if (!(range.getFromCvFuzzyType().isUndetermined() || range.getFromCvFuzzyType().isCTerminalRegion() || range.getFromCvFuzzyType().isNTerminalRegion())){
+
+            canShiftFromCvFuzzyType = true;
+        }
+
+        // if not undetermined, we can shift the ranges.
+        if (!range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion()){
+
+            canShiftToCvFuzzyType = true;
+        }
+
+        // we create a clone to test the new range positions
+        Range clone = new Range(range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+        clone.setFromCvFuzzyType(range.getFromCvFuzzyType());
+        clone.setToCvFuzzyType(range.getToCvFuzzyType());
+
+        // If we can shift the positions, calculate the shift of each position based on the diffs between the old and the new sequences.
+        // We need to apply a correction (-1/+1) because the shift calculation is index based (0 is the first position),
+        // whereas the range positions are not (first position is 1)
+        int shiftedFromIntervalStart;
+        int shiftedFromIntervalEnd;
+        int shiftedToIntervalStart;
+        int shiftedToIntervalEnd;
+
+        // we can shift the start positions, the range is not undetermined
+        if (canShiftFromCvFuzzyType){
+            shiftedFromIntervalStart = calculatePositionShift(diffs, range.getFromIntervalStart(), oldSequence);
+
+            if (shiftedFromIntervalStart != range.getFromIntervalStart()) {
+                clone.setFromIntervalStart(shiftedFromIntervalStart);
+                rangeShifted = true;
+            }
+
+            shiftedFromIntervalEnd = calculatePositionShift(diffs, range.getFromIntervalEnd(), oldSequence);
+
+            if (shiftedFromIntervalEnd != range.getFromIntervalEnd()) {
+                clone.setFromIntervalEnd(shiftedFromIntervalEnd);
+                rangeShifted = true;
+            }
+        }
+
+        // we can shift the end positions, the range is not undetermined
+        if (canShiftToCvFuzzyType){
+            shiftedToIntervalStart = calculatePositionShift(diffs, range.getToIntervalStart(), oldSequence);
+
+            if (shiftedToIntervalStart != range.getToIntervalStart()) {
+                clone.setToIntervalStart(shiftedToIntervalStart);
+                rangeShifted = true;
+            }
+
+            shiftedToIntervalEnd = calculatePositionShift(diffs, range.getToIntervalEnd(), oldSequence);
+
+            if (shiftedToIntervalEnd != range.getToIntervalEnd()) {
+                clone.setToIntervalEnd(shiftedToIntervalEnd);
+                rangeShifted = true;
+            }
+        }
+
+        // One of the range positions has been shifted
+        if (rangeShifted){
+
+            // check that the new shifted range is within the new sequence and consistent
+            if (!FeatureUtils.isABadRange(clone, newSequence)){
+
+                // the end position was at the end of the sequence and now is not anymore
+                if (range.getToIntervalEnd() == oldSequence.length() && clone.getToIntervalEnd() != newSequence.length()){
+                    // the range has been shifted but the feature is not at the C-terminal position anymore
+                    rangeShifted = false;
+                    canBeShifted = false;
+                }
+                // the start position was at the beginning of the sequence and now is not anymore
+                else if (range.getFromIntervalStart() == 1 && clone.getFromIntervalStart() != 1){
+                    // the range has been shifted but the feature is not at the N-terminal position anymore
+                    rangeShifted = false;
+                    canBeShifted = false;
+                }
+                // the intern range has been shifted
+                else {
+
+                    // we prepare the new feature sequence
+                    clone.prepareSequence(newSequence);
+                    // the new full feature sequence
+                    String newFullFeatureSequence = clone.getFullSequence();
+
+                    // the full feature sequence was and is still not null
+                    if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
+
+                        // check that the new feature sequence is the same
+                        rangeShifted = checkNewFeatureContent(range, newSequence, rangeShifted, oldFullFeatureSequence, clone, newFullFeatureSequence);
+                        canBeShifted = rangeShifted;
+                    }
+                    // the new full feature sequence is null but was not before shifting the ranges
+                    else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
+                        // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
+                        canBeShifted = false;
+                        rangeShifted = false;
+                    }
+                }
+            }
+            // one position has been shifted but is not valid
+            else {
+                // we couldn't shift the ranges properly for one reason
+                rangeShifted = false;
+                canBeShifted = false;
+            }
+        }
+
+        return canBeShifted;
+    }
+
+    /**
      *
      * @param range : the range to update
      * @param newSequence : the new sequence of the protein
@@ -294,6 +460,49 @@ public class RangeChecker {
         return rangeShifted;
     }
 
+    private boolean checkNewFeatureContent(Range range, String newSequence, boolean rangeShifted, String oldFeatureSequence, Range clone, String newFeatureSequence) {
+        // the feature sequence is conserved, we can update the range
+        if (newFeatureSequence.equals(oldFeatureSequence)){
+            return true;
+        }
+        // the feature sequence is not conserved. We need to check if there have been some inserts at the beginning of the feature which could explain
+        // this problem. For that, we check if the new feature sequence contains the old feature sequence
+        else {
+            int indexOfOldFeatureSequence = newFeatureSequence.indexOf(oldFeatureSequence);
+
+            // the new feature sequence contains the old feature sequence : we can correct the positions
+            if (indexOfOldFeatureSequence != -1){
+                // in case of insertion at the begining of the feature sequence, we could not have shifted the range because the insertion
+                int correctedPosition = clone.getFromIntervalStart() + newFeatureSequence.indexOf(oldFeatureSequence);
+                // from interval end : the distance between from interval start and from interval end should be conserved. We can determine
+                // the new from interval end from that.
+                int correctedFromIntervalEnd = correctedPosition + (clone.getFromIntervalEnd() - clone.getFromIntervalStart());
+                // to interval end : we have corrected the first position of the feature, we can determine the end position by adding the length of the
+                // feature sequence to the corrected first position.
+                int correctedToIntervalEnd = correctedPosition + oldFeatureSequence.length() - 1;
+                // to interval end : the distance between to interval start and to interval end should be conserved. We can determine
+                // the new from interval end from that.
+                int correctedToIntervalStart = correctedToIntervalEnd - (clone.getFromIntervalEnd() - clone.getFromIntervalStart());
+
+                // check that the corrected positions are not overlapping because the start/end intervals are conserved
+                if (correctedFromIntervalEnd <= correctedToIntervalStart && correctedFromIntervalEnd <= newSequence.length() && correctedToIntervalStart >= 1){
+                    return true;
+                }
+                // we can't correct the positions of the ranges to have the conserved feature sequence
+                else {
+                    // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
+                    rangeShifted = false;
+                }
+            }
+            // we can't correct the positions of the ranges to have the conserved feature sequence
+            else {
+                // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
+                rangeShifted = false;
+            }
+        }
+        return rangeShifted;
+    }
+
     /**
      * Calculates the shift in position (1-based)
      * @param diffs The differences between the sequences
@@ -331,5 +540,42 @@ public class RangeChecker {
         final Interactor interactor = component.getInteractor();
         return "Range["+range.getAc()+"], Feature["+ feature.getAc()+","+ feature.getShortLabel()+"], Component["+ component.getAc()+
                 "], Protein["+ interactor.getAc()+","+ interactor.getShortLabel()+"]";
+    }
+
+    public boolean canShiftRange(Feature feature, String oldSequence, String newSequence){
+        if (feature == null) return false;
+        if (newSequence == null) return false;
+
+        List<Diff> diffs = new ArrayList<Diff>();
+        if (oldSequence != null){
+            diffs = DiffUtils.diff(oldSequence, newSequence);
+        }
+
+        for (Range range : feature.getRanges()) {
+            if (oldSequence != null){
+                if (!FeatureUtils.isABadRange(range, oldSequence)){
+                    final IntactCloner intactCloner = new IntactCloner();
+                    Range oldRange = null;
+                    try {
+                        oldRange = intactCloner.clone(range);
+                    } catch (IntactClonerException e) {
+                        return false;
+                    }
+
+                    return isPossibleToShiftRange(diffs, range, oldSequence, newSequence);
+                }
+
+            }
+            else {
+                boolean isABadRange = FeatureUtils.isABadRange(range, newSequence);
+
+                if (!isABadRange){
+                    range.prepareSequence(newSequence);
+                    IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
+                }
+                return isABadRange;
+            }
+        }
+        return false;
     }
 }

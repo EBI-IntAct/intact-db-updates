@@ -127,13 +127,14 @@ public abstract class ProteinProcessor {
 
     public Set<String> update(Protein protToUpdate) throws ProcessorException {
         Set<String> updatedProteins = new HashSet<String>();
-        List<UniprotProteinUpdater> listOfUniprotUpdater = getListeners(UniprotProteinUpdater.class);
 
         this.currentProtein = protToUpdate;
 
         updatedProteins.add(protToUpdate.getAc());
 
         registerListenersIfNotDoneYet();
+
+        List<UniprotProteinUpdater> listOfUniprotUpdater = getListeners(UniprotProteinUpdater.class);
 
         finalizationRequested = false;
 

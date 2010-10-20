@@ -17,6 +17,8 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFixer;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -77,6 +79,9 @@ public class ProteinServiceImpl implements ProteinService {
      * boolean value to know if we are working with a global update
      */
     private boolean isGlobalProteinUpdate = false;
+
+    private DuplicatesFixer duplicateFixer;
+    private DuplicatesFinder duplicateFinder;
 
     //////////////////////////
     // Constructor
@@ -375,53 +380,10 @@ public class ProteinServiceImpl implements ProteinService {
             if (log.isDebugEnabled())
                 log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
 
-            Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
-            totalProteins.addAll(primaryProteins);
-            totalProteins.addAll(secondaryProteins);
-
-            Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
-
-            while (totalProteins.size() > 0){
-                duplicates.clear();
-
-                Iterator<ProteinImpl> iterator = totalProteins.iterator();
-
-                ProteinImpl protToCompare = iterator.next();
-                duplicates.add(protToCompare);
-
-                Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
-                Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
-
-                while (iterator.hasNext()){
-                    ProteinImpl proteinCompared = iterator.next();
-
-                    Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
-                    Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
-
-                    if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
-                        duplicates.add(proteinCompared);
-                    }
-                }
-
-                if (duplicates.size() > 1){
-                    proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
-                }
-
-                totalProteins.removeAll(duplicates);
-            }
-        }else {
-
-            // Error cases
-
-            String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
-            log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
-
-            if ( countPrimary > 1 && countSecondary == 0 ) {
-                //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
-                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
-
+            if (!isGlobalProteinUpdate()){
                 Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
                 totalProteins.addAll(primaryProteins);
+                totalProteins.addAll(secondaryProteins);
 
                 Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
 
@@ -450,8 +412,95 @@ public class ProteinServiceImpl implements ProteinService {
                     if (duplicates.size() > 1){
                         proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
                     }
+                    else {
+                        for (Protein p : duplicates){
+
+                            if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
+                                proteins.add(p);
+                            }
+                        }
+                    }
 
                     totalProteins.removeAll(duplicates);
+                }
+            }
+            else {
+                Protein protein = primaryProteins.iterator().next();
+                proteins.add(protein);
+
+                updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
+
+                for (Protein p : secondaryProteins){
+
+                    if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
+                        proteins.add(p);
+                    }
+                }
+            }
+
+        }else {
+
+            // Error cases
+
+            String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
+            log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
+
+            if ( countPrimary > 1 && countSecondary == 0 ) {
+                //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
+                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+
+                if (!isGlobalProteinUpdate()){
+                    Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
+                    totalProteins.addAll(primaryProteins);
+
+                    Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
+
+                    while (totalProteins.size() > 0){
+                        duplicates.clear();
+
+                        Iterator<ProteinImpl> iterator = totalProteins.iterator();
+
+                        ProteinImpl protToCompare = iterator.next();
+                        duplicates.add(protToCompare);
+
+                        Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
+                        Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
+
+                        while (iterator.hasNext()){
+                            ProteinImpl proteinCompared = iterator.next();
+
+                            Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+                            Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                            if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                                duplicates.add(proteinCompared);
+                            }
+                        }
+
+                        if (duplicates.size() > 1){
+                            proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
+                        }
+                        else {
+                            for (Protein p : duplicates){
+
+                                if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
+                                    proteins.add(p);
+                                }
+                            }
+                        }
+
+                        totalProteins.removeAll(duplicates);
+                    }
+
+                }
+                else {
+
+                    for (Protein p : primaryProteins){
+
+                        if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
+                            proteins.add(p);
+                        }
+                    }
                 }
 
 
@@ -512,8 +561,22 @@ public class ProteinServiceImpl implements ProteinService {
             if (log.isDebugEnabled())
                 log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
 
-            processDuplication(uniprotProtein, primaryProteins, secondaryProteins);
+            if (!isGlobalProteinUpdate()){
+                Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, secondaryProteins);
+                proteins.add(updatedProt);
+            }
+            else {
+                Protein protein = primaryProteins.iterator().next();
+                proteins.add(protein);
 
+                proteins.addAll(updateProtein( protein, uniprotProtein ));
+
+                for (Protein p : secondaryProteins){
+                    proteins.add(p);
+
+                    proteins.addAll(updateProtein( p, uniprotProtein ));
+                }
+            }
         }else {
 
             // Error cases
@@ -525,9 +588,17 @@ public class ProteinServiceImpl implements ProteinService {
                 //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
                 uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
 
-                Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
-                proteins.add(updatedProt);
+                if (!isGlobalProteinUpdate()){
+                    Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
+                    proteins.add(updatedProt);
+                }
+                else {
+                    for (Protein p : primaryProteins){
+                        proteins.add(p);
 
+                        proteins.addAll(updateProtein( p, uniprotProtein ));
+                    }
+                }
 
             } else if ( countPrimary == 0 && countSecondary > 1 ) {
                 // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
@@ -978,12 +1049,26 @@ public class ProteinServiceImpl implements ProteinService {
         boolean sequenceToBeUpdated = false;
         String oldSequence = protein.getSequence();
         String sequence = uniprotSequence;
-        if ( (oldSequence == null && sequence != null) || (oldSequence != null && sequence == null) || !sequence.equals( oldSequence ) ) {
+        if ( (oldSequence == null && sequence != null)) {
             if ( log.isDebugEnabled() ) {
                 log.debug( "Sequence requires update." );
             }
             sequenceToBeUpdated = true;
         }
+        else if (oldSequence != null && sequence == null){
+            uniprotServiceResult.addError(UniprotServiceResult.UNIPROT_SEQUENCE_NULL,
+                    "The sequence of the protein " + protein.getAc() +
+                            " is not null but the uniprot entry has a sequence null." );
+        }
+        else if (oldSequence != null && sequence != null){
+            if (!sequence.equals( oldSequence ) ){
+                if ( log.isDebugEnabled() ) {
+                    log.debug( "Sequence requires update." );
+                }
+                sequenceToBeUpdated = true;
+            }
+        }
+
 
         if ( sequenceToBeUpdated && !protein.getActiveInstances().isEmpty() ) {
 
