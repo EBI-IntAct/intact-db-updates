@@ -1,0 +1,24 @@
+package ebi.ac.uk.intact.update.model;
+
+/**
+ * The interface to implement for the classes we want to persist
+ *
+ * @author Marine Dumousseau (marine@ebi.ac.uk)
+ * @version $Id$
+ * @since <pre>20-May-2010</pre>
+ */
+
+public interface HibernatePersistent {
+
+    /**
+     *
+     * @return an unique identifier for this object in the database
+     */
+    public Long getId();
+
+    /**
+     * Set the unique identifier
+     * @param id
+     */
+    public void setId(Long id);
+}
