@@ -13,7 +13,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <name>IntAct Database Update :: intact-update-model</name>
-    <description>Persistence model for protein update</description>
+    <description>Persistence model for intactProtein update</description>
 
     <properties>
         <maven.pmd.skip>true</maven.pmd.skip>
