@@ -1088,6 +1088,9 @@ public class ProteinServiceImpl implements ProteinService {
             }
             else {
                 for (Range range : badRanges){
+                    uniprotServiceResult.addError(UniprotServiceResult.PROTEIN_SEQUENCE_IMPOSSIBLE_TO_UPDATE,
+                    "The sequence of the protein " + protein.getAc() +
+                            " could not be updated because the range " + range.getAc() + " attached to the feature " + range.getFeature().getAc() + " in the interaction " + range.getFeature().getComponent().getInteraction().getAc() + " is invalid." );
                     invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
                 }
             }
@@ -1101,6 +1104,7 @@ public class ProteinServiceImpl implements ProteinService {
                 log.debug( "CRC64 requires update." );
                 protein.setCrc64( crc64 );
             }
+            sequenceChanged(protein, oldSequence);
         }
     }
 
