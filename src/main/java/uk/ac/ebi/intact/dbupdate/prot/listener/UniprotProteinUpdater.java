@@ -25,12 +25,10 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
@@ -47,7 +45,7 @@ import java.util.List;
  * @version $Id$
  */
 public class UniprotProteinUpdater extends ProteinServiceImpl implements ProteinProcessorListener {
-    
+
     private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
 
     private final int MAX_RETRY_ATTEMPTS = 100;
@@ -77,9 +75,9 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                 updateProcessor.fireNonUniprotProteinFound(evt);
             }
-            
+
             if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt");
-                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
+            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
     }
 
@@ -101,7 +99,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
             }
 
             if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt");
-                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
+            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
     }
 
@@ -143,8 +141,8 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     }
 
     @Override
-    protected void sequenceChanged(Protein protein, String oldSequence) {
-        proteinProcessor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence));
+    protected void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64) {
+        proteinProcessor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence, newSequence, crc64));
     }
 
     @Override
@@ -158,25 +156,45 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
     }
 
     @Override
-    protected void proteinCreated(Protein protein) {
-         proteinProcessor.fireOnProteinCreated(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
+    protected void invalidRangeFound(InvalidRange invalidRange){
+        proteinProcessor.fireOnInvalidRange(new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), invalidRange));
     }
 
     @Override
+    protected void proteinCreated(Protein protein) {
+        proteinProcessor.fireOnProteinCreated(new ProteinEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein));
+    }
+
+    @Override
+    protected void badParticipantFound(Collection<Component> componentToFix, Protein protein){
+        proteinProcessor.fireOnBadParticipantFound(new BadParticipantFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, componentToFix));
+    }
+
+    /*@Override
     protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         List<Protein> proteins = new ArrayList<Protein>(primaryProteins.size()+secondaryProteins.size());
         proteins.addAll(primaryProteins);
         proteins.addAll(secondaryProteins);
-        DuplicatesFoundEvent event = new DuplicatesFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins, uniprotProtein.getSequence());
+        DuplicatesFoundEvent event = new DuplicatesFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins, uniprotProtein.getSequence(), uniprotProtein.getCrc64());
         proteinProcessor.fireOnProteinDuplicationFound(event);
-
         return event.getReferenceProtein();
     }
 
     @Override
+    protected Protein processTranscriptDuplication(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprot, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+        List<Protein> proteins = new ArrayList<Protein>(primaryProteins.size()+secondaryProteins.size());
+        proteins.addAll(primaryProteins);
+        proteins.addAll(secondaryProteins);
+        DuplicatesFoundEvent event = new DuplicatesFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), proteins, uniprot.getSequence(), uniprot.getCrc64());
+        proteinProcessor.fireOnProteinDuplicationFound(event);
+
+        return event.getReferenceProtein();
+    }*/
+
+    @Override
     protected Collection<Protein> processCase(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         UpdateCaseEvent event = new UpdateCaseEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(),
-                                                    uniprotProtein, primaryProteins, secondaryProteins);
+                uniprotProtein, primaryProteins, secondaryProteins);
 
         Collection<Protein> updatedProts = super.processCase(uniprotProtein, primaryProteins, secondaryProteins);
         event.setUniprotServiceResult(getUniprotServiceResult());

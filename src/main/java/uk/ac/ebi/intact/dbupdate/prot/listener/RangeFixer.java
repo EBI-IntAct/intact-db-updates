@@ -50,7 +50,7 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
             for (Component component : evt.getProtein().getActiveInstances()) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence(), (ProteinUpdateProcessor) evt.getSource());
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, evt.getOldSequence(), evt.getProtein().getSequence());
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
@@ -64,7 +64,7 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
             for (Component component : evt.getProtein().getActiveInstances()) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, evt.getProtein().getSequence(), (ProteinUpdateProcessor) evt.getSource());
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, evt.getProtein().getSequence());
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
@@ -91,7 +91,7 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
                         .getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.INVALID_RANGE);
 
                 if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.INVALID_RANGE);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
                 }
 

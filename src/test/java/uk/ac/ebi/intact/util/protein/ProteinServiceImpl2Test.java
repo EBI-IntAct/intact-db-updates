@@ -266,10 +266,10 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         assertEquals(0, proteinsList.size());
 
 
-
+        // we will find 4 proteins : 2 duplicated proteins (ProteinServiceImpl doesn't merge duplicated proteins) and 2 splice variants.
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         proteinsColl = uniprotServiceResult.getProteins();
-        assertEquals(0,proteinsColl.size());
+        assertEquals(4,proteinsColl.size());
         System.out.println("proteinsColl.size() = " + proteinsColl.size());
         Map<String ,String> errors = uniprotServiceResult.getErrors();
         Set<String> keySet = errors.keySet();
@@ -332,14 +332,13 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         proteinDao.saveOrUpdate((ProteinImpl) secondaryProt);
         String secondaryProtAc = secondaryProt.getAc();
 
-
-
+        // one error should be found because we have a duplicate. ProteinServiceImpl doesn't process duplicates!!!
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
-        Collection<String> messages = uniprotServiceResult.getMessages();
-        assertEquals(1,messages.size());
+        assertEquals(1,uniprotServiceResult.getErrors().size());
 
+        // ProteinServiceImpl doesn't process duplicates!!! So we don't merge the duplicates
         Collection<String> acsOfProtToDelete = ProteinToDeleteManager.getAcToDelete();
-        assertEquals(1, acsOfProtToDelete.size());
+        assertEquals(0, acsOfProtToDelete.size());
         proteinDao = getDaoFactory().getProteinDao();
         for(String ac : acsOfProtToDelete){
             ProteinImpl protToDel = proteinDao.getByAc(ac);
@@ -350,7 +349,8 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
 
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         proteinsColl = uniprotServiceResult.getProteins();
-        assertEquals(3,proteinsColl.size());
+        // we have 3 proteins + 1 duplicate not deleted because no duplicateFixer
+        assertEquals(4,proteinsColl.size());
         proteinDao = getDaoFactory().getProteinDao();
 
         ProteinImpl proteinPrimaryAc = proteinDao.getByAc(primaryProteinAc);
@@ -358,11 +358,12 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         if((proteinPrimaryAc==null && proteinSecondaryAc==null)){
             fail("one of them shouldn't be null, because they should have been merged into one protein");
         }
-        if((proteinPrimaryAc!=null && proteinSecondaryAc!=null)){
-            fail("one of them should be null, they should have been " +
-                    "merged into one but not both should have been deleted.");
-        }
-        assertTrue((proteinPrimaryAc==null && proteinSecondaryAc!=null) || (proteinPrimaryAc!=null && proteinSecondaryAc==null));
+        // no duplicate fixer !!!
+        //if((proteinPrimaryAc!=null && proteinSecondaryAc!=null)){
+            //fail("one of them should be null, they should have been " +
+                    //"merged into one but not both should have been deleted.");
+        //}
+        //assertTrue((proteinPrimaryAc==null && proteinSecondaryAc!=null) || (proteinPrimaryAc!=null && proteinSecondaryAc==null));
 
         System.out.println("proteinsColl.size() = " + proteinsColl.size());
 
@@ -505,10 +506,11 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
 
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         proteinsColl = uniprotServiceResult.getProteins();
-        assertEquals(0,proteinsColl.size());
+        // we have 1 protein with 2 duplicates (one secodary and 2 primary) and we have 2 splice variants
+        assertEquals(5,proteinsColl.size());
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_SECONDARY_AC_1 );
         proteinsColl = uniprotServiceResult.getProteins();
-        assertEquals(0,proteinsColl.size());
+        assertEquals(5,proteinsColl.size());
 
         System.out.println("proteinsColl.size() = " + proteinsColl.size());
 //        Collection<String> errors =  uniprotServiceResult.getErrors();
@@ -528,9 +530,11 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         uniprot = getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.UNIPROT_MI_REF);
         identity = getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
         proteinsList =  proteinDao.getByXrefLike(uniprot, identity,MockUniprotProtein.CANFA_PRIMARY_AC);
-        assertEquals(2,proteinsList.size());
+        // 2 + 1 duplicated
+        assertEquals(3,proteinsList.size());
+        // all secondary acs have been updated
         proteinsList =  proteinDao.getByXrefLike(uniprot, identity,MockUniprotProtein.CANFA_SECONDARY_AC_1);
-        assertEquals(1,proteinsList.size());
+        assertEquals(0,proteinsList.size());
 
 
     }
@@ -677,6 +681,8 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
         UniprotProtein canfa = MockUniprotProtein.build_CDC42_CANFA();
+        String previousSequence = canfa.getSequence();
+
         //  ACs are P60952, P21181, P25763
         uniprotService.add( "P60952", canfa );
 
@@ -687,7 +693,12 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         Collection<Protein> proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
-        Protein protein = proteins.iterator().next();
+        Protein protein = null;
+        for (Protein pro : proteins){
+            if (ProteinUtils.getUniprotXref(pro).getPrimaryId().equals("P60952")){
+                protein = pro;
+            }
+        }
         String proteinAc = protein.getAc();
         String proteinSeq = protein.getSequence();
 
@@ -709,10 +720,16 @@ public class ProteinServiceImpl2Test extends IntactBasicTestCase {
         proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
-        protein = proteins.iterator().next();
+
+        for (Protein pro : proteins){
+            if (ProteinUtils.getUniprotXref(pro).getPrimaryId().equals("P12345")){
+                protein = pro;
+            }
+        }
 
         // check that we have retrieved the exact same protein.
         assertEquals( proteinAc, protein.getAc() );
+
         assertEquals( "XXXX", protein.getSequence() );
 
 

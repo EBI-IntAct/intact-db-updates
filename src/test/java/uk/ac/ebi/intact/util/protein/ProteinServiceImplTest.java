@@ -430,15 +430,16 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         protein = null;
 
 
-
-
-
-
         uniprotServiceResult = service.retrieve( "P60952" );
         proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
-        protein = proteins.iterator().next();
+
+        for (Protein pro : proteins){
+            if (ProteinUtils.getUniprotXref(pro).getPrimaryId().equals("P60952")){
+                protein = pro;
+            }
+        }
 
         // check that we have retrieved the exact same protein.
         assertEquals( newSequence, protein.getSequence() );

@@ -16,18 +16,32 @@ public class ProteinSequenceChangeEvent extends ProteinEvent {
      */
     private String oldSequence;
 
+    private String newSequence;
+
+    private String uniprotCrc64;
+
     /**
      * A protein update event
      *
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public ProteinSequenceChangeEvent(Object source, DataContext dataContext, Protein protein, String oldSequence) {
+    public ProteinSequenceChangeEvent(Object source, DataContext dataContext, Protein protein, String oldSequence, String newSequence, String uniprotCrc64) {
         super(source, dataContext, protein);
         this.oldSequence = oldSequence;
+        this.newSequence = newSequence;
+        this.uniprotCrc64 = uniprotCrc64;
     }
 
     public String getOldSequence() {
         return oldSequence;
+    }
+
+    public String getNewSequence() {
+        return newSequence;
+    }
+
+    public String getUniprotCrc64() {
+        return uniprotCrc64;
     }
 }

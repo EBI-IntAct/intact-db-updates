@@ -55,11 +55,13 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
     @Override
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         String oldSeq = evt.getOldSequence();
-        String newSeq = evt.getProtein().getSequence();
+        String newSeq = evt.getNewSequence();
+        Protein protein = evt.getProtein();
+
         double relativeConservation = 0;
 
         if (oldSeq != null){
-             relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
+            relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
         }
 
         if (log.isDebugEnabled()) {
@@ -86,6 +88,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
                 //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
             }
         }
+        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
     }
 
     /**

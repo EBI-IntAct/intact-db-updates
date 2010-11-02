@@ -19,6 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteConnectFailureException;
+import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -106,6 +107,7 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
             if (uniprotProteins.size() == 1){
                 UniprotProtein uniprotProtein = uniprotProteins.iterator().next();
                 String uniprotSequence = uniprotProtein.getSequence();
+                String uniprotCrc64 = uniprotProtein.getCrc64();
 
                 // in case of splice variant, we check that the list of isoform parents is the same before merging duplicates
                 if (ProteinUtils.isSpliceVariant(protein)){
@@ -150,13 +152,14 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
 
                                 if (variant.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId()) || variantAcs.contains(identity.getPrimaryId())){
                                     uniprotSequence = variant.getSequence();
+                                    uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
                                     break;
                                 }
                             }
 
                             processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
                                     evt.getDataContext(),
-                                    duplicates, uniprotSequence));
+                                    duplicates, uniprotSequence, uniprotCrc64));
                         }
 
                         // we remove the processed proteins from the list of protein to process
@@ -203,13 +206,14 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
 
                                 if (chain.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId())){
                                     uniprotSequence = chain.getSequence();
+                                    uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
                                     break;
                                 }
                             }
 
                             processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
                                     evt.getDataContext(),
-                                    duplicates, uniprotSequence));
+                                    duplicates, uniprotSequence, uniprotCrc64));
                         }
                         // we remove the processed proteins from the list of protein to process
                         totalProteins.removeAll(duplicates);
@@ -219,7 +223,7 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
                 else {
                     processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
                             evt.getDataContext(),
-                            new ArrayList<Protein> (possibleDuplicates), uniprotSequence));
+                            new ArrayList<Protein> (possibleDuplicates), uniprotSequence, uniprotCrc64));
                 }
 
 //            checkAndFixDuplication(protein, possibleDuplicates, evt);
@@ -239,7 +243,7 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
      * @deprecated use the DuplicateFuxer listener
      */
     @Deprecated
-    private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt, String uniprotSequenceToUseForRangeShifting) {
+    private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt, String uniprotSequenceToUseForRangeShifting, String crc64) {
         List<Protein> realDuplicates = new ArrayList<Protein>();
 
         // here there is a chance we keep proteins that have an other identity than the one of the original
@@ -259,7 +263,7 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
         if (!realDuplicates.isEmpty()) {
             // fire a duplication event
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting));
+            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64));
         }
     }
 }

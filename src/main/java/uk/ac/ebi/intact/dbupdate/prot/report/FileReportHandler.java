@@ -38,7 +38,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter rangeChangedWriter;
     private ReportWriter invalidRangeWriter;
     private ReportWriter deadProteinWriter;
-
+    private ReportWriter badParticipantWriter;
 
     public FileReportHandler(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -59,6 +59,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
         this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
         this.deadProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead_proteins.csv")));
+        this.badParticipantWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "bad_participants.csv")));
     }
 
     public ReportWriter getPreProcessedWriter() throws IOException {
@@ -105,6 +106,14 @@ public class FileReportHandler implements UpdateReportHandler{
         return deadProteinWriter;
     }
 
+    public ReportWriter getDuplicatesWriter() {
+        return duplicatesWriter;
+    }
+
+    public ReportWriter getBadParticipantWriter() {
+        return badParticipantWriter;
+    }
+
     public void close() throws IOException {
         this.preProcessedWriter.close();
         this.processedWriter.close();
@@ -112,8 +121,11 @@ public class FileReportHandler implements UpdateReportHandler{
         this.deletedWriter.close();
         this.createdWriter.close();
         this.nonUniprotProteinWriter.close();
+        this.updateCasesWriter.close();
         this.sequenceChangedWriter.close();
         this.rangeChangedWriter.close();
         this.invalidRangeWriter.close();
+        this.deadProteinWriter.close();;
+        this.badParticipantWriter.close();
     }
 }

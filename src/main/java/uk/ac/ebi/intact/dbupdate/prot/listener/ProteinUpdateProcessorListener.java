@@ -46,4 +46,5 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onDeadProteinFound(ProteinEvent evt) throws ProcessorException;
 
+    void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException;
 }

@@ -96,6 +96,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             forceDeleteOfProteins = true;
         }
 
+        addListener(new BadParticipantFixer());                
+
         if (config.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
             deleter.setDeleteProteinTranscriptsWithoutInteractions(config.isDeleteProteinTranscriptWithoutInteractions());
@@ -121,7 +123,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             addListener(new ReportWriterListener(config.getReportHandler()));
         }
 
-        //addListener(new SequenceChangedListener());
+        addListener(new SequenceChangedListener());
         addListener(new RangeFixer());
     }
 
@@ -176,6 +178,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public void fireOnUniprotDeadEntry(ProteinEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onDeadProteinFound(evt);
+        }
+    }
+
+    public void fireOnBadParticipantFound(BadParticipantFoundEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onBadParticipantFound(evt);
         }
     }
 }

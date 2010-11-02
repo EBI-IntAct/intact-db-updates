@@ -124,12 +124,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
             if (evt.getOldSequence() != null) {
                 state = "UPDATE";
-                seqDiff = protein.getSequence().length()-evt.getOldSequence().length();
+                seqDiff = evt.getNewSequence().length()-evt.getOldSequence().length();
                 levenshtein = StringUtils.getLevenshteinDistance(protein.getSequence(), evt.getOldSequence());
-                conservation = ProteinTools.calculateSequenceConservation(evt.getOldSequence(), protein.getSequence());
+                conservation = ProteinTools.calculateSequenceConservation(evt.getOldSequence(), evt.getNewSequence());
             } else {
                 state = "NEW";
-                seqDiff = protein.getSequence().length();
+                seqDiff = evt.getNewSequence().length();
                 levenshtein = seqDiff;
                 conservation = 0;
             }
@@ -137,12 +137,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
                     protein.getShortLabel()+"|"+
                     getPrimaryIdString(protein)+
-                    "|CRC:"+protein.getCrc64()+
+                    "|CRC:"+evt.getUniprotCrc64()+
                     "|Length:"+protein.getSequence().length()+
                     "|Diff:"+seqDiff+
                     "|Levenshtein:"+ levenshtein+
                     "|Conservation:"+conservation);
-            writer.writeLine(insertNewLinesIfNecessary(protein.getSequence(), 80));
+            writer.writeLine(insertNewLinesIfNecessary(evt.getNewSequence(), 80));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing to sequence changed writer", e);
@@ -211,6 +211,22 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
                     evt.getUniprotServiceResult().getErrors().toString(),
                     evt.getUniprotServiceResult().getMessages().toString());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing update case to stream", e);
+        }
+    }
+
+    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+        try {
+            ReportWriter writer = reportHandler.getUpdateCasesWriter();
+            writer.writeHeaderIfNecessary("UniProt ID",
+                    "IA primary c.",
+                    "Component acs");
+            String primaryId = ProteinUtils.getUniprotXref(evt.getProtein()).getPrimaryId();
+            writer.writeColumnValues(primaryId,
+                    evt.getProtein().getAc(),
+                    compCollectionToString(evt.getComponentsToFix()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -308,6 +324,27 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             for (int i = startIndex; i>0; i=i-maxLineLength) {
                 sb.insert(i, NEW_LINE);
             }
+        }
+
+        return sb.toString();
+    }
+
+    private static String compCollectionToString(Collection<Component> components) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<Component> iterator = components.iterator(); iterator.hasNext();) {
+            Component component = iterator.next();
+
+            sb.append(component.getShortLabel()).append("(").append(component.getAc()).append(")");
+            sb.append("[interaction:").append(component.getInteractionAc()).append(" ,interactor:").append(component.getInteractor()).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        if (components.isEmpty()) {
+            sb.append(EMPTY_VALUE);
         }
 
         return sb.toString();

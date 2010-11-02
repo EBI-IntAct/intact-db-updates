@@ -51,7 +51,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertEquals("BCD", rangeSeq);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertTrue(updatedRanges.isEmpty());
 
@@ -81,7 +81,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertTrue(updatedRanges.isEmpty());
 
@@ -112,7 +112,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertEquals(1, updatedRanges.size());
 
@@ -139,7 +139,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
 
         Assert.assertTrue(updatedRanges.isEmpty());
 
@@ -164,7 +164,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
@@ -187,7 +187,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         feature.addRange(range);
         Assert.assertEquals('C',range.getSequence().charAt(0));
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(3, range.getFromIntervalStart());
@@ -215,7 +215,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
@@ -241,7 +241,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
@@ -265,7 +265,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.setToCvFuzzyType(fuzzyType);
         feature.addRange(range);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
@@ -291,7 +291,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(1, updatedRanges.size());
 
         Assert.assertEquals(3, range.getFromIntervalStart());
@@ -317,7 +317,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, new ProteinUpdateProcessor());
+        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());

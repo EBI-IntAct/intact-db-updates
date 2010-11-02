@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -58,7 +59,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());
@@ -83,7 +84,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener();
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -109,7 +110,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -136,7 +137,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -163,7 +164,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -188,7 +189,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
         SequenceChangedListener listener = new SequenceChangedListener(0.50);
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence));
+                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence)));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());

@@ -21,6 +21,8 @@ import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -31,6 +33,7 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.model.util.ComponentUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
@@ -50,8 +53,13 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Before
     public void before_schema() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();
+
+        getDataContext().commitTransaction(status);
     }
 
     /**
@@ -341,7 +349,13 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
-    public void duplicates_found_isoforms_differentSequence() throws Exception {
+    @Transactional(propagation = Propagation.NEVER)
+    public void duplicates_found_isoforms_differentSequence_oneBadRange() throws Exception {
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvFeatureType type = getMockBuilder().createCvObject(CvFeatureType.class, CvFeatureType.EXPERIMENTAL_FEATURE_MI_REF, CvFeatureType.EXPERIMENTAL_FEATURE);
+        getCorePersister().saveOrUpdate(type);
+
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
         configUpdate.setGlobalProteinUpdate(true);
@@ -353,6 +367,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12346-1", "p12346-1");
         dupe1_1.getBioSource().setTaxId("10116");
+        dupe1_1.setSequence("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe1_2 = cloner.clone(dupe1_1);
@@ -378,11 +393,64 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Protein prot2 = getMockBuilder().createProteinRandom();
         Protein prot3 = getMockBuilder().createProteinRandom();
 
-        Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
-        Interaction interaction2 = getMockBuilder().createInteraction(dupe1_2, prot2);
-        Interaction interaction3 = getMockBuilder().createInteraction(dupe1_1, prot3);
+        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, prot1, prot2, prot3);
 
-        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, interaction1, interaction2, interaction3);
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
+        Collection<Component> components = interaction1.getComponents();
+
+        Range r = getMockBuilder().createRange(2, 2, 8, 8);
+        Component c = null;
+        for (Component comp : components){
+           if (dupe1_1.equals(comp.getInteractor())){
+               c = comp;
+           }
+        }
+
+        c.getBindingDomains().clear();
+        Feature f = getMockBuilder().createFeatureRandom();
+        f.getRanges().clear();
+        f.addRange(r);
+        f.setComponent(c);
+        c.addBindingDomain(f);
+        getCorePersister().saveOrUpdate(interaction1, dupe1_1, prot1);
+
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe1_2, prot2);
+        Collection<Component> components2 = interaction2.getComponents();
+
+        Range r2 = getMockBuilder().createRange(2, 2, 8, 8);
+        Component c2 = null;
+        for (Component comp : components2){
+           if (dupe1_2.equals(comp.getInteractor())){
+               c2 = comp;
+           }
+        }
+
+        c2.getBindingDomains().clear();
+        Feature f2 = getMockBuilder().createFeatureRandom();
+        f2.getRanges().clear();
+        f2.addRange(r2);
+        f2.setComponent(c2);
+        c2.addBindingDomain(f2);
+        getCorePersister().saveOrUpdate(interaction2, dupe1_2, prot2);
+
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe1_1, prot3);
+        Collection<Component> components3 = interaction3.getComponents();
+
+        Range r3 = getMockBuilder().createRange(2, 2, 8, 8);
+        Component c3 = null;
+        for (Component comp : components3){
+           if (dupe1_1.equals(comp.getInteractor())){
+               c3 = comp;
+           }
+        }
+
+        c3.getBindingDomains().clear();
+        Feature f3 = getMockBuilder().createFeatureRandom();
+        f3.getRanges().clear();
+        f3.addRange(r3);
+        f3.setComponent(c3);
+        c3.addBindingDomain(f3);
+        getCorePersister().saveOrUpdate(interaction3, dupe1_1, prot3);
 
         Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -392,6 +460,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
         uniprotXref.setPrimaryId("P12346-1");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        getDataContext().commitTransaction(status);
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1_1.getCrc64(), dupe1_1.getBioSource().getTaxId()).size());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12346-1").size());
@@ -410,6 +480,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateAll();
 
+        TransactionStatus status2 = getDataContext().beginTransaction();
+
         Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
@@ -421,6 +493,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         ProteinImpl dupe1FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc());
         Assert.assertNotNull(dupe1FromDb);
+
+        getDataContext().commitTransaction(status2);
     }
 
     @Test

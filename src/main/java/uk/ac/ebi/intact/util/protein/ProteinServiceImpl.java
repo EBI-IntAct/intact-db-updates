@@ -17,8 +17,11 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.event.BadParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFinder;
 import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFixer;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -354,167 +357,45 @@ public class ProteinServiceImpl implements ProteinService {
                 proteinCreated(protein);
             }
 
-        } else if ( countPrimary == 0 && countSecondary == 1 ) {
+        }
+        else {
             if (log.isDebugEnabled())
-                log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
+                log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc and "+countSecondary+" protein(s) on with secondaryAc.");
 
-            Protein protein = secondaryProteins.iterator().next();
-            proteins.add( protein );
-
-            // update UniProt Xrefs
-            XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein );
-
-            // Update protein
-            updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
-
-        } else if ( countPrimary == 1 && countSecondary == 0 ) {
-            if (log.isDebugEnabled())
-                log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
-
-            Protein protein = primaryProteins.iterator().next();
-            proteins.add(protein);
-
-            updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
-
-        }else if ( countPrimary == 1 && countSecondary >= 1){
-            if (log.isDebugEnabled())
-                log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
-
-            if (!isGlobalProteinUpdate()){
-                Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
-                totalProteins.addAll(primaryProteins);
-                totalProteins.addAll(secondaryProteins);
-
-                Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
-
-                while (totalProteins.size() > 0){
-                    duplicates.clear();
-
-                    Iterator<ProteinImpl> iterator = totalProteins.iterator();
-
-                    ProteinImpl protToCompare = iterator.next();
-                    duplicates.add(protToCompare);
-
-                    Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
-                    Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
-
-                    while (iterator.hasNext()){
-                        ProteinImpl proteinCompared = iterator.next();
-
-                        Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
-                        Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
-
-                        if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
-                            duplicates.add(proteinCompared);
-                        }
-                    }
-
-                    if (duplicates.size() > 1){
-                        proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
-                    }
-                    else {
-                        for (Protein p : duplicates){
-
-                            if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
-                                proteins.add(p);
-                            }
-                        }
-                    }
-
-                    totalProteins.removeAll(duplicates);
+            if (countPrimary + countSecondary > 1){
+                if (countPrimary >= 1 && countSecondary >= 1){
+                    uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProteinTranscript.getPrimaryAc() + ") " + countPrimary + countSecondary + ", " +
+                            "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
+                }
+                else if (countSecondary > 1 && countPrimary == 0){
+                    uniprotServiceResult.addError("Unresolved duplication of uniprot protein " + uniprotProteinTranscript.getPrimaryAc() + "("+countSecondary+" possible duplicated proteins)", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
+                }
+                else if (countPrimary > 1 && countSecondary == 0){
+                    uniprotServiceResult.addError("Unresolved duplication of the protein " + uniprotProteinTranscript.getPrimaryAc() + "("+countPrimary+" duplicated proteins)", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
                 }
             }
-            else {
-                Protein protein = primaryProteins.iterator().next();
-                proteins.add(protein);
 
+            for (Protein protein : primaryProteins){
                 updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
-
-                for (Protein p : secondaryProteins){
-
-                    if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
-                        proteins.add(p);
-                    }
-                }
+                proteins.add(protein);
             }
 
-        }else {
+            for (Protein protein : secondaryProteins){
 
-            // Error cases
+                // update UniProt Xrefs
+                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein );
 
-            String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
-            log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
-
-            if ( countPrimary > 1 && countSecondary == 0 ) {
-                //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
-                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
-
-                if (!isGlobalProteinUpdate()){
-                    Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
-                    totalProteins.addAll(primaryProteins);
-
-                    Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
-
-                    while (totalProteins.size() > 0){
-                        duplicates.clear();
-
-                        Iterator<ProteinImpl> iterator = totalProteins.iterator();
-
-                        ProteinImpl protToCompare = iterator.next();
-                        duplicates.add(protToCompare);
-
-                        Collection<InteractorXref> chainParent = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
-                        Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
-
-                        while (iterator.hasNext()){
-                            ProteinImpl proteinCompared = iterator.next();
-
-                            Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
-                            Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
-
-                            if (CollectionUtils.isEqualCollection(chainParent, chainParent2) || CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
-                                duplicates.add(proteinCompared);
-                            }
-                        }
-
-                        if (duplicates.size() > 1){
-                            proteins.add(processTranscriptDuplication(uniprotProteinTranscript, uniprotProtein, masterProtein, duplicates, Collections.EMPTY_LIST));
-                        }
-                        else {
-                            for (Protein p : duplicates){
-
-                                if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
-                                    proteins.add(p);
-                                }
-                            }
-                        }
-
-                        totalProteins.removeAll(duplicates);
-                    }
-
-                }
-                else {
-
-                    for (Protein p : primaryProteins){
-
-                        if (updateProteinTranscript(p, masterProtein, uniprotProteinTranscript, uniprotProtein)){
-                            proteins.add(p);
-                        }
-                    }
+                if (xrefReport.isUpdated()) {
+                    uniprotServiceResult.addXrefUpdaterReport(xrefReport);
                 }
 
-
-            } else if ( countPrimary == 0 && countSecondary > 1 ) {
-                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
-                uniprotServiceResult.addError("Possible duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
-            } else {
-
-                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
-                uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProteinTranscript.getPrimaryAc() + ") " + pCount + ", " +
-                        "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
-
+                // Update protein
+                updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
+                proteins.add( protein );
             }
         }
+        uniprotServiceResult.addAllToProteins(proteins);
+
         return proteins;
     }
 
@@ -527,88 +408,46 @@ public class ProteinServiceImpl implements ProteinService {
             if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
             Protein protein = createMinimalisticProtein( uniprotProtein );
             proteins.add( protein );
-            proteins.addAll(updateProtein( protein, uniprotProtein ));
+            updateProtein( protein, uniprotProtein );
 
             proteinCreated(protein);
 
-        } else if ( countPrimary == 0 && countSecondary == 1 ) {
+        } else {
             if (log.isDebugEnabled())
-                log.debug( "Found a single IntAct protein by UniProt secondary AC (hint: could be a TrEMBL moved to SP)." );
+                log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc and "+countSecondary+" protein(s) on with secondaryAc.");
 
-            Protein protein = secondaryProteins.iterator().next();
-            proteins.add( protein );
 
-            // update UniProt Xrefs
-            XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
-
-            if (xrefReport.isUpdated()) {
-                uniprotServiceResult.addXrefUpdaterReport(xrefReport);
+            if (countPrimary + countSecondary > 1){
+                if (countPrimary >= 1 && countSecondary >= 1){
+                    uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProtein.getPrimaryAc() + ") " + countPrimary + countSecondary + ", " +
+                            "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
+                }
+                else if (countSecondary > 1 && countPrimary == 0){
+                    uniprotServiceResult.addError("Unresolved duplication of uniprot protein " + uniprotProtein.getPrimaryAc() + "("+countSecondary+" possible duplicated proteins)", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
+                }
+                else if (countPrimary > 1 && countSecondary == 0){
+                    uniprotServiceResult.addError("Unresolved duplication of the protein " + uniprotProtein.getPrimaryAc() + "("+countPrimary+" duplicated proteins)", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
+                }
             }
 
-            // Update protein
-            proteins.addAll(updateProtein( protein, uniprotProtein ));
-
-        } else if ( countPrimary == 1 && countSecondary == 0 ) {
-            if (log.isDebugEnabled())
-                log.debug( "Found in Intact one protein with primaryAc and 0 with secondaryAc." );
-
-            Protein protein = primaryProteins.iterator().next();
-            proteins.add(protein);
-
-            proteins.addAll(updateProtein( protein, uniprotProtein ));
-
-        }else if ( countPrimary == 1 && countSecondary >= 1){
-            if (log.isDebugEnabled())
-                log.debug("Found in IntAct 1 protein with primaryAc and 1 or more protein on with secondaryAc.");
-
-            if (!isGlobalProteinUpdate()){
-                Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, secondaryProteins);
-                proteins.add(updatedProt);
-            }
-            else {
-                Protein protein = primaryProteins.iterator().next();
+            for (Protein protein : primaryProteins){
                 proteins.add(protein);
 
-                proteins.addAll(updateProtein( protein, uniprotProtein ));
-
-                for (Protein p : secondaryProteins){
-                    proteins.add(p);
-
-                    proteins.addAll(updateProtein( p, uniprotProtein ));
-                }
+                updateProtein( protein, uniprotProtein );
             }
-        }else {
 
-            // Error cases
+            for (Protein protein : secondaryProteins){
+                proteins.add( protein );
 
-            String pCount = "Count of protein in Intact for the Uniprot entry primary ac(" + countPrimary + ") for the Uniprot entry secondary ac(s)(" + countSecondary + ")";
-            log.error( "Could not update that protein, number of protein found in IntAct: " + pCount );
+                // update UniProt Xrefs
+                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
-            if ( countPrimary > 1 && countSecondary == 0 ) {
-                //corresponding test : testRetrieve_primaryCount2_secondaryCount1()
-                uniprotServiceResult.addError("Duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_PRIMARY_AC_ERROR_TYPE);
-
-                if (!isGlobalProteinUpdate()){
-                    Protein updatedProt = processDuplication(uniprotProtein, primaryProteins, Collections.EMPTY_LIST);
-                    proteins.add(updatedProt);
-                }
-                else {
-                    for (Protein p : primaryProteins){
-                        proteins.add(p);
-
-                        proteins.addAll(updateProtein( p, uniprotProtein ));
-                    }
+                if (xrefReport.isUpdated()) {
+                    uniprotServiceResult.addXrefUpdaterReport(xrefReport);
                 }
 
-            } else if ( countPrimary == 0 && countSecondary > 1 ) {
-                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount0_secondaryCount2()
-                uniprotServiceResult.addError("Possible duplication", UniprotServiceResult.MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE);
-            } else {
-
-                // corresponding test ProteinServiceImplTest.testRetrieve_primaryCount1_secondaryCount1()
-                uniprotServiceResult.addError( "Unexpected number of proteins found in IntAct for UniprotEntry("+ uniprotProtein.getPrimaryAc() + ") " + pCount + ", " +
-                        "Please fix this problem manually.", UniprotServiceResult.UNEXPECTED_NUMBER_OF_INTACT_PROT_FOUND_ERROR_TYPE);
-
+                // Update protein
+                updateProtein( protein, uniprotProtein );
             }
         }
 
@@ -621,7 +460,7 @@ public class ProteinServiceImpl implements ProteinService {
      * Note that the subclass is used in the global protein update and this one only in the editor.
      *
      */
-    protected Protein processTranscriptDuplication(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprot, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+    /*protected Protein processTranscriptDuplication(UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprot, Protein masterProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
@@ -675,13 +514,13 @@ public class ProteinServiceImpl implements ProteinService {
         uniprotServiceResult.addMessage("Duplication found");
 
         return protToBeKept;
-    }
+    }*/
 
     /**
      * Note that the subclass is used in the global protein update and this one only in the editor.
      *
      */
-    protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
+    /*protected Protein processDuplication(UniprotProtein uniprotProtein, Collection<ProteinImpl> primaryProteins, Collection<ProteinImpl> secondaryProteins) throws ProteinServiceException {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<ProteinImpl> duplicates = new ArrayList<ProteinImpl>();
@@ -735,7 +574,7 @@ public class ProteinServiceImpl implements ProteinService {
         uniprotServiceResult.addMessage("Duplication found");
 
         return protToBeKept;
-    }
+    }*/
 
     private void filterNonUniprot(Collection<Protein> nonUniprotProteins, Collection<ProteinImpl> primaryProteins) {
         for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
@@ -778,7 +617,7 @@ public class ProteinServiceImpl implements ProteinService {
      * interactor to the replacer. It will save each active instance, each proteins of the proteins collection and
      * the replacer to the database.
      * In other words if the collection of proteins contains (EBI-1,EBI-2,EBI-3) and the replacer is EBI-4, this will
-     * remove EBI-1, EBI-2, EBI-3 of all the interactions they might partipate in and will replace them by EBI-4. 
+     * remove EBI-1, EBI-2, EBI-3 of all the interactions they might partipate in and will replace them by EBI-4.
      * @param proteins
      * @param replacer
      */
@@ -869,12 +708,12 @@ public class ProteinServiceImpl implements ProteinService {
      * @param protein        the intact protein to update.
      * @param uniprotProtein the uniprot protein used for data input.
      */
-    private Collection<Protein> updateProtein( Protein protein, UniprotProtein uniprotProtein ) throws ProteinServiceException {
+    private void updateProtein( Protein protein, UniprotProtein uniprotProtein ) throws ProteinServiceException {
         List<Protein> proteins = new ArrayList<Protein>();
 
         // check that both protein carry the same organism information
         if (!UpdateBioSource(protein, uniprotProtein.getOrganism())){
-            return proteins;
+            return;
         }
 
         // Fullname
@@ -1042,7 +881,6 @@ public class ProteinServiceImpl implements ProteinService {
                 }
             }
         }*/
-        return proteins;
     }
 
     private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64) {
@@ -1070,32 +908,39 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
 
-        if ( sequenceToBeUpdated && !protein.getActiveInstances().isEmpty() ) {
+        if ( sequenceToBeUpdated) {
+            RangeChecker checker = new RangeChecker();
 
-            Set<Range> badRanges = FeatureUtils.getBadRanges(protein);
+            Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
 
-            if (badRanges.isEmpty()){
-                protein.setSequence( sequence );
+            Collection<Component> components = protein.getActiveInstances();
 
-                // CRC64
-                String crc64 = uniprotCrC64;
-                if ( protein.getCrc64() == null || !protein.getCrc64().equals( crc64 ) ) {
-                    log.debug( "CRC64 requires update." );
-                    protein.setCrc64( crc64 );
+            for (Component component : components){
+                Interaction interaction = component.getInteraction();
+
+                Collection<Feature> features = component.getBindingDomains();
+                for (Feature feature : features){
+                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
+
+                    if (!invalidRanges.isEmpty()){
+                        interactionAcsWithBadFeatures.add(interaction.getAc());
+
+                        for (InvalidRange invalid : invalidRanges){
+                            invalidRangeFound(invalid);
+                        }
+                    }
                 }
+            }
 
-                sequenceChanged(protein, oldSequence);
-            }
-            else {
-                for (Range range : badRanges){
-                    uniprotServiceResult.addError(UniprotServiceResult.PROTEIN_SEQUENCE_IMPOSSIBLE_TO_UPDATE,
-                    "The sequence of the protein " + protein.getAc() +
-                            " could not be updated because the range " + range.getAc() + " attached to the feature " + range.getFeature().getAc() + " in the interaction " + range.getFeature().getComponent().getInteraction().getAc() + " is invalid." );
-                    invalidRangeFound(range, oldSequence, "The feature range is out of bound before updating the sequence of the protein it is attached to.");
+            if (!interactionAcsWithBadFeatures.isEmpty()){
+                Collection<Component> componentsToFix = new ArrayList<Component>();
+                for (Component c : components){
+                    if (interactionAcsWithBadFeatures.contains(c.getInteractionAc())){
+                        componentsToFix.add(c);
+                    }
                 }
+                badParticipantFound(componentsToFix, protein);
             }
-        }
-        else if (sequenceToBeUpdated && protein.getActiveInstances().isEmpty()){
             protein.setSequence( sequence );
 
             // CRC64
@@ -1104,7 +949,8 @@ public class ProteinServiceImpl implements ProteinService {
                 log.debug( "CRC64 requires update." );
                 protein.setCrc64( crc64 );
             }
-            sequenceChanged(protein, oldSequence);
+
+            sequenceChanged(protein, sequence, oldSequence, uniprotCrC64);
         }
     }
 
@@ -1112,7 +958,7 @@ public class ProteinServiceImpl implements ProteinService {
         // nothing
     }
 
-    protected void sequenceChanged(Protein protein, String oldSequence) {
+    protected void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64) {
         if ( log.isDebugEnabled() ) {
             log.debug( "Request a Range check on Protein " + protein.getShortLabel() + " " + protein.getAc() );
         }
@@ -1127,6 +973,18 @@ public class ProteinServiceImpl implements ProteinService {
     protected void invalidRangeFound(Range range, String sequence, String message) {
         if ( log.isDebugEnabled() ) {
             log.debug( "Can't update a feature range " + range.getAc());
+        }
+    }
+
+    protected void badParticipantFound(Collection<Component> componentToFix, Protein protein){
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Can't update a feature range of the protein so the protein will be demerged and 'no-uniprot-update' will be added for " + protein.getAc());
+        }
+    }
+
+    protected void invalidRangeFound(InvalidRange invalidRange) {
+        if ( log.isDebugEnabled() ) {
+            log.debug( "Can't update a feature range " + invalidRange.getInvalidRange().toString());
         }
     }
 
@@ -1466,6 +1324,8 @@ public class ProteinServiceImpl implements ProteinService {
                     biosource,
                     generateProteinShortlabel( uniprotProtein ),
                     CvHelper.getProteinType() );
+            protein.setSequence(uniprotProtein.getSequence());
+            protein.setCrc64(uniprotProtein.getCrc64());
 
             pdao.persist( ( ProteinImpl ) protein );
 

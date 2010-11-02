@@ -37,10 +37,12 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     private String uniprotSequence;
 
+    private String uniprotCrc64;
+
     /**
      * An event involving a list of proteins.
      */
-    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence) {
+    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence, String uniprotCrc64) {
         super(source, dataContext, proteins);
 
         this.originalActiveInstancesCount = new AdditionalInfoMap<Integer>();
@@ -49,6 +51,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
             originalActiveInstancesCount.put(prot.getAc(), prot.getActiveInstances().size());
         }
         this.uniprotSequence = uniprotSequence;
+        this.uniprotCrc64 = uniprotCrc64;
     }
 
     public AdditionalInfoMap<Integer> getOriginalActiveInstancesCount() {
@@ -69,7 +72,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         return uniprotSequence;
     }
 
-    public void setUniprotSequence(String uniprotSequence) {
-        this.uniprotSequence = uniprotSequence;
+    public String getUniprotCrc64() {
+        return uniprotCrc64;
     }
 }

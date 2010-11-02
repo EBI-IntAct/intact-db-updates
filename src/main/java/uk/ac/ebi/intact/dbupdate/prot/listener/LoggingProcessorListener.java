@@ -36,7 +36,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
     }
 
     public void onProcess(ProteinEvent evt) throws ProcessorException {
-       if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
+        if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
     }
 
     public void onDelete(ProteinEvent evt) throws ProcessorException {
@@ -58,10 +58,10 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Protein created: "+evt.getProtein().getShortLabel());
     }
- 
+
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
-       if (log.isDebugEnabled()) log.debug("Update case: "+evt.getProtein().getId()+" ("+
-                                           evt.getPrimaryProteins().size()+" primary - "+evt.getSecondaryProteins().size()+" secondary)");
+        if (log.isDebugEnabled()) log.debug("Update case: "+evt.getProtein().getId()+" ("+
+                evt.getPrimaryProteins().size()+" primary - "+evt.getSecondaryProteins().size()+" secondary)");
     }
 
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
@@ -70,7 +70,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
 
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Range ("+evt.getUpdatedRange().getNewRange().getAc()+
-                                            ") changed from "+evt.getUpdatedRange().getOldRange()+" to "+evt.getUpdatedRange().getNewRange());
+                ") changed from "+evt.getUpdatedRange().getOldRange()+" to "+evt.getUpdatedRange().getNewRange());
     }
 
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
@@ -78,5 +78,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
                 "is invalid (range "+evt.getInvalidRange().getInvalidRange()+" doesn't fit in sequence of length "+evt.getInvalidRange().getSequence().length()+")");
     }
 
-
+    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Protein " + evt.getProtein().getAc() + " will be demerged because some features attached to this protein are invalid with the new protein sequence.");
+    }
 }

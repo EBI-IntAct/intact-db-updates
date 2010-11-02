@@ -254,8 +254,9 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
         Assert.assertEquals(1, cautionsAfter.size());
 
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
         Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
-        Assert.assertEquals(previousSequence, reloadedProtein.getSequence());
+        Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
     }
 
     @Test

@@ -284,7 +284,7 @@ public final class XrefUpdaterUtils {
         return XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux );
     }
 
-    public static void updateProteinTranscriptUniprotXrefs( Protein intactTranscript,
+    public static XrefUpdaterReport updateProteinTranscriptUniprotXrefs( Protein intactTranscript,
                                                         UniprotProteinTranscript uniprotProteinTranscript,
                                                         UniprotProtein uniprotProtein ) {
 
@@ -309,6 +309,6 @@ public final class XrefUpdaterUtils {
             log.debug( "Built " + ux.size() + " Xref(s)." );
         }
 
-        XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux );
+        return XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux );
     }
 }

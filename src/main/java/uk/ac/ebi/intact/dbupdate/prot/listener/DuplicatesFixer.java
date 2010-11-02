@@ -18,30 +18,24 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.model.util.XrefUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Duplicate detection for proteins.
@@ -103,7 +97,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
             // if we have more than two proteins in the duplicate list, we merge them
             if (duplicatesHavingSameSequence.size() > 1){
-                duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, evt));
+                duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt));
             }
             else{
                 duplicatesHavingDifferentSequence.addAll(duplicatesHavingSameSequence);
@@ -114,91 +108,128 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         }
 
         if (duplicatesHavingDifferentSequence.size() > 1){
-            List<Protein> proteinsWithShiftedRanges = new ArrayList<Protein>();
+            Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
 
             for (Protein p : duplicatesHavingDifferentSequence){
-                if (shiftRangesToUniprotSequence(p, evt.getUniprotSequence(), evt)){
-                    proteinsWithShiftedRanges.add(p);
+                Collection<Component> componentWithRangeConflicts = shiftRangesToUniprotSequence(p, evt.getUniprotSequence(), evt);
+
+                if (!componentWithRangeConflicts.isEmpty()){
+                    proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
                 }
             }
 
-            if (proteinsWithShiftedRanges.size() > 1){
-                merge(proteinsWithShiftedRanges, evt);
-            }
+            Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt);
+            if (!finalProt.getSequence().equals(evt.getUniprotSequence())){
+                finalProt.setSequence( evt.getUniprotSequence() );
 
-            Collection<Protein> proteinsWhichCannotBeMerged = CollectionUtils.subtract(duplicatesHavingDifferentSequence, proteinsWithShiftedRanges);
-            CvObjectDao<CvTopic> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class);
-
-            for (Protein p : proteinsWhichCannotBeMerged){
-                CvTopic caution = cvDao.getByPsiMiRef(CvTopic.CAUTION_MI_REF);
-
-                if (caution == null){
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    cvDao.persist(caution);
+                // CRC64
+                String crc64 = evt.getUniprotCrc64();
+                if ( finalProt.getCrc64() == null || !finalProt.getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    finalProt.setCrc64( crc64 );
                 }
 
-                Annotation cautionAnn = new Annotation(caution, "This protein ("+p.getAc()+") need to be merged with other proteins but the features attached to this protein cannot be shifted properly.");
-                IntactContext.getCurrentInstance().getDaoFactory().getAnnotationDao().persist(cautionAnn);
+                IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) finalProt);
 
-                p.addAnnotation(cautionAnn);
-                IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) p);
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), finalProt, finalProt.getSequence(), evt.getUniprotSequence(), evt.getUniprotCrc64()));
             }
         }
     }
 
-    protected boolean shiftRangesToUniprotSequence(Protein protein, String uniprotSequence, DuplicatesFoundEvent evt){
-        boolean canMerge = true;
-        boolean isSequenceDifferent = true;
+    protected Collection<Component> shiftRangesToUniprotSequence(Protein protein, String uniprotSequence, DuplicatesFoundEvent evt){
+        boolean sequenceToBeUpdated = false;
 
         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
         RangeChecker checker = new RangeChecker();
+        DataContext context = IntactContext.getCurrentInstance().getDataContext();
 
         String originalSequence = protein.getSequence();
 
-        if (uniprotSequence != null){
-            if (originalSequence != null){
-                if (!originalSequence.equalsIgnoreCase(uniprotSequence)){
-                    Collection<Component> components = protein.getActiveInstances();
+        if ( (originalSequence == null && uniprotSequence != null)) {
+            if ( log.isDebugEnabled() ) {
+                log.debug( "Sequence requires update." );
+            }
+            sequenceToBeUpdated = true;
+        }
+        else if (originalSequence != null && uniprotSequence != null){
+            if (!uniprotSequence.equals( originalSequence ) ){
+                if ( log.isDebugEnabled() ) {
+                    log.debug( "Sequence requires update." );
+                }
+                sequenceToBeUpdated = true;
+            }
+        }
 
-                    for (Component c : components){
-                        Collection<Feature> features = c.getBindingDomains();
+        if (sequenceToBeUpdated){
+            Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
 
-                        for (Feature f : features){
+            Collection<Component> components = protein.getActiveInstances();
 
-                            if (!checker.canShiftRange(f, protein.getSequence(), uniprotSequence)){
-                                canMerge = false;
-                            }
+            for (Component component : components){
+                Interaction interaction = component.getInteraction();
+
+                Collection<Feature> features = component.getBindingDomains();
+                for (Feature feature : features){
+                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, originalSequence, uniprotSequence);
+
+                    if (!invalidRanges.isEmpty()){
+                        interactionAcsWithBadFeatures.add(interaction.getAc());
+
+                        for (InvalidRange invalid : invalidRanges){
+                            processor.fireOnInvalidRange(new InvalidRangeEvent(context, invalid));
                         }
                     }
                 }
-                else {
-                    isSequenceDifferent = false;
-                }
             }
-            else {
-                isSequenceDifferent = true;
+
+            if (!interactionAcsWithBadFeatures.isEmpty()){
+                Collection<Component> componentsToFix = new ArrayList<Component>();
+                for (Component c : components){
+                    if (interactionAcsWithBadFeatures.contains(c.getInteractionAc())){
+                        componentsToFix.add(c);
+                    }
+                }
+                return componentsToFix;
             }
         }
 
-        if (canMerge){
-            if (isSequenceDifferent){
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "Sequence requires update before merging " + protein.getAc() + " with other duplicated proteins." );
-                }
-                protein.setSequence(uniprotSequence);
-                IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
-                processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), protein, originalSequence));
-            }
+        return Collections.EMPTY_LIST;
+    }
+
+    private void addAnnotationsForBadParticipant(Protein protein, String previousAc){
+
+        CvTopic no_uniprot_update = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
+
+        if (no_uniprot_update == null){
+            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(no_uniprot_update);
+        }
+        CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+
+        if (caution == null) {
+            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
         }
 
-        return canMerge;
+        AnnotationDao annotationDao = IntactContext.getCurrentInstance().getDaoFactory().getAnnotationDao();
+
+        Annotation no_uniprot = new Annotation(no_uniprot_update, null);
+        annotationDao.persist(no_uniprot);
+
+        protein.addAnnotation(no_uniprot);
+
+        Annotation demerge = new Annotation(caution, "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).");
+        annotationDao.persist(demerge);
+
+        protein.addAnnotation(demerge);
     }
 
     /**
      * Merge tha duplicates, the interactions are moved and the cross references as well
      * @param duplicates
      */
-    protected Protein merge(List<Protein> duplicates, DuplicatesFoundEvent evt) {
+    protected Protein merge(List<Protein> duplicates, Map<String, Collection<Component>> proteinsNeedingPartialMerge, DuplicatesFoundEvent evt) {
         // calculate the original protein
         Protein originalProt = calculateOriginalProtein(duplicates);
 
@@ -210,7 +241,25 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
             // don't process the original protein with itself
             if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
-                ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
+                if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
+                    addAnnotationsForBadParticipant(duplicate, originalProt.getAc());
+
+                    Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
+                    Collection<Component> componentToMove = CollectionUtils.subtract(duplicate.getActiveInstances(), componentToFix);
+
+                    for (Component component : componentToMove) {
+
+                        duplicate.removeActiveInstance(component);
+                        originalProt.addActiveInstance(component);
+                        IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().update(component);
+                    }
+
+                    IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) duplicate);
+                }
+                else {
+                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
+                }
+
                 List<InteractorXref> copiedXrefs = ProteinTools.copyNonIdentityXrefs(originalProt, duplicate);
 
                 for (InteractorXref copiedXref : copiedXrefs) {
@@ -236,8 +285,8 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 CvXrefQualifier intactSecondary = daoFactory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
 
                 if (intactSecondary == null) {
-                   intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
-                   IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
+                    intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
                 }
 
                 InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
@@ -272,8 +321,13 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 // and delete the duplicate
                 if (duplicate.getActiveInstances().isEmpty()) {
                     deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
-                } else {
-                    throw new IllegalStateException("Attempt to delete a duplicate that still contains interactions: "+protInfo(duplicate));
+                }
+            }
+            else {
+                if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                    processor.fireOnBadParticipantFound(new BadParticipantFoundEvent(processor, IntactContext.getCurrentInstance().getDataContext(), originalProt, proteinsNeedingPartialMerge.get(originalProt.getAc())));
                 }
             }
         }

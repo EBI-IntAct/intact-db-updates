@@ -44,7 +44,7 @@ public class UniprotServiceResult {
     /**
      * A collection of retrieved proteins.
      */
-    private Collection<Protein> proteins = new ArrayList<Protein>();
+    private Set<Protein> proteins = new HashSet<Protein>();
     /**
      * A collection of Exception that occured.
      */
