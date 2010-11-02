@@ -27,22 +27,24 @@ public class BadParticipantFixer extends AbstractProteinUpdateProcessorListener 
 
     @Override
     public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
-        IntactCloner cloner = new IntactCloner();
+        IntactCloner cloner = new IntactCloner(true);
         Collection<Component> componentsToFix = evt.getComponentsToFix();
         Protein protein = evt.getProtein();
 
         try {
             Protein noUniprotUpdate = cloner.clone(protein);
-            noUniprotUpdate.setAc(null);
+            noUniprotUpdate.getActiveInstances().clear();
             addAnnotations(noUniprotUpdate, protein.getAc());
             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(noUniprotUpdate);
 
             for (Component component : componentsToFix){
 
-                protein.addActiveInstance(component);
+                protein.removeActiveInstance(component);
+                noUniprotUpdate.addActiveInstance(component);
             }
 
             IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
+            IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) noUniprotUpdate);
         } catch (IntactClonerException e) {
             throw new IntactException("Could not clone protein: "+protein.getAc(), e);
         }
@@ -71,7 +73,7 @@ public class BadParticipantFixer extends AbstractProteinUpdateProcessorListener 
 
         protein.addAnnotation(no_uniprot);
 
-        Annotation demerge = new Annotation(caution, "The protein has been demerged with " + previousAc + " because some of the features attached to it are not consistent anymore with the protein sequence.");
+        Annotation demerge = new Annotation(caution, "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts.");
         annotationDao.persist(demerge);
 
         protein.addAnnotation(demerge);

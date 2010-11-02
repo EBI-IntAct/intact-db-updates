@@ -62,6 +62,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(1, 1, 4, 4);
         range.setFromCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
@@ -89,6 +90,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(1, 1, 0, 0);
         range.setFromCvFuzzyType(fuzzyType);
+        range.setToCvFuzzyType(fuzzyType2);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
@@ -116,6 +119,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(0, 0, 1, 1);
         range.setFromCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
@@ -135,14 +139,18 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.C_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
         range.setToCvFuzzyType(fuzzyType);
+        range.setFromCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -159,14 +167,17 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.N_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
         range.setFromCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -183,14 +194,18 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_MI_REF, CvFuzzyType.N_TERMINAL);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.N_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setFromCvFuzzyType(fuzzyType);
         range.setToCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -217,6 +232,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 220, 220);
         feature.addRange(range);
 
+        getCorePersister().saveOrUpdate(feature);
+
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -241,6 +258,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
 
+        getCorePersister().saveOrUpdate(feature);
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -261,6 +280,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(1, 1, 40, 40);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -284,7 +305,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(20, 20, 20, 20);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -346,6 +370,8 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Range oldRange = getMockBuilder().createRange(1300, 1300, 1460, 1460);
         oldRange.prepareSequence(oldSequence);
         feature.addRange(oldRange);
+
+        getCorePersister().saveOrUpdate(feature);
 
         Assert.assertNotNull(oldRange.getFullSequence());
         Assert.assertNotNull(oldRange.getSequence());

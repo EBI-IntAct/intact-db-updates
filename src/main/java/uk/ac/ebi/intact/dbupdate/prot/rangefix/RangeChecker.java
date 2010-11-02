@@ -144,7 +144,7 @@ public class RangeChecker {
         }
 
         // if not undetermined, we can shift the ranges.
-        if (!range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion()){
+        if (!(range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion())){
 
             canShiftToCvFuzzyType = true;
         }
@@ -198,6 +198,16 @@ public class RangeChecker {
 
         // One of the range positions has been shifted
         if (rangeShifted){
+            // case we have first amino acid deleted, it is possible the feature is still conserved,
+            if (clone.getFromIntervalStart() == 0 && clone.getToIntervalEnd() > 0){
+                int supposedStart = clone.getToIntervalEnd() - (range.getToIntervalEnd() - range.getFromIntervalStart());
+
+                clone.setFromIntervalStart(supposedStart);
+
+                if (clone.getFromIntervalEnd() == 0){
+                   clone.setFromIntervalEnd(supposedStart); 
+                }
+            }
 
             // check that the new shifted range is within the new sequence and consistent
             if (!FeatureUtils.isABadRange(clone, newSequence)){
@@ -332,7 +342,7 @@ public class RangeChecker {
         }
 
         // if not undetermined, we can shift the ranges.
-        if (!range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion()){
+        if (!(range.getToCvFuzzyType().isUndetermined() || range.getToCvFuzzyType().isCTerminalRegion() || range.getToCvFuzzyType().isNTerminalRegion())){
 
             canShiftToCvFuzzyType = true;
         }
@@ -387,6 +397,17 @@ public class RangeChecker {
         // One of the range positions has been shifted
         if (rangeShifted){
 
+            // case we have first amino acid deleted, it is possible the feature is still conserved,
+            if (clone.getFromIntervalStart() == 0 && clone.getToIntervalEnd() > 0){
+                int supposedStart = clone.getToIntervalEnd() - (range.getToIntervalEnd() - range.getFromIntervalStart());
+
+                clone.setFromIntervalStart(supposedStart);
+
+                if (clone.getFromIntervalEnd() == 0){
+                   clone.setFromIntervalEnd(supposedStart);
+                }
+            }
+            
             // check that the new shifted range is within the new sequence and consistent
             if (!FeatureUtils.isABadRange(clone, newSequence)){
 

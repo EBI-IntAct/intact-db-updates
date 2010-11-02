@@ -46,7 +46,10 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertEquals("BCD", rangeSeq);
@@ -77,6 +80,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
+        getCorePersister().saveOrUpdate(feature);
+
         Assert.assertTrue(range.getSequence().startsWith("BCD"));
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
@@ -106,6 +111,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
@@ -135,7 +141,10 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
 
@@ -162,7 +171,10 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(2, 2, 4, 4);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -186,6 +198,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
         Assert.assertEquals('C',range.getSequence().charAt(0));
+        getCorePersister().saveOrUpdate(feature);
+
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -215,6 +229,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
+        getCorePersister().saveOrUpdate(feature);
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -241,6 +257,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         range.prepareSequence(oldSequence);
         feature.addRange(range);
 
+        getCorePersister().saveOrUpdate(feature);
+
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
 
@@ -256,14 +274,18 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_MI_REF, CvFuzzyType.C_TERMINAL);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.C_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
 
         Range range = getMockBuilder().createRange(0, 0, 0, 0);
+        range.setFromCvFuzzyType(fuzzyType);
         range.setToCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
 
         final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
         Assert.assertEquals(0, updatedRanges.size());
@@ -287,6 +309,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(5, 5, 6, 6);
         range.setToCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
@@ -313,6 +336,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         Range range = getMockBuilder().createRange(2, 2, 6, 6);
         range.setToCvFuzzyType(fuzzyType);
+        range.prepareSequence(oldSequence);
         feature.addRange(range);
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);

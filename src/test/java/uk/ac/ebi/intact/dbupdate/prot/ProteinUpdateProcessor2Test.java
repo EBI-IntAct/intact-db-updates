@@ -20,6 +20,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.config.CvPrimer;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
@@ -43,8 +46,12 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
     @Before
     public void before_schema() throws Exception {
+        TransactionStatus status = getDataContext().beginTransaction();
+
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();
+
+        getDataContext().commitTransaction(status);
     }
 
 
@@ -360,9 +367,111 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    public void range_shifting_update2() throws Exception {
+
+        // http://www.uniprot.org/uniprot/P18459
+
+        ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
+
+        int oldSequenceLength = 579;
+
+        String oldFeatureSequence = "AQKN";
+        String newFeatureSequence = "AQKN";
+
+        String previousSequence = "MMAVAAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDPHNMGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        String true_sequence = "MMAVAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDMNHPGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPF";
+
+        // interaction: no
+        Protein prot = getMockBuilder().createProtein("P18459", "prot");
+        prot.getBioSource().setTaxId( "7227" );
+        prot.getBioSource().setShortLabel( "drome" );
+        prot.getAliases().clear();
+        prot.setSequence(previousSequence);
+
+        getCorePersister().saveOrUpdate(prot);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+
+        // interaction: yes
+
+        Interaction interaction = getMockBuilder().createInteraction(prot);
+        Component c = interaction.getComponents().iterator().next();
+        c.getBindingDomains().clear();
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        Range range = getMockBuilder().createRange(8,8,11,11);
+        range.prepareSequence(previousSequence);
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        c.addBindingDomain(feature);
+
+        getCorePersister().saveOrUpdate(interaction);
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getFeatureDao().countAll());
+        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsBefore.size());
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
+        protUpdateProcessor.updateAll();
+
+        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+
+        // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+
+        Feature reloadedFeature = getDaoFactory().getFeatureDao().getByAc( feature.getAc() );
+
+        final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, cautionsAfter.size());
+
+        // the ranges have been shifted
+        Range reloadedRange = reloadedFeature.getRanges().iterator().next();
+        Assert.assertEquals(7, reloadedRange.getFromIntervalStart());
+        Assert.assertEquals(7, reloadedRange.getFromIntervalEnd());
+        Assert.assertEquals(10, reloadedRange.getToIntervalStart());
+        Assert.assertEquals(10, reloadedRange.getToIntervalEnd());
+
+        Assert.assertEquals(oldFeatureSequence, reloadedRange.getFullSequence());
+
+        Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
+        Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
+    }
+
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void range_shifting_update_featureChanged() throws Exception {
 
         // http://www.uniprot.org/uniprot/P18459
+        TransactionStatus status = getDataContext().beginTransaction();
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
@@ -403,9 +512,9 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
         prot.getAliases().clear();
         prot.setSequence(previousSequence);
 
-        getCorePersister().saveOrUpdate(prot);
+        Protein prot2 = getMockBuilder().createProteinRandom();
 
-        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
+        getCorePersister().saveOrUpdate(prot, prot2);
 
         // interaction: yes
 
@@ -421,21 +530,31 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         c.addBindingDomain(feature);
 
-        getCorePersister().saveOrUpdate(interaction);
+        Interaction interaction2 = getMockBuilder().createInteraction(prot, prot2);
 
-        Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(1, getDaoFactory().getComponentDao().countAll());
+        for (Component comp : interaction2.getComponents()){
+            comp.getBindingDomains().clear();
+        }
+
+        getCorePersister().saveOrUpdate(interaction, interaction2);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getComponentDao().countAll());
         Assert.assertEquals(1, getDaoFactory().getFeatureDao().countAll());
-        Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(2, getDaoFactory().getInteractionDao().countAll());
 
         final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
         Assert.assertEquals(0, cautionsBefore.size());
+
+        getDataContext().commitTransaction(status);
 
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateAll();
 
-        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
+        TransactionStatus status2 = getDataContext().beginTransaction();
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
 
         // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
 
@@ -455,6 +574,8 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
         Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
+
+        getDataContext().commitTransaction(status2);
     }
 
      private void assertHasXref( AnnotatedObject ao, String db, String qualifier, String primaryId ) {
