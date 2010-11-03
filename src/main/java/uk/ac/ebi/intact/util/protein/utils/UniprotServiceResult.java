@@ -39,7 +39,8 @@ public class UniprotServiceResult {
     public static final String SPLICE_VARIANT_WITH_NO_IDENTITY = "Splice variant with no identity.";
     public static final String UNEXPECTED_EXCEPTION_ERROR_TYPE = "Unexpected exception";
     public static final String UNIPROT_SEQUENCE_NULL = "Sequence of the uniprot protein is null.";
-    public static final String PROTEIN_SEQUENCE_IMPOSSIBLE_TO_UPDATE = "Sequence of the protein cannot be updated because of bad ranges.";
+    public static final String SEVERAL_UNIPROT_IDENTITIES_FOUND = "More than one distinct uniprot identity"
+            + "the uniprot primaryAc.";
 
     /**
      * A collection of retrieved proteins.

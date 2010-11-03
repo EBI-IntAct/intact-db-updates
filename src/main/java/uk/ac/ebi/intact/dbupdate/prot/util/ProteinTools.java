@@ -5,10 +5,9 @@ import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Helper containing methods for handling proteins
@@ -90,5 +89,65 @@ public class ProteinTools {
         // this parameter measures how equal the sequences are ( 0 <= relativeConservation <= 1)
         double relativeConservation = (double) equalAminoacidCount / oldSeq.length();
         return relativeConservation;
+    }
+
+    /**
+     *
+     * @param prot
+     * @return the set of distinct uniprot identities attached to this protein
+     */
+    public static Set<InteractorXref> getDistinctUniprotIdentities(Protein prot){
+        Set<InteractorXref> uniprotIdentities = new HashSet<InteractorXref>();
+
+        for (InteractorXref ref : prot.getXrefs()){
+            CvDatabase database = ref.getCvDatabase();
+
+            if (database != null){
+                if (database.getIdentifier().equals(CvDatabase.UNIPROT_MI_REF)){
+                    CvXrefQualifier qualifier = ref.getCvXrefQualifier();
+                    if (qualifier != null){
+                        if (qualifier.getIdentifier().equals(CvXrefQualifier.IDENTITY_MI_REF)){
+                            uniprotIdentities.add(ref);                             
+                        }
+                    }
+                }
+            }
+        }
+
+        return uniprotIdentities;
+    }
+
+    /**
+     *
+     * @param prot
+     * @return the list of all the uniprot identities attached to this protein
+     */
+    public static List<InteractorXref> getAllUniprotIdentities(Protein prot){
+        final List<InteractorXref> identities = ProteinUtils.getIdentityXrefs( prot );
+        List<InteractorXref> uniprotIdentities = new ArrayList<InteractorXref>();
+
+        for (InteractorXref ref : identities){
+            CvDatabase database = ref.getCvDatabase();
+
+            if (database != null){
+                if (database.getIdentifier().equals(CvDatabase.UNIPROT_MI_REF)){
+                    uniprotIdentities.add(ref);
+                }
+            }
+        }
+
+        return uniprotIdentities;
+    }
+
+    public static boolean hasUniqueDistinctUniprotIdentity(Protein prot){
+        // get the distinct uniprot identities
+        final Set<InteractorXref> uniprotIdentities = ProteinTools.getDistinctUniprotIdentities(prot);
+
+        // if several uniprot identities, cannot find duplicates
+        if( uniprotIdentities.size() != 1 ) {
+            return false;
+        }
+
+        return true;
     }
 }

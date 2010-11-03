@@ -21,7 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
-import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -33,7 +32,6 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.*;
 
@@ -108,31 +106,36 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
         }
 
         if (duplicatesHavingDifferentSequence.size() > 1){
-            Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
+            if (evt.getUniprotSequence() != null){
+                Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
 
-            for (Protein p : duplicatesHavingDifferentSequence){
-                Collection<Component> componentWithRangeConflicts = shiftRangesToUniprotSequence(p, evt.getUniprotSequence(), evt);
+                for (Protein p : duplicatesHavingDifferentSequence){
+                    Collection<Component> componentWithRangeConflicts = shiftRangesToUniprotSequence(p, evt.getUniprotSequence(), evt);
 
-                if (!componentWithRangeConflicts.isEmpty()){
-                    proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
+                    if (!componentWithRangeConflicts.isEmpty()){
+                        proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
+                    }
+                }
+
+                Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt);
+                if (!finalProt.getSequence().equals(evt.getUniprotSequence())){
+                    finalProt.setSequence( evt.getUniprotSequence() );
+
+                    // CRC64
+                    String crc64 = evt.getUniprotCrc64();
+                    if ( finalProt.getCrc64() == null || !finalProt.getCrc64().equals( crc64 ) ) {
+                        log.debug( "CRC64 requires update." );
+                        finalProt.setCrc64( crc64 );
+                    }
+
+                    IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) finalProt);
+
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), finalProt, finalProt.getSequence(), evt.getUniprotSequence(), evt.getUniprotCrc64()));
                 }
             }
-
-            Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt);
-            if (!finalProt.getSequence().equals(evt.getUniprotSequence())){
-                finalProt.setSequence( evt.getUniprotSequence() );
-
-                // CRC64
-                String crc64 = evt.getUniprotCrc64();
-                if ( finalProt.getCrc64() == null || !finalProt.getCrc64().equals( crc64 ) ) {
-                    log.debug( "CRC64 requires update." );
-                    finalProt.setCrc64( crc64 );
-                }
-
-                IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) finalProt);
-
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), finalProt, finalProt.getSequence(), evt.getUniprotSequence(), evt.getUniprotCrc64()));
+            else {
+                log.error("It is impossible to merge all the duplicates because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
             }
         }
     }
@@ -177,7 +180,9 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                         interactionAcsWithBadFeatures.add(interaction.getAc());
 
                         for (InvalidRange invalid : invalidRanges){
-                            processor.fireOnInvalidRange(new InvalidRangeEvent(context, invalid));
+                            if (originalSequence.equalsIgnoreCase(invalid.getSequence())){
+                                processor.fireOnInvalidRange(new InvalidRangeEvent(context, invalid));
+                            }
                         }
                     }
                 }
@@ -327,7 +332,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                    processor.fireOnBadParticipantFound(new BadParticipantFoundEvent(processor, IntactContext.getCurrentInstance().getDataContext(), originalProt, proteinsNeedingPartialMerge.get(originalProt.getAc())));
+                    processor.fireOnOutOfDateParticipantFound(new OutOfDateParticipantFoundEvent(processor, IntactContext.getCurrentInstance().getDataContext(), originalProt, proteinsNeedingPartialMerge.get(originalProt.getAc())));
                 }
             }
         }

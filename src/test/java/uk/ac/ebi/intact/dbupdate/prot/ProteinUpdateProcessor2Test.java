@@ -58,8 +58,6 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     public void deadUniprotProtein() throws Exception {
-        CvPrimer cvPrimer = new ComprehensiveCvPrimer(getDaoFactory());
-        cvPrimer.createCVs();
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
@@ -561,8 +559,8 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
         Feature reloadedFeature = getDaoFactory().getFeatureDao().getByAc( feature.getAc() );
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(reloadedFeature, Collections.singleton(invalid_range));
-        Assert.assertEquals(1, cautionsAfter.size());
-
+        Assert.assertEquals(0, cautionsAfter.size());
+        
         // the ranges have been shifted
         Range reloadedRange = reloadedFeature.getRanges().iterator().next();
         Assert.assertEquals(6, reloadedRange.getFromIntervalStart());

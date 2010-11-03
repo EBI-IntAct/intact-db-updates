@@ -8,11 +8,15 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * This listener is fixing proteins in IntAct which cannot match any uniprot protein anymore and update them as dead proteins
@@ -95,6 +99,11 @@ public class DeadUniprotListener extends AbstractProteinUpdateProcessorListener 
      * @param protein : the dead protein in IntAct
      */
     private void updateXRefs(Protein protein){
+
+        List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
+        if (uniprotIdentities.size() > 1){
+            XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein);
+        }
 
         Collection<InteractorXref> xRefs = protein.getXrefs();
         XrefDao<InteractorXref> refDao = IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class);

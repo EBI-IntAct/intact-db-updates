@@ -15,15 +15,15 @@ import java.util.Collection;
  * @since <pre>29-Oct-2010</pre>
  */
 
-public class BadParticipantFoundEvent extends ProteinEvent{
+public class OutOfDateParticipantFoundEvent extends ProteinEvent{
     Collection<Component> componentsToFix = new ArrayList<Component>();
 
-    public BadParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, Collection<Component> components) {
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, Collection<Component> components) {
         super(source, dataContext, protein);
         this.componentsToFix = components;
     }
 
-    public BadParticipantFoundEvent(Object source, DataContext dataContext, Protein protein) {
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein) {
         super(source, dataContext, protein);
     }
 

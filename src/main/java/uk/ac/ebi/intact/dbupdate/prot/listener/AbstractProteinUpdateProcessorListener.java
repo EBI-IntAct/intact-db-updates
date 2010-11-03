@@ -71,7 +71,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinP
         // nothing
     }
 
-    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+    public void onBadParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         // nothing
     }
 

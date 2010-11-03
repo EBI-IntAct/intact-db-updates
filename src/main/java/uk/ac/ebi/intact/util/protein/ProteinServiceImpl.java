@@ -17,7 +17,6 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.event.BadParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFinder;
 import uk.ac.ebi.intact.dbupdate.prot.listener.DuplicatesFixer;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
@@ -27,11 +26,11 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
@@ -52,7 +51,7 @@ public class ProteinServiceImpl implements ProteinService {
     /**
      * The results
      */
-    private UniprotServiceResult uniprotServiceResult;
+    protected UniprotServiceResult uniprotServiceResult;
 
     private static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
 
@@ -173,7 +172,13 @@ public class ProteinServiceImpl implements ProteinService {
                     }
                     else {
                         for (Protein prot : proteinsInIntact){
-                            uniprotNotFound(prot);
+                            if (ProteinTools.hasUniqueDistinctUniprotIdentity(prot)){
+                                uniprotNotFound(prot);
+                            }
+                            else {
+                                uniprotServiceResult.addError("The protein " + prot.getAc() + " contains several uniprot identities and one of them (" + uniprotAc + ")" +
+                                        " doesn't match any Uniprot entries.", UniprotServiceResult.PROTEIN_FOUND_IN_INTACT_BUT_NOT_IN_UNIPROT_ERROR_TYPE);
+                            }
                         }
                     }
 
@@ -182,22 +187,28 @@ public class ProteinServiceImpl implements ProteinService {
                             "corresponding entry found in uniprot.", UniprotServiceResult.PROTEIN_NOT_IN_INTACT_NOT_IN_UNIPROT_ERROR_TYPE);
                 }
             }
-            // TODO : specific cases of splice variants attached to several master proteins will not be updated!!!
             else if ( uniprotProteins.size() > 1 ) {
-                if ( 1 == getSpeciesCount( uniprotProteins ) ) {
-                    // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
-                    // in uniprot we should not update it automatically but send a message to the curators so that they
-                    // choose manually which of the new uniprot ac is relevant.
-                    uniprotServiceResult.addError("Trying to update " + uniprotServiceResult.getQuerySentToService()
-                            + " returned a set of proteins belonging to the same organism.",UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_SAME_ORGA_ERROR_TYPE);
-                } else {
-                    // Send an error message because this should just not happen anymore in IntAct at all. In IntAct, all
-                    // the demerged has taken care of the demerged proteins have been dealt with and replaced manually by
-                    // the correct uniprot protein.
-                    // Ex of demerged protein :P00001 was standing for the Cytochrome c of the human and the chimpanzee.
-                    // It has now been demerged in one entry for the human P99998 and one for the chimpanzee P99999.
-                    uniprotServiceResult.addError("Trying to update " + uniprotServiceResult.getQuerySentToService()
-                            + " returned a set of proteins belonging to different organisms.", UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE);
+
+                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+                if (IdentifierChecker.isSpliceVariantId(uniprotAc) || IdentifierChecker.isFeatureChainId(uniprotAc)){
+                    createOrUpdate( uniprotProteins );
+                }
+                else {
+                    if ( 1 == getSpeciesCount( uniprotProteins ) ) {
+                        // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
+                        // in uniprot we should not update it automatically but send a message to the curators so that they
+                        // choose manually which of the new uniprot ac is relevant.
+                        uniprotServiceResult.addError("Trying to update " + uniprotServiceResult.getQuerySentToService()
+                                + " returned a set of proteins belonging to the same organism.",UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_SAME_ORGA_ERROR_TYPE);
+                    } else {
+                        // Send an error message because this should just not happen anymore in IntAct at all. In IntAct, all
+                        // the demerged has taken care of the demerged proteins have been dealt with and replaced manually by
+                        // the correct uniprot protein.
+                        // Ex of demerged protein :P00001 was standing for the Cytochrome c of the human and the chimpanzee.
+                        // It has now been demerged in one entry for the human P99998 and one for the chimpanzee P99999.
+                        uniprotServiceResult.addError("Trying to update " + uniprotServiceResult.getQuerySentToService()
+                                + " returned a set of proteins belonging to different organisms.", UniprotServiceResult.SEVERAL_PROT_BELONGING_TO_DIFFERENT_ORGA_ERROR_TYPE);
+                    }
                 }
             } else {
                 createOrUpdate( uniprotProteins );
@@ -252,9 +263,9 @@ public class ProteinServiceImpl implements ProteinService {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
+        Collection<Protein> multipleUniprotProteins = new ArrayList<Protein>();
 
         final String uniprotAc = uniprotProtein.getPrimaryAc();
-        String taxid = String.valueOf( uniprotProtein.getOrganism().getTaxid() );
 
         if (log.isDebugEnabled()) log.debug("Searching IntAct for Uniprot protein: "+ uniprotAc + ", "
                 + uniprotProtein.getOrganism().getName() +" ("+uniprotProtein.getOrganism().getTaxid()+")");
@@ -268,8 +279,8 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
-        filterNonUniprot(nonUniprotProteins, primaryProteins);
-        filterNonUniprot(nonUniprotProteins, secondaryProteins);
+        filterNonUniprotAndMultipleUniprot(multipleUniprotProteins, nonUniprotProteins, primaryProteins);
+        filterNonUniprotAndMultipleUniprot(multipleUniprotProteins, nonUniprotProteins, secondaryProteins);
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -278,6 +289,7 @@ public class ProteinServiceImpl implements ProteinService {
         // TODO returned proteins are not used here
         processCase(uniprotProtein, primaryProteins, secondaryProteins);
         uniprotServiceResult.addAllToProteins(nonUniprotProteins);
+        uniprotServiceResult.addAllToProteins(multipleUniprotProteins);
 
         return uniprotServiceResult.getProteins();
     }
@@ -294,6 +306,7 @@ public class ProteinServiceImpl implements ProteinService {
         ProteinDao proteinDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getProteinDao();
 
         Collection<Protein> nonUniprotProteins = new ArrayList<Protein>();
+        Collection<Protein> multipleUniprotProteins = new ArrayList<Protein>();
 
         // getThe primary ac of the transcript
         final String uniprotAc = uniprotProteinTranscript.getPrimaryAc();
@@ -313,8 +326,8 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         // filter and remove non-uniprot prots from the list, and assign to the primary or secondary collections
-        filterNonUniprot(nonUniprotProteins, primaryProteins);
-        filterNonUniprot(nonUniprotProteins, secondaryProteins);
+        filterNonUniprotAndMultipleUniprot(multipleUniprotProteins, nonUniprotProteins, primaryProteins);
+        filterNonUniprotAndMultipleUniprot(multipleUniprotProteins, nonUniprotProteins, secondaryProteins);
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -322,6 +335,7 @@ public class ProteinServiceImpl implements ProteinService {
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
         // TODO returned proteins are not used here
         uniprotServiceResult.addAllToProteins(nonUniprotProteins);
+        uniprotServiceResult.addAllToProteins(multipleUniprotProteins);
 
         return processProteinTranscript(uniprotProteinTranscript, uniprotProtein, masterProtein, primaryProteins, secondaryProteins);
     }
@@ -376,6 +390,15 @@ public class ProteinServiceImpl implements ProteinService {
             }
 
             for (Protein protein : primaryProteins){
+                List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
+                if (uniprotIdentities.size() > 1){
+                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein);
+                    if (report != null){
+                        if (report.isUpdated()) {
+                            uniprotServiceResult.addXrefUpdaterReport(report);
+                        }
+                    }
+                }
                 updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
                 proteins.add(protein);
             }
@@ -383,10 +406,12 @@ public class ProteinServiceImpl implements ProteinService {
             for (Protein protein : secondaryProteins){
 
                 // update UniProt Xrefs
-                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein );
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein );
 
-                if (xrefReport.isUpdated()) {
-                    uniprotServiceResult.addXrefUpdaterReport(xrefReport);
+                for (XrefUpdaterReport report : xrefReports){
+                    if (report.isUpdated()) {
+                        uniprotServiceResult.addXrefUpdaterReport(report);
+                    }
                 }
 
                 // Update protein
@@ -433,6 +458,16 @@ public class ProteinServiceImpl implements ProteinService {
             for (Protein protein : primaryProteins){
                 proteins.add(protein);
 
+                List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
+                if (uniprotIdentities.size() > 1){
+                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein);
+                    if (report != null){
+                        if (report.isUpdated()) {
+                            uniprotServiceResult.addXrefUpdaterReport(report);
+                        }
+                    }
+                }
+
                 updateProtein( protein, uniprotProtein );
             }
 
@@ -440,10 +475,12 @@ public class ProteinServiceImpl implements ProteinService {
                 proteins.add( protein );
 
                 // update UniProt Xrefs
-                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
-                if (xrefReport.isUpdated()) {
-                    uniprotServiceResult.addXrefUpdaterReport(xrefReport);
+                for (XrefUpdaterReport report : xrefReports){
+                    if (report.isUpdated()) {
+                        uniprotServiceResult.addXrefUpdaterReport(report);
+                    }
                 }
 
                 // Update protein
@@ -576,13 +613,17 @@ public class ProteinServiceImpl implements ProteinService {
         return protToBeKept;
     }*/
 
-    private void filterNonUniprot(Collection<Protein> nonUniprotProteins, Collection<ProteinImpl> primaryProteins) {
+    private void filterNonUniprotAndMultipleUniprot(Collection<Protein> multipleUniprotProteins, Collection<Protein> nonUniprotProteins, Collection<ProteinImpl> primaryProteins) {
         for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
             ProteinImpl protein = proteinIterator.next();
 
             if (!ProteinUtils.isFromUniprot(protein)) {
                 proteinIterator.remove();
                 nonUniprotProteins.add(protein);
+            }
+            else if (!ProteinTools.hasUniqueDistinctUniprotIdentity(protein)){
+                proteinIterator.remove();
+                multipleUniprotProteins.add(protein);
             }
         }
     }
@@ -926,7 +967,10 @@ public class ProteinServiceImpl implements ProteinService {
                         interactionAcsWithBadFeatures.add(interaction.getAc());
 
                         for (InvalidRange invalid : invalidRanges){
-                            invalidRangeFound(invalid);
+                            // range is bad from the beginning, not after the range shifting
+                            if (oldSequence.equalsIgnoreCase(invalid.getSequence())){
+                                invalidRangeFound(invalid);
+                            }
                         }
                     }
                 }

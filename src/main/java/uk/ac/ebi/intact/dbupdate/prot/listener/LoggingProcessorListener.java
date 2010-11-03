@@ -78,7 +78,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
                 "is invalid (range "+evt.getInvalidRange().getInvalidRange()+" doesn't fit in sequence of length "+evt.getInvalidRange().getSequence().length()+")");
     }
 
-    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+    public void onBadParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Protein " + evt.getProtein().getAc() + " will be demerged because some features attached to this protein are invalid with the new protein sequence.");
     }
 }

@@ -91,12 +91,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         if (config.isFixDuplicates()) {
-            addListener(new DuplicatesFinder());
+            addListener(new DuplicatesFinder(config.getUniprotService()));
             addListener(new DuplicatesFixer());
             forceDeleteOfProteins = true;
         }
 
-        addListener(new BadParticipantFixer());                
+        addListener(new OutOfDateParticipantFixer());
 
         if (config.isDeleteProtsWithoutInteractions()) {
             ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
@@ -181,7 +181,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnBadParticipantFound(BadParticipantFoundEvent evt){
+    public void fireOnOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt){
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onBadParticipantFound(evt);
         }

@@ -6,7 +6,7 @@ import uk.ac.ebi.intact.core.IntactException;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.event.BadParticipantFoundEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.clone.IntactClonerException;
@@ -22,11 +22,11 @@ import java.util.Collection;
  * @since <pre>29-Oct-2010</pre>
  */
 
-public class BadParticipantFixer extends AbstractProteinUpdateProcessorListener {
-    private static final Log log = LogFactory.getLog( BadParticipantFixer.class );
+public class OutOfDateParticipantFixer extends AbstractProteinUpdateProcessorListener {
+    private static final Log log = LogFactory.getLog( OutOfDateParticipantFixer.class );
 
     @Override
-    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+    public void onBadParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         IntactCloner cloner = new IntactCloner(true);
         Collection<Component> componentsToFix = evt.getComponentsToFix();
         Protein protein = evt.getProtein();

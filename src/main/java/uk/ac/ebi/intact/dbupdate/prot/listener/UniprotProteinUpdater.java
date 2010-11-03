@@ -25,18 +25,18 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.intact.util.protein.ProteinServiceImpl;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Updates the current protein in the database, using information from uniprot.
@@ -85,20 +85,27 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
         this.proteinProcessor = (ProteinUpdateProcessor) evt.getSource();
 
         Protein protToUpdate = evt.getProtein();
+        Set<InteractorXref> uniprotIdentities = ProteinTools.getDistinctUniprotIdentities(protToUpdate);
 
-        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protToUpdate);
+        if (uniprotIdentities.size() == 1){
+            InteractorXref uniprotXref = uniprotIdentities.iterator().next();
 
-        if (uniprotXref != null) {
             safeRetrieve(uniprotXref);
+
         }
         // no uniprot identity, it is a protein not from uniprot
-        else {
+        else if (uniprotIdentities.size() == 0){
             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                 updateProcessor.fireNonUniprotProteinFound(evt);
             }
 
             if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt");
+            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
+        }
+        else {
+            this.uniprotServiceResult = new UniprotServiceResult(uniprotIdentities.iterator().next().getPrimaryId());
+            this.uniprotServiceResult.addError("The protein " + protToUpdate.getAc() + " has " + uniprotIdentities.size() + " different uniprot identities.", UniprotServiceResult.SEVERAL_UNIPROT_IDENTITIES_FOUND);
             ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
     }
@@ -167,7 +174,7 @@ public class UniprotProteinUpdater extends ProteinServiceImpl implements Protein
 
     @Override
     protected void badParticipantFound(Collection<Component> componentToFix, Protein protein){
-        proteinProcessor.fireOnBadParticipantFound(new BadParticipantFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, componentToFix));
+        proteinProcessor.fireOnOutOfDateParticipantFound(new OutOfDateParticipantFoundEvent(proteinProcessor, IntactContext.getCurrentInstance().getDataContext(), protein, componentToFix));
     }
 
     /*@Override

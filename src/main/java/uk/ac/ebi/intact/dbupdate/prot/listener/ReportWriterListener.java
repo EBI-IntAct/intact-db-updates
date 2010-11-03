@@ -217,7 +217,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
-    public void onBadParticipantFound(BadParticipantFoundEvent evt) throws ProcessorException {
+    public void onBadParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         try {
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
             writer.writeHeaderIfNecessary("UniProt ID",

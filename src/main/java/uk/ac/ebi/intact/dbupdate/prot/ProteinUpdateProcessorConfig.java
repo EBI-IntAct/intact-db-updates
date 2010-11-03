@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.uniprot.service.CachedUniprotService;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
@@ -62,7 +63,7 @@ public class ProteinUpdateProcessorConfig {
     private boolean isGlobalProteinUpdate = false;
 
     public ProteinUpdateProcessorConfig() {
-        this.uniprotService = new UniprotRemoteService();
+        this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
         this.taxonomyService = bioSourceService.getTaxonomyService();
     }

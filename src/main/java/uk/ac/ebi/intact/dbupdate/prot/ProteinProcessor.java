@@ -73,7 +73,6 @@ public abstract class ProteinProcessor {
      * @throws ProcessorException
      */
     public void updateAll() throws ProcessorException {
-        registerListenersIfNotDoneYet();
 
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
@@ -86,6 +85,8 @@ public abstract class ProteinProcessor {
     }
 
     public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {
+        registerListenersIfNotDoneYet();
+
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
         Set<String> processedIntactProteins = new HashSet<String>();
@@ -125,16 +126,35 @@ public abstract class ProteinProcessor {
         }
     }
 
-    public Set<String> update(Protein protToUpdate) throws ProcessorException {
+    private Set<String> getProcessedProteins(String proteinAc){
         Set<String> updatedProteins = new HashSet<String>();
-
-        this.currentProtein = protToUpdate;
-
-        updatedProteins.add(protToUpdate.getAc());
-
-        registerListenersIfNotDoneYet();
+        updatedProteins.add(proteinAc);
 
         List<UniprotProteinUpdater> listOfUniprotUpdater = getListeners(UniprotProteinUpdater.class);
+
+        if (!listOfUniprotUpdater.isEmpty()){
+
+            for (UniprotProteinUpdater updater : listOfUniprotUpdater){
+                UniprotServiceResult serviceResult = updater.getUniprotServiceResult();
+
+                if (serviceResult != null){
+                    Collection<Protein> prots = updater.getUniprotServiceResult().getProteins();
+
+                    for (Protein prot : prots){
+                        if (prot != null){
+                            updatedProteins.add(prot.getAc());
+                        }
+                    }
+                }
+            }
+        }
+        return updatedProteins;
+    }
+
+    public Set<String> update(Protein protToUpdate) throws ProcessorException {
+        registerListenersIfNotDoneYet();
+
+        this.currentProtein = protToUpdate;
 
         finalizationRequested = false;
 
@@ -155,23 +175,7 @@ public abstract class ProteinProcessor {
         if (isFinalizationRequested()) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Pre-Process phase");
 
-            if (!listOfUniprotUpdater.isEmpty()){
-
-                for (UniprotProteinUpdater updater : listOfUniprotUpdater){
-                    UniprotServiceResult serviceResult = updater.getUniprotServiceResult();
-
-                    if (serviceResult != null){
-                        Collection<Protein> prots = updater.getUniprotServiceResult().getProteins();
-
-                        for (Protein prot : prots){
-                            if (prot != null){
-                                updatedProteins.add(prot.getAc());
-                            }
-                        }
-                    }
-                }
-            }
-            return updatedProteins;
+            return getProcessedProteins(this.currentProtein.getAc());
         }
 
         TransactionStatus transactionStatus2 = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -184,27 +188,11 @@ public abstract class ProteinProcessor {
         try {
             IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
 
-            if (!listOfUniprotUpdater.isEmpty()){
-
-                for (UniprotProteinUpdater updater : listOfUniprotUpdater){
-                    UniprotServiceResult serviceResult = updater.getUniprotServiceResult();
-
-                    if (serviceResult != null){
-                        Collection<Protein> prots = updater.getUniprotServiceResult().getProteins();
-
-                        for (Protein prot : prots){
-                            if (prot != null){
-                                updatedProteins.add(prot.getAc());
-                            }
-                        }
-                    }
-                }
-            }
         } catch (IntactTransactionException e) {
             throw new ProcessorException(e);
         }
 
-        return updatedProteins;
+        return getProcessedProteins(this.currentProtein.getAc());
     }
 
     public void finalizeAfterCurrentPhase() {
