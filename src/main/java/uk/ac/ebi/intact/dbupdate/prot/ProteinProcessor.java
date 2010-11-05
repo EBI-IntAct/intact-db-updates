@@ -159,18 +159,18 @@ public abstract class ProteinProcessor {
         finalizationRequested = false;
 
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-        TransactionStatus transactionStatus = dataContext.beginTransaction();
+        //TransactionStatus transactionStatus = dataContext.beginTransaction();
 
         if (log.isTraceEnabled()) log.trace("Pre-processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
         ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnPreProcess(processEvent);
 
-        try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
-        } catch (IntactTransactionException e) {
-            throw new ProcessorException(e);
-        }
+        //try {
+            //IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
+        //} catch (IntactTransactionException e) {
+          //  throw new ProcessorException(e);
+        //}
 
         if (isFinalizationRequested()) {
             if (log.isDebugEnabled()) log.debug("Finalizing after Pre-Process phase");
@@ -178,19 +178,19 @@ public abstract class ProteinProcessor {
             return getProcessedProteins(this.currentProtein.getAc());
         }
 
-        TransactionStatus transactionStatus2 = dataContext.beginTransaction();
+        //TransactionStatus transactionStatus2 = dataContext.beginTransaction();
 
         if (log.isTraceEnabled()) log.trace("Processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
         //ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnProcess(processEvent);
 
-        try {
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
+        //try {
+          //  IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus2);
 
-        } catch (IntactTransactionException e) {
-            throw new ProcessorException(e);
-        }
+        //} catch (IntactTransactionException e) {
+          //  throw new ProcessorException(e);
+        //}
 
         return getProcessedProteins(this.currentProtein.getAc());
     }

@@ -89,6 +89,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         addListener(new LoggingProcessorListener());
         addListener(new UniprotUpdateFilterListener());
         addListener(new UniprotProteinRetrieverListener(config.getUniprotService()));
+        if (config.isProcessProteinNotFoundInUniprot()){
+            DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
+            addListener(deadUniprotListener);
+        }
         addListener(new UniprotPrimaryAcUpdater());
 
         boolean forceDeleteOfProteins = false;
@@ -107,11 +111,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             addListener(deleter);
             forceDeleteOfProteins = true;
         }
-
-        //if (config.isProcessProteinNotFoundInUniprot()){
-            //DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
-            //addListener(deadUniprotListener);
-        //}
 
         if (forceDeleteOfProteins) {
             addListener(new ProteinDeleter());

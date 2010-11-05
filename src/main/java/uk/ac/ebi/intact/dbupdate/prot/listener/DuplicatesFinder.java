@@ -69,175 +69,177 @@ public class DuplicatesFinder extends AbstractProteinUpdateProcessorListener {
 
             final InteractorXref identity = ProteinUtils.getUniprotXref(protein);
 
-            // get proteins having the same uniprot identity
-            ProteinDao proteinDao = dataContext.getDaoFactory().getProteinDao();
-            final List<ProteinImpl> notFilteredPossibleDuplicates =
-                    proteinDao.getByXrefLike( identity.getCvDatabase(),
-                            identity.getCvXrefQualifier(),
-                            identity.getPrimaryId() );
+            if (identity != null){
+                // get proteins having the same uniprot identity
+                ProteinDao proteinDao = dataContext.getDaoFactory().getProteinDao();
+                final List<ProteinImpl> notFilteredPossibleDuplicates =
+                        proteinDao.getByXrefLike( identity.getCvDatabase(),
+                                identity.getCvXrefQualifier(),
+                                identity.getPrimaryId() );
 
-            // we filter the possible duplicates and keep those with an unique distinct uniprot identity. The others cannot be processed
-            List<ProteinImpl> possibleDuplicates = new ArrayList<ProteinImpl>();
+                // we filter the possible duplicates and keep those with an unique distinct uniprot identity. The others cannot be processed
+                List<ProteinImpl> possibleDuplicates = new ArrayList<ProteinImpl>();
 
-            for (ProteinImpl prot : notFilteredPossibleDuplicates){
-                if (ProteinTools.hasUniqueDistinctUniprotIdentity(prot)){
-                    possibleDuplicates.add(prot);
+                for (ProteinImpl prot : notFilteredPossibleDuplicates){
+                    if (ProteinTools.hasUniqueDistinctUniprotIdentity(prot)){
+                        possibleDuplicates.add(prot);
+                    }
                 }
-            }
 
-            // if there are possible duplicates (more than 1 result), check and fix when necessary
-            if (possibleDuplicates.size() > 1) {
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                // if there are possible duplicates (more than 1 result), check and fix when necessary
+                if (possibleDuplicates.size() > 1) {
+                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                        final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                    // get the uniprot proteins in case of range update
-                    UniprotProtein uniprotProtein = evt.getUniprotProtein();
+                        // get the uniprot proteins in case of range update
+                        UniprotProtein uniprotProtein = evt.getUniprotProtein();
 
-                    String uniprotSequence = null;
-                    String uniprotCrc64 = null;
+                        String uniprotSequence = null;
+                        String uniprotCrc64 = null;
 
-                    // the uniprot entry matching the intact protein has been found previously
-                    if (uniprotProtein != null){
-                        uniprotSequence = uniprotProtein.getSequence();
-                        uniprotCrc64 = uniprotProtein.getCrc64();
+                        // the uniprot entry matching the intact protein has been found previously
+                        if (uniprotProtein != null){
+                            uniprotSequence = uniprotProtein.getSequence();
+                            uniprotCrc64 = uniprotProtein.getCrc64();
 
+                            if (ProteinUtils.isSpliceVariant(protein)){
+                                // in case of splice variant, we don't care if several uniprot protein exist as each protein will refer to the same splcie variant
+                                Collection<UniprotSpliceVariant> variants = uniprotProtein.getSpliceVariants();
+
+                                for (UniprotSpliceVariant variant : variants){
+                                    Collection<String> variantAcs = variant.getSecondaryAcs();
+
+                                    if (variant.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId()) || variantAcs.contains(identity.getPrimaryId())){
+                                        uniprotSequence = variant.getSequence();
+                                        uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (ProteinUtils.isFeatureChain(protein)){
+                                Collection<UniprotFeatureChain> chains = uniprotProtein.getFeatureChains();
+
+                                for (UniprotFeatureChain chain : chains){
+
+                                    if (chain.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId())){
+                                        uniprotSequence = chain.getSequence();
+                                        uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        // in case of splice variant, we check that the list of isoform parents is the same before merging duplicates
                         if (ProteinUtils.isSpliceVariant(protein)){
-                            // in case of splice variant, we don't care if several uniprot protein exist as each protein will refer to the same splcie variant
-                            Collection<UniprotSpliceVariant> variants = uniprotProtein.getSpliceVariants();
 
-                            for (UniprotSpliceVariant variant : variants){
-                                Collection<String> variantAcs = variant.getSecondaryAcs();
+                            // the collection containing all the possible duplicates
+                            Collection<Protein> totalProteins = new ArrayList<Protein>();
+                            totalProteins.addAll(possibleDuplicates);
 
-                                if (variant.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId()) || variantAcs.contains(identity.getPrimaryId())){
-                                    uniprotSequence = variant.getSequence();
-                                    uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
-                                    break;
+                            // the collection which will contain the duplicates
+                            Collection<Protein> duplicates = new ArrayList<Protein>();
+
+                            // while the list of possible duplicates has not been fully treated, we need to check the duplicates
+                            while (totalProteins.size() > 0){
+                                duplicates.clear();
+
+                                // pick the first protein of the list and add it in the list of duplicates
+                                Iterator<Protein> iterator = totalProteins.iterator();
+                                Protein protToCompare = iterator.next();
+                                duplicates.add(protToCompare);
+
+                                // extract the isoform parents of this protein
+                                Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
+
+                                // we compare the isoform parents of this first protein against the isoform parents of the other proteins
+                                while (iterator.hasNext()){
+                                    // we extract the isoform parents of the next protein to compare
+                                    Protein proteinCompared = iterator.next();
+                                    Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                                    // if the isoform parents are identical, we ad the protein to the list of duplicates
+                                    if (CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                                        duplicates.add(proteinCompared);
+                                    }
                                 }
+
+                                // if we have more than two proteins in the duplicate list, we merge them
+                                if (duplicates.size() > 1){
+                                    processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                            evt.getDataContext(),
+                                            duplicates, uniprotSequence, uniprotCrc64));
+                                }
+                                else {
+                                    if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protToCompare) );
+                                }
+
+                                // we remove the processed proteins from the list of protein to process
+                                totalProteins.removeAll(duplicates);
                             }
                         }
+                        // in case of feature chain, we check that the list of chain parents is the same before merging duplicates
                         else if (ProteinUtils.isFeatureChain(protein)){
-                            Collection<UniprotFeatureChain> chains = uniprotProtein.getFeatureChains();
+                            // the collection containing all the possible duplicates
+                            Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
+                            totalProteins.addAll(possibleDuplicates);
+                            // the collection which will contain the duplicates
+                            Collection<Protein> duplicates = new ArrayList<Protein>();
 
-                            for (UniprotFeatureChain chain : chains){
+                            // while the list of possible duplicates has not been fully treated, we need to check the duplicates
+                            while (totalProteins.size() > 0){
+                                duplicates.clear();
 
-                                if (chain.getPrimaryAc().equalsIgnoreCase(identity.getPrimaryId())){
-                                    uniprotSequence = chain.getSequence();
-                                    uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
-                                    break;
+                                // pick the first protein of the list and add it in the list of duplicates
+                                Iterator<ProteinImpl> iterator = totalProteins.iterator();
+                                ProteinImpl protToCompare = iterator.next();
+                                duplicates.add(protToCompare);
+
+                                // extract the chain parents of this protein
+                                Collection<InteractorXref> chainParents = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
+
+                                // we compare the chain parents of this first protein against the chain parents of the other proteins
+                                while (iterator.hasNext()){
+                                    // we extract the chain parents of the next protein to compare
+                                    ProteinImpl proteinCompared = iterator.next();
+                                    Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+
+                                    // if the chain parents are identical, we ad the protein to the list of duplicates
+                                    if (CollectionUtils.isEqualCollection(chainParents, chainParent2)){
+                                        duplicates.add(proteinCompared);
+                                    }
                                 }
+
+                                // if we have more than two proteins in the duplicate list, we merge them
+                                if (duplicates.size() > 1){
+
+                                    processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                            evt.getDataContext(),
+                                            duplicates, uniprotSequence, uniprotCrc64));
+                                }
+                                else {
+                                    if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protToCompare) );
+                                }
+                                // we remove the processed proteins from the list of protein to process
+                                totalProteins.removeAll(duplicates);
                             }
                         }
-                    }
-
-                    // in case of splice variant, we check that the list of isoform parents is the same before merging duplicates
-                    if (ProteinUtils.isSpliceVariant(protein)){
-
-                        // the collection containing all the possible duplicates
-                        Collection<Protein> totalProteins = new ArrayList<Protein>();
-                        totalProteins.addAll(possibleDuplicates);
-
-                        // the collection which will contain the duplicates
-                        Collection<Protein> duplicates = new ArrayList<Protein>();
-
-                        // while the list of possible duplicates has not been fully treated, we need to check the duplicates
-                        while (totalProteins.size() > 0){
-                            duplicates.clear();
-
-                            // pick the first protein of the list and add it in the list of duplicates
-                            Iterator<Protein> iterator = totalProteins.iterator();
-                            Protein protToCompare = iterator.next();
-                            duplicates.add(protToCompare);
-
-                            // extract the isoform parents of this protein
-                            Collection<InteractorXref> isoformParent = ProteinUtils.extractIsoformParentCrossReferencesFrom(protToCompare);
-
-                            // we compare the isoform parents of this first protein against the isoform parents of the other proteins
-                            while (iterator.hasNext()){
-                                // we extract the isoform parents of the next protein to compare
-                                Protein proteinCompared = iterator.next();
-                                Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
-
-                                // if the isoform parents are identical, we ad the protein to the list of duplicates
-                                if (CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
-                                    duplicates.add(proteinCompared);
-                                }
-                            }
-
-                            // if we have more than two proteins in the duplicate list, we merge them
-                            if (duplicates.size() > 1){
-                                processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
-                                        evt.getDataContext(),
-                                        duplicates, uniprotSequence, uniprotCrc64));
-                            }
-                            else {
-                                if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protToCompare) );
-                            }
-
-                            // we remove the processed proteins from the list of protein to process
-                            totalProteins.removeAll(duplicates);
+                        // in case of master protein, we merge the duplicates
+                        else {
+                            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
+                                    evt.getDataContext(),
+                                    new ArrayList<Protein> (possibleDuplicates), uniprotSequence, uniprotCrc64));
                         }
+                        //            checkAndFixDuplication(protein, possibleDuplicates, evt);
                     }
-                    // in case of feature chain, we check that the list of chain parents is the same before merging duplicates
-                    else if (ProteinUtils.isFeatureChain(protein)){
-                        // the collection containing all the possible duplicates
-                        Collection<ProteinImpl> totalProteins = new ArrayList<ProteinImpl>();
-                        totalProteins.addAll(possibleDuplicates);
-                        // the collection which will contain the duplicates
-                        Collection<Protein> duplicates = new ArrayList<Protein>();
-
-                        // while the list of possible duplicates has not been fully treated, we need to check the duplicates
-                        while (totalProteins.size() > 0){
-                            duplicates.clear();
-
-                            // pick the first protein of the list and add it in the list of duplicates
-                            Iterator<ProteinImpl> iterator = totalProteins.iterator();
-                            ProteinImpl protToCompare = iterator.next();
-                            duplicates.add(protToCompare);
-
-                            // extract the chain parents of this protein
-                            Collection<InteractorXref> chainParents = ProteinUtils.extractChainParentCrossReferencesFrom(protToCompare);
-
-                            // we compare the chain parents of this first protein against the chain parents of the other proteins
-                            while (iterator.hasNext()){
-                                // we extract the chain parents of the next protein to compare
-                                ProteinImpl proteinCompared = iterator.next();
-                                Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
-
-                                // if the chain parents are identical, we ad the protein to the list of duplicates
-                                if (CollectionUtils.isEqualCollection(chainParents, chainParent2)){
-                                    duplicates.add(proteinCompared);
-                                }
-                            }
-
-                            // if we have more than two proteins in the duplicate list, we merge them
-                            if (duplicates.size() > 1){
-
-                                processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
-                                        evt.getDataContext(),
-                                        duplicates, uniprotSequence, uniprotCrc64));
-                            }
-                            else {
-                                if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protToCompare) );
-                            }
-                            // we remove the processed proteins from the list of protein to process
-                            totalProteins.removeAll(duplicates);
-                        }
-                    }
-                    // in case of master protein, we merge the duplicates
                     else {
-                        processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent( processor,
-                                evt.getDataContext(),
-                                new ArrayList<Protein> (possibleDuplicates), uniprotSequence, uniprotCrc64));
+                        throw new ProcessorException("It is impossible to use this listener without a ProteinProcessor of type ProteinUpdateProcessor. The current protein event " +
+                                "contains a source of type " + evt.getSource().getClass().getName());
                     }
-                    //            checkAndFixDuplication(protein, possibleDuplicates, evt);
                 }
                 else {
-                    throw new ProcessorException("It is impossible to use this listener without a ProteinProcessor of type ProteinUpdateProcessor. The current protein event " +
-                            "contains a source of type " + evt.getSource().getClass().getName());
+                    if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protein) );
                 }
-            }
-            else {
-                if (log.isDebugEnabled()) log.debug( "No duplicates found for: " + protInfo(protein) );
             }
         }
         // ignore proteins that cannot be updated from uniprot
