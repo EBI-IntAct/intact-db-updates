@@ -86,7 +86,7 @@ public class RangeFixer extends AbstractProteinUpdateProcessorListener {
 
             if (feature != null){
                 // get the caution from the DB or create it and persist it
-                final DaoFactory daoFactory = IntactContext.getCurrentInstance().getDaoFactory();
+                final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
                 CvTopic caution = daoFactory
                         .getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.INVALID_RANGE);
 

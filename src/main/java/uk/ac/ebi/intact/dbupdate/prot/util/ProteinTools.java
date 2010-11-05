@@ -150,4 +150,17 @@ public class ProteinTools {
 
         return true;
     }
+
+    public static void filterNonUniprotAndMultipleUniprot(Collection<ProteinImpl> primaryProteins) {
+        for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
+            ProteinImpl protein = proteinIterator.next();
+
+            if (!ProteinUtils.isFromUniprot(protein)) {
+                proteinIterator.remove();
+            }
+            else if (!ProteinTools.hasUniqueDistinctUniprotIdentity(protein)){
+                proteinIterator.remove();
+            }
+        }
+    }
 }

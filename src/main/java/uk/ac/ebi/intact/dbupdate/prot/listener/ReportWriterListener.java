@@ -187,6 +187,45 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
+    public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException{
+        try {
+            ReportWriter writer = reportHandler.getPreProcessErrorWriter();
+            writer.writeHeaderIfNecessary("error type",
+                    "error description");
+            writer.writeColumnValues(evt.getError().toString(),
+                    evt.getMessage());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException(e);
+        }
+    }
+
+    @Override
+    public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
+        try {
+            ReportWriter writer = reportHandler.getUpdateCasesWriter();
+            writer.writeHeaderIfNecessary("UniProt ID",
+                    "IA secondary c.",
+                    "IA secondary",
+                    "Xrefs added",
+                    "Xrefs removed",
+                    "Error messages",
+                    "Other messages");
+            String primaryId = evt.getProtein().getPrimaryAc();
+            writer.writeColumnValues(primaryId,
+                    String.valueOf(evt.getSecondaryProteins().size()),
+                    protCollectionToString(evt.getSecondaryProteins(), true),
+                    xrefReportsAddedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                    xrefReportsRemovedToString(evt.getUniprotServiceResult().getXrefUpdaterReports()),
+                    evt.getUniprotServiceResult().getErrors().toString(),
+                    evt.getUniprotServiceResult().getMessages().toString());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing secondary acs found to stream", e);
+        }
+    }
+
+    @Override
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
         try {
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
@@ -217,9 +256,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
-    public void onBadParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
+    public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         try {
-            ReportWriter writer = reportHandler.getUpdateCasesWriter();
+            ReportWriter writer = reportHandler.getOutOfDateParticipantWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
                     "IA primary c.",
                     "Component acs");

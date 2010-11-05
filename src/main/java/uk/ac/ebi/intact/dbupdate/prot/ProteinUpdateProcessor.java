@@ -84,14 +84,17 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     }
 
     protected void registerListeners() {
+        final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        
         addListener(new LoggingProcessorListener());
+        addListener(new UniprotUpdateFilterListener());
+        addListener(new UniprotProteinRetrieverListener(config.getUniprotService()));
+        addListener(new UniprotPrimaryAcUpdater());
 
         boolean forceDeleteOfProteins = false;
 
-        final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-
         if (config.isFixDuplicates()) {
-            addListener(new DuplicatesFinder(config.getUniprotService()));
+            addListener(new DuplicatesFinder());
             addListener(new DuplicatesFixer());
             forceDeleteOfProteins = true;
         }
@@ -105,18 +108,17 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             forceDeleteOfProteins = true;
         }
 
-        if (config.isProcessProteinNotFoundInUniprot()){
-            DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
-            addListener(deadUniprotListener);
-        }
+        //if (config.isProcessProteinNotFoundInUniprot()){
+            //DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
+            //addListener(deadUniprotListener);
+        //}
 
         if (forceDeleteOfProteins) {
             addListener(new ProteinDeleter());
         }
 
-        UniprotProteinUpdater updater = new UniprotProteinUpdater(config.getUniprotService(), config.getTaxonomyService());
-        updater.setGlobalProteinUpdate(config.isGlobalProteinUpdate());
-        
+        UniprotProteinUpdater updater = new UniprotProteinUpdater(config.getTaxonomyService());
+
         addListener(updater);
 
         if (config.getReportHandler() != null) {
@@ -157,6 +159,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireonProcessErrorFound(UpdateErrorEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProcessErrorFound(evt);
+        }
+    }
+
     public void fireOnUpdateCase(UpdateCaseEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onUpdateCase(evt);
@@ -183,7 +191,13 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     public void fireOnOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt){
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
-            listener.onBadParticipantFound(evt);
+            listener.onOutOfDateParticipantFound(evt);
+        }
+    }
+
+    public void fireOnSecondaryAcsFound(UpdateCaseEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onSecondaryAcsFound(evt);
         }
     }
 }

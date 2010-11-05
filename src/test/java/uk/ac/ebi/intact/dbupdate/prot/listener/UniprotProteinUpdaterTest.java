@@ -22,6 +22,8 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.CvDatabase;
 import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
@@ -43,11 +45,12 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
     @DirtiesContext
     public void onPreProcess_uniprot() throws Exception{
         Protein prot = getMockBuilder().createProteinRandom();
+        
         ProteinProcessor processor = new DummyProcessor();
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService());
+        UniprotProteinUpdater listener = new UniprotProteinUpdater();
         listener.onPreProcess(evt);
 
         Assert.assertFalse(processor.isFinalizationRequested());
@@ -64,7 +67,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater(new UniprotRemoteService());
+        UniprotProteinUpdater listener = new UniprotProteinUpdater();
         listener.onPreProcess(evt);
 
         Assert.assertTrue(processor.isFinalizationRequested());

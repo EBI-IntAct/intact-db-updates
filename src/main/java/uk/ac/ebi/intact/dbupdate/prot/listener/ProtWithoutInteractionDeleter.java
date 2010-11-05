@@ -21,6 +21,8 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -60,6 +62,11 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
 
         if (protein.getAc() == null) {
             log.debug("Protein without AC, cannot be deleted");
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete));
+            }
+
             return;
         }
 
@@ -155,7 +162,7 @@ public class ProtWithoutInteractionDeleter extends AbstractProteinUpdateProcesso
         final boolean isFeatureChain = isFeatureChain(protein);
 
         if (isSpliceVariant || isFeatureChain){
-             return true;
+            return true;
         }
 
         return false;

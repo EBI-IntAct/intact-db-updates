@@ -189,6 +189,8 @@ public class ProteinServiceImpl implements ProteinService {
             }
             else if ( uniprotProteins.size() > 1 ) {
 
+
+
                 // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
                 if (IdentifierChecker.isSpliceVariantId(uniprotAc) || IdentifierChecker.isFeatureChainId(uniprotAc)){
                     createOrUpdate( uniprotProteins );

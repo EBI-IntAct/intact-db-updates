@@ -57,7 +57,9 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void deadUniprotProtein() throws Exception {
+        TransactionStatus status = getDataContext().beginTransaction();
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
@@ -80,13 +82,14 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countUniprotProteinsInvolvedInInteractions(), 0);
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
+        getDataContext().commitTransaction(status);
+
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateAll();
 
-        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
-
         // check that we do have 2 proteins, both of which have a gene name (ple), a synonym (TH) and an orf (CG10118).
+        TransactionStatus status2 = getDataContext().beginTransaction();
 
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
         Protein reloadedMaster = getDaoFactory().getProteinDao().getByAc( deadProtein.getAc() );
@@ -108,6 +111,8 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         Assert.assertTrue(hasNoUniprotUpdate);
         Assert.assertTrue(hasCaution);
+
+        getDataContext().commitTransaction(status2);
     }
 
     @Test

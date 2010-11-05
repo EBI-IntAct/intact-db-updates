@@ -163,8 +163,8 @@ public abstract class ProteinProcessor {
 
         if (log.isTraceEnabled()) log.trace("Pre-processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
-        ProteinEvent preProcessEvent = new ProteinEvent(this, dataContext, protToUpdate);
-        fireOnPreProcess(preProcessEvent);
+        ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
+        fireOnPreProcess(processEvent);
 
         try {
             IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
@@ -178,11 +178,11 @@ public abstract class ProteinProcessor {
             return getProcessedProteins(this.currentProtein.getAc());
         }
 
-        TransactionStatus transactionStatus2 = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        TransactionStatus transactionStatus2 = dataContext.beginTransaction();
 
         if (log.isTraceEnabled()) log.trace("Processing protein: "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
-        ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
+        //ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
         fireOnProcess(processEvent);
 
         try {

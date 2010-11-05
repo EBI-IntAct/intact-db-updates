@@ -44,6 +44,9 @@ public class MockUniprotService extends AbstractUniprotService {
         proteins.put( "P25763", Arrays.asList( cdc42canfa, cdc42human ) );
         proteins.put( "P21181-1", Arrays.asList( cdc42canfa, cdc42human ) );
         proteins.put( "P21181-4", Arrays.asList( cdc42canfa, cdc42human ) );
+
+        proteins.put( "P00012", Arrays.asList( cdc42human, cdc42human ) );
+        proteins.put( "P00012-1", Arrays.asList( cdc42human, cdc42human ) );
     }
 
     ////////////////////////////
@@ -51,7 +54,10 @@ public class MockUniprotService extends AbstractUniprotService {
 
     public Collection<UniprotProtein> retrieve( String ac ) {
         Collection<UniprotProtein> myProteins = new ArrayList<UniprotProtein>( 2 );
-        myProteins.addAll( proteins.get( ac ) );
+
+        if (proteins.get( ac ) != null){
+            myProteins.addAll( proteins.get( ac ) );            
+        }
         return myProteins;
     }
 
