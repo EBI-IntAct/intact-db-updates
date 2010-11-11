@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.event;
+package uk.ac.ebi.intact.dbupdate.prot;
 
 /**
  * TODO comment this

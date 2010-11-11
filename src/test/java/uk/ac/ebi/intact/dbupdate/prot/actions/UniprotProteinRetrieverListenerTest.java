@@ -1,4 +1,4 @@
-/*package uk.ac.ebi.intact.dbupdate.prot.listener;
+package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.util.Collections;
  * @version $Id$
  * @since <pre>05-Nov-2010</pre>
  */
-/*@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
 
     private class DummyProcessor extends ProteinUpdateProcessor {
@@ -48,19 +48,17 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * Several unirpto entries, different organims, no organism matching the one of the protein. Cannot be updated
      */
-    /*public void onPreProcess_several_uniprot_proteins_several_organims_different_taxId() throws Exception{
+    public void several_uniprot_proteins_several_organims_different_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P21181", "test_several_uniprot");
 
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -68,7 +66,7 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * Several uniprot entries, one organims, organims different from the one of the protein. Not possible to update
      */
-    /*public void onPreProcess_several_uniprot_proteins_one_organim_different_taxId() throws Exception{
+    public void several_uniprot_proteins_one_organim_different_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P00012", "test_several_uniprot_same_organism");
 
         ProteinProcessor processor = new DummyProcessor();
@@ -76,11 +74,10 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
         evt.setUniprotIdentity("P00012");
         Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -88,7 +85,7 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * Several uniprot entries, several organisms and one matching the organims of the protein : can be updated
      */
-    /*public void onPreProcess_several_uniprot_proteins_several_organims_identical_taxId() throws Exception{
+    public void several_uniprot_proteins_several_organims_identical_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P21181", "several_uniprot_organim_match");
         // one of the protein is human
         prot.getBioSource().setTaxId("9606");
@@ -96,14 +93,12 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNotNull(evt.getUniprotProtein());
-        Assert.assertEquals(MockUniprotProtein.build_CDC42_HUMAN(), evt.getUniprotProtein());
-        Assert.assertFalse(processor.isFinalizationRequested());
+        Assert.assertNotNull(uniprot);
+        Assert.assertEquals(MockUniprotProtein.build_CDC42_HUMAN(), uniprot);
     }
 
     @Test
@@ -111,7 +106,7 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * Several uniprot entries, one organism, organism identical to the one of the protein. Cannot be updated
      */
-    /*public void onPreProcess_several_uniprot_proteins_one_organim_same_taxId() throws Exception{
+    public void several_uniprot_proteins_one_organim_same_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P00012", "test_several_uniprot_same_organism");
         // protein is human
         prot.getBioSource().setTaxId("9606");
@@ -119,13 +114,11 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P00012");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -133,20 +126,18 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * One single uniprot entry. Can be updated
      */
-    /*public void onPreProcess_one_uniprot_protein() throws Exception{
-        Protein prot = getMockBuilder().createProtein("P60952", "one_uniprot_organim");;
+    public void onPreProcess_one_uniprot_protein() throws Exception{
+        Protein prot = getMockBuilder().createProtein("P60952", "one_uniprot_organim");
 
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P60952");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNotNull(evt.getUniprotProtein());
-        Assert.assertEquals(MockUniprotProtein.build_CDC42_CANFA(), evt.getUniprotProtein());
-        Assert.assertFalse(processor.isFinalizationRequested());
+        Assert.assertNotNull(uniprot);
+        Assert.assertEquals(MockUniprotProtein.build_CDC42_CANFA(), uniprot);
     }
 
     @Test
@@ -154,19 +145,17 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * No uniprot entries. Can be updated because we can process dead proteins
      */
-    /*public void onPreProcess_no_uniprot_protein() throws Exception{
-        Protein prot = getMockBuilder().createProtein("P12345", "no_uniprot_protein");;
+    public void no_uniprot_protein() throws Exception{
+        Protein prot = getMockBuilder().createProtein("P12345", "no_uniprot_protein");
 
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P12345");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertFalse(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -174,7 +163,7 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * No uniprot entries. Cannot be updated because we don't process dead proteins
      */
-    /*public void onPreProcess_no_uniprot_protein_dont_process_dead_proteins() throws Exception{
+    public void no_uniprot_protein_dont_process_dead_proteins() throws Exception{
         Protein prot = getMockBuilder().createProtein("P12345", "no_uniprot_protein");;
         ProteinUpdateContext.getInstance().getConfig().setProcessProteinNotFoundInUniprot(false);
 
@@ -182,13 +171,11 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P12345");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -196,19 +183,17 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
     /**
      * Several uniprot entries for a same transcript, several organisms, different from the organism of teh ranscript. Cannot be updated
      */
-    /*public void onPreProcess_several_uniprot_transcripts_several_organims_different_taxId() throws Exception{
+    public void several_uniprot_transcripts_several_organims_different_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P21181-1", "test_several_uniprot_transcript");
 
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181-1");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -217,19 +202,17 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
      * Several uniprot entries for a same transcript. One organism, different from the one of the protein. No single master protein with the
      * same uniprot ac (before '-'), cannot be updated
      */
-    /*public void onPreProcess_several_uniprot_transcripts_one_organim_different_taxId() throws Exception{
+    public void several_uniprot_transcripts_one_organim_different_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P00012-1", "test_several_uniprot_transcript");
 
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P00012-1");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNull(evt.getUniprotProtein());
-        Assert.assertTrue(processor.isFinalizationRequested());
+        Assert.assertNull(uniprot);
     }
 
     @Test
@@ -238,7 +221,7 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
      * Several uniprot entries for the same transcript, several organism and a single one equals to the one of the protein.
      * Can be updated
      */
-    /*public void onPreProcess_several_uniprot_transcripts_several_organims_identical_taxId() throws Exception{
+    public void several_uniprot_transcripts_several_organims_identical_taxId() throws Exception{
         Protein prot = getMockBuilder().createProtein("P21181-1", "several_uniprot_organim_match");
         // one of the protein is human
         prot.getBioSource().setTaxId("9606");
@@ -246,18 +229,16 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
         ProteinProcessor processor = new DummyProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181-1");
-        Assert.assertNull(evt.getUniprotProtein());
 
-        UniprotProteinRetriever listener = buildProteinListener();
-        listener.retrieveUniprotEntry(evt);
+        UniprotProteinRetriever retriever = buildProteinListener();
+        UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
 
-        Assert.assertNotNull(evt.getUniprotProtein());
-        Assert.assertEquals(MockUniprotProtein.build_CDC42_HUMAN(), evt.getUniprotProtein());
-        Assert.assertFalse(processor.isFinalizationRequested());
+        Assert.assertNotNull(uniprot);
+        Assert.assertEquals(MockUniprotProtein.build_CDC42_HUMAN(), uniprot);
     }
 
-    @Test
-    @DirtiesContext
+    //@Test
+    //@DirtiesContext
     /**
      * Several uniprot entries, different organims, no organism matching the one of the protein. Cannot be updated
      */
@@ -482,5 +463,5 @@ public class UniprotProteinRetrieverListenerTest   extends IntactBasicTestCase {
         listener.filterSecondaryProteinsPossibleToUpdate(evt);
 
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
-    }
-}*/
+    }*/
+}

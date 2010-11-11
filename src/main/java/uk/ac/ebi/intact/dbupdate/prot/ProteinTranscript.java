@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions;
+package uk.ac.ebi.intact.dbupdate.prot;
 
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;

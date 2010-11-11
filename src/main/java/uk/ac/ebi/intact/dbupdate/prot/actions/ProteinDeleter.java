@@ -56,17 +56,12 @@ public class ProteinDeleter{
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
         if (protein.getAc() != null) {
-            ProteinProcessor processor = (ProteinProcessor) evt.getSource();
 
             if (!proteinDao.isTransient((ProteinImpl) protein)) {
 
                 proteinDao.delete((ProteinImpl) protein);
             } else {
                 proteinDao.deleteByAc(protein.getAc());
-            }
-
-            if (protein.getAc().equals(processor.getCurrentProtein().getAc())) {
-                processor.finalizeAfterCurrentPhase();
             }
         }
     }

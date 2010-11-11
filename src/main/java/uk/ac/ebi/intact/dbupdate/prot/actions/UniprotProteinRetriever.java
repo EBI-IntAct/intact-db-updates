@@ -6,7 +6,7 @@ import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;

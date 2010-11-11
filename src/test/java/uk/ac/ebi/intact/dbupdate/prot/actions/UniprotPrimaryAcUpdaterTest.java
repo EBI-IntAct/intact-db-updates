@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.listener;
+package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.junit.Assert;
 import org.junit.Test;

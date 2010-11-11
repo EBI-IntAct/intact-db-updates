@@ -20,13 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
+import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -195,75 +195,6 @@ public class DuplicatesFixer{
     }
 
     /**
-     * Shift the ranges attached to this protein whenever it is possible using the uniprot protein sequence as sequence reference
-     * @param protein : the protein we want to merge and we want to shift the ranges
-     * @param uniprotSequence : the uniprot protein sequence as a reference for range shifting
-     * @param evt : the evt
-     * @return the list of components with feature conflicts
-     */
-    protected Collection<Component> collectComponentsWithFeatureConflicts(Protein protein, String uniprotSequence, DuplicatesFoundEvent evt){
-
-        RangeChecker checker = new RangeChecker();
-        DataContext context = IntactContext.getCurrentInstance().getDataContext();
-
-        String originalSequence = protein.getSequence();
-
-        // if the duplicate has a different sequence from the one in uniprot, we need to shift the ranges
-        if (isSequenceChanged(originalSequence, uniprotSequence)){
-            // it is only possible if the proteinProcessor is of type ProteinUpdateProcessor
-            if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                // the list of interaction accessions with feature conflicts
-                Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
-
-                Collection<Component> components = protein.getActiveInstances();
-
-                for (Component component : components){
-                    Interaction interaction = component.getInteraction();
-
-                    Collection<Feature> features = component.getBindingDomains();
-                    for (Feature feature : features){
-                        // collect the invalid ranges
-                        Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, originalSequence, uniprotSequence);
-
-                        if (!invalidRanges.isEmpty()){
-                            // the interaction contains range conflicts
-                            interactionAcsWithBadFeatures.add(interaction.getAc());
-
-                            for (InvalidRange invalid : invalidRanges){
-                                // if the sequence is up to date, it seems to be an invalid range even before the update
-                                if (originalSequence.equalsIgnoreCase(invalid.getSequence())){
-                                    processor.fireOnInvalidRange(new InvalidRangeEvent(context, invalid));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // we have range conflicts
-                if (!interactionAcsWithBadFeatures.isEmpty()){
-                    Collection<Component> componentsToFix = new ArrayList<Component>();
-                    for (Component c : components){
-                        if (interactionAcsWithBadFeatures.contains(c.getInteractionAc())){
-                            // this component contains range problems
-                            componentsToFix.add(c);
-                        }
-                    }
-
-                    return componentsToFix;
-                }
-            }
-            else {
-                throw new ProcessorException("The protein "+protein.getAc()+" need to be merged and it is impossible to shift the ranges because the ProteinProcessor " +
-                        "must be of type ProteinUpdateProcessor and not " + evt.getSource().getClass().getName());
-            }
-        }
-
-        return Collections.EMPTY_LIST;
-    }
-
-    /**
      * Merge tha duplicates, the interactions are moved (not the cross references as they will be deleted)
      * @param duplicates
      */
@@ -285,74 +216,18 @@ public class DuplicatesFixer{
 
                     ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
 
-                    // create an "intact-secondary" xref to the protein to be kept.
-                    // This will allow the user to search using old ACs
-                    Institution owner = duplicate.getOwner();
+                    ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
-                    // the database is always intact because the framework is the intact framework and when we merge two proteins of this framework, it becomes 'intact-secondary'
-                    CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
+                    ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
 
-                    if (db == null){
-                        db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
-                        factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
-                    }
-
-                    final String intactSecondaryLabel = "intact-secondary";
-                    boolean hasIntactSecondary = false;
-
-                    CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
-
-                    if (intactSecondary == null) {
-                        intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
-                        factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(intactSecondary);
-                    }
-
-                    for (InteractorXref ref : originalProt.getXrefs()){
-                        if (ref.getCvDatabase() != null){
-                            if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
-                                if (ref.getCvXrefQualifier() != null){
-                                    if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel) && ref.getPrimaryId().equals(duplicate.getAc())){
-                                        hasIntactSecondary = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (!hasIntactSecondary){
-                        InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
-                        factory.getXrefDao(InteractorXref.class).persist(xref);
-
-                        originalProt.addXref(xref);
-                        log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
-                    }
-
-                    final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
-                    for ( ProteinImpl isoform : isoforms ) {
-                        // each isoform should now point to the original protein
-                        final Collection<InteractorXref> isoformParents =
-                                AnnotatedObjectUtils.searchXrefs( isoform,
-                                        CvDatabase.INTACT_MI_REF,
-                                        CvXrefQualifier.ISOFORM_PARENT_MI_REF );
-
-                        remapTranscriptParent(originalProt, duplicate.getAc(), isoform, isoformParents, factory);
-                    }
-
-                    final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
-                    for ( ProteinImpl chain : proteinChains ) {
-                        // each chain should now point to the original protein
-                        final Collection<InteractorXref> chainParents =
-                                AnnotatedObjectUtils.searchXrefs(chain,
-                                        CvDatabase.INTACT_MI_REF,
-                                        CvXrefQualifier.CHAIN_PARENT_MI_REF );
-
-                        remapTranscriptParent(originalProt, duplicate.getAc(), chain, chainParents, factory);
-                    }
-                    IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) duplicate);
+                    factory.getProteinDao().update((ProteinImpl) duplicate);
 
                     // and delete the duplicate
                     if (duplicate.getActiveInstances().isEmpty()) {
                         deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
+                    }
+                    else {
+                        throw new ProcessorException("The duplicate " + duplicate.getAc() + " still have " + duplicate.getActiveInstances().size() + " active instances and should not.");
                     }
                 }
             }
@@ -391,48 +266,7 @@ public class DuplicatesFixer{
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
                         ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
-                        // create an "intact-secondary" xref to the protein to be kept.
-                        // This will allow the user to search using old ACs
-                        Institution owner = duplicate.getOwner();
-
-                        // the database is always intact because the framework is the intact framework and when we merge two proteins of this framework, it becomes 'intact-secondary'
-                        CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
-
-                        if (db == null){
-                            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
-                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
-                        }
-
-                        // as the protein will be completely merged, an intact secondary reference is necessary
-                        final String intactSecondaryLabel = "intact-secondary";
-                        boolean hasIntactSecondary = false;
-
-                        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
-
-                        if (intactSecondary == null) {
-                            intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
-                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
-                        }
-
-                        for (InteractorXref ref : originalProt.getXrefs()){
-                            if (ref.getCvDatabase() != null){
-                                if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
-                                    if (ref.getCvXrefQualifier() != null){
-                                        if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel) && ref.getPrimaryId().equals(duplicate.getAc())){
-                                            hasIntactSecondary = true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!hasIntactSecondary){
-                            InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
-                            factory.getXrefDao(InteractorXref.class).persist(xref);
-
-                            originalProt.addXref(xref);
-                            log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
-                        }
+                        ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         if (isSequenceChanged(sequence, evt.getUniprotSequence())){
@@ -452,27 +286,8 @@ public class DuplicatesFixer{
                     }
 
                     // update isoforms and feature chains
-                    final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
-                    for ( ProteinImpl isoform : isoforms ) {
-                        // each isoform should now point to the original protein
-                        final Collection<InteractorXref> isoformParents =
-                                AnnotatedObjectUtils.searchXrefs( isoform,
-                                        CvDatabase.INTACT_MI_REF,
-                                        CvXrefQualifier.ISOFORM_PARENT_MI_REF );
+                    ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
 
-                        remapTranscriptParent(originalProt, duplicate.getAc(), isoform, isoformParents, factory);
-                    }
-
-                    final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
-                    for ( ProteinImpl chain : proteinChains ) {
-                        // each chain should now point to the original protein
-                        final Collection<InteractorXref> chainParents =
-                                AnnotatedObjectUtils.searchXrefs(chain,
-                                        CvDatabase.INTACT_MI_REF,
-                                        CvXrefQualifier.CHAIN_PARENT_MI_REF );
-
-                        remapTranscriptParent(originalProt, duplicate.getAc(), chain, chainParents, factory);
-                    }
                     IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) duplicate);
 
                     // and delete the duplicate
@@ -512,36 +327,6 @@ public class DuplicatesFixer{
         IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) originalProt);
 
         return originalProt;
-    }
-
-
-
-    /**
-     * Remap the transcripts attached to this duplicate to the original protein
-     * @param originalProt
-     * @param transcript
-     * @param transcriptParents
-     */
-    protected void remapTranscriptParent(Protein originalProt, String duplicateAc, ProteinImpl transcript, Collection<InteractorXref> transcriptParents, DaoFactory factory) {
-
-        boolean hasRemappedParentAc = false;
-
-        for (InteractorXref xref : transcriptParents){
-
-            if (xref.getPrimaryId().equals(duplicateAc)){
-                xref.setPrimaryId( originalProt.getAc() );
-                factory.getXrefDao(InteractorXref.class).update(xref);
-//                        daoFactory.getXrefDao( InteractorXref.class ).update( xref );
-                log.debug( "Fixing transcript-parent Xref for transcript '"+ transcript.getShortLabel()+
-                        "' ("+ transcript.getAc()+") so that it points to the merges master protein '"+
-                        originalProt.getShortLabel() + "' (" + originalProt.getAc() + ")" );
-                break;
-            }
-        }
-
-        if (!hasRemappedParentAc){
-            log.error( "No isoform parent cross reference refers to the duplicate : " + duplicateAc );
-        }
     }
 
     /**

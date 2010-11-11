@@ -19,12 +19,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -51,7 +51,7 @@ public class ProtWithoutInteractionDeleter {
 
     private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleter.class );
 
-    private boolean deleteProteinTranscriptsWithoutInteractions;
+    private boolean deleteProteinTranscriptsWithoutInteractions = true;
 
     public boolean hasToBeDeleted(ProteinEvent evt) throws ProcessorException {
         final Protein protein = evt.getProtein();
@@ -124,12 +124,6 @@ public class ProtWithoutInteractionDeleter {
     public Set<Protein> collectProteinsWithoutInteractions(UpdateCaseEvent evt){
         Set<Protein> protToDelete = new HashSet<Protein>();
 
-        if (!evt.getPrimaryProteins().isEmpty()){
-            collectProteinsWithoutInteractionsFrom(evt.getPrimaryProteins(), protToDelete, evt);
-        }
-        if (!evt.getSecondaryProteins().isEmpty()){
-            collectProteinsWithoutInteractionsFrom(evt.getSecondaryProteins(), protToDelete, evt);
-        }
         if (!evt.getPrimaryIsoforms().isEmpty()){
             collectProteinsTranscriptsWithoutInteractionsFrom(evt.getPrimaryIsoforms(), protToDelete, evt);
         }
@@ -138,6 +132,12 @@ public class ProtWithoutInteractionDeleter {
         }
         if (!evt.getPrimaryFeatureChains().isEmpty()){
             collectProteinsTranscriptsWithoutInteractionsFrom(evt.getPrimaryFeatureChains(), protToDelete, evt);
+        }
+        if (!evt.getPrimaryProteins().isEmpty()){
+            collectProteinsWithoutInteractionsFrom(evt.getPrimaryProteins(), protToDelete, evt);
+        }
+        if (!evt.getSecondaryProteins().isEmpty()){
+            collectProteinsWithoutInteractionsFrom(evt.getSecondaryProteins(), protToDelete, evt);
         }
 
         return protToDelete;
@@ -177,13 +177,13 @@ public class ProtWithoutInteractionDeleter {
                         if (log.isDebugEnabled()) log.debug("Protein transcripts for protein '"+p.getShortLabel()+"' will be deleted: "+transcript.getAc());
                         protToDelete.add(transcript);
                         if (evt.getPrimaryIsoforms().contains(transcript)){
-                             evt.getPrimaryIsoforms().remove(transcript);
+                            evt.getPrimaryIsoforms().remove(transcript);
                         }
                         else if (evt.getSecondaryIsoforms().contains(transcript)){
-                             evt.getSecondaryIsoforms().remove(transcript);
+                            evt.getSecondaryIsoforms().remove(transcript);
                         }
                         else if (evt.getPrimaryFeatureChains().contains(transcript)){
-                             evt.getPrimaryFeatureChains().remove(transcript);
+                            evt.getPrimaryFeatureChains().remove(transcript);
                         }
                     } else {
                         hasProteinTranscriptAttached = true;
@@ -202,6 +202,7 @@ public class ProtWithoutInteractionDeleter {
     }
 
     private void collectProteinsTranscriptsWithoutInteractionsFrom(Collection<ProteinTranscript> protToInspect, Set<Protein> protToDelete, UpdateCaseEvent evt){
+        Collection<ProteinTranscript> transcriptToDelete = new ArrayList<ProteinTranscript>();
 
         for (ProteinTranscript p : protToInspect){
             if (p.getProtein().getAc() == null) {
@@ -220,10 +221,12 @@ public class ProtWithoutInteractionDeleter {
 
                     if (log.isDebugEnabled()) log.debug("Protein transcript will be deleted: "+p.getProtein().getAc());
                     protToDelete.add(p.getProtein());
+                    transcriptToDelete.add(p);
                 }
             }
         }
-        protToInspect.removeAll(protToDelete);
+
+        protToInspect.removeAll(transcriptToDelete);
     }
 
     /**

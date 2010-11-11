@@ -15,7 +15,6 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
@@ -28,16 +27,12 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.*;
-import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
@@ -386,13 +381,14 @@ public class UniprotProteinUpdater {
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains());
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, true);
 
+                ProteinTools.updateProteinTranscripts(evt.getDataContext().getDaoFactory(), protein, fixedProtein.getProtein());
+
                 evt.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
 
                 if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
                     processor.fireNonUniprotProteinFound(new ProteinEvent(evt.getSource(), evt.getDataContext(), fixedProtein.getProtein()));
                 }
                 else {
-
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
             }

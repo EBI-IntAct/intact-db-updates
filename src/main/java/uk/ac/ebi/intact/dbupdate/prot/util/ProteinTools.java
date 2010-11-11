@@ -4,7 +4,10 @@ import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 import java.util.*;
@@ -107,7 +110,7 @@ public class ProteinTools {
                     CvXrefQualifier qualifier = ref.getCvXrefQualifier();
                     if (qualifier != null){
                         if (qualifier.getIdentifier().equals(CvXrefQualifier.IDENTITY_MI_REF)){
-                            uniprotIdentities.add(ref);                             
+                            uniprotIdentities.add(ref);
                         }
                     }
                 }
@@ -160,6 +163,119 @@ public class ProteinTools {
             }
             else if (!ProteinTools.hasUniqueDistinctUniprotIdentity(protein)){
                 proteinIterator.remove();
+            }
+        }
+    }
+
+    public static void addIntactSecondaryReferences(Protein original, Protein duplicate, DaoFactory factory){
+        // create an "intact-secondary" xref to the protein to be kept.
+        // This will allow the user to search using old ACs
+        Institution owner = duplicate.getOwner();
+
+        // the database is always intact because the framework is the intact framework and when we merge two proteins of this framework, it becomes 'intact-secondary'
+        CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
+
+        if (db == null){
+            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
+            factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
+        }
+
+        final String intactSecondaryLabel = "intact-secondary";
+        boolean hasIntactSecondary = false;
+
+        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
+
+        if (intactSecondary == null) {
+            intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, null, intactSecondaryLabel);
+            factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(intactSecondary);
+        }
+
+        List<String> existingSecondaryAcs = new ArrayList<String>();
+
+        for (InteractorXref ref : original.getXrefs()){
+            if (ref.getCvDatabase() != null){
+                if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
+                    if (ref.getCvXrefQualifier() != null){
+                        if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
+                            if (ref.getPrimaryId().equals(duplicate.getAc())){
+                                hasIntactSecondary = true;
+                            }
+                            else {
+                                existingSecondaryAcs.add(ref.getPrimaryId());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!hasIntactSecondary){
+            InteractorXref xref = new InteractorXref(owner, db, duplicate.getAc(), intactSecondary);
+            factory.getXrefDao(InteractorXref.class).persist(xref);
+
+            original.addXref(xref);
+        }
+
+        if (!existingSecondaryAcs.isEmpty()){
+            Collection<InteractorXref> refsToRemove = new ArrayList<InteractorXref>();
+            for (InteractorXref ref : duplicate.getXrefs()){
+                if (ref.getCvDatabase() != null){
+                    if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
+                        if (ref.getCvXrefQualifier() != null){
+                            if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
+                                if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
+                                    original.addXref(ref);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            duplicate.getXrefs().removeAll(refsToRemove);
+        }
+    }
+
+    public static void updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
+        final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
+        for ( ProteinImpl isoform : isoforms ) {
+            // each isoform should now point to the original protein
+            final Collection<InteractorXref> isoformParents =
+                    AnnotatedObjectUtils.searchXrefs( isoform,
+                            CvDatabase.INTACT_MI_REF,
+                            CvXrefQualifier.ISOFORM_PARENT_MI_REF );
+
+            remapTranscriptParent(originalProt, duplicate.getAc(), isoform, isoformParents, factory);
+        }
+
+        final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
+        for ( ProteinImpl chain : proteinChains ) {
+            // each chain should now point to the original protein
+            final Collection<InteractorXref> chainParents =
+                    AnnotatedObjectUtils.searchXrefs(chain,
+                            CvDatabase.INTACT_MI_REF,
+                            CvXrefQualifier.CHAIN_PARENT_MI_REF );
+
+            remapTranscriptParent(originalProt, duplicate.getAc(), chain, chainParents, factory);
+        }
+    }
+
+    /**
+     * Remap the transcripts attached to this duplicate to the original protein
+     * @param originalProt
+     * @param transcript
+     * @param transcriptParents
+     */
+    private static void remapTranscriptParent(Protein originalProt, String duplicateAc, ProteinImpl transcript, Collection<InteractorXref> transcriptParents, DaoFactory factory) {
+
+        boolean hasRemappedParentAc = false;
+
+        for (InteractorXref xref : transcriptParents){
+
+            if (xref.getPrimaryId().equals(duplicateAc)){
+                xref.setPrimaryId( originalProt.getAc() );
+                factory.getXrefDao(InteractorXref.class).update(xref);
+                break;
             }
         }
     }

@@ -2,17 +2,14 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 import java.util.Collection;
@@ -78,7 +75,7 @@ public class ProteinUpdateFilter {
         return null;
     }
 
-    public void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent){
+    private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent){
         for (Iterator<? extends Protein> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             Protein protein = proteinIterator.next();
 
@@ -101,7 +98,7 @@ public class ProteinUpdateFilter {
         }
     }
 
-    public void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent){
+    private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent){
         for (Iterator<ProteinTranscript> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             ProteinTranscript t = proteinIterator.next();
             Protein protein = t.getProtein();

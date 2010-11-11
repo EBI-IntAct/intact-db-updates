@@ -8,10 +8,11 @@ import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.clone.IntactClonerException;
@@ -45,46 +46,6 @@ public class OutOfDateParticipantFixer {
 
         ProteinDao proteinDao = factory.getProteinDao();
         proteinDao.update((ProteinImpl)source);
-
-        // as the protein will be completely merged, an intact secondary reference is necessary
-        final String intactSecondaryLabel = "intact-secondary";
-        boolean hasIntactSecondary = false;
-        Institution owner = source.getOwner();
-
-        // the database is always intact because the framework is the intact framework and when we merge two proteins of this framework, it becomes 'intact-secondary'
-        CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
-
-        if (db == null){
-            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
-        }
-        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(intactSecondaryLabel);
-
-        if (intactSecondary == null) {
-            intactSecondary = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, CvDatabase.INTACT_MI_REF, intactSecondaryLabel);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(intactSecondary);
-        }
-
-        for (InteractorXref ref : existingProtein.getXrefs()){
-            if (ref.getCvDatabase() != null){
-                if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
-                    if (ref.getCvXrefQualifier() != null){
-                        if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel) && ref.getPrimaryId().equals(source.getAc())){
-                            hasIntactSecondary = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!hasIntactSecondary){
-            InteractorXref xref = new InteractorXref(owner, db, source.getAc(), intactSecondary);
-            factory.getXrefDao(InteractorXref.class).persist(xref);
-
-            existingProtein.addXref(xref);
-            log.debug( "Adding 'intact-secondary' Xref to protein '"+ existingProtein.getShortLabel() +"' ("+existingProtein.getAc()+"): " + source.getAc() );
-        }
-
         proteinDao.update((ProteinImpl)existingProtein);
     }
 
