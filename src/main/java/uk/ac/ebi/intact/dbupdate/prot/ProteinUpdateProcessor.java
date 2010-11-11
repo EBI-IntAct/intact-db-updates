@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
+import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 import uk.ac.ebi.intact.model.meta.DbInfo;
@@ -37,7 +38,6 @@ import java.util.Date;
 public class ProteinUpdateProcessor extends ProteinProcessor {
 
     private static final Log log = LogFactory.getLog( ProteinUpdateProcessor.class );
-
 
     public ProteinUpdateProcessor(){
         super();
@@ -87,45 +87,16 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         
         addListener(new LoggingProcessorListener());
-        addListener(new UniprotUpdateFilterListener());
-        addListener(new UniprotProteinRetrieverListener(config.getUniprotService()));
         if (config.isProcessProteinNotFoundInUniprot()){
             DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
             addListener(deadUniprotListener);
         }
-        addListener(new UniprotPrimaryAcUpdater());
-
-        boolean forceDeleteOfProteins = false;
-
-        if (config.isFixDuplicates()) {
-            addListener(new DuplicatesFinder());
-            addListener(new DuplicatesFixer());
-            forceDeleteOfProteins = true;
-        }
-
-        addListener(new OutOfDateParticipantFixer());
-
-        if (config.isDeleteProtsWithoutInteractions()) {
-            ProtWithoutInteractionDeleter deleter = new ProtWithoutInteractionDeleter();
-            deleter.setDeleteProteinTranscriptsWithoutInteractions(config.isDeleteProteinTranscriptWithoutInteractions());
-            addListener(deleter);
-            forceDeleteOfProteins = true;
-        }
-
-        if (forceDeleteOfProteins) {
-            addListener(new ProteinDeleter());
-        }
-
-        UniprotProteinUpdater updater = new UniprotProteinUpdater(config.getTaxonomyService());
-
-        addListener(updater);
 
         if (config.getReportHandler() != null) {
             addListener(new ReportWriterListener(config.getReportHandler()));
         }
 
         addListener(new SequenceChangedListener());
-        addListener(new RangeFixer());
     }
 
     public void fireOnDelete(ProteinEvent evt) {

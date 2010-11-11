@@ -1,11 +1,14 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinTranscript;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * TODO comment this
@@ -15,16 +18,19 @@ import java.util.Collection;
  * @since <pre>29-Oct-2010</pre>
  */
 
-public class OutOfDateParticipantFoundEvent extends ProteinEvent{
-    Collection<Component> componentsToFix = new ArrayList<Component>();
+public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
+    private Collection<Component> componentsToFix = new ArrayList<Component>();
+    private Protein proteinWithConflicts;
 
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, Collection<Component> components) {
-        super(source, dataContext, protein);
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Collection<Component> components, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains) {
+        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
         this.componentsToFix = components;
+        this.proteinWithConflicts = protein;
     }
 
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein) {
-        super(source, dataContext, protein);
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains) {
+        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
+        this.proteinWithConflicts = protein;
     }
 
     public Collection<Component> getComponentsToFix() {
@@ -33,5 +39,9 @@ public class OutOfDateParticipantFoundEvent extends ProteinEvent{
 
     public void addComponentToFix(Component component){
         this.componentsToFix.add(component);
+    }
+
+    public Protein getProteinWithConflicts() {
+        return proteinWithConflicts;
     }
 }

@@ -27,17 +27,9 @@ import uk.ac.ebi.intact.dbupdate.prot.event.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class LoggingProcessorListener implements ProteinProcessorListener, ProteinUpdateProcessorListener {
+public class LoggingProcessorListener implements ProteinUpdateProcessorListener {
 
     private static final Log log = LogFactory.getLog( LoggingProcessorListener.class );
-
-    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Pre-processing protein: "+evt.getProtein().getShortLabel());
-    }
-
-    public void onProcess(ProteinEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Processing protein: "+evt.getProtein().getShortLabel());
-    }
 
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Deleted protein: "+evt.getProtein().getShortLabel());
@@ -79,7 +71,7 @@ public class LoggingProcessorListener implements ProteinProcessorListener, Prote
     }
 
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Protein " + evt.getProtein().getAc() + " will be demerged because some features attached to this protein are invalid with the new protein sequence.");
+        if (log.isDebugEnabled()) log.debug("Protein " + evt.getProteinWithConflicts().getAc() + " will be demerged because some features attached to this protein are invalid with the new protein sequence.");
     }
 
     public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException {

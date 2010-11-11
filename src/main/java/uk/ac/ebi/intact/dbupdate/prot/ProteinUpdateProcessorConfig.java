@@ -46,7 +46,7 @@ public class ProteinUpdateProcessorConfig {
     /**
      * If true, will delete any protein transcript not involved in interactions.
      */
-    private boolean deleteProteinTranscriptWithoutInteractions = false;
+    private boolean deleteProteinTranscriptWithoutInteractions = true;
 
     /**
      * If true, will put all the proteins we cannot retrieve in uniprot as dead protein, remove all the cross references which are not from intact.

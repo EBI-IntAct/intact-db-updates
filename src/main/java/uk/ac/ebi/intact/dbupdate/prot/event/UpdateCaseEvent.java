@@ -16,6 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinTranscript;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
@@ -33,8 +34,11 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     private UniprotProtein protein;
     private DataContext dataContext;
-    private Collection<? extends Protein> primaryProteins;
-    private Collection<? extends Protein> secondaryProteins;
+    private Collection<Protein> primaryProteins;
+    private Collection<Protein> secondaryProteins;
+    private Collection<ProteinTranscript> primaryIsoforms;
+    private Collection<ProteinTranscript> secondaryIsoforms;
+    private Collection<ProteinTranscript> primaryFeatureChains;
 
     private UniprotServiceResult uniprotServiceResult;
 
@@ -48,13 +52,19 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
      */
     public UpdateCaseEvent(Object source, DataContext dataContext,
                            UniprotProtein protein,
-                           Collection<? extends Protein> primaryProteins,
-                           Collection<? extends Protein> secondaryProteins) {
+                           Collection<Protein> primaryProteins,
+                           Collection<Protein> secondaryProteins,
+                           Collection<ProteinTranscript> primaryIsoforms,
+                           Collection<ProteinTranscript> secondaryIsoforms,
+                           Collection<ProteinTranscript> primaryFeatureChains) {
         super(source);
         this.protein = protein;
         this.dataContext = dataContext;
         this.primaryProteins = primaryProteins;
         this.secondaryProteins = secondaryProteins;
+        this.primaryIsoforms = primaryIsoforms;
+        this.secondaryIsoforms = secondaryIsoforms;
+        this.primaryFeatureChains = primaryFeatureChains;
     }
 
     public DataContext getDataContext() {
@@ -65,11 +75,11 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
         return protein;
     }
 
-    public Collection<? extends Protein> getPrimaryProteins() {
+    public Collection<Protein> getPrimaryProteins() {
         return primaryProteins;
     }
 
-    public Collection<? extends Protein> getSecondaryProteins() {
+    public Collection<Protein> getSecondaryProteins() {
         return secondaryProteins;
     }
 
@@ -79,5 +89,37 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     public void setUniprotServiceResult(UniprotServiceResult uniprotServiceResult) {
         this.uniprotServiceResult = uniprotServiceResult;
+    }
+
+    public void setPrimaryProteins(Collection<Protein> primaryProteins) {
+        this.primaryProteins = primaryProteins;
+    }
+
+    public void setSecondaryProteins(Collection<Protein> secondaryProteins) {
+        this.secondaryProteins = secondaryProteins;
+    }
+
+    public void setPrimaryIsoforms(Collection<ProteinTranscript> primaryIsoforms) {
+        this.primaryIsoforms = primaryIsoforms;
+    }
+
+    public void setSecondaryIsoforms(Collection<ProteinTranscript> secondaryIsoforms) {
+        this.secondaryIsoforms = secondaryIsoforms;
+    }
+
+    public void setPrimaryFeatureChains(Collection<ProteinTranscript> primaryFeatureChains) {
+        this.primaryFeatureChains = primaryFeatureChains;
+    }
+
+    public Collection<ProteinTranscript> getSecondaryIsoforms() {
+        return secondaryIsoforms;
+    }
+
+    public Collection<ProteinTranscript> getPrimaryIsoforms() {
+        return primaryIsoforms;
+    }
+
+    public Collection<ProteinTranscript> getPrimaryFeatureChains() {
+        return primaryFeatureChains;
     }
 }

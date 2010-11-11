@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.listener;
+package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -41,13 +42,28 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
+public class DuplicatesFixer{
 
     private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
+    private ProteinDeleter proteinDeleter;
+    private OutOfDateParticipantFixer deprecatedParticipantFixer;
+    private RangeFixer rangeFixer;
 
-    @Override
-    public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
-        mergeDuplicates(evt.getProteins(), evt);
+    public DuplicatesFixer(){
+        proteinDeleter = new ProteinDeleter();
+        deprecatedParticipantFixer = new OutOfDateParticipantFixer();
+        this.rangeFixer = new RangeFixer();
+    }
+
+    public DuplicateReport fixProteinDuplicates(DuplicatesFoundEvent evt) throws ProcessorException {
+        DuplicateReport report = mergeDuplicates(evt.getProteins(), evt);
+
+        if (evt.getSource() instanceof ProteinUpdateProcessor) {
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnProteinDuplicationFound(evt);
+        }
+
+        return report;
     }
 
     /**
@@ -55,13 +71,14 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
      * @param duplicates
      * @param evt
      */
-    public void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
+    public DuplicateReport mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // add the interactions from the duplicated proteins to the protein
         // that was created first in the database
         List<Protein> duplicatesAsList = new ArrayList<Protein>(duplicates);
 
+        DuplicateReport report = new DuplicateReport();
 
         // the collection which will contain the duplicates
         List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>();
@@ -103,7 +120,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
             // if we have more than two proteins in the duplicate list having the exact same sequence, we merge them
             if (duplicatesHavingSameSequence.size() > 1){
-                duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt, false));
+                duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt, false, report));
             }
             else{
                 duplicatesHavingDifferentSequence.addAll(duplicatesHavingSameSequence);
@@ -123,18 +140,19 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                 // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
                 for (Protein p : duplicatesHavingDifferentSequence){
-                    Collection<Component> componentWithRangeConflicts = collectComponentsWithFeatureConflicts(p, evt.getUniprotSequence(), evt);
+                    Collection<Component> componentWithRangeConflicts = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource());
 
                     if (!componentWithRangeConflicts.isEmpty()){
                         log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
                         proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
+                        report.getComponentsWithFeatureConflicts().put(p, componentWithRangeConflicts);
                     }
                 }
 
                 // we merge the proteins taking into account the possible feature conflicts
-                Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt, true);
+                Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt, true, report);
                 log.info( "The protein " + finalProt.getAc() + "has been kept as original protein.");
-
+                report.setOriginalProtein(finalProt);
             }
             // we cannot merge because we don't have a uniprot sequence as reference for range shifting
             else {
@@ -144,7 +162,11 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                 }
                 log.error("It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
             }
+        }else if (duplicatesHavingDifferentSequence.size() == 1){
+            report.setOriginalProtein(duplicatesHavingDifferentSequence.iterator().next());
         }
+
+        return report;
     }
 
     /**
@@ -242,64 +264,10 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
     }
 
     /**
-     * add a caution and 'no-uniprot-update' to the protein
-     * @param protein : the duplicate with range conflicts
-     * @param previousAc : the original protein to keep
-     */
-    private void addAnnotationsForBadParticipant(Protein protein, String previousAc, DaoFactory factory){
-
-        CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
-
-        if (no_uniprot_update == null){
-            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
-            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(no_uniprot_update);
-        }
-        CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
-
-        if (caution == null) {
-            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(caution);
-        }
-
-        boolean has_no_uniprot_update = false;
-        boolean has_caution = false;
-        String cautionMessage = "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).";
-
-        for (Annotation annotation : protein.getAnnotations()){
-            if (no_uniprot_update.equals(annotation.getCvTopic())){
-                has_no_uniprot_update = true;
-            }
-            else if (caution.equals(annotation.getCvTopic())){
-                if (annotation.getAnnotationText() != null){
-                    if (annotation.getAnnotationText().equalsIgnoreCase(cautionMessage)){
-                        has_caution = true;
-                    }
-                }
-            }
-        }
-
-        AnnotationDao annotationDao = factory.getAnnotationDao();
-
-        if (!has_no_uniprot_update){
-            Annotation no_uniprot = new Annotation(no_uniprot_update, null);
-            annotationDao.persist(no_uniprot);
-
-            protein.addAnnotation(no_uniprot);
-        }
-
-        if (!has_caution){
-            Annotation demerge = new Annotation(caution, "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).");
-            annotationDao.persist(demerge);
-
-            protein.addAnnotation(demerge);
-        }
-    }
-
-    /**
      * Merge tha duplicates, the interactions are moved (not the cross references as they will be deleted)
      * @param duplicates
      */
-    protected Protein merge(List<Protein> duplicates, Map<String, Collection<Component>> proteinsNeedingPartialMerge, DuplicatesFoundEvent evt, boolean isSequenceChanged) {
+    protected Protein merge(List<Protein> duplicates, Map<String, Collection<Component>> proteinsNeedingPartialMerge, DuplicatesFoundEvent evt, boolean isSequenceChanged, DuplicateReport report) {
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
         // calculate the original protein
@@ -384,7 +352,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                     // and delete the duplicate
                     if (duplicate.getActiveInstances().isEmpty()) {
-                        deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
+                        deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
                     }
                 }
             }
@@ -395,14 +363,13 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
             // move the interactions from the rest of proteins to the original
             for (Protein duplicate : duplicates) {
+                String sequence = duplicate.getSequence();
 
                 // don't process the original protein with itself
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
                     // we have feature conflicts for this protein which cannot be merged
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
-                        addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), evt.getDataContext().getDaoFactory());
-
                         // components to let on the current protein
                         Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
                         // components without conflicts to move on the original protein
@@ -416,6 +383,10 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                         }
 
                         factory.getProteinDao().update((ProteinImpl) duplicate);
+
+                        // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
+                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
+
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
@@ -428,7 +399,7 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                         CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
                         if (db == null){
-                            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
+                            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
                             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
                         }
 
@@ -462,6 +433,22 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
                             originalProt.addXref(xref);
                             log.debug( "Adding 'intact-secondary' Xref to protein '"+ originalProt.getShortLabel() +"' ("+originalProt.getAc()+"): " + duplicate.getAc() );
                         }
+
+                        // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
+                        if (isSequenceChanged(sequence, evt.getUniprotSequence())){
+                            log.debug( "sequence of "+duplicate.getAc()+" requires update." );
+                            duplicate.setSequence( evt.getUniprotSequence() );
+
+                            // CRC64
+                            String crc64 = evt.getUniprotCrc64();
+                            if ( duplicate.getCrc64() == null || !duplicate.getCrc64().equals( crc64 ) ) {
+                                log.debug( "CRC64 requires update." );
+                                duplicate.setCrc64( crc64 );
+                            }
+
+                            factory.getProteinDao().update((ProteinImpl) duplicate);
+                            processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
+                        }
                     }
 
                     // update isoforms and feature chains
@@ -490,22 +477,21 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                     // and delete the duplicate
                     if (duplicate.getActiveInstances().isEmpty()) {
-                        deleteProtein(duplicate, new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
+                        deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
                     }
                 }
                 else {
                     // if the original protein contains range conflict, we need to demerge it to keep the bad ranges attached to a no-uniprot-update protein
                     if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
+                        Collection<Component> componentsToFix = proteinsNeedingPartialMerge.get(originalProt.getAc());
+                        report.getComponentsWithFeatureConflicts().remove(originalProt);
 
-                        processor.fireOnOutOfDateParticipantFound(new OutOfDateParticipantFoundEvent(processor, IntactContext.getCurrentInstance().getDataContext(), originalProt, proteinsNeedingPartialMerge.get(originalProt.getAc())));
+                        Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST), true).getProtein();
+                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, protWithRangeConflicts.getActiveInstances());
                     }
-                }
 
-                String sequence = duplicate.getSequence();
-
-                // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                if (isSequenceChanged(sequence, evt.getUniprotSequence())){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                    // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
+                    if (isSequenceChanged(sequence, evt.getUniprotSequence())){
                         log.debug( "sequence of "+duplicate.getAc()+" requires update." );
                         duplicate.setSequence( evt.getUniprotSequence() );
 
@@ -518,9 +504,6 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
                         factory.getProteinDao().update((ProteinImpl) duplicate);
                         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
-                    }
-                    else {
-                        throw new ProcessorException("");
                     }
                 }
             }
@@ -601,11 +584,9 @@ public class DuplicatesFixer extends AbstractProteinUpdateProcessorListener {
 
     /**
      * Fire a delete event for this protein
-     * @param protein
      * @param evt
      */
-    private void deleteProtein(Protein protein, ProteinEvent evt) {
-        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-        processor.fireOnDelete(new ProteinEvent(evt.getSource(), evt.getDataContext(), protein, evt.getMessage()));
+    private void deleteProtein(ProteinEvent evt) {
+        proteinDeleter.delete(evt);
     }
 }

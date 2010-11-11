@@ -25,15 +25,7 @@ import uk.ac.ebi.intact.model.Protein;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public abstract class AbstractProteinUpdateProcessorListener implements ProteinProcessorListener, ProteinUpdateProcessorListener {
-
-    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-        // nothing
-    }
-
-    public void onProcess(ProteinEvent evt) throws ProcessorException {
-        // nothing
-    }
+public abstract class AbstractProteinUpdateProcessorListener implements ProteinUpdateProcessorListener {
 
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         // nothing

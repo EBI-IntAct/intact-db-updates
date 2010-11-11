@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.ac.ebi.intact.dbupdate.prot.listener;
+package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 
@@ -30,13 +32,17 @@ import uk.ac.ebi.intact.model.ProteinImpl;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
+public class ProteinDeleter{
 
     private static final Log log = LogFactory.getLog( ProteinDeleter.class );
 
-    @Override
-    public void onDelete(ProteinEvent evt) throws ProcessorException {
-        deleteProtein(evt.getProtein(), evt);
+    public void delete(ProteinEvent evt) throws ProcessorException {
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), evt.getProtein(), evt.getMessage()));
+        }
+
+        deleteProtein(evt.getProtein(), evt);        
     }
 
     /**
@@ -45,8 +51,8 @@ public class ProteinDeleter extends AbstractProteinUpdateProcessorListener {
      * @param evt
      */
     private void deleteProtein(Protein protein, ProteinEvent evt) {
-        if (log.isDebugEnabled()) log.debug("Deleting protein: "+protInfo(protein));
-        
+        if (log.isDebugEnabled()) log.debug("Deleting protein: "+protein.getAc());
+
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
         if (protein.getAc() != null) {

@@ -6,12 +6,13 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 
 /**
- * Tester of the UniprotUpdateFilterListener
+ * Tester of the ProteinUpdateFilter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -39,8 +40,8 @@ public class UniprotUpdateFilterListenerTest  extends IntactBasicTestCase {
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         Assert.assertNull(evt.getUniprotIdentity());
 
-        UniprotUpdateFilterListener listener = new UniprotUpdateFilterListener();
-        listener.onPreProcess(evt);
+        ProteinUpdateFilter listener = new ProteinUpdateFilter();
+        listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(evt.getUniprotIdentity());
         Assert.assertTrue(processor.isFinalizationRequested());
@@ -62,8 +63,8 @@ public class UniprotUpdateFilterListenerTest  extends IntactBasicTestCase {
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         Assert.assertNull(evt.getUniprotIdentity());
 
-        UniprotUpdateFilterListener listener = new UniprotUpdateFilterListener();
-        listener.onPreProcess(evt);
+        ProteinUpdateFilter listener = new ProteinUpdateFilter();
+        listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(evt.getUniprotIdentity());
         Assert.assertTrue(processor.isFinalizationRequested());
@@ -85,8 +86,8 @@ public class UniprotUpdateFilterListenerTest  extends IntactBasicTestCase {
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         Assert.assertNull(evt.getUniprotIdentity());
 
-        UniprotUpdateFilterListener listener = new UniprotUpdateFilterListener();
-        listener.onPreProcess(evt);
+        ProteinUpdateFilter listener = new ProteinUpdateFilter();
+        listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(evt.getUniprotIdentity());
         Assert.assertTrue(processor.isFinalizationRequested());
@@ -105,8 +106,8 @@ public class UniprotUpdateFilterListenerTest  extends IntactBasicTestCase {
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         Assert.assertNull(evt.getUniprotIdentity());
 
-        UniprotUpdateFilterListener listener = new UniprotUpdateFilterListener();
-        listener.onPreProcess(evt);
+        ProteinUpdateFilter listener = new ProteinUpdateFilter();
+        listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNotNull(evt.getUniprotIdentity());
         Assert.assertEquals(prot.getXrefs().iterator().next().getPrimaryId(), evt.getUniprotIdentity());
