@@ -1,10 +1,9 @@
 package uk.ac.ebi.intact.update.model.proteinupdate.protein;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * TODO comment this
@@ -20,16 +19,20 @@ public class UpdateError extends HibernatePersistentImpl{
     private String type;
     private String message;
 
+    private ProteinEvent updateEvent;
+
     public UpdateError(){
         super();
         this.type = null;
         this.message = null;
+        this.updateEvent = null;
     }
 
     public UpdateError(String type, String message){
         super();
         this.type = type;
         this.message = message;
+        this.updateEvent = null;
     }
 
     @Column(name = "message")
@@ -48,5 +51,15 @@ public class UpdateError extends HibernatePersistentImpl{
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @ManyToOne
+    @JoinColumn( name = "protein_event_id", nullable = false)
+    public ProteinEvent getUpdateEvent() {
+        return updateEvent;
+    }
+
+    public void setUpdateEvent(ProteinEvent updateEvent) {
+        this.updateEvent = updateEvent;
     }
 }

@@ -20,16 +20,19 @@ import java.util.Date;
 public class ProteinEvent extends HibernatePersistentImpl {
 
     EventName name;
+    int index;
 
     public ProteinEvent(){
         super();
         this.name = EventName.uniprot_update;
+        this.index = 0;
     }
 
-    public ProteinEvent(EventName name, Date created){
+    public ProteinEvent(EventName name, Date created, int index){
         super();
         this.name = name;
         setCreated(created);
+        this.index = index;
     }
 
     @Column(name = "name", nullable = false)
@@ -40,5 +43,14 @@ public class ProteinEvent extends HibernatePersistentImpl {
 
     public void setName(EventName name) {
         this.name = name;
+    }
+
+    @Column(name = "index", nullable = false)
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 }

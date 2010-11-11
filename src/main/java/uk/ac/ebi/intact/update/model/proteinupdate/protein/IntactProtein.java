@@ -142,8 +142,8 @@ public class IntactProtein extends HibernatePersistentImpl {
     }
 
     @ElementCollection
-    @JoinTable(name = "ia_duplicated2interactions", joinColumns = @JoinColumn(name="duplicated_id"))
-    @Column(name = "protein_interactions", nullable = false)
+    @JoinTable(name = "ia_protein2interactions", joinColumns = @JoinColumn(name="intact_protein_id"))
+    @Column(name = "protein_interaction", nullable = false)
     public Collection<String> getInteractions() {
         return interactions;
     }

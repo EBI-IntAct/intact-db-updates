@@ -26,8 +26,8 @@ public class SequenceUpdateEvent extends ProteinEvent {
         this.relativeConservation = 0;
     }
 
-    public SequenceUpdateEvent(String newSequence, double relativeConservation, EventName name, Date created){
-        super(name, created);
+    public SequenceUpdateEvent(String newSequence, double relativeConservation, EventName name, Date created, int index){
+        super(name, created, index);
         this.newSequence = newSequence;
         this.relativeConservation = relativeConservation;
     }

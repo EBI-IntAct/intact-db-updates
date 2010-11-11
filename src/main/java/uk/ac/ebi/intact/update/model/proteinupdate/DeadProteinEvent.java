@@ -4,6 +4,7 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.Annotation;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.CrossReference;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
+import uk.ac.ebi.intact.update.model.proteinupdate.protein.XRefUpdateEvent;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ import java.util.Date;
 @Entity
 @DiscriminatorValue("DeadProteinEvent")
 @Table(name = "ia_dead_protein_event")
-public class DeadProteinEvent extends UniprotUpdateEvent{
+public class DeadProteinEvent extends XRefUpdateEvent{
 
     private Collection<Annotation> addedAnnotations;
 
@@ -32,15 +33,15 @@ public class DeadProteinEvent extends UniprotUpdateEvent{
         this.uniprotReference = null;
     }
 
-    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created){
-        super(deletedRefs, addedRefs, intactProtein, created);
+    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created, int index){
+        super(deletedRefs, addedRefs, intactProtein, EventName.dead_protein, created, index);
         setAddedAnnotationsFromInteractor(addedAnnotations);
         setUniprotReference(uniprotRef);
     }
 
     @OneToMany
     @JoinTable(
-            name = "ia_deadprotein2createdannot",
+            name = "ia_deadevent2createdannot",
             joinColumns = {@JoinColumn( name = "dead_event_id" )},
             inverseJoinColumns = {@JoinColumn( name = "created_annotation_id" )}
     )
