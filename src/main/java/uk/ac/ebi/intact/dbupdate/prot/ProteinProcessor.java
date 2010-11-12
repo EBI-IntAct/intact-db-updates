@@ -266,24 +266,13 @@ public abstract class ProteinProcessor {
                     // filter on the proteins matching a single uniprot protein
                     uniprotRetriever.filterAllSecondaryProteinsPossibleToUpdate(caseEvent);
 
+                    // secondary acs
                     if (!caseEvent.getSecondaryProteins().isEmpty() || !caseEvent.getSecondaryIsoforms().isEmpty()){
-                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                            processor.fireOnSecondaryAcsFound(caseEvent);
-                        }
+                        uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
                     }
 
                     // the master protein in IntAct
                     Protein masterProtein = null;
-
-                    // update master protein first
-                    // if there are secondary proteins,update their uniprot ac
-                    if (!caseEvent.getSecondaryProteins().isEmpty()){
-
-                        if (log.isTraceEnabled()) log.trace("Update the uniprot identity of " + caseEvent.getSecondaryProteins().size() + "secondary proteins" );
-
-                        uniprotIdentityUpdater.updateSecondaryAcsForProteins(caseEvent);
-                    }
 
                     // if there are some duplicates and we can fix them, merge them
                     if (caseEvent.getPrimaryProteins().size() > 1){
@@ -352,6 +341,7 @@ public abstract class ProteinProcessor {
                                             }
 
                                             if (entry.getKey().getActiveInstances().isEmpty()){
+                                                ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                                                 proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey()));
                                             }
                                         }
@@ -369,6 +359,7 @@ public abstract class ProteinProcessor {
                     }
 
                     try {
+                        // update master protein first
                         // update the protein
                         updater.createOrUpdateProtein(caseEvent);
                     } catch (ProteinServiceException e) {
@@ -376,13 +367,6 @@ public abstract class ProteinProcessor {
                     }
 
                     // update isoforms
-                    // secondary isoforms to update
-                    if (!caseEvent.getSecondaryIsoforms().isEmpty()){
-                        if (log.isTraceEnabled()) log.trace("Update the uniprot identity of " + caseEvent.getSecondaryIsoforms().size() + "secondary proteins (isoforms)" );
-
-                        uniprotIdentityUpdater.updateSecondaryAcsForIsoforms(caseEvent);
-                    }
-
                     //isoform duplicates to merge
                     if (caseEvent.getPrimaryIsoforms().size() > 1){
                         if (config.isFixDuplicates()){
@@ -465,6 +449,7 @@ public abstract class ProteinProcessor {
                                             }
 
                                             if (entry.getKey().getActiveInstances().isEmpty()){
+                                                ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                                                 proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey()));
                                             }
                                         }
@@ -560,6 +545,7 @@ public abstract class ProteinProcessor {
                                             }
 
                                             if (entry.getKey().getActiveInstances().isEmpty()){
+                                                ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                                                 proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey()));
                                             }
                                         }

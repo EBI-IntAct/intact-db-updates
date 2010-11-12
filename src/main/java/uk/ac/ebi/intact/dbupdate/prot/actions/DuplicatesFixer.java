@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
@@ -195,6 +196,60 @@ public class DuplicatesFixer{
     }
 
     /**
+     * add a caution and 'no-uniprot-update' to the protein
+     * @param protein : the duplicate with range conflicts
+     * @param previousAc : the original protein to keep
+     */
+    private void addAnnotationsForBadParticipant(Protein protein, String previousAc, DaoFactory factory){
+
+        CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
+
+        if (no_uniprot_update == null){
+            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(no_uniprot_update);
+        }
+        CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+
+        if (caution == null) {
+            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(caution);
+        }
+
+        boolean has_no_uniprot_update = false;
+        boolean has_caution = false;
+        String cautionMessage = "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).";
+
+        for (Annotation annotation : protein.getAnnotations()){
+            if (no_uniprot_update.equals(annotation.getCvTopic())){
+                has_no_uniprot_update = true;
+            }
+            else if (caution.equals(annotation.getCvTopic())){
+                if (annotation.getAnnotationText() != null){
+                    if (annotation.getAnnotationText().equalsIgnoreCase(cautionMessage)){
+                        has_caution = true;
+                    }
+                }
+            }
+        }
+
+        AnnotationDao annotationDao = factory.getAnnotationDao();
+
+        if (!has_no_uniprot_update){
+            Annotation no_uniprot = new Annotation(no_uniprot_update, null);
+            annotationDao.persist(no_uniprot);
+
+            protein.addAnnotation(no_uniprot);
+        }
+
+        if (!has_caution){
+            Annotation demerge = new Annotation(caution, "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).");
+            annotationDao.persist(demerge);
+
+            protein.addAnnotation(demerge);
+        }
+    }
+
+    /**
      * Merge tha duplicates, the interactions are moved (not the cross references as they will be deleted)
      * @param duplicates
      */
@@ -245,6 +300,7 @@ public class DuplicatesFixer{
 
                     // we have feature conflicts for this protein which cannot be merged
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
+                        addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
                         Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
                         // components without conflicts to move on the original protein

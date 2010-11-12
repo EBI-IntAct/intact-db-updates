@@ -275,10 +275,13 @@ public class UniprotProteinRetriever {
                             }
                             secondaryAcToRemove.add(prot);
                         }
-                        else if (proteinsWithSameTaxId.size() == 1){
+                        else if (!uniprotProtein.equals(proteinsWithSameTaxId.iterator().next())){
                             secondaryAcToRemove.add(prot);
                         }
                     }
+                }
+                else if (!uniprotProtein.equals(uniprotProteins.iterator().next())){
+                    secondaryAcToRemove.add(prot);
                 }
             }
         }
@@ -290,11 +293,11 @@ public class UniprotProteinRetriever {
         UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
 
-        Collection<Protein> secondaryAcToRemove = new ArrayList<Protein>();
+        Collection<ProteinTranscript> secondaryAcToRemove = new ArrayList<ProteinTranscript>();
 
         for (ProteinTranscript protTrans : secondaryProteins){
             Protein prot = protTrans.getProtein();
-            
+
             InteractorXref primary = ProteinUtils.getUniprotXref(prot);
 
             String primaryAc = primary.getPrimaryId();
@@ -309,7 +312,7 @@ public class UniprotProteinRetriever {
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                         updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac));
                     }
-                    secondaryAcToRemove.add(prot);
+                    secondaryAcToRemove.add(protTrans);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -331,7 +334,12 @@ public class UniprotProteinRetriever {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                                 updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim));
                             }
-                            secondaryAcToRemove.add(prot);
+                            secondaryAcToRemove.add(protTrans);
+                        }
+                        else if (proteinsWithSameBaseUniprotAc.size() == 1){
+                            if (!uniprotProtein.equals(proteinsWithSameBaseUniprotAc.iterator().next())){
+                                secondaryAcToRemove.add(protTrans);
+                            }
                         }
 
                     } else {
@@ -367,22 +375,30 @@ public class UniprotProteinRetriever {
                             }
 
                             if (proteinsWithSameBaseUniprotAc.size() != 1){
-                                secondaryAcToRemove.add(prot);
+                                if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms));
+                                }
+                                secondaryAcToRemove.add(protTrans);
                             }
                             else if (proteinsWithSameBaseUniprotAc.size() == 1){
                                 if (!uniprotProtein.equals(proteinsWithSameBaseUniprotAc.iterator().next())){
-                                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                        updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms));
-                                    }
-                                    secondaryAcToRemove.add(prot);
+                                    secondaryAcToRemove.add(protTrans);
                                 }
+                            }
+                        }
+                        else if (proteinsWithSameTaxId.size() == 1){
+                            if (!uniprotProtein.equals(proteinsWithSameTaxId.iterator().next())){
+                                secondaryAcToRemove.add(protTrans);
                             }
                         }
                     }
                 }
+                else if (!uniprotProtein.equals(uniprotProteins.iterator().next())){
+                    secondaryAcToRemove.add(protTrans);
+                }
             }
         }
-        evt.getSecondaryProteins().removeAll(secondaryAcToRemove);
+        evt.getSecondaryIsoforms().removeAll(secondaryAcToRemove);
     }
 }

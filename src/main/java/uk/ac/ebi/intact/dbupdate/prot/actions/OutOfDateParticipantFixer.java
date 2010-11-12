@@ -55,6 +55,9 @@ public class OutOfDateParticipantFixer {
             Protein spliceIntact = cloner.clone(proteinWithConflicts);
             InteractorXref identity = ProteinUtils.getUniprotXref(spliceIntact);
             identity.setPrimaryId(spliceVariant.getPrimaryAc());
+            spliceIntact.getAnnotations().clear();
+            spliceIntact.getXrefs().clear();
+            spliceIntact.addXref(identity);
 
             Institution owner = spliceIntact.getOwner();
             CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
@@ -104,6 +107,9 @@ public class OutOfDateParticipantFixer {
             Protein chainIntact = cloner.clone(proteinWithConflicts);
             InteractorXref identity = ProteinUtils.getUniprotXref(chainIntact);
             identity.setPrimaryId(featureChain.getPrimaryAc());
+            chainIntact.getAnnotations().clear();
+            chainIntact.getXrefs().clear();
+            chainIntact.addXref(identity);
 
             Institution owner = chainIntact.getOwner();
             CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );

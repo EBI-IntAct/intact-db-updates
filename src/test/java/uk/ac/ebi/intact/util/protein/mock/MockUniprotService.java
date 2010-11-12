@@ -47,6 +47,7 @@ public class MockUniprotService extends AbstractUniprotService {
 
         proteins.put( "P00012", Arrays.asList( cdc42human, cdc42human ) );
         proteins.put( "P00012-1", Arrays.asList( cdc42human, cdc42human ) );
+        proteins.put( "P00012-2", Arrays.asList( cdc42canfa, cdc42canfa ) );
     }
 
     ////////////////////////////

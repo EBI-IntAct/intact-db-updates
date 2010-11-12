@@ -106,7 +106,11 @@ public class UniprotIdentityUpdater {
                 for (Protein variant : spliceVariants){
                     InteractorXref uniprotId = ProteinUtils.getUniprotXref(variant);
 
-                    if (uniprotId != null){
+                    if (!ProteinUtils.isFromUniprot(variant)){
+                        primaryIsoforms.add(new ProteinTranscript(variant, null));
+                        evt.getUniprotServiceResult().getProteins().add(variant);
+                    }
+                    else if (uniprotId != null){
                         boolean hasFoundAc = false;
 
                         for (UniprotSpliceVariant sv : variants){
@@ -130,10 +134,6 @@ public class UniprotIdentityUpdater {
                                 updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript));
                             }
                         }
-                    }
-                    else if (!ProteinUtils.isFromUniprot(variant)){
-                        primaryIsoforms.add(new ProteinTranscript(variant, null));
-                        evt.getUniprotServiceResult().getProteins().add(variant);
                     }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
@@ -167,7 +167,11 @@ public class UniprotIdentityUpdater {
                 for (Protein variant : featureChains){
                     InteractorXref uniprotId = ProteinUtils.getUniprotXref(variant);
 
-                    if (uniprotId != null){
+                    if (!ProteinUtils.isFromUniprot(variant)){
+                        primaryChains.add(new ProteinTranscript(variant, null));
+                        evt.getUniprotServiceResult().getProteins().add(variant);
+                    }
+                    else if (uniprotId != null){
                         boolean hasFoundAc = false;
 
                         for (UniprotFeatureChain fc : variants){
@@ -186,10 +190,6 @@ public class UniprotIdentityUpdater {
                             }
                         }
                     }
-                    else if (!ProteinUtils.isFromUniprot(variant)){
-                        primaryChains.add(new ProteinTranscript(variant, null));
-                        evt.getUniprotServiceResult().getProteins().add(variant);
-                    }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
@@ -201,7 +201,21 @@ public class UniprotIdentityUpdater {
         }
     }
 
-    public void updateSecondaryAcsForProteins(UpdateCaseEvent evt)  throws ProcessorException {
+    public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnSecondaryAcsFound(evt);
+        }
+
+        if (evt.getSecondaryProteins().size() > 0){
+            updateSecondaryAcsForProteins(evt);
+        }
+        if (evt.getSecondaryIsoforms().size() > 0){
+            updateSecondaryAcsForIsoforms(evt);
+        }
+    }
+
+    private void updateSecondaryAcsForProteins(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
 
@@ -227,7 +241,7 @@ public class UniprotIdentityUpdater {
         evt.getSecondaryProteins().clear();
     }
 
-    public void updateSecondaryAcsForIsoforms(UpdateCaseEvent evt)  throws ProcessorException {
+    private void updateSecondaryAcsForIsoforms(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<ProteinTranscript> secondaryProteins = evt.getSecondaryIsoforms();
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();
 
