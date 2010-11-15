@@ -216,24 +216,23 @@ public class ProteinTools {
             original.addXref(xref);
         }
 
-        if (!existingSecondaryAcs.isEmpty()){
-            Collection<InteractorXref> refsToRemove = new ArrayList<InteractorXref>();
-            for (InteractorXref ref : duplicate.getXrefs()){
-                if (ref.getCvDatabase() != null){
-                    if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
-                        if (ref.getCvXrefQualifier() != null){
-                            if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
-                                if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
-                                    original.addXref(ref);
-                                }
+        Collection<InteractorXref> refsToRemove = new ArrayList<InteractorXref>();
+        for (InteractorXref ref : duplicate.getXrefs()){
+            if (ref.getCvDatabase() != null){
+                if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
+                    if (ref.getCvXrefQualifier() != null){
+                        if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
+                            if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
+                                original.addXref(ref);
+                                refsToRemove.add(ref);
                             }
                         }
                     }
                 }
             }
-
-            duplicate.getXrefs().removeAll(refsToRemove);
         }
+
+        duplicate.getXrefs().removeAll(refsToRemove);
     }
 
     public static void updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
@@ -245,7 +244,7 @@ public class ProteinTools {
                             CvDatabase.INTACT_MI_REF,
                             CvXrefQualifier.ISOFORM_PARENT_MI_REF );
 
-            remapTranscriptParent(originalProt, duplicate.getAc(), isoform, isoformParents, factory);
+            remapTranscriptParent(originalProt, duplicate.getAc(), isoformParents, factory);
         }
 
         final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
@@ -256,19 +255,16 @@ public class ProteinTools {
                             CvDatabase.INTACT_MI_REF,
                             CvXrefQualifier.CHAIN_PARENT_MI_REF );
 
-            remapTranscriptParent(originalProt, duplicate.getAc(), chain, chainParents, factory);
+            remapTranscriptParent(originalProt, duplicate.getAc(), chainParents, factory);
         }
     }
 
     /**
      * Remap the transcripts attached to this duplicate to the original protein
      * @param originalProt
-     * @param transcript
      * @param transcriptParents
      */
-    private static void remapTranscriptParent(Protein originalProt, String duplicateAc, ProteinImpl transcript, Collection<InteractorXref> transcriptParents, DaoFactory factory) {
-
-        boolean hasRemappedParentAc = false;
+    private static void remapTranscriptParent(Protein originalProt, String duplicateAc, Collection<InteractorXref> transcriptParents, DaoFactory factory) {
 
         for (InteractorXref xref : transcriptParents){
 

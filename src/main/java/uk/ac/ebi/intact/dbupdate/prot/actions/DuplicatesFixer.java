@@ -72,7 +72,7 @@ public class DuplicatesFixer{
      * @param duplicates
      * @param evt
      */
-    public DuplicateReport mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
+    private DuplicateReport mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // add the interactions from the duplicated proteins to the protein
@@ -206,18 +206,18 @@ public class DuplicatesFixer{
 
         if (no_uniprot_update == null){
             no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
-            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(no_uniprot_update);
+            factory.getCvObjectDao(CvTopic.class).persist(no_uniprot_update);
         }
         CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
             caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            factory.getCvObjectDao(CvTopic.class).saveOrUpdate(caution);
+            factory.getCvObjectDao(CvTopic.class).persist(caution);
         }
 
         boolean has_no_uniprot_update = false;
         boolean has_caution = false;
-        String cautionMessage = "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).";
+        String cautionMessage = "The protein could not be merged with " + previousAc + " because of some incompatibilities with the protein sequence (features which cannot be shifted).";
 
         for (Annotation annotation : protein.getAnnotations()){
             if (no_uniprot_update.equals(annotation.getCvTopic())){
@@ -242,7 +242,7 @@ public class DuplicatesFixer{
         }
 
         if (!has_caution){
-            Annotation demerge = new Annotation(caution, "The protein could not be merged with " + previousAc + " because od some incompatibilities with the protein sequence (features which cannot be shifted).");
+            Annotation demerge = new Annotation(caution, cautionMessage);
             annotationDao.persist(demerge);
 
             protein.addAnnotation(demerge);
@@ -397,25 +397,6 @@ public class DuplicatesFixer{
             Protein duplicate =  duplicates.get(i);
 
             if (duplicate.getCreated().before(originalProt.getCreated())) {
-                originalProt = duplicate;
-            }
-        }
-
-        return originalProt;
-    }
-
-    protected static Protein calculateOriginalProteinBasedOnSequence(List<? extends Protein> duplicates) {
-        Protein originalProt = null;
-
-        for (int i = 0; i < duplicates.size(); i++) {
-            Protein duplicate =  duplicates.get(i);
-
-            if (originalProt == null){
-                if (duplicate.getSequence() != null){
-                    originalProt = duplicate;
-                }
-            }
-            else if (duplicate.getCreated().before(originalProt.getCreated()) && duplicate.getSequence() != null) {
                 originalProt = duplicate;
             }
         }

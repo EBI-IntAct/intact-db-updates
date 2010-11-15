@@ -176,7 +176,7 @@ public class RangeFixer {
             if (!interactionAcsWithBadFeatures.isEmpty()){
                 Collection<Component> componentsToFix = new ArrayList<Component>();
                 for (Component c : components){
-                    if (interactionAcsWithBadFeatures.contains(c.getInteractionAc())){
+                    if (interactionAcsWithBadFeatures.contains(c.getInteraction().getAc())){
                         componentsToFix.add(c);
                     }
                 }
