@@ -371,7 +371,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
      * the parents are identical for the protein transcripts.
      * Here we have the case of two set of protein transcript duplicates
      */
-    public void merge_duplicate_different_sequences_range_conflicts_no_transcript_found_duplicate(){
+    public void merge_duplicate_different_sequences_range_conflicts_duplicate(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
@@ -461,7 +461,106 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
      * the parents are identical for the protein transcripts.
      * Here we have the case of two set of protein transcript duplicates
      */
-    public void merge_duplicate_different_sequences_range_conflicts_no_transcript_found_originalProt(){
+    public void merge_duplicate_different_sequences_range_shifted_duplicate(){
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
+
+        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
+        String sequence2 = uniprot.getSequence().substring(4);
+
+        Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.setSequence(sequence);
+        Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.setSequence(sequence2);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(primary);
+        primaryProteins.add(prot);
+
+        Protein random1 = getMockBuilder().createProteinRandom();
+        Protein random2 = getMockBuilder().createProteinRandom();
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random1, random2);
+
+        Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
+        Interaction interactionToMove = getMockBuilder().createInteraction(prot, random2);
+        Interaction interactionWithFeatures = getMockBuilder().createInteraction(prot, random1);
+
+        for (Component c : interactionPrimary.getComponents()){
+             c.getBindingDomains().clear();
+        }
+        for (Component c : interactionToMove.getComponents()){
+             c.getBindingDomains().clear();
+        }
+
+        for (Component c : interactionWithFeatures.getComponents()){
+             c.getBindingDomains().clear();
+
+            if (prot.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
+                Feature f = getMockBuilder().createFeatureRandom();
+                Range r = getMockBuilder().createRange(1, 1, 7, 7);
+
+                f.getRanges().clear();
+                f.addRange(r);
+                c.addBindingDomain(f);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionPrimary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionToMove);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionWithFeatures);
+
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(1, primary.getActiveInstances().size());
+        Assert.assertEquals(2, prot.getActiveInstances().size());
+        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getFeatureDao().countAll());
+        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
+
+        // fix duplicates
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+
+        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+
+        Assert.assertNotNull(report.getOriginalProtein());
+        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+
+        Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
+        Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
+        Assert.assertEquals(3, report.getOriginalProtein().getActiveInstances().size());
+        Assert.assertEquals(uniprot.getSequence(), report.getOriginalProtein().getSequence());
+
+        for (Component c : interactionWithFeatures.getComponents()){
+
+            if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
+                Feature f = c.getBindingDomains().iterator().next();
+
+                Range r = f.getRanges().iterator().next();
+
+                Assert.assertEquals(5, r.getFromIntervalStart());
+                Assert.assertEquals(5, r.getFromIntervalEnd());
+                Assert.assertEquals(11, r.getToIntervalStart());
+                Assert.assertEquals(11, r.getToIntervalEnd());
+            }
+        }
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
+     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
+     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
+     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
+     * the parents are identical for the protein transcripts.
+     * Here we have the case of two set of protein transcript duplicates
+     */
+    public void merge_duplicate_different_sequences_range_conflicts_originalProt(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
