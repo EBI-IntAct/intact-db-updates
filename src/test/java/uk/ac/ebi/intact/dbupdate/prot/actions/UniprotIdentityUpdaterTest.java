@@ -49,6 +49,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Create a protein for each primary ac and secondary acs of cdc42_human (1 primary, 3 secondary)
+     * Create a protein for each isoform  of cdc42_human (2 primary, 3 secondary)
+     * Create a protein for a feature chain
+     * Collect all these proteins and update the secondary ac
+     *
+     */
     public void collect_and_update_cdc42_human(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
@@ -104,6 +111,14 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Create 3 proteins for cdc42_human (1 primary, 2 secondary) and  one protein which is not in uniprot
+     * Create a protein for each isoform  of cdc42_human (2 primary, 3 secondary).
+     * Create a protein for a feature chain but is linked to the master protein which is not in uniprot
+     * Collect all these proteins and update the secondary ac : the protein not in uniprot should be ignored and the chain
+     * attached to it as well
+     *
+     */
     public void collect_cdc42_human_excludeTranscript_parentExcluded(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
@@ -155,6 +170,14 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Create 4 proteins for cdc42_human (1 primary, 3 secondary)
+     * Create a protein for each isoform  of cdc42_human (2 primary, 3 secondary). Create another isoform which is not in uniprot
+     * and doesn't have 'no-uniprot-update'
+     * Create a protein for a feature chain
+     * Collect all these proteins and update the secondary ac : the isoform not in uniprot should be ignored
+     *
+     */
     public void collect_cdc42_human_excludeTranscript_notInUniprot(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
@@ -205,6 +228,15 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Create 4 proteins for cdc42_human (1 primary, 3 secondary)
+     * Create a protein for each isoform  of cdc42_human (2 primary, 3 secondary). Create another isoform which is not in uniprot
+     * but does have 'no-uniprot-update'
+     * Create a protein for a feature chain
+     * Collect all these proteins and update the secondary ac : the isoform not in uniprot but with no-uniprot-update
+     * is not updated but is not ignored neither
+     *
+     */
     public void collect_cdc42_human_addTranscript_notInUniprot_and_noUniProtUpdate(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
@@ -244,7 +276,7 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         Assert.assertEquals(11, caseEvt.getUniprotServiceResult().getProteins().size());
 
         // update
-                // update
+        // update
         updater.updateAllSecondaryProteins(caseEvt);
         Assert.assertEquals(4, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(0, caseEvt.getSecondaryProteins().size());

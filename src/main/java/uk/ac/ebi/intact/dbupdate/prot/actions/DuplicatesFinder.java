@@ -125,7 +125,7 @@ public class DuplicatesFinder {
                         Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
 
                         // if the isoform parents are identical, we ad the protein to the list of duplicates
-                        if (CollectionUtils.isEqualCollection(isoformParent, isoformParent2)){
+                        if (hasSameParents(isoformParent, isoformParent2)){
                             duplicates.add(trans2);
                         }
                     }
@@ -211,7 +211,7 @@ public class DuplicatesFinder {
                         Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
 
                         // if the chain parents are identical, we ad the protein to the list of duplicates
-                        if (CollectionUtils.isEqualCollection(chainParents, chainParent2)){
+                        if (hasSameParents(chainParents, chainParent2)){
                             duplicates.add(trans2);
                         }
                     }
@@ -284,5 +284,29 @@ public class DuplicatesFinder {
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
             processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64));
         }
+    }
+
+    private boolean hasSameParents(Collection<InteractorXref> parents, Collection<InteractorXref> parentsToCompare){
+        if (parentsToCompare.size() != parents.size()){
+            return false;
+        }
+        else {
+            for (InteractorXref refParent : parents){
+                boolean hasFoundParent = false;
+
+                for (InteractorXref ref : parentsToCompare){
+                    if (ref.getPrimaryId().equals(refParent.getPrimaryId())){
+                        hasFoundParent = true;
+                        break;
+                    }
+                }
+
+                if (!hasFoundParent){
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }
