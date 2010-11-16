@@ -231,7 +231,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         final Collection<InvalidRange> invalidRanges = rangeChecker.collectRangesImpossibleToShift(feature, oldSequence, newSequence);
         Assert.assertEquals(0, invalidRanges.size());
-        
+
         getDataContext().commitTransaction(status);
     }
 
@@ -537,5 +537,51 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * One feature with valid range should be updated : ranges are not shifted because the protein sequence was null but as the range is still valid with the
+     * uniprot sequence, only the feature sequence will be updated
+     */
+    public void prepare_feature_sequence_valid_range() throws Exception {
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        // int oldSequenceLength = 579;
+
+        String featureSequence = "MQITMM";
+
+        String true_sequence = "MQITMMAVAAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
+                "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
+                "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
+                "TFHGTVQHVESRQSRVEGVDHDVLIKLDMTRGNLLQLIRSLRQSGSFSSMNLMADNNLNV" +
+                "KAPWFPKHASELDNCNHLMTKYEPDLDMNHPGFADKVYRQRRKEIAEIAFAYKYGDPIPF" +
+                "IDYSDVEVKTWRSVFKTVQDLAPKHACAEYRAAFQKLQDEQIFVETRLPQLQEMSDFLRK" +
+                "NTGFSLRPAAGLLTARDFLASLAFRIFQSTQYVRHVNSPYHTPEPDSIHELLGHMPLLAD" +
+                "PSFAQFSQEIGLASLGASDEEIEKLSTVYWFTVEFGLCKEHGQIKAYGAGLLSSYGELLH" +
+                "AISDKCEHRAFEPASTAVQPYQDQEYQPIYYVAESFEDAKDKFRRWVSTMSRPFEVRFNP" +
+                "HTERVEVLDSVDKLETLVHQMNTEILHLTNAISKLRRPFPAVQ";
+
+
+        Feature feature = getMockBuilder().createFeatureRandom();
+        Range range = getMockBuilder().createRange(1,1,6,6);
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        getCorePersister().saveOrUpdate(feature);
+
+        Assert.assertEquals(null, range.getFullSequence());
+
+        // Update the ranges
+        Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, true_sequence);
+        Assert.assertEquals(1, updatedRanges.size());
+        Assert.assertEquals(range.getAc(), updatedRanges.iterator().next().getNewRange().getAc());
+
+        // the sequence of the feature has been set properly
+        Assert.assertEquals(featureSequence, range.getFullSequence());
+
+        getDataContext().commitTransaction(status);
     }
 }

@@ -61,10 +61,6 @@ public class UniprotProteinUpdater {
      * Mapping allowing to specify which database shortlabel correspond to which MI reference.
      */
     private Map<String, String> databaseName2mi = new HashMap<String, String>();
-    /**
-     * The results
-     */
-    protected UniprotServiceResult uniprotServiceResult;
 
     private ProteinUpdateProcessor processor;
     private RangeFixer rangeFixer;
@@ -118,7 +114,7 @@ public class UniprotProteinUpdater {
         processProteinCase(uniprotProtein, primaryProteins, secondaryProteins, evt);
     }
 
-    protected void processProteinCase(UniprotProtein uniprotProtein, Collection<? extends Protein> primaryProteins, Collection<? extends Protein> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processProteinCase(UniprotProtein uniprotProtein, Collection<? extends Protein> primaryProteins, Collection<? extends Protein> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
 
@@ -195,7 +191,7 @@ public class UniprotProteinUpdater {
      * @return
      * @throws ProteinServiceException
      */
-    protected void processIsoform(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, Collection<ProteinTranscript> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processIsoform(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, Collection<ProteinTranscript> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         for (UniprotProteinTranscript ut : uniprotProtein.getSpliceVariants()){
@@ -242,7 +238,7 @@ public class UniprotProteinUpdater {
         }
     }
 
-    protected void processChain(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processChain(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         for (UniprotProteinTranscript ut : uniprotProtein.getFeatureChains()){
@@ -529,11 +525,11 @@ public class UniprotProteinUpdater {
         return true;
     }
 
-    protected void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64) {
+    private void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64) {
         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), protein, oldSequence, newSequence, crc64));
     }
 
-    protected void proteinCreated(Protein protein) {
+    private void proteinCreated(Protein protein) {
         processor.fireOnProteinCreated(new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), protein));
     }
 
@@ -546,10 +542,6 @@ public class UniprotProteinUpdater {
             throw new IllegalArgumentException( "bioSourceService must not be null." );
         }
         this.bioSourceService = bioSourceService;
-    }
-
-    public UniprotServiceResult getUniprotServiceResult() {
-        return uniprotServiceResult;
     }
 
     /**
@@ -585,8 +577,6 @@ public class UniprotProteinUpdater {
                 throw new ProteinServiceException(e);
             }
 
-            TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
-
             Protein protein = new ProteinImpl( CvHelper.getInstitution(),
                     biosource,
                     generateProteinShortlabel( uniprotProtein ),
@@ -600,7 +590,6 @@ public class UniprotProteinUpdater {
             XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
             pdao.update( ( ProteinImpl ) protein );
-            IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
             return protein;
 
         }catch( IntactTransactionException e){

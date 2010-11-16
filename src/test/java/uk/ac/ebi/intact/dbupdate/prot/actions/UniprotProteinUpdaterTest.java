@@ -15,16 +15,34 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
+import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
+import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Tester of UniprotProteinUpdater
@@ -35,39 +53,66 @@ import uk.ac.ebi.intact.model.Protein;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
-    private class DummyProcessor extends ProteinProcessor {
-        protected void registerListeners() { }
+    private UniprotProteinUpdater updater;
+
+    @Before
+    public void before() throws Exception {
+        updater = new UniprotProteinUpdater();
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
+        primer.createCVs();
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @After
+    public void after() throws Exception {
+        updater = null;
     }
 
     @Test
     @DirtiesContext
-    public void onPreProcess_uniprot() throws Exception{
-        Protein prot = getMockBuilder().createProteinRandom();
-        
-        ProteinProcessor processor = new DummyProcessor();
+    @Transactional(propagation = Propagation.NEVER)
+    public void create_master_protein() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater();
-        //listener.onPreProcess(evt);
+        updater.createOrUpdateProtein(evt);
 
-        //Assert.assertFalse(processor.isFinalizationRequested());
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+
+        Protein createdProtein = evt.getPrimaryProteins().iterator().next();
+
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), createdProtein.getBioSource().getTaxId());
+        Assert.assertEquals(uniprot.getId(), createdProtein.getShortLabel());
+        Assert.assertEquals(uniprot.getSequence(), createdProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), createdProtein.getCrc64());
+        Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(createdProtein).getPrimaryId());
+
+
+        getDataContext().commitTransaction(status);
     }
-    
-    @Test
-    @DirtiesContext
-    public void onPreProcess_nonUniprot() throws Exception{
-        Protein prot = getMockBuilder().createProteinRandom();
-        prot.getXrefs().clear();
-        prot.addAnnotation(getMockBuilder().createAnnotation("nonUniprot", null, CvTopic.NON_UNIPROT));
 
-        ProteinProcessor processor = new DummyProcessor();
+    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
+        final Collection<InteractorXref> refs = p.getXrefs();
+        boolean hasXRef = false;
 
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        for ( InteractorXref ref : refs ) {
+            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
+                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
+                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
+                        hasXRef = true;
+                    }
+                }
+            }
+        }
 
-        UniprotProteinUpdater listener = new UniprotProteinUpdater();
-        //listener.onPreProcess(evt);
-
-        //Assert.assertTrue(processor.isFinalizationRequested());
+        return hasXRef;
     }
 }
