@@ -23,13 +23,11 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 import java.util.*;
 
@@ -42,8 +40,13 @@ import java.util.*;
 public class RangeFixer {
 
     private static final Log log = LogFactory.getLog( RangeFixer.class );
+    private RangeChecker checker;
 
-    public void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor) throws ProcessorException {
+    public RangeFixer(){
+        this.checker = new RangeChecker();
+    }
+
+    private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor) throws ProcessorException {
         RangeChecker rangeChecker = new RangeChecker();
 
         if (oldSequence != null && newSequence != null) {
@@ -83,44 +86,78 @@ public class RangeFixer {
             Feature feature = range.getFeature();
 
             if (feature != null){
-                // get the caution from the DB or create it and persist it
+                // get the invalid_caution from the DB or create it and persist it
                 final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
-                CvTopic caution = daoFactory
+                CvTopic invalid_caution = daoFactory
                         .getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.INVALID_RANGE);
 
+                if (invalid_caution == null) {
+                    invalid_caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.INVALID_RANGE);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalid_caution);
+                }
+
+                CvTopic caution = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+
                 if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.INVALID_RANGE);
+                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
                 }
 
                 Collection<Annotation> annotations = feature.getAnnotations();
+                boolean hasInvalid = false;
+                boolean hasCaution = false;
 
                 for (Annotation a : annotations){
-                    if (caution.equals(a.getCvTopic())){
-                        if (message != null){
-                            if (message.equals(a.getAnnotationText())){
-                                if (log.isDebugEnabled()) {
-                                    log.debug("Feature object already contains an invalid-range annotation. Not adding another one: "+a);
-                                }
-                                return;
-                            }
+                    if (invalid_caution.equals(a.getCvTopic())){
+                        if (hasAnnotationMessage(message, a)){
+                            hasInvalid = true;
                         }
-                        else if (message == null && a.getAnnotationText() == null){
-                            if (log.isDebugEnabled()) {
-                                log.debug("Feature object already contains an invalid-range annotation. Not adding another one: "+a);
-                            }
-                            return;
+                    }
+                    else if (caution.equals(a.getCvTopic())){
+                        if (hasAnnotationMessage(message, a)){
+                            hasCaution = true;
                         }
                     }
                 }
 
-                Annotation cautionRange = new Annotation(caution, message);
-                daoFactory.getAnnotationDao().persist(cautionRange);
+                if (!hasInvalid){
+                    Annotation cautionRange = new Annotation(invalid_caution, message);
+                    daoFactory.getAnnotationDao().persist(cautionRange);
 
-                feature.addAnnotation(cautionRange);
+                    feature.addAnnotation(cautionRange);
+                }
+
+                if (!hasCaution){
+                    Annotation cautionRange = new Annotation(caution, message);
+                    daoFactory.getAnnotationDao().persist(cautionRange);
+
+                    feature.addAnnotation(cautionRange);
+                }
+
                 daoFactory.getFeatureDao().update(feature);
             }
         }
+    }
+
+    private boolean hasAnnotationMessage(String message, Annotation a) {
+
+        if (message != null){
+            if (message.equals(a.getAnnotationText())){
+                if (log.isDebugEnabled()) {
+                    log.debug("Feature object already contains this annotation. Not adding another one: "+a);
+                }
+                return true;
+            }
+        }
+        else if (message == null && a.getAnnotationText() == null){
+            if (log.isDebugEnabled()) {
+                log.debug("Feature object already contains this annotation. Not adding another one: "+a);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     public Collection<Component> updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor){
@@ -143,13 +180,11 @@ public class RangeFixer {
             }
         }
 
+        Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
+
+        Collection<Component> components = protein.getActiveInstances();
 
         if ( sequenceToBeUpdated) {
-            RangeChecker checker = new RangeChecker();
-
-            Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
-
-            Collection<Component> components = protein.getActiveInstances();
 
             for (Component component : components){
                 Interaction interaction = component.getInteraction();
@@ -191,6 +226,38 @@ public class RangeFixer {
             }
             else {
                 shiftRanges(oldSequence, uniprotSequence, components, processor);
+            }
+        }
+        else {
+            for (Component component : components){
+                Interaction interaction = component.getInteraction();
+
+                Collection<Feature> features = component.getBindingDomains();
+                for (Feature feature : features){
+                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
+
+                    if (!invalidRanges.isEmpty()){
+                        interactionAcsWithBadFeatures.add(interaction.getAc());
+
+                        for (InvalidRange invalid : invalidRanges){
+                            // range is bad from the beginning, not after the range shifting
+                            InvalidRangeEvent invalidEvent = new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), invalid);
+                            processor.fireOnInvalidRange(invalidEvent);
+                            fixInvalidRanges(invalidEvent);
+                        }
+                    }
+                }
+            }
+
+            if (!interactionAcsWithBadFeatures.isEmpty()){
+                Collection<Component> componentsToFix = new ArrayList<Component>();
+                for (Component c : components){
+                    if (interactionAcsWithBadFeatures.contains(c.getInteraction().getAc())){
+                        componentsToFix.add(c);
+                    }
+                }
+
+                return componentsToFix;
             }
         }
 

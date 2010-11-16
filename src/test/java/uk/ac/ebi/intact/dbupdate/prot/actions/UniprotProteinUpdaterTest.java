@@ -27,7 +27,7 @@ import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.Protein;
 
 /**
- * TODO comment that class header
+ * Tester of UniprotProteinUpdater
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$

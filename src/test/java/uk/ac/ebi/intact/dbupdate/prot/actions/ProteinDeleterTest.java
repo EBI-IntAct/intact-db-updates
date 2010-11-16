@@ -17,7 +17,7 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 /**
- * TODO comment this
+ * Tester of ProteinDeleter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

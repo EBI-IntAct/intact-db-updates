@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * TODO comment this
+ * Tester of ProtWithoutInteractionDeleter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

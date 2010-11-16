@@ -34,8 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * TODO comment this
- *
+ * Tester of the DuplicateFinder
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>12-Nov-2010</pre>

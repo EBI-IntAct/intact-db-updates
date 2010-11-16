@@ -24,7 +24,7 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import java.util.*;
 
 /**
- * TODO comment this
+ * Tester of DuplicateFixer
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

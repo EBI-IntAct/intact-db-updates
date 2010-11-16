@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * TODO comment this
+ * Tester of OutOfDateParticipantFixer
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

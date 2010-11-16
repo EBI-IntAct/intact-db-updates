@@ -24,7 +24,7 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
 /**
- * TODO comment this
+ * Tester of UniprotIdentityUpdaterTest
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
