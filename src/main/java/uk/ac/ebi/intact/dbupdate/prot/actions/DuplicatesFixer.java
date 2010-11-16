@@ -171,31 +171,6 @@ public class DuplicatesFixer{
     }
 
     /**
-     *
-     * @param sequenceDuplicate : sequence of the duplicate
-     * @param sequenceUniprot : sequence of the protein in uniprot
-     * @return true if the sequence in uniprot is different from the sequence of the duplicate.
-     */
-    private boolean isSequenceChanged(String sequenceDuplicate, String sequenceUniprot){
-        if ( (sequenceDuplicate == null && sequenceUniprot != null)) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Sequence requires update." );
-            }
-            return true;
-        }
-        else if (sequenceDuplicate != null && sequenceUniprot != null){
-            if (!sequenceUniprot.equals( sequenceDuplicate ) ){
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "Sequence requires update." );
-                }
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * add a caution and 'no-uniprot-update' to the protein
      * @param protein : the duplicate with range conflicts
      * @param previousAc : the original protein to keep
@@ -325,7 +300,7 @@ public class DuplicatesFixer{
                         ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                        if (isSequenceChanged(sequence, evt.getUniprotSequence())){
+                        if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
                             log.debug( "sequence of "+duplicate.getAc()+" requires update." );
                             duplicate.setSequence( evt.getUniprotSequence() );
 
@@ -362,7 +337,7 @@ public class DuplicatesFixer{
                     }
 
                     // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                    if (isSequenceChanged(sequence, evt.getUniprotSequence())){
+                    if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
                         log.debug( "sequence of "+duplicate.getAc()+" requires update." );
                         duplicate.setSequence( evt.getUniprotSequence() );
 

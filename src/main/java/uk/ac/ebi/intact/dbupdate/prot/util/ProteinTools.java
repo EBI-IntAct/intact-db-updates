@@ -275,4 +275,23 @@ public class ProteinTools {
             }
         }
     }
+
+    /**
+     *
+     * @param sequenceDuplicate : sequence of the duplicate
+     * @param sequenceUniprot : sequence of the protein in uniprot
+     * @return true if the sequence in uniprot is different from the sequence of the duplicate.
+     */
+    public static boolean isSequenceChanged(String sequenceDuplicate, String sequenceUniprot){
+        if ( (sequenceDuplicate == null && sequenceUniprot != null)) {
+            return true;
+        }
+        else if (sequenceDuplicate != null && sequenceUniprot != null){
+            if (!sequenceUniprot.equals( sequenceDuplicate ) ){
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

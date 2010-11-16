@@ -50,12 +50,11 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with the same sequence. Each of the duplicates has a splice variant and a feature chain
+     * Should be merged without updating the sequence and/or shifting the ranges.
+     * The duplicate should be deleted, a secondary accession should be added to the original protein and all splice variants and
+     * feature chains should be remapped.
+     * The interactions should be remapped.
      */
     public void merge_duplicate_same_sequence(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -128,12 +127,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with the same sequence. Each of the duplicates has a splice variant and a feature chain.
+     * The duplicate contains another intact-secondary cross reference which should be added to the original protein at the end
+     * Should be merged without updating the sequence and/or shifting the ranges.
+     * The duplicate should be deleted and all splice variants and
+     * feature chains should be remapped.
+     * The interactions should be remapped.
      */
     public void merge_duplicate_same_sequence_copy_several_intact_secondary(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -211,12 +210,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with the same sequence. Each of the duplicates has a splice variant and a feature chain.
+     * One of the splice variants has two parents and only the proper parent should be updated.
+     * Should be merged without updating the sequence and/or shifting the ranges.
+     * The duplicate should be deleted and all splice variants and
+     * feature chains should be remapped.
+     * The interactions should be remapped.
      */
     public void merge_duplicate_same_sequence_several_parents(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -295,13 +294,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+   /**
+     * Create two duplicates with different sequences and no features.
+     * Should be merged after updating the sequence and/or shifting the ranges.
+     * The duplicate should be deleted and all splice variants and
+     * feature chains should be remapped.
+     * The interactions should be remapped.
      */
     public void merge_duplicate_different_sequences_no_range_conflicts(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -364,12 +362,11 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with different sequences and the duplicate contains features with range conflicts.
+     * Should be merged after updating the sequence and/or shifting the ranges.
+     * The duplicate should not be deleted (no-uniprot-update and caution) and all splice variants and
+     * feature chains should be remapped.
+     * The valid interactions should be remapped, the interaction with range conflicts should be attached to the duplicate 'no-uniprot-update'.
      */
     public void merge_duplicate_different_sequences_range_conflicts_duplicate(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -454,12 +451,11 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with different sequences and the duplicate contains features with range to shift without any conflicts..
+     * Should be merged after updating the sequence and shifting the ranges.
+     * The duplicate should be deleted and all splice variants and
+     * feature chains should be remapped.
+     * All the interactions should be remapped,
      */
     public void merge_duplicate_different_sequences_range_shifted_duplicate(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
@@ -553,12 +549,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
-     * Create two different proteins. Both need to be updated and are primary proteins of a same uniprot protein.
-     * Create four splice variants : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * Create four chains : 2 are attached to the same parent protein and 2 other are attached to another set of parents.
-     * There are duplicates because several parent proteins are primary proteins of a same uniprot entry and
-     * the parents are identical for the protein transcripts.
-     * Here we have the case of two set of protein transcript duplicates
+     * Create two duplicates with different sequences and the original protein contains features with range conflicts.
+     * Should not be merged after updating the sequence and/or shifting the ranges.
+     * A new protein should be created (no-uniprot-update and caution).
+     * The valid interactions should be remapped, the interaction with range conflicts should be attached to the 'no-uniprot-update' protein.
      */
     public void merge_duplicate_different_sequences_range_conflicts_originalProt(){
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();

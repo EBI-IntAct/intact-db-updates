@@ -56,6 +56,7 @@ public class OutOfDateParticipantFixer {
             InteractorXref identity = ProteinUtils.getUniprotXref(spliceIntact);
             identity.setPrimaryId(spliceVariant.getPrimaryAc());
             spliceIntact.getAnnotations().clear();
+            spliceIntact.getAliases().clear();
             spliceIntact.getXrefs().clear();
             spliceIntact.addXref(identity);
 
@@ -108,6 +109,7 @@ public class OutOfDateParticipantFixer {
             InteractorXref identity = ProteinUtils.getUniprotXref(chainIntact);
             identity.setPrimaryId(featureChain.getPrimaryAc());
             chainIntact.getAnnotations().clear();
+            chainIntact.getAliases().clear();
             chainIntact.getXrefs().clear();
             chainIntact.addXref(identity);
 
@@ -189,14 +191,14 @@ public class OutOfDateParticipantFixer {
                     if (match instanceof UniprotSpliceVariant){
 
                         for (ProteinTranscript p : evt.getPrimaryIsoforms()){
-                            if (match.equals(p.getUniprotVariant())){
+                            if (match.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithConflicts)){
                                 moveInteractionsOfExistingProtein(protein, p.getProtein(), factory);
                                 return p;
                             }
                         }
 
                         for (ProteinTranscript p : evt.getSecondaryIsoforms()){
-                            if (match.equals(p.getUniprotVariant())){
+                            if (match.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithConflicts)){
                                 moveInteractionsOfExistingProtein(protein, p.getProtein(), factory);
                                 return p;
                             }
@@ -207,7 +209,7 @@ public class OutOfDateParticipantFixer {
                     else if (match instanceof UniprotFeatureChain){
 
                         for (ProteinTranscript p : evt.getPrimaryFeatureChains()){
-                            if (match.equals(p.getUniprotVariant())){
+                            if (match.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithConflicts)){
                                 moveInteractionsOfExistingProtein(protein, p.getProtein(), factory);
                                 return p;
                             }

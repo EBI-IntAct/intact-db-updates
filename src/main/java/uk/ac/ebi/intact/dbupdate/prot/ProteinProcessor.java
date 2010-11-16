@@ -293,9 +293,9 @@ public abstract class ProteinProcessor {
                                         ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
 
                                         if (fixedProtein != null){
-                                            ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
 
                                             if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+
                                                 String ac = fixedProtein.getProtein().getAc();
 
                                                 if (ac != null){
@@ -315,6 +315,7 @@ public abstract class ProteinProcessor {
                                                         }
 
                                                         if (!hasFoundSpliceVariant){
+                                                            ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                             caseEvent.getPrimaryIsoforms().add(fixedProtein);
                                                             caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                         }
@@ -334,6 +335,7 @@ public abstract class ProteinProcessor {
                                                     }
 
                                                     if (!hasFoundChain){
+                                                        ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                         caseEvent.getPrimaryFeatureChains().add(fixedProtein);
                                                         caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                     }
@@ -423,6 +425,7 @@ public abstract class ProteinProcessor {
                                                         }
 
                                                         if (!hasFoundSpliceVariant){
+                                                            ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                             mergedIsoforms.add(fixedProtein);
                                                             caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                         }
@@ -442,6 +445,7 @@ public abstract class ProteinProcessor {
                                                     }
 
                                                     if (!hasFoundChain){
+                                                        ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                         caseEvent.getPrimaryFeatureChains().add(fixedProtein);
                                                         caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                     }
@@ -519,6 +523,7 @@ public abstract class ProteinProcessor {
                                                         }
 
                                                         if (!hasFoundSpliceVariant){
+                                                            ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                             caseEvent.getPrimaryIsoforms().add(fixedProtein);
                                                             caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                         }
@@ -538,6 +543,7 @@ public abstract class ProteinProcessor {
                                                     }
 
                                                     if (!hasFoundChain){
+                                                        ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                                         mergedChains.add(fixedProtein);
                                                         caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                                     }
