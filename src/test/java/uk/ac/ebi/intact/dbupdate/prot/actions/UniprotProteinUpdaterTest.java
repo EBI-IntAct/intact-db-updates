@@ -32,17 +32,16 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
-import uk.ac.ebi.intact.model.CvTopic;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Tester of UniprotProteinUpdater
@@ -79,7 +78,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
-                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, new ArrayList<Protein>(),
                 Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
 
@@ -89,12 +88,34 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         Protein createdProtein = evt.getPrimaryProteins().iterator().next();
 
-        Assert.assertEquals(uniprot.getOrganism().getTaxid(), createdProtein.getBioSource().getTaxId());
-        Assert.assertEquals(uniprot.getId(), createdProtein.getShortLabel());
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), Integer.parseInt(createdProtein.getBioSource().getTaxId()));
+        Assert.assertEquals(uniprot.getId().toLowerCase(), createdProtein.getShortLabel());
+        Assert.assertEquals(uniprot.getDescription(), createdProtein.getFullName());
         Assert.assertEquals(uniprot.getSequence(), createdProtein.getSequence());
         Assert.assertEquals(uniprot.getCrc64(), createdProtein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(createdProtein).getPrimaryId());
 
+        for (String secAc : uniprot.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(createdProtein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        Assert.assertEquals(12, createdProtein.getXrefs().size());
 
         getDataContext().commitTransaction(status);
     }
@@ -114,5 +135,21 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         }
 
         return hasXRef;
+    }
+
+    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
+        final Collection<InteractorAlias> aliases = p.getAliases();
+
+        boolean hasFoundAlias = false;
+
+        for ( InteractorAlias alias : aliases ) {
+            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
+                if (aliasName.equals(alias.getName())){
+                     hasFoundAlias = true;
+                }
+            }
+        }
+
+        return hasFoundAlias;
     }
 }
