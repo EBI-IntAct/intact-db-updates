@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +45,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primer.createCVs();
 
         getDataContext().commitTransaction(status);
+    }
+    @After
+    public void after() throws Exception {
+        duplicateFixer = null;
     }
 
     @Test
@@ -294,7 +299,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-   /**
+    /**
      * Create two duplicates with different sequences and no features.
      * Should be merged after updating the sequence and/or shifting the ranges.
      * The duplicate should be deleted and all splice variants and
@@ -328,11 +333,11 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Interaction interactionToMove = getMockBuilder().createInteraction(prot, random2);
 
         for (Component c : interactionPrimary.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
 
         for (Component c : interactionToMove.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionPrimary);
@@ -396,14 +401,14 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Interaction interactionWithConflict = getMockBuilder().createInteraction(prot, random1);
 
         for (Component c : interactionPrimary.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
         for (Component c : interactionToMove.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
 
         for (Component c : interactionWithConflict.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
 
             if (prot.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
                 Feature f = getMockBuilder().createFeatureRandom();
@@ -485,14 +490,14 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Interaction interactionWithFeatures = getMockBuilder().createInteraction(prot, random1);
 
         for (Component c : interactionPrimary.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
         for (Component c : interactionToMove.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
 
         for (Component c : interactionWithFeatures.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
 
             if (prot.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
                 Feature f = getMockBuilder().createFeatureRandom();
@@ -582,14 +587,14 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Interaction interactionWithConflict = getMockBuilder().createInteraction(primary, random1);
 
         for (Component c : interactionPrimary.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
         for (Component c : interactionToMove.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
         }
 
         for (Component c : interactionWithConflict.getComponents()){
-             c.getBindingDomains().clear();
+            c.getBindingDomains().clear();
 
             if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
                 Feature f = getMockBuilder().createFeatureRandom();
@@ -658,12 +663,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         for ( Annotation a : annotations ) {
             if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
                 if (text == null){
-                     hasAnnotation = true;
+                    hasAnnotation = true;
                 }
                 else if (text != null && a.getAnnotationText() != null){
-                     if (text.equalsIgnoreCase(a.getAnnotationText())){
-                         hasAnnotation = true;
-                     }
+                    if (text.equalsIgnoreCase(a.getAnnotationText())){
+                        hasAnnotation = true;
+                    }
                 }
             }
         }

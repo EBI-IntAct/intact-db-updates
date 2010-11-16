@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,6 +45,11 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         primer.createCVs();
 
         getDataContext().commitTransaction(status);
+    }
+
+    @After
+    public void after() throws Exception {
+        updater = null;
     }
 
     @Test

@@ -1,6 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -15,8 +17,10 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,54 +35,88 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
+    ProteinUpdateFilter filter;
+
+    @Before
+    public void before() throws Exception {
+        filter = new ProteinUpdateFilter();
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
+        primer.createCVs();
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @After
+    public void after() throws Exception {
+        filter = null;
+    }
+
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein is from uniprot with a unique uniprot identity : pass the filter
      */
     public void uniprot_protein() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+
         Protein prot = getMockBuilder().createProteinRandom();
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
 
         Assert.assertNotNull(uniprotIdentity);
         Assert.assertEquals(prot.getXrefs().iterator().next().getPrimaryId(), uniprotIdentity);
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein is 'no-uniprot-update', don't pass the filter
      */
     public void no_uniprot_update() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+
         Protein prot = getMockBuilder().createProtein("P12345", "test_no_uniprot");
         Annotation no_uniprot_update = getMockBuilder().createAnnotation(null, getMockBuilder().createCvObject(CvTopic.class, null, CvTopic.NON_UNIPROT));
         prot.addAnnotation(no_uniprot_update);
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
         ProteinProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(uniprotIdentity);
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
 
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein doesn't have a uniprot identity, doesn't pass the filter
      */
     public void no_uniprot_identity() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+
         Protein prot = getMockBuilder().createProteinRandom();
         InteractorXref ref = prot.getXrefs().iterator().next();
         ref.setCvDatabase(getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT));
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+        
         Assert.assertFalse(ProteinTools.hasUniqueDistinctUniprotIdentity(prot));
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
@@ -88,17 +126,24 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(uniprotIdentity);
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein has several uniprot identities, doesn't pass the filter
      */
     public void several_Uniprot_identities() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+
         Protein prot = getMockBuilder().createProteinRandom();
         prot.addXref(getMockBuilder().createIdentityXref(prot, "P12345", getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT)));
 
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+        
         Assert.assertEquals(2, ProteinTools.getAllUniprotIdentities(prot).size());
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
@@ -109,6 +154,8 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         String uniprotIdentity = listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(uniprotIdentity);
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
 
     @Test
@@ -170,6 +217,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
     }
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein is 'no-uniprot-update', don't pass the filter
      */
@@ -231,6 +279,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein doesn't have a uniprot identity, doesn't pass the filter
      */
@@ -296,6 +345,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)    
     /**
      * The protein has several uniprot identities, doesn't pass the filter
      */

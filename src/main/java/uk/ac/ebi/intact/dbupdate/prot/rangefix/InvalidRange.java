@@ -13,7 +13,7 @@ import uk.ac.ebi.intact.model.Range;
 public class InvalidRange {
 
     /**
-     * The sequence of the feature
+     * The sequence of the protein
      */
     String sequence;
 

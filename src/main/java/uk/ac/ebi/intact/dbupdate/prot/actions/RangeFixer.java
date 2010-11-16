@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
@@ -198,7 +199,7 @@ public class RangeFixer {
 
                         for (InvalidRange invalid : invalidRanges){
                             // range is bad from the beginning, not after the range shifting
-                            if (oldSequence.equalsIgnoreCase(invalid.getSequence())){
+                            if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
                                 InvalidRangeEvent invalidEvent = new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), invalid);
                                 processor.fireOnInvalidRange(invalidEvent);
                                 fixInvalidRanges(invalidEvent);

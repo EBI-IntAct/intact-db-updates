@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,10 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         primer.createCVs();
 
         getDataContext().commitTransaction(status);
+    }
+    @After
+    public void after() throws Exception {
+        participantFixer = null;
     }
 
     @Test
@@ -435,7 +440,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-   /**
+    /**
      * One protein with feature conflicts is a splice variant and the other protein is a feature chain of the uniprot protein.
      * Intact proteins exist for these splice variants/feature chains but their sequence is not up to date.
      * A new splice variant/feature chain is created in Intact. The interactions with feature conflicts are attached to it.
@@ -546,7 +551,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, proteinTranscript2.getProtein().getAnnotations().size());
         Assert.assertEquals(0, proteinTranscript2.getProtein().getAliases().size());
 
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);        
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
 
     private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {

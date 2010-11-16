@@ -123,7 +123,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
+    private boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -205,7 +205,7 @@ public class RangeChecker {
                 clone.setFromIntervalStart(supposedStart);
 
                 if (clone.getFromIntervalEnd() == 0){
-                   clone.setFromIntervalEnd(supposedStart); 
+                    clone.setFromIntervalEnd(supposedStart);
                 }
             }
 
@@ -321,7 +321,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    protected InvalidRange collectBadlyShiftedRangeInfo(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
+    private InvalidRange collectBadlyShiftedRangeInfo(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -404,10 +404,10 @@ public class RangeChecker {
                 clone.setFromIntervalStart(supposedStart);
 
                 if (clone.getFromIntervalEnd() == 0){
-                   clone.setFromIntervalEnd(supposedStart);
+                    clone.setFromIntervalEnd(supposedStart);
                 }
             }
-            
+
             // check that the new shifted range is within the new sequence and consistent
             if (!FeatureUtils.isABadRange(clone, newSequence)){
 
@@ -432,6 +432,24 @@ public class RangeChecker {
             else {
                 // we couldn't shift the ranges properly for one reason
                 invalidRange = new InvalidRange(range, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.", clone.toString());
+            }
+        }
+        else {
+            // we prepare the new feature sequence
+            clone.prepareSequence(newSequence);
+            // the new full feature sequence
+            String newFullFeatureSequence = clone.getFullSequence();
+
+            // the full feature sequence was and is still not null
+            if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
+
+                // check that the new feature sequence is the same
+                invalidRange = collectInvalidFeatureContent(range, newSequence, oldFullFeatureSequence, clone, newFullFeatureSequence);
+            }
+            // the new full feature sequence is null but was not before shifting the ranges
+            else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
+                // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
+                invalidRange = new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence cannot be computed.", clone.toString());
             }
         }
 
@@ -540,7 +558,7 @@ public class RangeChecker {
      * @param sequencePosition The original position in the sequence
      * @return The final position in the sequence. If it couldn't be found, returns 0.
      */
-    protected int calculatePositionShift(List<Diff> diffs, int sequencePosition, String oldSequence) {
+    private int calculatePositionShift(List<Diff> diffs, int sequencePosition, String oldSequence) {
         if (sequencePosition <= 0) {
             throw new IllegalArgumentException("We can't shift a range which is inferior or equal to 0 ("+sequencePosition+")");
         }

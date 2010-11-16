@@ -22,7 +22,7 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.Range;
 
 /**
- * TODO comment that class header
+ * Tester of UpdatedRange
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
