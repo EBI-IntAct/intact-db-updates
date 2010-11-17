@@ -69,7 +69,46 @@ public final class XrefUpdaterUtils {
         return xrefCluster;
     }
 
-    public static XrefUpdaterReport updateAllXrefs( Protein protein,
+    public static Collection<XrefUpdaterReport> updateAllProteinTranscriptXrefs( Protein protein,
+                                                    UniprotProteinTranscript uniprotTranscript,
+                                                    UniprotProtein uniprot,
+                                                    Map<String, String> databaseName2mi
+    ) {
+
+        List<Xref> deletedXrefs = new ArrayList<Xref>();
+
+        //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotTranscript, uniprot );
+
+        // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
+        Collection<InteractorXref> xrefs = protein.getXrefs();
+        for (Iterator<InteractorXref> iterator = xrefs.iterator(); iterator.hasNext();) {
+            InteractorXref xref =  iterator.next();
+
+            // Dont's check uniprot xref as those one have been done earlier and as anyway, the uniprot Xref won't have
+            // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
+            // secondary ac of the proteins).
+            CvDatabase cvDb = xref.getCvDatabase();
+            String cvDbMi = cvDb.getMiIdentifier();
+
+            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi) || CvDatabase.INTACT_MI_REF.equals(cvDbMi)){
+                continue;
+            }
+            else {
+                IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).delete(xref);
+                deletedXrefs.add(xref);
+                iterator.remove();
+
+            }
+        }
+
+        reports.add(new XrefUpdaterReport(protein,
+                new Xref[]{},
+                deletedXrefs.toArray(new Xref[deletedXrefs.size()])));
+        return reports;
+    }
+
+    public static Collection<XrefUpdaterReport> updateAllXrefs( Protein protein,
                                                     UniprotProtein uniprotProtein,
                                                     Map<String, String> databaseName2mi
     ) {
@@ -109,7 +148,7 @@ public final class XrefUpdaterUtils {
             }
         }
         //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
-        XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein );
 
         // CONVERT ALL THE uniprotProtein crossReferences to intact protein InteractorXref and put them in the convertedXrefs
         // collection.
@@ -154,9 +193,10 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        return new XrefUpdaterReport(protein,
+        reports.add(new XrefUpdaterReport(protein,
                 createdXrefs.toArray(new Xref[createdXrefs.size()]),
-                deletedXrefs.toArray(new Xref[deletedXrefs.size()]));
+                deletedXrefs.toArray(new Xref[deletedXrefs.size()])));
+        return reports;
     }
 
     /**

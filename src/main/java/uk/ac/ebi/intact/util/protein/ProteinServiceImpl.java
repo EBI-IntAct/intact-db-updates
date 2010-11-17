@@ -773,10 +773,12 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport report = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi );
 
-        if (report.isUpdated()) {
-            uniprotServiceResult.addXrefUpdaterReport(report);
+        for (XrefUpdaterReport report : reports){
+            if (report.isUpdated()) {
+                uniprotServiceResult.addXrefUpdaterReport(report);
+            }
         }
 
         // Aliases

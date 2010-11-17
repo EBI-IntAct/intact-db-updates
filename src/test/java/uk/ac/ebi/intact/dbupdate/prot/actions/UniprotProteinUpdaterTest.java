@@ -24,19 +24,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotXref;
+import uk.ac.ebi.intact.uniprot.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
@@ -73,15 +68,23 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    /**
+     * No Intact protein is matching the uniprot entry. The intact protein will be created
+     * and updated with the uniprot entry
+     */
     public void create_master_protein() throws Exception{
         TransactionStatus status = getDataContext().beginTransaction();
+
+        // the uniprot protein
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
+        // the update event without any proteins in intact
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, new ArrayList<Protein>(),
                 Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
         evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
 
+        // create and update the protein in intact
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
@@ -116,6 +119,1555 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         }
 
         Assert.assertEquals(12, createdProtein.getXrefs().size());
+        Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(createdProtein.getAc()));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * It is not a global protein so the transcript can be created.
+     * No splice variant in Intact is matching any of the splice variants in uniprot.
+     * They will be created and updated. They will be attached to the existing master protein in IntAct
+     */
+    public void create_isoform_protein_yes() throws Exception{
+        // not a global update and we allow isoforms without interactions
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        // the master protein in Intact
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateIsoform(evt, master);
+        Assert.assertEquals(2, evt.getPrimaryIsoforms().size());
+
+        // test that isoform P60953-1 has been properly updated
+        ProteinTranscript transcript = null;
+        for (ProteinTranscript t : evt.getPrimaryIsoforms()){
+            if (t.getUniprotVariant().getPrimaryAc().equals("P60953-1")){
+                transcript = t;
+                break;
+            }
+        }
+        Assert.assertNotNull(transcript);
+        Protein createdProtein = transcript.getProtein();
+        UniprotSpliceVariant variant = (UniprotSpliceVariant) transcript.getUniprotVariant();
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), createdProtein.getBioSource().getTaxId());
+        Assert.assertEquals(variant.getPrimaryAc().toLowerCase(), createdProtein.getShortLabel());
+        Assert.assertEquals(master.getFullName(), createdProtein.getFullName());
+        Assert.assertEquals(variant.getSequence(), createdProtein.getSequence());
+        Assert.assertEquals(Crc64.getCrc64(variant.getSequence()), createdProtein.getCrc64());
+        Assert.assertEquals(variant.getPrimaryAc(), ProteinUtils.getUniprotXref(createdProtein).getPrimaryId());
+        Assert.assertTrue(hasXRef(createdProtein, master.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
+
+        for (String secAc : variant.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(createdProtein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        for ( String syn2 : variant.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.ISOFORM_SYNONYM, syn2));
+        }
+
+        Assert.assertEquals(3, createdProtein.getXrefs().size());
+        Assert.assertTrue(hasAnnotation(createdProtein, variant.getNote(), CvTopic.ISOFORM_COMMENT));
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * It is not a global protein so the transcript can be created.
+     * No feature chain in Intact is matching any of the feature chains in uniprot.
+     * They will be created and updated. They will be attached to the existing master protein in IntAct
+     */
+    public void create_chain_protein_yes() throws Exception{
+        // not a global update and we allow isoforms without interactions
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence().substring(2, 8));
+        chain1.setStart(2);
+        chain1.setEnd(7);
+        UniprotFeatureChain chain2 = new UniprotFeatureChain("PRO-2", uniprot.getOrganism(), null);
+        uniprot.getFeatureChains().add(chain1);
+        uniprot.getFeatureChains().add(chain2);
+
+        // the master protein in intact
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        // the update case event
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all feature chains
+        updater.createOrUpdateFeatureChain(evt, master);
+        Assert.assertEquals(2, evt.getPrimaryFeatureChains().size());
+
+        // test that chain PRO-1 has been properly updated (has start and end)
+        ProteinTranscript transcript = null;
+        for (ProteinTranscript t : evt.getPrimaryFeatureChains()){
+            if (t.getUniprotVariant().getPrimaryAc().equals("PRO-1")){
+                transcript = t;
+                break;
+            }
+        }
+        Assert.assertNotNull(transcript);
+        Protein createdProtein = transcript.getProtein();
+        UniprotFeatureChain variant = (UniprotFeatureChain) transcript.getUniprotVariant();
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), createdProtein.getBioSource().getTaxId());
+        Assert.assertEquals(variant.getPrimaryAc().toLowerCase(), createdProtein.getShortLabel());
+        Assert.assertEquals(variant.getDescription(), createdProtein.getFullName());
+        Assert.assertEquals(variant.getSequence(), createdProtein.getSequence());
+        Assert.assertEquals(Crc64.getCrc64(variant.getSequence()), createdProtein.getCrc64());
+        Assert.assertEquals(variant.getPrimaryAc(), ProteinUtils.getUniprotXref(createdProtein).getPrimaryId());
+        Assert.assertTrue(hasXRef(createdProtein, master.getAc(), CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT));
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(createdProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        Assert.assertEquals(2, createdProtein.getXrefs().size());
+        Assert.assertTrue(hasAnnotation(createdProtein, Integer.toString(variant.getStart()), CvTopic.CHAIN_SEQ_START));
+        Assert.assertTrue(hasAnnotation(createdProtein, Integer.toString(variant.getEnd()), CvTopic.CHAIN_SEQ_END));
+
+        // test that chain PRO-2 has been properly updated (has start and end undetermined)
+        ProteinTranscript transcript2 = null;
+        for (ProteinTranscript t : evt.getPrimaryFeatureChains()){
+            if (t.getUniprotVariant().getPrimaryAc().equals("PRO-2")){
+                transcript2 = t;
+                break;
+            }
+        }
+        Assert.assertNotNull(transcript2);
+        Protein createdProtein2 = transcript2.getProtein();
+
+        Assert.assertTrue(hasAnnotation(createdProtein2, "?", CvTopic.CHAIN_SEQ_START));
+        Assert.assertTrue(hasAnnotation(createdProtein2, "?", CvTopic.CHAIN_SEQ_END));
+
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * It is a global protein so the transcript cannot be created.
+     * No splice variant in Intact is matching any of the splice variants in uniprot.
+     * They will not be created because of the configuration of the update.
+     */
+    public void create_isoform_protein_no() throws Exception{
+        // global update , we don't create splice variants
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        // the master protein in intact
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        // the update case event
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants : check that no protein transcript has been created in intact
+        updater.createOrUpdateIsoform(evt, master);
+        Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
+
+        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * It is a global protein so the transcript cannot be created.
+     * No feature chain in Intact is matching any of the feature chains in uniprot.
+     * They will not be created because of the configuration of the update.
+     */
+    public void create_chain_protein_no() throws Exception{
+        // global update, we don't create feature chains
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence().substring(2, 8));
+        chain1.setStart(2);
+        chain1.setEnd(7);
+        UniprotFeatureChain chain2 = new UniprotFeatureChain("PRO-2", uniprot.getOrganism(), null);
+        uniprot.getFeatureChains().add(chain1);
+        uniprot.getFeatureChains().add(chain2);
+
+        // the master protein in Intact
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        // the update case event
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all feature chains : check that no feature chain has been created in Intact
+        updater.createOrUpdateFeatureChain(evt, master);
+        Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
+
+        Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein existing in intact with the uniprot protein
+     */
+    public void update_master_protein() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(sequence);
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        InteractorAlias alias = getMockBuilder().createAlias(protein, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        protein.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(protein, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        protein.addXref(ref);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), Integer.parseInt(updatedProtein.getBioSource().getTaxId()));
+        Assert.assertEquals(uniprot.getId().toLowerCase(), updatedProtein.getShortLabel());
+        Assert.assertEquals(uniprot.getDescription(), updatedProtein.getFullName());
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(updatedProtein).getPrimaryId());
+
+        for (String secAc : uniprot.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(updatedProtein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        Assert.assertEquals(12, updatedProtein.getXrefs().size());
+        Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
+        Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The organism of the protein is null and will be updated as well with the organism in uniprot
+     */
+    public void update_master_protein_biosource_null() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.setBioSource(null);
+        protein.setSequence(sequence);
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), Integer.parseInt(updatedProtein.getBioSource().getTaxId()));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The organism of the protein is different than the uniprot protein : there is a conflict and the protein cannot ba updated
+     */
+    public void update_master_protein_organism_different() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("-1");
+        protein.setSequence(sequence);
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        InteractorAlias alias = getMockBuilder().createAlias(protein, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        protein.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(protein, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        protein.addXref(ref);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(0, evt.getPrimaryProteins().size());
+        Assert.assertEquals(0, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Assert.assertNotSame(uniprot.getOrganism().getTaxid(), Integer.parseInt(protein.getBioSource().getTaxId()));
+        Assert.assertNotSame(uniprot.getId().toLowerCase(), protein.getShortLabel());
+        Assert.assertNotSame(uniprot.getDescription(), protein.getFullName());
+        Assert.assertNotSame(uniprot.getSequence(), protein.getSequence());
+        Assert.assertNotSame(uniprot.getCrc64(), protein.getCrc64());
+        Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
+
+        Assert.assertEquals(2, protein.getXrefs().size());
+        Assert.assertEquals(1, protein.getAliases().size());
+        Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, "name"));
+        Assert.assertTrue(hasXRef(protein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges will be shifted properly
+     */
+    public void update_master_interaction_range_shifted() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence().substring(5));
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(1, updatedProtein.getActiveInstances().size());
+
+        Assert.assertEquals(7, range.getFromIntervalStart());
+        Assert.assertEquals(7, range.getFromIntervalEnd());
+        Assert.assertEquals(10, range.getToIntervalStart());
+        Assert.assertEquals(10, range.getToIntervalEnd());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : as no protein transcript in uniprot has the same sequence, a deprecated
+     * protein will be created and the interactions will be attached to this protein
+     */
+    public void update_master_interaction_range_impossible_to_shift_no_uniprot_update() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getSequence().equals(protein.getSequence())){
+                v.setSequence(uniprot.getSequence());
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        Component componentWithFeatureConflicts = null;
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+                componentWithFeatureConflicts = c;
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        Protein noUniprotUpdate = (Protein) componentWithFeatureConflicts.getInteractor();
+        Assert.assertFalse(ProteinUtils.isFromUniprot(noUniprotUpdate));
+        Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(noUniprotUpdate.getAc()));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence but no intact protein
+     * is matching this splice variant: it will be created and the interactions will be attached to this transcript
+     */
+    public void update_master_interaction_range_impossible_to_shift_create_isoform() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        Component componentWithFeatureConflicts = null;
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+                componentWithFeatureConflicts = c;
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(3, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        Protein transcript = (Protein) componentWithFeatureConflicts.getInteractor();
+        Assert.assertTrue(hasXRef(transcript, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
+        Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(transcript.getAc()));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence and one intact primary protein
+     * is matching this splice variant with a sequence up to date: it will be updated and the interactions will be attached to this transcript
+     */
+    public void update_master_interaction_range_impossible_to_shift_existing_primary_isoform() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getSequence().equals(protein.getSequence())){
+                variant = v;
+            }
+        }
+
+        Assert.assertNotNull(variant);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(protein, variant.getPrimaryAc(), "isoform");
+        isoform.setSequence(variant.getSequence());
+        isoform.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        primaryIsoforms.add(new ProteinTranscript(isoform, variant));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(0, evt.getSecondaryIsoforms().size());
+        Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(3, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
+        Assert.assertEquals(isoform.getAc(), transcript.getProtein().getAc());
+        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(1, isoform.getActiveInstances().size());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence and one intact secondary protein
+     * is matching this splice variant with a sequence up to date: it will be updated and the interactions will be attached to this transcript
+     */
+    public void update_master_interaction_range_impossible_to_shift_existing_secondary_isoform() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getSequence().equals(protein.getSequence())){
+                variant = v;
+            }
+        }
+
+        Assert.assertNotNull(variant);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(protein, variant.getPrimaryAc(), "isoform");
+        isoform.setSequence(variant.getSequence());
+        isoform.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        secondaryIsoforms.add(new ProteinTranscript(isoform, variant));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
+        Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(3, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        ProteinTranscript transcript = evt.getSecondaryIsoforms().iterator().next();
+        Assert.assertEquals(isoform.getAc(), transcript.getProtein().getAc());
+        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(1, isoform.getActiveInstances().size());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence and no intact primary protein
+     * is matching this feature chain: it will be created and updated and the interactions will be attached to this transcript
+     */
+    public void update_master_interaction_range_impossible_to_shift_create_chain() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence());
+        uniprot.getFeatureChains().add(chain1);
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getSequence().equals(protein.getSequence())){
+                v.setSequence(uniprot.getSequence());
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        Component componentWithFeatureConflicts = null;
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+                componentWithFeatureConflicts = c;
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        Protein transcript = (Protein) componentWithFeatureConflicts.getInteractor();
+        Assert.assertTrue(hasXRef(transcript, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT));
+        Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(transcript.getAc()));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a protein in intact with the uniprot protein.
+     * The protein has a sequence not up to date and is involved in one interaction with features to shift.
+     * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence and one intact primary protein
+     * is matching this feature chain: it will be updated and the interactions will be attached to this transcript
+     */
+    public void update_master_interaction_range_impossible_to_shift_existing_primary_chain() throws Exception{
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence());
+        uniprot.getFeatureChains().add(chain1);
+
+        Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
+        protein.getBioSource().setTaxId("9606");
+        protein.setSequence(uniprot.getSequence());
+        protein.getAnnotations().clear();
+        protein.getAliases().clear();
+
+        uniprot.setSequence(protein.getSequence().substring(4));
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getSequence().equals(protein.getSequence())){
+                v.setSequence(uniprot.getSequence());
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
+
+        Protein chain = getMockBuilder().createProteinChain(protein, chain1.getPrimaryAc(), "chain");
+        chain.setSequence(chain1.getSequence());
+        chain.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(2, 2, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(protein.getAc())){
+                c.addBindingDomain(feature);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(protein);
+        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        primaryChains.add(new ProteinTranscript(chain, chain1));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        updater.createOrUpdateProtein(evt);
+
+        Assert.assertEquals(1, evt.getPrimaryProteins().size());
+        Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(0, evt.getSecondaryIsoforms().size());
+        Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
+        Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
+        Assert.assertEquals(chain.getAc(), transcript.getProtein().getAc());
+        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+        Assert.assertEquals(1, chain.getActiveInstances().size());
+
+        Assert.assertEquals(2, range.getFromIntervalStart());
+        Assert.assertEquals(2, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a splice variant existing in intact with the uniprot protein
+     */
+    public void update_isoform() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getPrimaryAc().equals("P60953-1")){
+                variant = v;
+            }
+        }
+
+        Assert.assertNotNull(variant);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(master, variant.getPrimaryAc(), "isoform");
+        isoform.setSequence(sequence);
+        isoform.getBioSource().setTaxId("9606");InteractorAlias alias = getMockBuilder().createAlias(isoform, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        isoform.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(isoform, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        isoform.addXref(ref);
+
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        primaryIsoforms.add(new ProteinTranscript(isoform, variant));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateIsoform(evt, master);
+        Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
+
+        // test that isoform P60953-1 has been properly updated
+        ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
+
+        Protein updatedProtein = transcript.getProtein();
+        Assert.assertEquals(variant, transcript.getUniprotVariant());
+
+        Assert.assertEquals(isoform.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), updatedProtein.getBioSource().getTaxId());
+        Assert.assertEquals(variant.getPrimaryAc().toLowerCase(), updatedProtein.getShortLabel());
+        Assert.assertEquals(master.getFullName(), updatedProtein.getFullName());
+        Assert.assertEquals(variant.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(Crc64.getCrc64(variant.getSequence()), updatedProtein.getCrc64());
+        Assert.assertEquals(variant.getPrimaryAc(), ProteinUtils.getUniprotXref(updatedProtein).getPrimaryId());
+
+        for (String secAc : variant.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(updatedProtein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        for ( String syn2 : variant.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ISOFORM_SYNONYM, syn2));
+        }
+
+        Assert.assertEquals(3, updatedProtein.getXrefs().size());
+        Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
+        Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a splice variant existing in intact with the uniprot protein
+     * the organism is null and will be updated with the uniprot transcript in uniprot
+     */
+    public void update_isoform_biosource_null() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getPrimaryAc().equals("P60953-1")){
+                variant = v;
+            }
+        }
+
+        Assert.assertNotNull(variant);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(master, variant.getPrimaryAc(), "isoform");
+        isoform.setSequence(sequence);
+        isoform.setBioSource(null);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        primaryIsoforms.add(new ProteinTranscript(isoform, variant));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateIsoform(evt, master);
+        Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        // test that isoform P60953-1 has been properly updated
+        ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
+
+        Protein updatedProtein = transcript.getProtein();
+        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(isoform.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), updatedProtein.getBioSource().getTaxId());
+
+        Assert.assertEquals(3, updatedProtein.getXrefs().size());
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a splice variant existing in intact with the uniprot protein
+     * The organism is different from the one in uniprot : cannot update this splice variant
+     */
+    public void update_isoform_organism_different() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        master.setFullName(uniprot.getDescription());
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant v : uniprot.getSpliceVariants()){
+            if (v.getPrimaryAc().equals("P60953-1")){
+                variant = v;
+            }
+        }
+
+        Assert.assertNotNull(variant);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(master, variant.getPrimaryAc(), "isoform");
+        isoform.setSequence(sequence);
+        isoform.getBioSource().setTaxId("-1");
+        InteractorAlias alias = getMockBuilder().createAlias(isoform, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        isoform.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(isoform, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        isoform.addXref(ref);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        primaryIsoforms.add(new ProteinTranscript(isoform, variant));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateIsoform(evt, master);
+        Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
+        Assert.assertEquals(0, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Assert.assertNotSame(master.getBioSource().getTaxId(), isoform.getBioSource().getTaxId());
+        Assert.assertNotSame(variant.getPrimaryAc().toLowerCase(), isoform.getShortLabel());
+        Assert.assertNotSame(master.getFullName(), isoform.getFullName());
+        Assert.assertNotSame(variant.getSequence(), isoform.getSequence());
+        Assert.assertNotSame(Crc64.getCrc64(variant.getSequence()), isoform.getCrc64());
+        Assert.assertEquals(variant.getPrimaryAc(), ProteinUtils.getUniprotXref(isoform).getPrimaryId());
+
+        Assert.assertEquals(3, isoform.getXrefs().size());
+        Assert.assertTrue(hasAlias(isoform, CvAliasType.ORF_NAME, "name"));
+        Assert.assertTrue(hasXRef(isoform, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a feature chain existing in intact with the uniprot protein
+     */
+    public void update_chain() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence().substring(2, 8));
+        chain1.setStart(2);
+        chain1.setEnd(7);
+        uniprot.getFeatureChains().add(chain1);
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein chain = getMockBuilder().createProteinChain(master, chain1.getPrimaryAc(), "chain");
+        chain.setSequence(sequence);
+        chain.getBioSource().setTaxId("9606");InteractorAlias alias = getMockBuilder().createAlias(chain, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        chain.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(chain, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        chain.addXref(ref);
+
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        primaryChains.add(new ProteinTranscript(chain, chain1));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateFeatureChain(evt, master);
+        Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        // test that chain P60953-1 has been properly updated
+        ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
+
+        Protein updatedProtein = transcript.getProtein();
+        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+
+        Assert.assertEquals(chain.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), updatedProtein.getBioSource().getTaxId());
+        Assert.assertEquals(chain1.getPrimaryAc().toLowerCase(), updatedProtein.getShortLabel());
+        Assert.assertEquals(chain1.getDescription(), updatedProtein.getFullName());
+        Assert.assertEquals(chain1.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(Crc64.getCrc64(chain1.getSequence()), updatedProtein.getCrc64());
+        Assert.assertEquals(chain1.getPrimaryAc(), ProteinUtils.getUniprotXref(updatedProtein).getPrimaryId());
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        Assert.assertEquals(2, updatedProtein.getXrefs().size());
+        Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
+        Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a feature chain existing in intact with the uniprot protein
+     * The organism is null and will be updated with the organism in uniprot
+     */
+    public void update_chain_biosource_null() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence().substring(2, 8));
+        chain1.setStart(2);
+        chain1.setEnd(7);
+        uniprot.getFeatureChains().add(chain1);
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein chain = getMockBuilder().createProteinChain(master, chain1.getPrimaryAc(), "chain");
+        chain.setSequence(sequence);
+        chain.setBioSource(null);
+        InteractorAlias alias = getMockBuilder().createAlias(chain, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        chain.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(chain, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        chain.addXref(ref);
+
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        primaryChains.add(new ProteinTranscript(chain, chain1));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateFeatureChain(evt, master);
+        Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        // test that chain P60953-1 has been properly updated
+        ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
+
+        Protein updatedProtein = transcript.getProtein();
+        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+
+        Assert.assertEquals(chain.getAc(), updatedProtein.getAc());
+
+        Assert.assertEquals(master.getBioSource().getTaxId(), updatedProtein.getBioSource().getTaxId());
+
+        Assert.assertEquals(2, updatedProtein.getXrefs().size());
+        Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
+        Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * Update a feature chain existing in intact with the uniprot protein
+     * The organism is different from the organism in uniprot : cannot be updated
+     */
+    public void update_chain_organism_different() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotFeatureChain chain1 = new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), uniprot.getSequence().substring(2, 8));
+        chain1.setStart(2);
+        chain1.setEnd(7);
+        chain1.setDescription("description");
+        uniprot.getFeatureChains().add(chain1);
+
+        String sequence = "AAAIILKY";
+
+        Protein master = getMockBuilder().createProtein("P60953", "master");
+        master.getBioSource().setTaxId("9606");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(master);
+
+        Protein chain = getMockBuilder().createProteinChain(master, chain1.getPrimaryAc(), "chain");
+        chain.setSequence(sequence);
+        chain.getBioSource().setTaxId("-1");
+        InteractorAlias alias = getMockBuilder().createAlias(chain, "name",
+                getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,
+                        CvAliasType.ORF_NAME));
+        chain.addAlias(alias);
+
+        InteractorXref ref = getMockBuilder().createXref(chain, "test",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF,
+                        CvXrefQualifier.IDENTITY), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.REFSEQ_MI_REF,
+                        CvDatabase.REFSEQ));
+        chain.addXref(ref);
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(master);
+        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        primaryChains.add(new ProteinTranscript(chain, chain1));
+
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
+                IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
+        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+
+        // create all splice variants
+        updater.createOrUpdateFeatureChain(evt, master);
+        Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
+        Assert.assertEquals(0, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+
+        Assert.assertNotSame(master.getBioSource().getTaxId(), chain.getBioSource().getTaxId());
+        Assert.assertNotSame(chain1.getPrimaryAc().toLowerCase(), chain.getShortLabel());
+        Assert.assertNotSame(chain1.getDescription(), chain.getFullName());
+        Assert.assertNotSame(chain1.getSequence(), chain.getSequence());
+        Assert.assertNotSame(Crc64.getCrc64(chain1.getSequence()), chain.getCrc64());
+        Assert.assertEquals(chain1.getPrimaryAc(), ProteinUtils.getUniprotXref(chain).getPrimaryId());
+
+        Assert.assertEquals(3, chain.getXrefs().size());
+        Assert.assertTrue(hasAlias(chain, CvAliasType.ORF_NAME, "name"));
+        Assert.assertTrue(hasXRef(chain, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 
         getDataContext().commitTransaction(status);
     }
@@ -145,11 +1697,31 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         for ( InteractorAlias alias : aliases ) {
             if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
                 if (aliasName.equals(alias.getName())){
-                     hasFoundAlias = true;
+                    hasFoundAlias = true;
                 }
             }
         }
 
         return hasFoundAlias;
+    }
+
+    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
+        final Collection<Annotation> annotations = p.getAnnotations();
+        boolean hasAnnotation = false;
+
+        for ( Annotation a : annotations ) {
+            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
+                if (text == null){
+                    hasAnnotation = true;
+                }
+                else if (text != null && a.getAnnotationText() != null){
+                    if (text.equalsIgnoreCase(a.getAnnotationText())){
+                        hasAnnotation = true;
+                    }
+                }
+            }
+        }
+
+        return hasAnnotation;
     }
 }
