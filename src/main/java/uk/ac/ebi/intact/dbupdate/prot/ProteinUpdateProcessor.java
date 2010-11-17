@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
-import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 import uk.ac.ebi.intact.model.meta.DbInfo;
@@ -87,10 +86,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         
         addListener(new LoggingProcessorListener());
-        if (config.isProcessProteinNotFoundInUniprot()){
-            DeadUniprotListener deadUniprotListener = new DeadUniprotListener();
-            addListener(deadUniprotListener);
-        }
 
         if (config.getReportHandler() != null) {
             addListener(new ReportWriterListener(config.getReportHandler()));

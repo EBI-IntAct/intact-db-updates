@@ -74,7 +74,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P60952");
 
         UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
@@ -99,7 +99,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P21181");
 
         UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
@@ -123,7 +123,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P00012");
         Assert.assertNull(evt.getUniprotProtein());
 
@@ -149,7 +149,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         prot.getBioSource().setTaxId("9606");
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P21181");
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -178,7 +178,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P00012");
 
         UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);
@@ -202,7 +202,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P12345");
 
         UniprotProtein uniprot = retriever.retrieveUniprotEntry(evt);

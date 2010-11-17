@@ -34,6 +34,7 @@ public class UniprotProteinRetriever {
      * UniProt Data Source.
      */
     private UniprotService uniprotService;
+    private DeadUniprotFixer deadUniprotFixer;
 
     private static final Log log = LogFactory.getLog( UniprotProteinRetriever.class );
 
@@ -42,6 +43,7 @@ public class UniprotProteinRetriever {
 
     public UniprotProteinRetriever(UniprotService uniprotService) {
         this.uniprotService = uniprotService;
+        this.deadUniprotFixer = new DeadUniprotFixer();
     }
 
     public UniprotProtein retrieveUniprotEntry(ProteinEvent evt) throws ProcessorException {
@@ -85,10 +87,7 @@ public class UniprotProteinRetriever {
                         ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
                     }
                     else {
-                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnUniprotDeadEntry(new ProteinEvent(updateProcessor, evt.getDataContext(), evt.getProtein()));
-                        }
+                        deadUniprotFixer.fixDeadProtein(evt);
                     }
 
                 }
@@ -235,10 +234,7 @@ public class UniprotProteinRetriever {
 
                 // no uniprot protein matches this uniprot ac
                 if(uniprotProteins.size() == 0){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac));
-                    }
+                    deadUniprotFixer.fixDeadProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
                     secondaryAcToRemove.add(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {

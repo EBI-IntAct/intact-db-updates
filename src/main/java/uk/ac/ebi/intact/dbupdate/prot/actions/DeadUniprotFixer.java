@@ -1,19 +1,18 @@
-package uk.ac.ebi.intact.dbupdate.prot.listener;
+package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
 import java.util.ArrayList;
@@ -28,18 +27,22 @@ import java.util.List;
  * @since <pre>01-Oct-2010</pre>
  */
 
-public class DeadUniprotListener extends AbstractProteinUpdateProcessorListener {
+public class DeadUniprotFixer {
 
-    private static final Log log = LogFactory.getLog( DeadUniprotListener.class );
+    private static final Log log = LogFactory.getLog( DeadUniprotFixer.class );
 
-    @Override
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+    public void fixDeadProtein(ProteinEvent evt) throws ProcessorException {
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
         Protein protein = evt.getProtein();
 
         updateAnnotations(protein, factory);
         updateXRefs(protein, factory);
+        
+        if (evt.getSource() instanceof ProteinUpdateProcessor) {
+            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+            updateProcessor.fireOnUniprotDeadEntry(new ProteinEvent(updateProcessor, evt.getDataContext(), evt.getProtein()));
+        }
     }
 
     /**
@@ -86,7 +89,7 @@ public class DeadUniprotListener extends AbstractProteinUpdateProcessorListener 
             Annotation no_uniprot = new Annotation(no_uniprot_update, null);
             annotationDao.persist(no_uniprot);
 
-            protein.addAnnotation(no_uniprot);            
+            protein.addAnnotation(no_uniprot);
         }
         if (!has_caution_obsolete){
             Annotation obsolete = new Annotation(caution, cautionMessage);
