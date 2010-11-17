@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * TODO comment that class header
+ * Tester of the SequenceChangedListener
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -42,6 +42,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is not different : no caution should be added
+     */
     public void onProteinSequenceChanged_cautionNo() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
@@ -67,6 +70,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is very different : a caution should be added
+     */
     public void onProteinSequenceChanged_cautionYes() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
@@ -93,6 +99,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is very different : a caution should be added
+     */
     public void onProteinSequenceChanged_cautionYes2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
@@ -118,6 +127,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is very different : a caution should be added at the level of the interaction as well
+     */
     public void onProteinSequenceChanged_cautionOnInteraction() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
@@ -147,6 +159,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is very different : a caution should be added
+     */
     public void onProteinSequenceChanged_cautionYes3() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
@@ -172,6 +187,9 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    /**
+     * The sequence is very similar : no caution should be added
+     */
     public void onProteinSequenceChanged_cautionNo2() throws Exception {
         CvTopic caution = getMockBuilder().createCvObject(CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
