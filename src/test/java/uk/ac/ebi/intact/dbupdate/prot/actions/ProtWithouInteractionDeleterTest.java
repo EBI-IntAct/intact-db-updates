@@ -11,10 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Interaction;
@@ -245,8 +242,10 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertTrue(toDelete);
         Assert.assertTrue(toDeleteVariant);
 
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         // isDeleteProteinTranscriptWhitoutInteractions = false
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
         boolean toDelete2 = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), masterProt));
         boolean toDeleteVariant2 = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), chain));
 
@@ -254,7 +253,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertTrue(toDeleteVariant2);
 
         // reset
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
         getDataContext().commitTransaction(status);
     }
 
@@ -296,8 +295,10 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertTrue(toDelete);
         Assert.assertTrue(toDeleteVariant);
 
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         // isDeleteProteinTranscriptWhitoutInteractions = false
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
         boolean toDelete2 = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), masterProt));
         boolean toDeleteVariant2 = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), spliceVar1));
 
@@ -305,7 +306,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertTrue(toDeleteVariant2);
 
         // reset
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
         getDataContext().commitTransaction(status);
     }
 
@@ -576,8 +577,10 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, evt.getSecondaryProteins().size());
         Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
 
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         // isDeleteProteinTranscriptWhitoutInteractions = false
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
 
         Collection<Protein> primaryProteins2 = new ArrayList<Protein>();
         primaryProteins2.add(masterProt);
@@ -601,7 +604,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, evt2.getPrimaryFeatureChains().size());
 
         // reset
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
 
         getDataContext().commitTransaction(status);
     }
@@ -660,8 +663,10 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, evt.getSecondaryProteins().size());
         Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
 
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         // isDeleteProteinTranscriptWhitoutInteractions = false
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
 
         Collection<Protein> primaryProteins2 = new ArrayList<Protein>();
         primaryProteins2.add(masterProt);
@@ -685,7 +690,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, evt2.getPrimaryIsoforms().size());
 
         // reset
-        deleter.setDeleteProteinTranscriptsWithoutInteractions(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
         getDataContext().commitTransaction(status);
     }
 

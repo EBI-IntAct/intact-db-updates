@@ -108,7 +108,6 @@ public class UniprotProteinUpdater {
         int countSecondary = secondaryProteins.size();
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotProtein.getPrimaryAc());
-        processor.fireOnUpdateCase(evt);
 
         // TODO returned proteins are not used here
         processProteinCase(uniprotProtein, primaryProteins, secondaryProteins, evt);
@@ -125,6 +124,7 @@ public class UniprotProteinUpdater {
 
             proteinCreated(protein);
             evt.getPrimaryProteins().add(protein);
+            evt.getUniprotServiceResult().getProteins().add(protein);
 
         } else {
             if (log.isDebugEnabled())
@@ -159,7 +159,6 @@ public class UniprotProteinUpdater {
         int countSecondary = secondaryProteins.size();
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+caseEvent.getUniprotServiceResult().getQuerySentToService());
-        processor.fireOnUpdateCase(caseEvent);
 
         // TODO returned proteins are not used here
         processIsoform(uniprotProtein, masterProtein, primaryProteins, secondaryProteins, caseEvent);
@@ -176,7 +175,6 @@ public class UniprotProteinUpdater {
         int countPrimary = primaryProteins.size();
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary for "+caseEvent.getUniprotServiceResult().getQuerySentToService());
-        processor.fireOnUpdateCase(caseEvent);
 
         // TODO returned proteins are not used here
         processChain(uniprotProtein, masterProtein, primaryProteins, caseEvent);
@@ -221,6 +219,7 @@ public class UniprotProteinUpdater {
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein);
+                    evt.getUniprotServiceResult().getProteins().add(protein);
                 }
             }
         }
@@ -260,6 +259,7 @@ public class UniprotProteinUpdater {
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein);
+                    evt.getUniprotServiceResult().getProteins().add(protein);
                 }
             }
         }

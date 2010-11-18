@@ -201,7 +201,7 @@ public class MockUniprotProtein {
                                 .setSecondaryAcs( Arrays.asList( "P21181-4", "P00012-2" ) )
                                 .setOrganism( new Organism( 9606, "Human" ) )
                                 .setSynomyms( Arrays.asList( "Placental" ) )
-                                .setSequence( "SYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHH" ) /* Fake sequence */
+                                .setSequence( "SYPQTDVFLVCFSVVSPSSFENVKEKWVPEITHHHH" ) /* Fake sequence */
                                 .build()
                 ) )
                 .build();

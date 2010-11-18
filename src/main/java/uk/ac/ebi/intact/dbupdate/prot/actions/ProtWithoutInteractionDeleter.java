@@ -18,12 +18,9 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -50,8 +47,6 @@ import java.util.*;
 public class ProtWithoutInteractionDeleter {
 
     private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleter.class );
-
-    private boolean deleteProteinTranscriptsWithoutInteractions = true;
 
     public boolean hasToBeDeleted(ProteinEvent evt) throws ProcessorException {
         final Protein protein = evt.getProtein();
@@ -249,11 +244,7 @@ public class ProtWithoutInteractionDeleter {
     }
 
     public boolean isDeleteProteinTranscriptsWithoutInteractions() {
-        return deleteProteinTranscriptsWithoutInteractions;
-    }
-
-    public void setDeleteProteinTranscriptsWithoutInteractions(boolean deleteProteinTranscriptsWithoutInteractions) {
-        this.deleteProteinTranscriptsWithoutInteractions = deleteProteinTranscriptsWithoutInteractions;
+        return ProteinUpdateContext.getInstance().getConfig().isDeleteProteinTranscriptWithoutInteractions();
     }
 
     /**
