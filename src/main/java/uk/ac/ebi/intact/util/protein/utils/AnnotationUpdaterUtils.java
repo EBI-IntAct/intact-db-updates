@@ -7,6 +7,7 @@ package uk.ac.ebi.intact.util.protein.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.model.AnnotatedObject;
 import uk.ac.ebi.intact.model.Annotation;
@@ -32,7 +33,7 @@ public class AnnotationUpdaterUtils {
      * @param current    the annotated object to which we want to add an Annotation.
      * @param annotation the annotation to add the Annotated object
      */
-    public static void addNewAnnotation( AnnotatedObject current, final Annotation annotation ) {
+    public static void addNewAnnotation( AnnotatedObject current, final Annotation annotation, DataContext context) {
 
         if ( current.getAnnotations().contains( annotation ) ) {
             if ( log.isDebugEnabled() ) {
@@ -41,7 +42,7 @@ public class AnnotationUpdaterUtils {
             return; // already in, exit
         }
 
-        IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAnnotationDao().persist( annotation );
+        context.getDaoFactory().getAnnotationDao().persist( annotation );
 
         // add the alias to the AnnotatedObject
         current.addAnnotation( annotation );

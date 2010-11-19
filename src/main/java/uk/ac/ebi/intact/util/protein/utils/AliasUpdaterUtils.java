@@ -8,6 +8,7 @@ package uk.ac.ebi.intact.util.protein.utils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.model.*;
@@ -41,9 +42,9 @@ public class AliasUpdaterUtils {
      * @param protein
      * @param uniprotProtein
      */
-    public static void updateAllAliases( Protein protein, UniprotProtein uniprotProtein ) {
+    public static void updateAllAliases( Protein protein, UniprotProtein uniprotProtein, DataContext context ) {
 
-        updateAliasCollection( protein, buildAliases( uniprotProtein, protein ) );
+        updateAliasCollection( protein, buildAliases( uniprotProtein, protein), context  );
     }
 
     /**
@@ -52,9 +53,9 @@ public class AliasUpdaterUtils {
      * @param uniprotProteinTranscript
      * @param uniprotProtein
      */
-    public static void updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein ) {
+    public static void updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, DataContext context ) {
 
-        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ) );
+        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ), context );
     }
 
     /**
@@ -63,7 +64,7 @@ public class AliasUpdaterUtils {
      * @param alias
      * @return true if the new alias has been added to the annotated object
      */
-    public static boolean addNewAlias( AnnotatedObject current, InteractorAlias alias ) {
+    public static boolean addNewAlias( AnnotatedObject current, InteractorAlias alias, DataContext context) {
 
         // Make sure the alias does not yet exist in the object
         Collection aliases = current.getAliases();
@@ -75,7 +76,7 @@ public class AliasUpdaterUtils {
 
         // That test is done to avoid to record in the database an Alias
         // which is already linked to that AnnotatedObject.
-        AliasDao<InteractorAlias> aliasAliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class);
+        AliasDao<InteractorAlias> aliasAliasDao = context.getDaoFactory().getAliasDao(InteractorAlias.class);
 
         try {
             aliasAliasDao.persist( alias );
@@ -108,7 +109,7 @@ public class AliasUpdaterUtils {
      *
      * @return true if the protein has been updated, otherwise false
      */
-    public static boolean updateAliasCollection( Protein protein, Collection<Alias> newAliases ) {
+    public static boolean updateAliasCollection( Protein protein, Collection<Alias> newAliases, DataContext context ) {
 
         //AliasDao aliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao( InteractorAlias.class );
 
@@ -136,12 +137,12 @@ public class AliasUpdaterUtils {
                 recycledAlias.setName( alias.getName() );
                 recycledAlias.setCvAliasType( alias.getCvAliasType() );
 
-                IntactContext.getCurrentInstance().getDaoFactory().getAliasDao(InteractorAlias.class).update( recycledAlias );
+                context.getDaoFactory().getAliasDao(InteractorAlias.class).update( recycledAlias );
                 updated = true;
 
             } else {
 
-                updated = updated | addNewAlias( protein, alias );
+                updated = updated | addNewAlias( protein, alias, context );
             }
         }
 
@@ -150,14 +151,14 @@ public class AliasUpdaterUtils {
             InteractorAlias alias = toDeleteIterator.next();
             protein.removeAlias( alias );
 
-            IntactContext.getCurrentInstance().getDataContext().getDaoFactory()
+            context.getDaoFactory()
                     .getAliasDao(InteractorAlias.class).delete(alias);
             //aliasDao.delete( alias );
 
             updated = true;
         }
 
-        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
+        context.getDaoFactory().getProteinDao().update((ProteinImpl) protein);
         return updated;
     }
 

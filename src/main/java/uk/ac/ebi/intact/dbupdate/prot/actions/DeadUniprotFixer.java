@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -32,12 +33,11 @@ public class DeadUniprotFixer {
     private static final Log log = LogFactory.getLog( DeadUniprotFixer.class );
 
     public void fixDeadProtein(ProteinEvent evt) throws ProcessorException {
-        DaoFactory factory = evt.getDataContext().getDaoFactory();
 
         Protein protein = evt.getProtein();
 
-        updateAnnotations(protein, factory);
-        updateXRefs(protein, factory);
+        updateAnnotations(protein, evt.getDataContext());
+        updateXRefs(protein, evt.getDataContext());
         
         if (evt.getSource() instanceof ProteinUpdateProcessor) {
             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
@@ -49,19 +49,19 @@ public class DeadUniprotFixer {
      * Two new annotations will be added : a 'no-uniprot-update' and a 'caution' explaining that this protein is now obsolete in uniprot
      * @param protein :the dead protein in IntAct
      */
-    private void updateAnnotations(Protein protein, DaoFactory factory){
-
+    private void updateAnnotations(Protein protein, DataContext context){
+        DaoFactory factory = context.getDaoFactory();
         Collection<Annotation> annotations = protein.getAnnotations();
         CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
         if (no_uniprot_update == null){
-            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(no_uniprot_update);
+            no_uniprot_update = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            factory.getCvObjectDao(CvTopic.class).persist(no_uniprot_update);
         }
         CvTopic caution = factory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
-            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            caution = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
             factory.getCvObjectDao(CvTopic.class).saveOrUpdate(caution);
         }
 
@@ -105,11 +105,12 @@ public class DeadUniprotFixer {
      * This method removes all the cross references which are not intact cross references and replace the uniprot identity with 'uniprot-removed-ac'
      * @param protein : the dead protein in IntAct
      */
-    private void updateXRefs(Protein protein, DaoFactory factory){
+    private void updateXRefs(Protein protein, DataContext context){
+        DaoFactory factory = context.getDaoFactory();
 
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
         if (uniprotIdentities.size() > 1){
-            XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein);
+            XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, context);
         }
 
         Collection<InteractorXref> xRefs = protein.getXrefs();
@@ -156,10 +157,10 @@ public class DeadUniprotFixer {
                 xRefsToRemove.add(ref);
             }
             else if (isUniprotIdentity){
-                CvXrefQualifier uniprot_removed_ac = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
+                CvXrefQualifier uniprot_removed_ac = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
 
                 if (uniprot_removed_ac == null){
-                    uniprot_removed_ac = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, null, CvXrefQualifier.UNIPROT_REMOVED_AC);
+                    uniprot_removed_ac = CvObjectUtils.createCvObject(protein.getOwner(), CvXrefQualifier.class, null, CvXrefQualifier.UNIPROT_REMOVED_AC);
                     factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(uniprot_removed_ac);
                 }
 

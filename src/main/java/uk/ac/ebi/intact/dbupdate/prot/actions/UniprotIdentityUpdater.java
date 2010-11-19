@@ -25,6 +25,7 @@ import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * TODO comment this
@@ -56,11 +57,20 @@ public class UniprotIdentityUpdater {
 
         // we will assign the proteins to two collections - primary / secondary
         Collection<Protein> primaryProteins = new ArrayList<Protein>();
-        primaryProteins.addAll(proteinDao.getByUniprotId(uniprotAc));
+
+        List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
+
+        loadCollections(proteinsInIntact);
+
+        primaryProteins.addAll(proteinsInIntact);
+
         Collection<Protein> secondaryProteins = new ArrayList<Protein>();
 
         for (String secondaryAc : uniprotProtein.getSecondaryAcs()) {
-            secondaryProteins.addAll(proteinDao.getByUniprotId(secondaryAc));
+            proteinsInIntact.clear();
+            proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
+            loadCollections(proteinsInIntact);
+            secondaryProteins.addAll(proteinsInIntact);
         }
 
         int countPrimary = primaryProteins.size();
@@ -82,6 +92,15 @@ public class UniprotIdentityUpdater {
         return caseEvt;
     }
 
+    private void loadCollections(List<ProteinImpl> proteinsInIntact) {
+        for (Protein p : proteinsInIntact){
+            p.getXrefs().size();
+            p.getAnnotations().size();
+            p.getActiveInstances().size();
+            p.getAliases().size();
+        }
+    }
+
     private void collectSpliceVariants(UpdateCaseEvent evt){
         Collection<UniprotSpliceVariant> variants = evt.getProtein().getSpliceVariants();
         Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
@@ -100,7 +119,9 @@ public class UniprotIdentityUpdater {
         Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
 
         for (Protein primary : proteins){
-            Collection<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants( primary );
+            List<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants( primary );
+
+            loadCollections(spliceVariants);
 
             if (!spliceVariants.isEmpty()){
                 for (Protein variant : spliceVariants){
@@ -161,7 +182,9 @@ public class UniprotIdentityUpdater {
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         for (Protein primary : proteins){
-            Collection<ProteinImpl> featureChains = proteinDao.getProteinChains( primary );
+            List<ProteinImpl> featureChains = proteinDao.getProteinChains( primary );
+
+            loadCollections(featureChains);
 
             if (!featureChains.isEmpty()){
                 for (Protein variant : featureChains){
@@ -233,7 +256,7 @@ public class UniprotIdentityUpdater {
 
         for (Protein prot : secondaryProteins){
 
-            Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein);
+            Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext());
             serviceResult.getXrefUpdaterReports().addAll(xrefReports);
             primaryProteins.add(prot);
         }
@@ -261,7 +284,7 @@ public class UniprotIdentityUpdater {
             UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();
 
             if (spliceVariant != null){
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein);
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext());
                 serviceResult.getXrefUpdaterReports().addAll(xrefReports);
                 primaryProteins.add(prot);
             }

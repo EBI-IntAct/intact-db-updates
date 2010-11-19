@@ -141,7 +141,7 @@ public class DuplicatesFixer{
 
                 // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
                 for (Protein p : duplicatesHavingDifferentSequence){
-                    Collection<Component> componentWithRangeConflicts = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource());
+                    Collection<Component> componentWithRangeConflicts = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
 
                     if (!componentWithRangeConflicts.isEmpty()){
                         log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
@@ -180,13 +180,13 @@ public class DuplicatesFixer{
         CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
         if (no_uniprot_update == null){
-            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            no_uniprot_update = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, null, CvTopic.NON_UNIPROT);
             factory.getCvObjectDao(CvTopic.class).persist(no_uniprot_update);
         }
-        CvTopic caution = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+        CvTopic caution = factory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
-            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            caution = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
             factory.getCvObjectDao(CvTopic.class).persist(caution);
         }
 
@@ -244,7 +244,7 @@ public class DuplicatesFixer{
                 // don't process the original protein with itself
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
-                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
+                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext().getDaoFactory());
 
                     ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
@@ -285,18 +285,19 @@ public class DuplicatesFixer{
 
                             duplicate.removeActiveInstance(component);
                             originalProt.addActiveInstance(component);
+                            component.setInteractorAc(originalProt.getAc());
                             factory.getComponentDao().update(component);
                         }
 
                         factory.getProteinDao().update((ProteinImpl) duplicate);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
+                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
 
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
-                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate);
+                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext().getDaoFactory());
                         ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
@@ -312,14 +313,14 @@ public class DuplicatesFixer{
                             }
 
                             factory.getProteinDao().update((ProteinImpl) duplicate);
-                            processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
+                            processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
                         }
                     }
 
                     // update isoforms and feature chains
                     ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
 
-                    IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) duplicate);
+                    factory.getProteinDao().update((ProteinImpl) duplicate);
 
                     // and delete the duplicate
                     if (duplicate.getActiveInstances().isEmpty()) {
@@ -349,13 +350,13 @@ public class DuplicatesFixer{
                         }
 
                         factory.getProteinDao().update((ProteinImpl) duplicate);
-                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, IntactContext.getCurrentInstance().getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
+                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
                     }
                 }
             }
         }
 
-        IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().update((ProteinImpl) originalProt);
+        factory.getProteinDao().update((ProteinImpl) originalProt);
 
         return originalProt;
     }

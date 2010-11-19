@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -81,10 +82,10 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
             if (log.isWarnEnabled()) log.warn("Sequence has changed considerably during update for protein: "+protInfo(evt.getProtein()));
 
-            addCaution(evt.getProtein(), message);
+            addCaution(evt.getProtein(), message, evt.getDataContext());
 
             for (Component comp : evt.getProtein().getActiveInstances()) {
-                addCaution(comp.getInteraction(), message);
+                addCaution(comp.getInteraction(), message, evt.getDataContext());
                 //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
             }
         }
@@ -96,7 +97,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
      * @param ao
      * @param cautionMessage
      */
-    protected void addCaution(AnnotatedObject<?, ?> ao, String cautionMessage) {
+    protected void addCaution(AnnotatedObject<?, ?> ao, String cautionMessage, DataContext context) {
         // check if the annotated object already contains a caution for the sequence change
         for (Annotation annot : ao.getAnnotations()) {
             if (CvTopic.CAUTION_MI_REF.equals(annot.getCvTopic().getIdentifier()) &&
@@ -109,17 +110,17 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
         }
 
         // get the caution from the DB or create it and persist it
-        final DaoFactory daoFactory = IntactContext.getCurrentInstance().getDataContext().getDaoFactory();
+        final DaoFactory daoFactory = context.getDaoFactory();
         CvTopic caution = daoFactory
                 .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
-            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+            caution = CvObjectUtils.createCvObject(ao.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
         }
 
         // add the caution to the annotated object
-        Annotation annotation = new Annotation(IntactContext.getCurrentInstance().getInstitution(), caution, cautionMessage);
+        Annotation annotation = new Annotation(ao.getOwner(), caution, cautionMessage);
         daoFactory.getAnnotationDao().persist(annotation);
         ao.addAnnotation(annotation);
     }

@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.core.IntactException;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -51,7 +52,7 @@ public class RangeChecker {
      * @param newSequence The new sequence
      * @return a collection that contains the ranges that have been updated
      */
-    public Collection<UpdatedRange> shiftFeatureRanges(Feature feature, String oldSequence, String newSequence) {
+    public Collection<UpdatedRange> shiftFeatureRanges(Feature feature, String oldSequence, String newSequence, DataContext context) {
         if (feature == null) throw new NullPointerException("Feature was null");
         if (oldSequence == null) throw new NullPointerException("Old sequence was null");
         if (newSequence == null) throw new NullPointerException("New sequence was null");
@@ -70,14 +71,14 @@ public class RangeChecker {
                     throw new IntactException("Could not clone range: "+range, e);
                 }
 
-                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence);
+                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
 
                 if (rangeShifted) {
                     if (log.isInfoEnabled())
                         log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
 
                     range.prepareSequence(newSequence);
-                    IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
+                    context.getDaoFactory().getRangeDao().update(range);
 
                     updatedRanges.add(new UpdatedRange(oldRange, range));
                 }
@@ -87,7 +88,7 @@ public class RangeChecker {
         return updatedRanges;
     }
 
-    public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence) {
+    public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence, DataContext context) {
         if (feature == null) throw new NullPointerException("Feature was null");
 
         List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
@@ -106,7 +107,7 @@ public class RangeChecker {
                     log.info("Prepare sequence of the range " + logInfo(range));
 
                 range.prepareSequence(newSequence);
-                IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().update(range);
+                context.getDaoFactory().getRangeDao().update(range);
 
                 updatedRanges.add(new UpdatedRange(oldRange, range));
             }
@@ -123,7 +124,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    private boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
+    private boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -251,11 +252,11 @@ public class RangeChecker {
                 }
 
                 // get the caution from the DB or create it and persist it
-                final DaoFactory daoFactory = IntactContext.getCurrentInstance().getDaoFactory();CvTopic caution = daoFactory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+                final DaoFactory daoFactory = context.getDaoFactory();CvTopic caution = daoFactory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
                 if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+                    caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+                    context.getDaoFactory().getCvObjectDao(CvTopic.class).persist(caution);
                 }
 
                 Feature f = range.getFeature();

@@ -128,7 +128,7 @@ public abstract class ProteinProcessor {
         TransactionStatus transactionStatus = dataContext.beginTransaction();
         List<String> acs = dataContext.getDaoFactory().getEntityManager()
                 .createQuery("select p.ac from ProteinImpl p order by p.created").getResultList();
-        commitTransaction(transactionStatus);
+        commitTransaction(transactionStatus, dataContext);
 
         updateByACs(acs);
     }
@@ -136,25 +136,33 @@ public abstract class ProteinProcessor {
     public void updateByACs(List<String> protACsToUpdate) throws ProcessorException {
         registerListenersIfNotDoneYet();
 
-        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-
         Set<String> processedIntactProteins = new HashSet<String>();
 
         for (String protAc : protACsToUpdate) {
+
+            DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
             TransactionStatus transactionStatus = dataContext.beginTransaction();
             ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
 
             if (prot == null) {
                 if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
+                try {
+                    dataContext.commitTransaction(transactionStatus);
+                } catch (IntactTransactionException e) {
+                    throw new ProcessorException(e);
+                }
                 continue;
             }
 
             // load annotations (to avoid lazyinitializationexceptions later)
             prot.getXrefs().size();
             prot.getAnnotations().size();
+            prot.getActiveInstances().size();
+            prot.getAliases().size();
 
             if (!processedIntactProteins.contains(prot.getAc())){
-                processedIntactProteins.addAll(update(prot));
+                processedIntactProteins.addAll(update(prot, dataContext));
             }
 
             try {
@@ -165,7 +173,7 @@ public abstract class ProteinProcessor {
         }
     }
 
-    public void update(List<? extends Protein> protsToUpdate) throws ProcessorException {
+    public void update(List<? extends Protein> protsToUpdate, DataContext dataContext) throws ProcessorException {
         registerListenersIfNotDoneYet();
         Set<String> processedIntactProteins = new HashSet<String>();
 
@@ -173,13 +181,13 @@ public abstract class ProteinProcessor {
 
         for (Protein protToUpdate : protsToUpdate) {
             if (!processedIntactProteins.contains(protToUpdate.getAc())){
-                processedIntactProteins.addAll(update(protToUpdate));
+                processedIntactProteins.addAll(update(protToUpdate, dataContext));
             }
-            update(protToUpdate);
+            update(protToUpdate, dataContext);
         }
     }
 
-    public Set<String> update(Protein protToUpdate) throws ProcessorException {
+    public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
         // the proteins processed during this update
         Set<String> processedProteins = new HashSet<String>();
 
@@ -189,9 +197,6 @@ public abstract class ProteinProcessor {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         // the protein to update
         this.currentProtein = protToUpdate;
-
-        // the data context
-        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
         // add the protein to the list of processed proteins
         processedProteins.add(protToUpdate.getAc());
@@ -620,8 +625,7 @@ public abstract class ProteinProcessor {
 
     // other private methods
 
-    private void commitTransaction(TransactionStatus transactionStatus) throws ProcessorException {
-        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+    private void commitTransaction(TransactionStatus transactionStatus, DataContext dataContext) throws ProcessorException {
         try {
             dataContext.commitTransaction(transactionStatus);
         } catch (IntactTransactionException e) {

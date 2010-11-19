@@ -38,121 +38,116 @@ public class OutOfDateParticipantFixer {
     private static final Log log = LogFactory.getLog( OutOfDateParticipantFixer.class );
 
     private void moveInteractionsOfExistingProtein(Protein source, Protein existingProtein, DaoFactory factory){
-        for (Component c : source.getActiveInstances()){
+        Collection<Component> componentsToMove = new ArrayList<Component>(source.getActiveInstances());
+
+        for (Component c : componentsToMove){
+            source.removeActiveInstance(c);
             existingProtein.addActiveInstance(c);
+            c.setInteractorAc(existingProtein.getAc());
             factory.getComponentDao().update(c);
         }
-        source.getActiveInstances().clear();
 
         ProteinDao proteinDao = factory.getProteinDao();
         proteinDao.update((ProteinImpl)source);
         proteinDao.update((ProteinImpl)existingProtein);
     }
 
-    private ProteinTranscript createSpliceVariant(UniprotSpliceVariant spliceVariant, Protein proteinWithConflicts, Collection<Component> componentsToFix, IntactCloner cloner, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
+    private ProteinTranscript createSpliceVariant(UniprotSpliceVariant spliceVariant, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
 
-        try {
-            Protein spliceIntact = cloner.clone(proteinWithConflicts);
-            InteractorXref identity = ProteinUtils.getUniprotXref(spliceIntact);
-            identity.setPrimaryId(spliceVariant.getPrimaryAc());
-            spliceIntact.getAnnotations().clear();
-            spliceIntact.getAliases().clear();
-            spliceIntact.getXrefs().clear();
-            spliceIntact.addXref(identity);
+        Protein spliceIntact = cloneProtein(factory, proteinWithConflicts);
+        InteractorXref identity = ProteinUtils.getUniprotXref(spliceIntact);
+        identity.setPrimaryId(spliceVariant.getPrimaryAc());
+        spliceIntact.getAliases().clear();
+        spliceIntact.getXrefs().clear();
+        spliceIntact.addXref(identity);
 
-            Institution owner = spliceIntact.getOwner();
-            CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
+        Institution owner = spliceIntact.getOwner();
+        CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
-            if (db == null){
-                db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
-            }
-            CvXrefQualifier isoformParent = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
-
-            if (isoformParent == null) {
-                isoformParent = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT_MI_REF, CvXrefQualifier.ISOFORM_PARENT);
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoformParent);
-            }
-            InteractorXref parent = new InteractorXref(owner, db, proteinWithConflicts.getAc(), isoformParent);
-            spliceIntact.addXref(parent);
-
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(spliceIntact);
-
-            for (Component c : componentsToFix){
-                proteinWithConflicts.removeActiveInstance(c);
-                spliceIntact.addActiveInstance(c);
-
-                factory.getComponentDao().update(c);
-            }
-
-            ProteinDao proteinDao = factory.getProteinDao();
-
-            proteinDao.update((ProteinImpl)spliceIntact);
-            proteinDao.update((ProteinImpl)proteinWithConflicts);
-
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), spliceIntact));
-            }
-
-            return new ProteinTranscript(spliceIntact, spliceVariant);
-        } catch (IntactClonerException e) {
-            throw new ProcessorException("Impossible to clone the protein " + proteinWithConflicts.getAc());
+        if (db == null){
+            db = CvObjectUtils.createCvObject(owner, CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+            factory.getCvObjectDao(CvDatabase.class).persist(db);
         }
+        CvXrefQualifier isoformParent = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
+
+        if (isoformParent == null) {
+            isoformParent = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT_MI_REF, CvXrefQualifier.ISOFORM_PARENT);
+            factory.getCvObjectDao(CvXrefQualifier.class).persist(isoformParent);
+        }
+        InteractorXref parent = new InteractorXref(owner, db, proteinWithConflicts.getAc(), isoformParent);
+        spliceIntact.addXref(parent);
+
+        factory.getProteinDao().update((ProteinImpl) spliceIntact);
+
+        for (Component c : componentsToFix){
+            proteinWithConflicts.removeActiveInstance(c);
+            spliceIntact.addActiveInstance(c);
+            c.setInteractorAc(spliceIntact.getAc());
+
+            factory.getComponentDao().update(c);
+        }
+
+        ProteinDao proteinDao = factory.getProteinDao();
+
+        proteinDao.update((ProteinImpl)spliceIntact);
+        proteinDao.update((ProteinImpl)proteinWithConflicts);
+
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), spliceIntact));
+        }
+
+        return new ProteinTranscript(spliceIntact, spliceVariant);
     }
 
-    private ProteinTranscript createFeatureChain(UniprotFeatureChain featureChain, Protein proteinWithConflicts, Collection<Component> componentsToFix, IntactCloner cloner, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
+    private ProteinTranscript createFeatureChain(UniprotFeatureChain featureChain, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
 
-        try {
-            Protein chainIntact = cloner.clone(proteinWithConflicts);
-            InteractorXref identity = ProteinUtils.getUniprotXref(chainIntact);
-            identity.setPrimaryId(featureChain.getPrimaryAc());
-            chainIntact.getAnnotations().clear();
-            chainIntact.getAliases().clear();
-            chainIntact.getXrefs().clear();
-            chainIntact.addXref(identity);
+        Protein chainIntact = cloneProtein(factory, proteinWithConflicts);
+        InteractorXref identity = ProteinUtils.getUniprotXref(chainIntact);
+        identity.setPrimaryId(featureChain.getPrimaryAc());
+        chainIntact.getAliases().clear();
+        chainIntact.getXrefs().clear();
+        chainIntact.addXref(identity);
 
-            Institution owner = chainIntact.getOwner();
-            CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
+        Institution owner = chainIntact.getOwner();
+        CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
-            if (db == null){
-                db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(db);
-            }
-            CvXrefQualifier chainParent = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.CHAIN_PARENT_MI_REF);
-
-            if (chainParent == null) {
-                chainParent = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT);
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chainParent);
-            }
-            InteractorXref parent = new InteractorXref(owner, db, proteinWithConflicts.getAc(), chainParent);
-            chainIntact.addXref(parent);
-
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chainIntact);
-
-            for (Component c : componentsToFix){
-                proteinWithConflicts.removeActiveInstance(c);
-                chainIntact.addActiveInstance(c);
-
-                factory.getComponentDao().update(c);
-            }
-
-            ProteinDao proteinDao = factory.getProteinDao();
-
-            proteinDao.update((ProteinImpl)chainIntact);
-            proteinDao.update((ProteinImpl)proteinWithConflicts);
-
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), chainIntact));
-            }
-
-            return new ProteinTranscript(chainIntact, featureChain);
-        } catch (IntactClonerException e) {
-            throw new ProcessorException("Impossible to clone the protein " + proteinWithConflicts.getAc());
+        if (db == null){
+            db = CvObjectUtils.createCvObject(owner, CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+            factory.getCvObjectDao(CvDatabase.class).persist(db);
         }
+        CvXrefQualifier chainParent = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.CHAIN_PARENT_MI_REF);
+
+        if (chainParent == null) {
+            chainParent = CvObjectUtils.createCvObject(owner, CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT);
+            factory.getCvObjectDao(CvXrefQualifier.class).persist(chainParent);
+        }
+        InteractorXref parent = new InteractorXref(owner, db, proteinWithConflicts.getAc(), chainParent);
+        chainIntact.addXref(parent);
+
+        factory.getCvObjectDao(CvXrefQualifier.class).persist(chainParent);
+
+        for (Component c : componentsToFix){
+            proteinWithConflicts.removeActiveInstance(c);
+            chainIntact.addActiveInstance(c);
+            c.setInteractorAc(chainIntact.getAc());
+
+            factory.getComponentDao().update(c);
+        }
+
+        ProteinDao proteinDao = factory.getProteinDao();
+
+        proteinDao.update((ProteinImpl)chainIntact);
+        proteinDao.update((ProteinImpl)proteinWithConflicts);
+
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), chainIntact));
+        }
+
+        return new ProteinTranscript(chainIntact, featureChain);
     }
 
     public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant){
@@ -164,7 +159,7 @@ public class OutOfDateParticipantFixer {
         }
 
         DaoFactory factory = evt.getDataContext().getDaoFactory();
-        IntactCloner cloner = new IntactCloner(true);
+
         Collection<Component> componentsToFix = evt.getComponentsToFix();
         Protein protein = evt.getProteinWithConflicts();
         UniprotProtein uniprotProtein = evt.getProtein();
@@ -204,7 +199,7 @@ public class OutOfDateParticipantFixer {
                             }
                         }
 
-                        return createSpliceVariant((UniprotSpliceVariant) match, protein, componentsToFix, cloner, factory, evt);
+                        return createSpliceVariant((UniprotSpliceVariant) match, protein, componentsToFix, factory, evt);
                     }
                     else if (match instanceof UniprotFeatureChain){
 
@@ -215,7 +210,7 @@ public class OutOfDateParticipantFixer {
                             }
                         }
 
-                        return createFeatureChain((UniprotFeatureChain) match, protein, componentsToFix, cloner, factory, evt);
+                        return createFeatureChain((UniprotFeatureChain) match, protein, componentsToFix, factory, evt);
                     }
                 }
             }
@@ -239,36 +234,57 @@ public class OutOfDateParticipantFixer {
         }
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
-        IntactCloner cloner = new IntactCloner(true);
         Collection<Component> componentsToFix = evt.getComponentsToFix();
         Protein protein = evt.getProteinWithConflicts();
 
-        try {
-            Protein noUniprotUpdate = cloner.clone(protein);
-            noUniprotUpdate.getActiveInstances().clear();
-            addAnnotations(noUniprotUpdate, factory);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(noUniprotUpdate);
+        Protein noUniprotUpdate = cloneProtein(factory, protein);
 
-            for (Component component : componentsToFix){
+        addAnnotations(noUniprotUpdate, factory);
 
-                protein.removeActiveInstance(component);
-                noUniprotUpdate.addActiveInstance(component);
-            }
-
-            factory.getProteinDao().update((ProteinImpl) protein);
-            factory.getProteinDao().update((ProteinImpl) noUniprotUpdate);
-
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate));
-            }
-
-            return new ProteinTranscript(noUniprotUpdate, null);
-
-        } catch (IntactClonerException e) {
-            throw new IntactException("Could not clone protein: "+protein.getAc(), e);
+        for (Component component : componentsToFix){
+            protein.removeActiveInstance(component);
+            noUniprotUpdate.addActiveInstance(component);
+            component.setInteractorAc(noUniprotUpdate.getAc());
+            factory.getComponentDao().update(component);
         }
+
+        factory.getProteinDao().update((ProteinImpl) protein);
+        factory.getProteinDao().update((ProteinImpl) noUniprotUpdate);
+
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate));
+        }
+
+        return new ProteinTranscript(noUniprotUpdate, null);
+    }
+
+    private Protein cloneProtein(DaoFactory factory, Protein protein) {
+        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel(), protein.getCvInteractorType());
+
+        factory.getProteinDao().persist((ProteinImpl) created);
+
+        for (InteractorAlias a : protein.getAliases()){
+            InteractorAlias copy = new InteractorAlias(a.getOwner(), created, a.getCvAliasType(), a.getName());
+            copy.setParent(created);
+            factory.getAliasDao(InteractorAlias.class).persist(copy);
+            created.addAlias(copy);
+        }
+
+        for (InteractorXref x : protein.getXrefs()){
+            InteractorXref copy = new InteractorXref(x.getOwner(), x.getCvDatabase(), x.getPrimaryId(), x.getCvXrefQualifier());
+            copy.setParent(created);
+            copy.setParentAc(created.getAc());
+            factory.getXrefDao(InteractorXref.class).persist(copy);
+            created.addXref(copy);
+        }
+
+        created.setCrc64(protein.getCrc64());
+        created.setSequence(protein.getSequence());
+
+        factory.getProteinDao().update((ProteinImpl) created);
+        return created;
     }
 
     private void addAnnotations(Protein protein, DaoFactory factory){
@@ -276,14 +292,14 @@ public class OutOfDateParticipantFixer {
         CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
         if (no_uniprot_update == null){
-            no_uniprot_update = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.NON_UNIPROT);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(no_uniprot_update);
+            no_uniprot_update = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, null, CvTopic.NON_UNIPROT);
+            factory.getCvObjectDao(CvTopic.class).persist(no_uniprot_update);
         }
         CvTopic caution = factory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
-            caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+            caution = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+            factory.getCvObjectDao(CvTopic.class).persist(caution);
         }
 
         boolean has_no_uniprot_update = false;
@@ -317,5 +333,7 @@ public class OutOfDateParticipantFixer {
 
             protein.addAnnotation(demerge);
         }
+
+        factory.getProteinDao().update((ProteinImpl) protein);
     }
 }

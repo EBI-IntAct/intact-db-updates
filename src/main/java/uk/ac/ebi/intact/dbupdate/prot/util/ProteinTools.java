@@ -22,9 +22,9 @@ public class ProteinTools {
 
     private ProteinTools() {}
 
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DaoFactory factory) {
         for (Protein sourceProtein : sourceProteins) {
-            moveInteractionsBetweenProteins(destinationProtein, sourceProtein);
+            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, factory);
         }
     }
 
@@ -33,13 +33,17 @@ public class ProteinTools {
      * @param destinationProtein : protein where to move the interactions
      * @param sourceProtein : the protein for what we want to move the interactions
      */
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein) {
-        for (Component component : sourceProtein.getActiveInstances()) {
-            component.setInteractor(destinationProtein);
-            IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().update(component);
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DaoFactory factory) {
+        List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
+        for (Component component : componentsToMove) {
+            sourceProtein.removeActiveInstance(component);
+            destinationProtein.addActiveInstance(component);
+            component.setInteractorAc(destinationProtein.getAc());
+            factory.getComponentDao().update(component);
         }
-        destinationProtein.getActiveInstances().addAll(sourceProtein.getActiveInstances());
-        sourceProtein.getActiveInstances().clear();
+
+        factory.getProteinDao().update((ProteinImpl) sourceProtein);
+        factory.getProteinDao().update((ProteinImpl) destinationProtein);
     }
 
     /**
@@ -176,7 +180,7 @@ public class ProteinTools {
         CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
         if (db == null){
-            db = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
+            db = CvObjectUtils.createCvObject(owner, CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
             factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
         }
 
@@ -224,7 +228,10 @@ public class ProteinTools {
                         if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
                             if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
                                 original.addXref(ref);
+                                ref.setParentAc(original.getAc());
                                 refsToRemove.add(ref);
+
+                                factory.getXrefDao(InteractorXref.class).update(ref);
                             }
                         }
                     }
@@ -233,6 +240,9 @@ public class ProteinTools {
         }
 
         duplicate.getXrefs().removeAll(refsToRemove);
+
+        factory.getProteinDao().update((ProteinImpl) duplicate);
+        factory.getProteinDao().update((ProteinImpl) original);
     }
 
     public static void updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {

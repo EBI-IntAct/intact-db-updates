@@ -201,7 +201,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertTrue(componentToFix.isEmpty());
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
@@ -273,7 +273,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertEquals(1, componentToFix.size());
         Assert.assertEquals(componentWithConflicts.getAc(), componentToFix.iterator().next().getAc());
@@ -344,7 +344,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertTrue(componentToFix.isEmpty());
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
@@ -417,7 +417,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertEquals(1, componentToFix.size());
         Assert.assertEquals(componentWithConflicts.getAc(), componentToFix.iterator().next().getAc());
@@ -490,7 +490,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertTrue(componentToFix.isEmpty());
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
@@ -566,7 +566,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertEquals(1, componentToFix.size());
         Assert.assertEquals(componentWithConflicts.getAc(), componentToFix.iterator().next().getAc());
@@ -641,7 +641,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, prot.getActiveInstances().size());
 
         // update ranges and collect components with feature conflicts
-        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor());
+        Collection<Component> componentToFix = rangeFixer.updateRanges(prot, uniprot.getSequence().substring(5), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
 
         Assert.assertEquals(1, componentToFix.size());
         Assert.assertEquals(componentWithConflicts.getAc(), componentToFix.iterator().next().getAc());

@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
@@ -65,10 +66,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     }
 
     private void saveOrUpdateDbInfo(String key, String value) {
-        final TransactionStatus transactionStatus = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+        final TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-        final IntactContext context = IntactContext.getCurrentInstance();
-        DbInfoDao dbInfoDao = context.getDaoFactory().getDbInfoDao();
+        DbInfoDao dbInfoDao = dataContext.getDaoFactory().getDbInfoDao();
         DbInfo dbInfo = dbInfoDao.get(key);
 
         if (dbInfo == null) {
@@ -76,10 +77,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             dbInfoDao.persist(dbInfo);
         } else {
             dbInfo.setValue(value);
-            context.getDaoFactory().getEntityManager().merge(dbInfo);
+            dataContext.getDaoFactory().getEntityManager().merge(dbInfo);
         }
         
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);
+        dataContext.commitTransaction(transactionStatus);
     }
 
     protected void registerListeners() {

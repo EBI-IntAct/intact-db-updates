@@ -266,7 +266,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(null, range.getFullSequence());
 
         // Update the ranges
-        Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, true_sequence);
+        Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, true_sequence, IntactContext.getCurrentInstance().getDataContext());
         Assert.assertEquals(0, updatedRanges.size());
 
         // the sequence of the feature has not been set
@@ -575,7 +575,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(null, range.getFullSequence());
 
         // Update the ranges
-        Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, true_sequence);
+        Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, true_sequence, IntactContext.getCurrentInstance().getDataContext());
         Assert.assertEquals(1, updatedRanges.size());
         Assert.assertEquals(range.getAc(), updatedRanges.iterator().next().getNewRange().getAc());
 

@@ -8,6 +8,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
@@ -32,12 +33,13 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
     @Before
     public void before_schema() throws Exception {
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     /**
@@ -47,7 +49,8 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_create_bad_participant() throws Exception {
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         CvFeatureType type = getMockBuilder().createCvObject(CvFeatureType.class, CvFeatureType.EXPERIMENTAL_FEATURE_MI_REF, CvFeatureType.EXPERIMENTAL_FEATURE);
         getCorePersister().saveOrUpdate(type);
@@ -115,8 +118,6 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
 
         Assert.assertEquals(3, dupe1.getActiveInstances().size());
 
-        getDataContext().commitTransaction(status);
-
         boolean hasCautionBefore = false;
 
         for (Annotation a : dupe1.getAnnotations()){
@@ -127,11 +128,14 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
 
         Assert.assertFalse(hasCautionBefore);
 
+        context.commitTransaction(status);
+
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
         protUpdateProcessor.updateAll();
 
-        TransactionStatus status2 = getDataContext().beginTransaction();
+        DataContext context2 = getDataContext();
+        TransactionStatus status2 = context2.beginTransaction();
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -141,7 +145,7 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
         Assert.assertNotNull(dupe2FromDb);
         Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
 
-        getDataContext().commitTransaction(status2);
+        context2.commitTransaction(status2);
     }
 
 }

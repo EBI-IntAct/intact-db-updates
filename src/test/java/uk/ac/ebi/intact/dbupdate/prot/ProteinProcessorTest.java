@@ -24,11 +24,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
@@ -79,20 +81,21 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         getCorePersister().saveOrUpdate(protein);
 
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -112,7 +115,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // the uniprot protein
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -120,7 +124,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(3, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -161,13 +165,13 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(false);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-     /**
+    /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
      * proteins without interactions. In addition, it is a global update and we cannot have transcripts without interactions.
      * The protein should be updated and no splice variants should be created.
@@ -181,7 +185,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // the uniprot protein
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -189,7 +194,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
@@ -230,7 +235,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(false);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -250,7 +255,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // the uniprot protein
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -258,7 +264,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
@@ -299,7 +305,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(false);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -315,7 +321,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(false);
         config.setGlobalProteinUpdate(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         Annotation no_uniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
@@ -330,7 +337,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
@@ -341,7 +348,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(false);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -359,7 +366,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setProcessProteinNotFoundInUniprot(true);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P12345", "protein");
         getCorePersister().saveOrUpdate(protein);
@@ -372,7 +380,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
@@ -386,7 +394,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setProcessProteinNotFoundInUniprot(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -404,7 +412,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setProcessProteinNotFoundInUniprot(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P12345", "protein");
         getCorePersister().saveOrUpdate(protein);
@@ -417,7 +426,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(1, updatedProteins.size());
         Assert.assertEquals(protein.getAc(), updatedProteins.iterator().next());
@@ -431,7 +440,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setProcessProteinNotFoundInUniprot(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -446,7 +455,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -463,7 +473,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(2, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -501,7 +511,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(12, protein.getXrefs().size());
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -517,7 +527,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(false);
         config.setGlobalProteinUpdate(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -538,7 +549,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
@@ -580,7 +591,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(false);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -594,7 +605,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -616,7 +628,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, protein.getActiveInstances().size());
         Assert.assertEquals(1, secondary.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(2, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -656,7 +668,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(13, protein.getXrefs().size());
         Assert.assertTrue(hasXRef(protein, secondary.getAc(), CvDatabase.INTACT, "intact-secondary"));
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -671,7 +683,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -693,7 +706,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, protein.getActiveInstances().size());
         Assert.assertEquals(1, secondary.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(2, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -737,7 +750,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // reset
         config.setFixDuplicates(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -751,7 +764,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -792,7 +806,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, isoform.getActiveInstances().size());
         Assert.assertEquals(1, isoform2.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -807,7 +821,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertTrue(hasXRef(isoform, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertTrue(hasXRef(isoform2, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -821,7 +835,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein protein = getMockBuilder().createProtein("P60953", "protein");
         protein.getBioSource().setTaxId("9606");
@@ -862,7 +877,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, isoform.getActiveInstances().size());
         Assert.assertEquals(1, isoform2.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -879,7 +894,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertTrue(hasXRef(isoform, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertFalse(hasXRef(isoform2, protein.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -896,7 +911,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
@@ -944,7 +960,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, protein.getActiveInstances().size());
         Assert.assertEquals(1, secondary.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -968,7 +984,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -985,7 +1001,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
@@ -1031,7 +1048,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, protein.getActiveInstances().size());
         Assert.assertEquals(1, secondary.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(protein);
+        Set<String> updatedProteins = processor.update(protein, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
@@ -1054,7 +1071,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -1071,7 +1088,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
         secondary.getBioSource().setTaxId("9606");
@@ -1135,7 +1153,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, secondary.getActiveInstances().size());
         Assert.assertEquals(1, isoform.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(isoform2);
+        Set<String> updatedProteins = processor.update(isoform2, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(isoform2.getAc()));
@@ -1160,7 +1178,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -1177,7 +1195,8 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
         secondary.getBioSource().setTaxId("9606");
@@ -1239,7 +1258,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(1, secondary.getActiveInstances().size());
         Assert.assertEquals(1, isoform.getActiveInstances().size());
 
-        Set<String> updatedProteins = processor.update(isoform2);
+        Set<String> updatedProteins = processor.update(isoform2, context);
 
         Assert.assertEquals(4, updatedProteins.size());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(isoform2.getAc()));
@@ -1247,7 +1266,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(0, isoform2.getActiveInstances().size());
         Assert.assertEquals(1, secondary.getActiveInstances().size());
         Assert.assertEquals(1, isoform.getActiveInstances().size());
-        
+
         Protein isoformLoaded = getDaoFactory().getProteinDao().getByUniprotId("P60953-2").iterator().next();
         Assert.assertEquals(1, isoformLoaded.getActiveInstances().size());
 
@@ -1263,14 +1282,82 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * One protein is involved in one interactions which contains invalid ranges.
+     */
+    public void update_protein_bad_ranges_from_beginning() throws Exception{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setFixDuplicates(true);
+        config.setGlobalProteinUpdate(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
+
+        Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
+        secondary.getBioSource().setTaxId("9606");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Protein random = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random);
+
+        Range range = getMockBuilder().createRange(0, 0, 5, 5);
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(secondary, random);
+        Component componentWithFeatureConflicts = null;
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(secondary.getAc())){
+                c.addBindingDomain(feature);
+                componentWithFeatureConflicts = c;
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, secondary.getActiveInstances().size());
+        Assert.assertEquals(1, secondary.getActiveInstances().size());
+
+        Set<String> updatedProteins = processor.update(secondary, context);
+
+        Assert.assertEquals(4, updatedProteins.size());
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(secondary.getAc()));
+        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(0, secondary.getActiveInstances().size());
+
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(5, range.getToIntervalStart());
+        Assert.assertEquals(5, range.getToIntervalEnd());
+
+        Protein noUniprotUpdate = (Protein) componentWithFeatureConflicts.getInteractor();
+        Assert.assertFalse(ProteinUtils.isFromUniprot(noUniprotUpdate));
+        Assert.assertNotSame(secondary.getAc(), noUniprotUpdate.getAc());
+
+        // reset
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
+
+        context.commitTransaction(status);
     }
 
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
-        TransactionStatus status = getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
 
         final Protein protMain = getMockBuilder().createProtein("P12345", "main");
         protMain.setCreated(new Date(1));
@@ -1285,7 +1372,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Assert.assertNotNull(protRemoved.getAc());
 
-        getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
 
         ProteinProcessor processor = new ProteinProcessor(3, 2) {
             protected void registerListeners() {

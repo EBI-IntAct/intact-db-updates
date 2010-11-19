@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -47,7 +48,7 @@ public class RangeFixer {
         this.checker = new RangeChecker();
     }
 
-    private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor) throws ProcessorException {
+    private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
         RangeChecker rangeChecker = new RangeChecker();
 
         if (oldSequence != null && newSequence != null) {
@@ -55,11 +56,11 @@ public class RangeFixer {
             for (Component component : componentsToUpdate) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence);
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, context);
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
-                        processor.fireOnRangeChange(new RangeChangedEvent(IntactContext.getCurrentInstance().getDataContext(), updatedRange));
+                        processor.fireOnRangeChange(new RangeChangedEvent(context, updatedRange));
                     }
                 }
             }
@@ -68,11 +69,11 @@ public class RangeFixer {
             for (Component component : componentsToUpdate) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, newSequence);
+                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, newSequence, context);
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
-                        processor.fireOnRangeChange(new RangeChangedEvent(IntactContext.getCurrentInstance().getDataContext(), updatedRange));
+                        processor.fireOnRangeChange(new RangeChangedEvent(context, updatedRange));
                     }
                 }
             }
@@ -93,16 +94,16 @@ public class RangeFixer {
                         .getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.INVALID_RANGE);
 
                 if (invalid_caution == null) {
-                    invalid_caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, null, CvTopic.INVALID_RANGE);
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalid_caution);
+                    invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, CvTopic.INVALID_RANGE);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalid_caution);
                 }
 
                 CvTopic caution = daoFactory
                         .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
                 if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
+                    caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
                 }
 
                 Collection<Annotation> annotations = feature.getAnnotations();
@@ -161,7 +162,7 @@ public class RangeFixer {
         return false;
     }
 
-    public Collection<Component> updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor){
+    public Collection<Component> updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor, DataContext datacontext){
         boolean sequenceToBeUpdated = false;
 
         String oldSequence = protein.getSequence();
@@ -188,19 +189,19 @@ public class RangeFixer {
         if ( sequenceToBeUpdated) {
 
             for (Component component : components){
-                Interaction interaction = component.getInteraction();
+                String interactionac = component.getInteraction().getAc();
 
                 Collection<Feature> features = component.getBindingDomains();
                 for (Feature feature : features){
                     Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
 
                     if (!invalidRanges.isEmpty()){
-                        interactionAcsWithBadFeatures.add(interaction.getAc());
+                        interactionAcsWithBadFeatures.add(interactionac);
 
                         for (InvalidRange invalid : invalidRanges){
                             // range is bad from the beginning, not after the range shifting
                             if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
-                                InvalidRangeEvent invalidEvent = new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), invalid);
+                                InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
                                 processor.fireOnInvalidRange(invalidEvent);
                                 fixInvalidRanges(invalidEvent);
                             }
@@ -220,13 +221,13 @@ public class RangeFixer {
                 Collection<Component> componentsToUpdate = CollectionUtils.subtract(components, componentsToFix);
 
                 if (!componentsToUpdate.isEmpty()){
-                    shiftRanges(oldSequence, uniprotSequence, componentsToUpdate, processor);
+                    shiftRanges(oldSequence, uniprotSequence, componentsToUpdate, processor, datacontext);
                 }
 
                 return componentsToFix;
             }
             else {
-                shiftRanges(oldSequence, uniprotSequence, components, processor);
+                shiftRanges(oldSequence, uniprotSequence, components, processor, datacontext);
             }
         }
         else {
@@ -242,7 +243,7 @@ public class RangeFixer {
 
                         for (InvalidRange invalid : invalidRanges){
                             // range is bad from the beginning, not after the range shifting
-                            InvalidRangeEvent invalidEvent = new InvalidRangeEvent(IntactContext.getCurrentInstance().getDataContext(), invalid);
+                            InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
                             processor.fireOnInvalidRange(invalidEvent);
                             fixInvalidRanges(invalidEvent);
                         }
