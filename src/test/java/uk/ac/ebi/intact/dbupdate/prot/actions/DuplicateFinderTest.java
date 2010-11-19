@@ -143,9 +143,13 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryProteins.add(primary);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
-        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "isoform2");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform2");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
+
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
 
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
@@ -163,9 +167,13 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryIsoforms.add(new ProteinTranscript(isoform2, variants1));
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
-        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain2");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain2");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
 
         Assert.assertEquals(6, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
@@ -315,8 +323,8 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(primary, "P60953-2", "isoform2");
-        Protein isoform3 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "isoform3");
-        Protein isoform4 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform4");
+        Protein isoform3 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-3", "isoform3");
+        Protein isoform4 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-4", "isoform4");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform3);
@@ -324,18 +332,21 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         InteractorXref identity = ProteinUtils.getUniprotXref(isoform2);
         identity.setPrimaryId("P60953-1");
-        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity);
+        getDaoFactory().getXrefDao(InteractorXref.class).update(identity);
 
         InteractorXref identity2 = ProteinUtils.getUniprotXref(isoform4);
         identity2.setPrimaryId("P60953-1");
-        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity2);
+        getDaoFactory().getXrefDao(InteractorXref.class).update(identity2);
+
+        InteractorXref identity3 = ProteinUtils.getUniprotXref(isoform3);
+        identity3.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(identity3);
 
         InteractorXref parent = getMockBuilder().createXref(isoform4, primary.getAc(),
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF),
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF));
-        identity2.setPrimaryId("P60953-1");
 
-        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).persist(parent);
+        getDaoFactory().getXrefDao(InteractorXref.class).persist(parent);
 
         isoform4.addXref(parent);
 
@@ -344,7 +355,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF));
         identity2.setPrimaryId("P60953-1");
 
-        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).persist(parent2);
+        getDaoFactory().getXrefDao(InteractorXref.class).persist(parent2);
 
         isoform3.addXref(parent2);
 
@@ -371,20 +382,24 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
         Protein chain2 = getMockBuilder().createProteinChain(primary, "PRO-2", "chain2");
-        Protein chain3 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain");
-        Protein chain4 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain2");
+        Protein chain3 = getMockBuilder().createProteinChain(prot, "PRO-3", "chain");
+        Protein chain4 = getMockBuilder().createProteinChain(prot, "PRO-4", "chain2");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain3);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain4);
 
-        InteractorXref identity3 = ProteinUtils.getUniprotXref(chain2);
-        identity3.setPrimaryId("PRO-1");
-        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity3);
-
-        InteractorXref identity4 = ProteinUtils.getUniprotXref(chain4);
+        InteractorXref identity4 = ProteinUtils.getUniprotXref(chain2);
         identity4.setPrimaryId("PRO-1");
         IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity4);
+
+        InteractorXref identity5 = ProteinUtils.getUniprotXref(chain4);
+        identity5.setPrimaryId("PRO-1");
+        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity5);
+
+        InteractorXref identity6 = ProteinUtils.getUniprotXref(chain3);
+        identity6.setPrimaryId("PRO-1");
+        IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).update(identity6);
 
         InteractorXref parent3 = getMockBuilder().createXref(chain3, primary.getAc(),
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.CHAIN_PARENT_MI_REF),

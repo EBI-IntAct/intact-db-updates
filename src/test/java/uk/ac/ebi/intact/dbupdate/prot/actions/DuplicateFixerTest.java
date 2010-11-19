@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
@@ -80,18 +81,24 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
-        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "isoform3");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
+
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
 
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
-        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
 
         Protein random1 = getMockBuilder().createProteinRandom();
         Protein random2 = getMockBuilder().createProteinRandom();
@@ -168,18 +175,24 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
-        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "isoform3");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
+
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
 
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
-        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
 
         Protein random1 = getMockBuilder().createProteinRandom();
         Protein random2 = getMockBuilder().createProteinRandom();
@@ -242,7 +255,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
-        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "isoform3");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -250,6 +263,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF),
                 IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF));
 
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
+        
         IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).persist(parent);
         isoform2.addXref(parent);
 
@@ -258,11 +275,13 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
-        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
 
         Protein random1 = getMockBuilder().createProteinRandom();
         Protein random2 = getMockBuilder().createProteinRandom();
