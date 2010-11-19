@@ -27,8 +27,6 @@ import java.io.IOException;
  */
 public class FileReportHandler implements UpdateReportHandler{
 
-    private ReportWriter preProcessedWriter;
-    private ReportWriter processedWriter;
     private ReportWriter duplicatesWriter;
     private ReportWriter deletedWriter;
     private ReportWriter createdWriter;
@@ -50,8 +48,6 @@ public class FileReportHandler implements UpdateReportHandler{
             throw new IOException("The file passed to the constructor has to be a directory: "+dirFile);
         }
 
-        this.preProcessedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "pre_processed.csv")));
-        this.processedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "processed.csv")));
         this.duplicatesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "duplicates.csv")));
         this.deletedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted.csv")));
         this.createdWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "created.csv")));
@@ -62,16 +58,8 @@ public class FileReportHandler implements UpdateReportHandler{
         this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
         this.deadProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead_proteins.csv")));
         this.outOfDateParticipantWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "out_of_date_participants.csv")));
-        this.preprocessErrorWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "pre_process_errors.csv")));
+        this.preprocessErrorWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "process_errors.csv")));
         this.secondaryProteinsWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "secondary_proteins.csv")));
-    }
-
-    public ReportWriter getPreProcessedWriter() throws IOException {
-        return preProcessedWriter;
-    }
-
-    public ReportWriter getProcessedWriter() throws IOException {
-        return processedWriter;
     }
 
     public ReportWriter getDuplicatedWriter() throws IOException {
@@ -123,8 +111,6 @@ public class FileReportHandler implements UpdateReportHandler{
     }
 
     public void close() throws IOException {
-        this.preProcessedWriter.close();
-        this.processedWriter.close();
         this.duplicatesWriter.close();
         this.deletedWriter.close();
         this.createdWriter.close();

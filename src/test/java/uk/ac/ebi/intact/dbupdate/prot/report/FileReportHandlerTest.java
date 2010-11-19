@@ -144,8 +144,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
-        final File preProcessedFile = new File(dir, "pre_processed.csv");
-        final File processedFile = new File(dir, "processed.csv");
         final File duplicatesFile = new File(dir, "duplicates.csv");
         final File deletedFile = new File(dir, "deleted.csv");
         final File createdFile = new File(dir, "created.csv");
@@ -154,8 +152,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         final File sequenceChangedFile = new File(dir, "sequence_changed.fasta");
         final File rangeChangedFile = new File(dir, "range_changed.csv");
 
-        Assert.assertTrue(preProcessedFile.exists());
-        Assert.assertTrue(processedFile.exists());
         Assert.assertTrue(duplicatesFile.exists());
         Assert.assertTrue(deletedFile.exists());
         Assert.assertTrue(createdFile.exists());
@@ -164,8 +160,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(sequenceChangedFile.exists());
         Assert.assertTrue(rangeChangedFile.exists());
         
-        Assert.assertEquals(5, countLinesInFile(preProcessedFile));
-        Assert.assertEquals(5, countLinesInFile(processedFile));
         Assert.assertEquals(2, countLinesInFile(duplicatesFile));
         Assert.assertEquals(2, countLinesInFile(deletedFile));
         Assert.assertEquals(0, countLinesInFile(createdFile));

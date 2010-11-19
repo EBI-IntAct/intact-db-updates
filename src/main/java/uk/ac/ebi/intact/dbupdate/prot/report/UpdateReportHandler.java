@@ -26,9 +26,6 @@ import java.io.IOException;
  */
 public interface UpdateReportHandler extends Closeable {
 
-    ReportWriter getPreProcessedWriter() throws IOException;
-    ReportWriter getProcessedWriter() throws IOException;
-
     ReportWriter getDuplicatedWriter() throws IOException;
     ReportWriter getDeletedWriter() throws IOException;
     ReportWriter getCreatedWriter() throws IOException;
@@ -40,5 +37,4 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getDeadProteinWriter() throws IOException;
     ReportWriter getOutOfDateParticipantWriter() throws IOException;
     ReportWriter getPreProcessErrorWriter() throws IOException;
-    ReportWriter getSecondaryProteinsWriter() throws IOException;
 }
