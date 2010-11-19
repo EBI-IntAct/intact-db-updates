@@ -455,7 +455,7 @@ public abstract class ProteinProcessor {
                                 if (!hasFoundSpliceVariant){
                                     ProteinTools.updateProteinTranscripts(caseEvent.getDataContext().getDaoFactory(), report.getOriginalProtein(), entry.getKey());
                                     mergedTranscripts.add(fixedProtein);
-                                    caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                    caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());                                                                        
                                 }
                             }
                         }

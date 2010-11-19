@@ -15,17 +15,25 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
+import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,10 +52,31 @@ import java.util.Iterator;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
+    ProteinProcessor processor;
+
+    @Before
+    public void before() throws Exception {
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
+        primer.createCVs();
+
+        processor = new ProteinUpdateProcessor();
+
+        getDataContext().commitTransaction(status);
+    }
+
+    @After
+    public void after() throws Exception {
+        processor = null;
+    }
+
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void simulation() throws Exception {
-        new ComprehensiveCvPrimer(getDaoFactory()).createCVs();
+
+        TransactionStatus status = getDataContext().beginTransaction();
 
         final File dir = new File("target/simulation");
         UpdateReportHandler reportHandler = new FileReportHandler(dir);
@@ -81,7 +110,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(1, dupe2.getXrefs().size());
 
         Protein prot1 = getMockBuilder().createProtein("P54999", "ruxf_yeast",
-                                                       getMockBuilder().createBioSource(4932, "yeast"));
+                getMockBuilder().createBioSource(4932, "yeast"));
         prot1.setSequence("MSESSDISAMQPVNPKPFLKGLVNHRVGVKLKFNSTEYRGTLVSTDNYFNLQLNEAEEFVAGVSHGTLGEIFIRCNNVLYIRELPN");
         Protein prot2 = getMockBuilder().createProteinRandom();
         Protein prot3 = getMockBuilder().createProteinRandom();
@@ -111,11 +140,13 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByCrcAndTaxId(dupe1.getCrc64(), dupe1.getBioSource().getTaxId()).size());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
 
         // try the updater
         ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
         protUpdateProcessor.updateAll();
 
+        TransactionStatus status2 = getDataContext().beginTransaction();
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
         Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -159,7 +190,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(updateCasesFile.exists());
         Assert.assertTrue(sequenceChangedFile.exists());
         Assert.assertTrue(rangeChangedFile.exists());
-        
+
         Assert.assertEquals(2, countLinesInFile(duplicatesFile));
         Assert.assertEquals(2, countLinesInFile(deletedFile));
         Assert.assertEquals(0, countLinesInFile(createdFile));
@@ -167,6 +198,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, countLinesInFile(updateCasesFile));
         Assert.assertEquals(4, countLinesInFile(sequenceChangedFile));
         Assert.assertEquals(2, countLinesInFile(rangeChangedFile));
+
+        getDataContext().commitTransaction(status2);
     }
 
     private static int countLinesInFile(File file) {
