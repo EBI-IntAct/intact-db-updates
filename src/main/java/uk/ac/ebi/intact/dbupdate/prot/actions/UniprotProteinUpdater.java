@@ -344,7 +344,6 @@ public class UniprotProteinUpdater {
                     " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein protein " +
                     getProteinDescription(protein) + " by BioSource( " + t2 + "," +
                     organism.getName() + " ). Changing the organism of an existing protein is a forbidden operation.", UpdateError.organism_conflict_with_uniprot_protein));
-            processor.finalizeAfterCurrentPhase();
 
             return false;
         }
@@ -379,6 +378,10 @@ public class UniprotProteinUpdater {
             Collection<Component> componentsWithRangeConflicts =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
 
             if (!componentsWithRangeConflicts.isEmpty()){
+
+                processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "The protein " + protein.getAc() + " contains " +
+                                        componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts));
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains());
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, true);

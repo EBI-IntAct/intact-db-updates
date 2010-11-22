@@ -11,5 +11,6 @@ package uk.ac.ebi.intact.dbupdate.prot;
 public enum UpdateError {
 
     multi_uniprot_identities, dead_uniprot_ac, several_uniprot_entries_same_organim, several_uniprot_entries_different_organisms, impossible_merge, not_matching_protein_transcript,
-    protein_with_ac_null_to_delete, organism_conflict_with_uniprot_protein, uniprot_sequence_null, uniprot_sequence_null_intact_sequence_not_null
+    protein_with_ac_null_to_delete, organism_conflict_with_uniprot_protein, uniprot_sequence_null, uniprot_sequence_null_intact_sequence_not_null,
+    feature_conflicts
 }

@@ -229,6 +229,9 @@ public class UniprotIdentityUpdater {
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
             processor.fireOnSecondaryAcsFound(evt);
         }
+        else {
+            throw new ProcessorException("The proteinProcessor should be of type ProteinUpdateProcessor but is of type " + evt.getSource().getClass().getName());
+        }
 
         if (evt.getSecondaryProteins().size() > 0){
             updateSecondaryAcsForProteins(evt);
@@ -244,15 +247,6 @@ public class UniprotIdentityUpdater {
 
         UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
-
-        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-
-            updateProcessor.fireOnSecondaryAcsFound(evt);
-        }
-        else {
-            throw new ProcessorException("The proteinProcessor should be of type ProteinUpdateProcessor but is of type " + evt.getSource().getClass().getName());
-        }
 
         for (Protein prot : secondaryProteins){
 
@@ -270,15 +264,6 @@ public class UniprotIdentityUpdater {
 
         UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
-
-        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-
-            updateProcessor.fireOnSecondaryAcsFound(evt);
-        }
-        else {
-            throw new ProcessorException("The proteinProcessor should be of type ProteinUpdateProcessor but is of type " + evt.getSource().getClass().getName());
-        }
 
         for (ProteinTranscript prot : secondaryProteins){
             UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();

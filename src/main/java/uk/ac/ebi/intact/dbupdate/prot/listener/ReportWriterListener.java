@@ -188,7 +188,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
         try {
-            ReportWriter writer = reportHandler.getUpdateCasesWriter();
+            ReportWriter writer = reportHandler.getSecondaryProteinsWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
                     "IA secondary c.",
                     "IA secondary",
@@ -219,7 +219,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         try {
             ReportWriter writer = reportHandler.getUpdateCasesWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
-                    "Updated prots",
+                    "Total prots (updated or not for this uniprot protein)",
                     "IA primary c.",
                     "IA secondary c.",
                     "IA primary",

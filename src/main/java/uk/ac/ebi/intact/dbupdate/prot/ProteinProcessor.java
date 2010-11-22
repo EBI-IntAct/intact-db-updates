@@ -485,6 +485,12 @@ public abstract class ProteinProcessor {
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey()));
                     }
                 }
+                else {
+                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                        processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
+                    }
+                }
             }
         }
 
@@ -554,6 +560,12 @@ public abstract class ProteinProcessor {
                     if (entry.getKey().getActiveInstances().isEmpty()){
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey()));
+                    }
+                }
+                else {
+                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                        processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
                     }
                 }
             }

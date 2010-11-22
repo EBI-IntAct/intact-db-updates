@@ -275,6 +275,10 @@ public class DuplicatesFixer{
 
                     // we have feature conflicts for this protein which cannot be merged
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
+                        processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "The duplicate " + duplicate.getAc() + " cannot be merged with " +
+                                        originalProt.getAc() + " because we have " +
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.impossible_merge));
                         addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
                         Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
@@ -330,6 +334,9 @@ public class DuplicatesFixer{
                 else {
                     // if the original protein contains range conflict, we need to demerge it to keep the bad ranges attached to a no-uniprot-update protein
                     if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
+                        processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "The duplicate " + duplicate.getAc() + " has been kept as original protein but a new protein has been created with " +
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts));
                         Collection<Component> componentsToFix = proteinsNeedingPartialMerge.get(originalProt.getAc());
                         report.getComponentsWithFeatureConflicts().remove(originalProt);
 

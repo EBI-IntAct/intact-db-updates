@@ -39,9 +39,6 @@ public class ProteinUpdateFilter {
                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                 updateProcessor.fireNonUniprotProteinFound(evt);
             }
-
-            if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (no-uniprot-update)");
-            ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
         }
         else {
             Set<InteractorXref> uniprotIdentities = ProteinTools.getDistinctUniprotIdentities(protein);
@@ -52,18 +49,12 @@ public class ProteinUpdateFilter {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
-
-                if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (no uniprot identity)");
-                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
             }
             else if (uniprotIdentities.size() > 1){
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                     updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities));
                 }
-
-                if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several distinct uniprot identities)");
-                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
             }
             else {
                 InteractorXref uniprotIdentity = uniprotIdentities.iterator().next();
