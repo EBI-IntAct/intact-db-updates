@@ -514,6 +514,86 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         context.commitTransaction(status);
     }
 
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * One Intact protein is 'no-uniprot' and the other is from uniprot.
+     * The protein from uniprot is updated and the protein 'no-uniptoy-update' should be ignored
+     */
+    public void update_protein_and_ignore_protein_no_uniprot() throws Exception{
+
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+        config.setGlobalProteinUpdate(false);
+
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
+
+        Protein protein = getMockBuilder().createProtein("P60953", "protein");
+        protein.getBioSource().setTaxId("9606");
+        getCorePersister().saveOrUpdate(protein);
+
+        Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
+        Annotation no_uniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        secondary.addAnnotation(no_uniprot);
+        getCorePersister().saveOrUpdate(secondary);
+
+        Protein random = getMockBuilder().createProteinRandom();
+        getCorePersister().saveOrUpdate(random);
+
+        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        getCorePersister().saveOrUpdate(interaction);
+        Interaction interaction2 = getMockBuilder().createInteraction(secondary, random);
+        getCorePersister().saveOrUpdate(interaction2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
+
+        Set<String> updatedProteins = processor.update(protein, context);
+
+        Assert.assertEquals(4, updatedProteins.size());
+        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
+        Assert.assertTrue(hasAnnotation(secondary, null, CvTopic.NON_UNIPROT));
+
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), Integer.parseInt(protein.getBioSource().getTaxId()));
+        Assert.assertEquals(uniprot.getId().toLowerCase(), protein.getShortLabel());
+        Assert.assertEquals(uniprot.getDescription(), protein.getFullName());
+        Assert.assertEquals(uniprot.getSequence(), protein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
+        Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
+
+        for (String secAc : uniprot.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+        Assert.assertEquals(12, protein.getXrefs().size());
+
+        // reset
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
+        config.setGlobalProteinUpdate(false);
+
+        context.commitTransaction(status);
+    }
+
     private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
         final Collection<InteractorXref> refs = p.getXrefs();
         boolean hasXRef = false;
