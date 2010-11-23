@@ -336,11 +336,12 @@ public class DuplicatesFixer{
                         processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                                 "The duplicate " + duplicate.getAc() + " has been kept as original protein but a new protein has been created with " +
                                         proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts));
-                        Collection<Component> componentsToFix = proteinsNeedingPartialMerge.get(originalProt.getAc());
+                        Collection<Component> componentsToFix = new ArrayList<Component>();
+                        componentsToFix.addAll(proteinsNeedingPartialMerge.get(originalProt.getAc()));
                         report.getComponentsWithFeatureConflicts().remove(originalProt);
 
                         Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST), true).getProtein();
-                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, protWithRangeConflicts.getActiveInstances());
+                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, componentsToFix);
                     }
 
                     // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
