@@ -46,6 +46,60 @@ public class UniprotProteinRetriever {
         this.deadUniprotFixer = new DeadUniprotFixer();
     }
 
+    public UniprotProtein retrieveUniprotEntry(String uniprotAc){
+        Collection<UniprotProtein> uniprotProteins;
+        try{
+            uniprotProteins = uniprotService.retrieve( uniprotAc );
+        } catch (RemoteConnectFailureException ce) {
+            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
+                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprotAc);
+            }
+            retryAttempt++;
+
+            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
+            try {
+                Thread.sleep(60*1000);
+                uniprotProteins = uniprotService.retrieve( uniprotAc );
+            } catch (InterruptedException e) {
+                throw new ProcessorException("Problem while waiting before retrying for "+uniprotAc, e);
+            }
+
+        }
+
+        // no uniprot protein matches this uniprot ac
+        if(uniprotProteins.size() == 0){
+            return null;
+        }
+        else if ( uniprotProteins.size() > 1 ) {
+            if ( 1 == getSpeciesCount( uniprotProteins ) ) {
+                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+                if (IdentifierChecker.isSpliceVariantId(uniprotAc)){
+                    String truncatedAc = uniprotAc.substring(0, Math.max(0, uniprotAc.indexOf("-")));
+                    List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+
+                    for (UniprotProtein uniprot : uniprotProteins){
+                        if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                            proteinsWithSameBaseUniprotAc.add(uniprot);
+                        }
+                    }
+
+                    if (proteinsWithSameBaseUniprotAc.size() == 1){
+                        return proteinsWithSameBaseUniprotAc.iterator().next();
+                    }
+                }
+                // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
+                // in uniprot we should not update it automatically but send a message to the curators so that they
+                // choose manually which of the new uniprot ac is relevant.
+                return null;
+            } else {
+
+                return null;
+            }
+        } else {
+            return uniprotProteins.iterator().next();
+        }
+    }
+
     public UniprotProtein retrieveUniprotEntry(ProteinEvent evt) throws ProcessorException {
         String uniprotAc = evt.getUniprotIdentity();
 
