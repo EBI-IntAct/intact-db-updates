@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Hibernate;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
@@ -156,10 +157,19 @@ public abstract class ProteinProcessor {
             }
 
             // load annotations (to avoid lazyinitializationexceptions later)
-            prot.getXrefs().size();
-            prot.getAnnotations().size();
-            prot.getActiveInstances().size();
-            prot.getAliases().size();
+            Hibernate.initialize(prot.getXrefs());
+            Hibernate.initialize(prot.getAnnotations());
+            Hibernate.initialize(prot.getAliases());
+            for (Component c : prot.getActiveInstances()){
+                Hibernate.initialize(c.getXrefs());
+                Hibernate.initialize(c.getAnnotations());
+                Hibernate.initialize(c.getBindingDomains());
+                Hibernate.initialize(c.getExperimentalRoles());
+                Hibernate.initialize(c.getAliases());
+                Hibernate.initialize(c.getExperimentalPreparations());
+                Hibernate.initialize(c.getParameters());
+                Hibernate.initialize(c.getParticipantDetectionMethods());
+            }
 
             if (!processedIntactProteins.contains(prot.getAc())){
                 processedIntactProteins.addAll(update(prot, dataContext));

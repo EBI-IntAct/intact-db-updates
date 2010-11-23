@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Hibernate;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
@@ -10,6 +11,7 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -94,10 +96,19 @@ public class UniprotIdentityUpdater {
 
     private void loadCollections(List<ProteinImpl> proteinsInIntact) {
         for (Protein p : proteinsInIntact){
-            p.getXrefs().size();
-            p.getAnnotations().size();
-            p.getActiveInstances().size();
-            p.getAliases().size();
+            Hibernate.initialize(p.getXrefs());
+            Hibernate.initialize(p.getAnnotations());
+            Hibernate.initialize(p.getAliases());
+            for (Component c : p.getActiveInstances()){
+                Hibernate.initialize(c.getXrefs());
+                Hibernate.initialize(c.getAnnotations());
+                Hibernate.initialize(c.getBindingDomains());
+                Hibernate.initialize(c.getExperimentalRoles());
+                Hibernate.initialize(c.getAliases());
+                Hibernate.initialize(c.getExperimentalPreparations());
+                Hibernate.initialize(c.getParameters());
+                Hibernate.initialize(c.getParticipantDetectionMethods());
+            }
         }
     }
 

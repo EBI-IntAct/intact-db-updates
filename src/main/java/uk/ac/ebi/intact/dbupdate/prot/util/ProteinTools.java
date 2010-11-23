@@ -38,7 +38,6 @@ public class ProteinTools {
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);
             destinationProtein.addActiveInstance(component);
-            component.setInteractorAc(destinationProtein.getAc());
             factory.getComponentDao().update(component);
         }
 

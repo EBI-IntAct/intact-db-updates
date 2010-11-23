@@ -289,7 +289,6 @@ public class DuplicatesFixer{
 
                             duplicate.removeActiveInstance(component);
                             originalProt.addActiveInstance(component);
-                            component.setInteractorAc(originalProt.getAc());
                             factory.getComponentDao().update(component);
                         }
 

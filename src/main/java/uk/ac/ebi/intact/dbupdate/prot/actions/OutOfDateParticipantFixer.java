@@ -43,7 +43,6 @@ public class OutOfDateParticipantFixer {
         for (Component c : componentsToMove){
             source.removeActiveInstance(c);
             existingProtein.addActiveInstance(c);
-            c.setInteractorAc(existingProtein.getAc());
             factory.getComponentDao().update(c);
         }
 
