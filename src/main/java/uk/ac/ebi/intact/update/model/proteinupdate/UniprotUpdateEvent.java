@@ -111,19 +111,6 @@ public class UniprotUpdateEvent extends XRefUpdateEvent{
         this.deletedAlias = deletedAlias;
     }
 
-    public void setDeletedReferencesFromInteractor(Collection<InteractorXref> deletedReferences, IntactProtein intactProtein){
-        for (InteractorXref ref : deletedReferences){
-            String refAc = ref.getAc();
-
-            for (CrossReference crossRef : intactProtein.getCrossReferences()){
-                if (crossRef.getXRefAc().equalsIgnoreCase(refAc)){
-                    this.deletedReferences.add(crossRef);
-                    break;
-                }
-            }
-        }
-    }
-
     @OneToMany
     @JoinTable(
             name = "ia_event2createdalias",
