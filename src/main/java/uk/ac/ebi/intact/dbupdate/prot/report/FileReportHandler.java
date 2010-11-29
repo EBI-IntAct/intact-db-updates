@@ -35,6 +35,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter sequenceChangedWriter;
     private ReportWriter rangeChangedWriter;
     private ReportWriter invalidRangeWriter;
+    private ReportWriter outOfDateRangeWriter;
     private ReportWriter deadProteinWriter;
     private ReportWriter outOfDateParticipantWriter;
     private ReportWriter preprocessErrorWriter;
@@ -56,6 +57,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
         this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
+        this.outOfDateRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "out_of_date_range.csv")));
         this.deadProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead_proteins.csv")));
         this.outOfDateParticipantWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "out_of_date_participants.csv")));
         this.preprocessErrorWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "process_errors.csv")));
@@ -110,6 +112,11 @@ public class FileReportHandler implements UpdateReportHandler{
         return secondaryProteinsWriter;
     }
 
+    @Override
+    public ReportWriter getOutOfDateRangeWriter() throws IOException {
+        return this.outOfDateRangeWriter;
+    }
+
     public void close() throws IOException {
         this.duplicatesWriter.close();
         this.deletedWriter.close();
@@ -119,6 +126,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.sequenceChangedWriter.close();
         this.rangeChangedWriter.close();
         this.invalidRangeWriter.close();
+        this.outOfDateRangeWriter.close();
         this.deadProteinWriter.close();
         this.outOfDateParticipantWriter.close();
         this.preprocessErrorWriter.close();

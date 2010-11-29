@@ -87,6 +87,8 @@ public abstract class ProteinProcessor {
      */
     private ProtWithoutInteractionDeleter protWithoutInteractionDeleter;
 
+    private RangeFixer rangeFixer;
+
     private OutOfDateParticipantFixer participantFixer;
     UniprotProteinUpdater updater;
 
@@ -103,6 +105,7 @@ public abstract class ProteinProcessor {
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleter();
         this.updater = new UniprotProteinUpdater(config.getTaxonomyService());
         this.participantFixer = new OutOfDateParticipantFixer();
+        rangeFixer = new RangeFixer();
     }
 
     /**
@@ -651,9 +654,11 @@ public abstract class ProteinProcessor {
         }
 
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
-            for (Map.Entry<Protein, Collection<Component>> entry : report.getComponentsWithFeatureConflicts().entrySet()){
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains());
+            for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
+                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains());
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
+
+                rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
                 if (fixedProtein != null){
 
@@ -727,10 +732,12 @@ public abstract class ProteinProcessor {
         DuplicateReport report = duplicateFixer.fixProteinDuplicates(duplicateEvent);
 
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
-            for (Map.Entry<Protein, Collection<Component>> entry : report.getComponentsWithFeatureConflicts().entrySet()){
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains());
+            for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
+                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains());
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
 
+                rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                
                 if (fixedProtein != null){
 
                     if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){

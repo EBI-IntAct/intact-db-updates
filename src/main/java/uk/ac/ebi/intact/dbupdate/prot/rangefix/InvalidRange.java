@@ -18,6 +18,11 @@ public class InvalidRange {
     String sequence;
 
     /**
+     * The version of the protein sequence for what this range was valid
+     */
+    int validSequenceVersion;
+
+    /**
      * The new range positions
      */
     String newRanges;
@@ -36,6 +41,7 @@ public class InvalidRange {
         this.invalidRange = range;
         this.sequence = sequence;
         this.message = message;
+        this.validSequenceVersion = -1;
     }
 
     public InvalidRange(Range range, String sequence, String message, String newRanges) {
@@ -43,6 +49,15 @@ public class InvalidRange {
         this.sequence = sequence;
         this.message = message;
         this.newRanges = newRanges;
+        this.validSequenceVersion = -1;
+    }
+
+    public InvalidRange(Range range, String sequence, String message, String newRanges, int sequenceVersion) {
+        this.invalidRange = range;
+        this.sequence = sequence;
+        this.message = message;
+        this.newRanges = newRanges;
+        this.validSequenceVersion = sequenceVersion;
     }
 
     public String getSequence() {
@@ -75,5 +90,13 @@ public class InvalidRange {
 
     public void setNewRanges(String newRanges) {
         this.newRanges = newRanges;
+    }
+
+    public int getValidSequenceVersion() {
+        return validSequenceVersion;
+    }
+
+    public void setValidSequenceVersion(int validSequenceVersion) {
+        this.validSequenceVersion = validSequenceVersion;
     }
 }

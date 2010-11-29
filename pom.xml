@@ -45,6 +45,11 @@
             <artifactId>intact-uniprot</artifactId>
             <version>${bridges.version}</version>
         </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.intact.bridges</groupId>
+            <artifactId>intact-unisave</artifactId>
+            <version>${bridges.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.biojava</groupId>

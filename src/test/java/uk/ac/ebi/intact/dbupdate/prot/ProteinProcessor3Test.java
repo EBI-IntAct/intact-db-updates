@@ -320,36 +320,4 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         context2.commitTransaction(status2);
     }
 
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
-    }
 }

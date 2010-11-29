@@ -18,11 +18,15 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
+import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
@@ -30,6 +34,7 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 import java.util.*;
 
@@ -43,9 +48,17 @@ public class RangeFixer {
 
     private static final Log log = LogFactory.getLog( RangeFixer.class );
     private RangeChecker checker;
+    private static final String invalidPositions = "invalid-positions";
+    private static final String rangeSeparator = "..";
+    private static final String positionsSeparator = "-";
+    private static final String rangeConflicts = "range-conflicts";
+    private static final String sequenceVersion = "sequence-version";
+
+    private UnisaveService unisave;
 
     public RangeFixer(){
         this.checker = new RangeChecker();
+        this.unisave = new UnisaveService();
     }
 
     private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
@@ -80,9 +93,31 @@ public class RangeFixer {
         }
     }
 
+    private String convertPositionsToString(Range r){
+        String start;
+        String end;
+
+        if (r.getFromIntervalStart() != r.getFromIntervalEnd()){
+            start = r.getFromIntervalStart() + rangeSeparator + r.getFromIntervalEnd();
+        }
+        else {
+            start = Integer.toString(r.getFromIntervalStart());
+        }
+
+        if (r.getToIntervalStart() != r.getToIntervalEnd()){
+            end = r.getToIntervalStart() + rangeSeparator + r.getToIntervalEnd();
+        }
+        else {
+            end = Integer.toString(r.getToIntervalEnd());
+        }
+
+        return "["+r.getAc()+"]"+start + positionsSeparator + end;
+    }
+
     public void fixInvalidRanges(InvalidRangeEvent evt){
         Range range = evt.getInvalidRange().getInvalidRange();
-        String message = evt.getInvalidRange().getMessage();
+        String message = "["+range.getAc()+"]" +evt.getInvalidRange().getMessage();
+        String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
 
         if (range != null){
             Feature feature = range.getFeature();
@@ -98,17 +133,17 @@ public class RangeFixer {
                     daoFactory.getCvObjectDao(CvTopic.class).persist(invalid_caution);
                 }
 
-                CvTopic caution = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+                CvTopic invalidPositions = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.invalidPositions);
 
-                if (caution == null) {
-                    caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
+                if (invalidPositions == null) {
+                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.invalidPositions);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalidPositions);
                 }
 
                 Collection<Annotation> annotations = feature.getAnnotations();
                 boolean hasInvalid = false;
-                boolean hasCaution = false;
+                boolean hasInvalidPos = false;
 
                 for (Annotation a : annotations){
                     if (invalid_caution.equals(a.getCvTopic())){
@@ -116,9 +151,9 @@ public class RangeFixer {
                             hasInvalid = true;
                         }
                     }
-                    else if (caution.equals(a.getCvTopic())){
-                        if (hasAnnotationMessage(message, a)){
-                            hasCaution = true;
+                    else if (invalidPositions.equals(a.getCvTopic())){
+                        if (hasAnnotationMessage(positions, a)){
+                            hasInvalidPos = true;
                         }
                     }
                 }
@@ -130,16 +165,129 @@ public class RangeFixer {
                     feature.addAnnotation(cautionRange);
                 }
 
-                if (!hasCaution){
-                    Annotation cautionRange = new Annotation(caution, message);
+                if (!hasInvalidPos){
+                    Annotation invalidPosRange = new Annotation(invalidPositions, positions);
+                    daoFactory.getAnnotationDao().persist(invalidPosRange);
+
+                    feature.addAnnotation(invalidPosRange);
+                }
+
+                setRangeUndetermined(range, daoFactory);
+
+                daoFactory.getFeatureDao().update(feature);
+            }
+        }
+    }
+
+    public void fixOutOfDateRanges(InvalidRangeEvent evt){
+        Range range = evt.getInvalidRange().getInvalidRange();
+        String message = "["+range.getAc()+"]" +evt.getInvalidRange().getMessage();
+        String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
+        int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
+
+        String validSequence = null;
+
+        if (range != null){
+            Feature feature = range.getFeature();
+
+            if (feature != null){
+                // get the invalid_caution from the DB or create it and persist it
+                final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
+                CvTopic invalid_caution = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.rangeConflicts);
+
+                if (invalid_caution == null) {
+                    invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.rangeConflicts);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalid_caution);
+                }
+
+                CvTopic invalidPositions = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.invalidPositions);
+
+                if (invalidPositions == null) {
+                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.invalidPositions);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalidPositions);
+                }
+
+                CvTopic sequenceVersion = daoFactory
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.sequenceVersion);
+
+                if (sequenceVersion == null) {
+                    sequenceVersion = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.sequenceVersion);
+                    daoFactory.getCvObjectDao(CvTopic.class).persist(sequenceVersion);
+                }
+
+                Collection<Annotation> annotations = feature.getAnnotations();
+                boolean hasInvalid = false;
+                boolean hasInvalidPos = false;
+                boolean hasSequenceVersion = false;
+
+                for (Annotation a : annotations){
+                    if (invalid_caution.equals(a.getCvTopic())){
+                        if (hasAnnotationMessage(message, a)){
+                            hasInvalid = true;
+                        }
+                    }
+                    else if (invalidPositions.equals(a.getCvTopic())){
+                        if (hasAnnotationMessage(positions, a)){
+                            hasInvalidPos = true;
+                        }
+                    }
+                    else if (sequenceVersion.equals(a.getCvTopic())){
+                        if (validSequenceVersion != -1){
+                            validSequence = "["+range.getAc()+"]"+validSequenceVersion;
+
+                            if (hasAnnotationMessage(validSequence, a)){
+                                hasSequenceVersion = true;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasInvalid){
+                    Annotation cautionRange = new Annotation(invalid_caution, message);
                     daoFactory.getAnnotationDao().persist(cautionRange);
 
                     feature.addAnnotation(cautionRange);
                 }
 
+                if (!hasInvalidPos){
+                    Annotation invalidPosRange = new Annotation(invalidPositions, positions);
+                    daoFactory.getAnnotationDao().persist(invalidPosRange);
+
+                    feature.addAnnotation(invalidPosRange);
+                }
+
+                if (!hasSequenceVersion && validSequence != null){
+                    Annotation validSeqVersion = new Annotation(sequenceVersion, validSequence);
+                    daoFactory.getAnnotationDao().persist(validSeqVersion);
+
+                    feature.addAnnotation(validSeqVersion);
+                }
+
+                setRangeUndetermined(range, daoFactory);
+
                 daoFactory.getFeatureDao().update(feature);
             }
         }
+    }
+
+    private void setRangeUndetermined(Range r, DaoFactory f){
+        CvFuzzyType undetermined = f.getCvObjectDao(CvFuzzyType.class).getByPsiMiRef(CvFuzzyType.UNDETERMINED_MI_REF);
+
+        if (undetermined == null) {
+            undetermined = CvObjectUtils.createCvObject(r.getOwner(), CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
+            f.getCvObjectDao(CvFuzzyType.class).persist(undetermined);
+        }
+
+        r.setFromCvFuzzyType(undetermined);
+        r.setToCvFuzzyType(undetermined);
+        r.setFromIntervalStart(0);
+        r.setFromIntervalEnd(0);
+        r.setToIntervalStart(0);
+        r.setToIntervalEnd(0);
+
+        f.getRangeDao().update(r);
     }
 
     private boolean hasAnnotationMessage(String message, Annotation a) {
@@ -162,107 +310,75 @@ public class RangeFixer {
         return false;
     }
 
-    public Collection<Component> updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor, DataContext datacontext){
-        boolean sequenceToBeUpdated = false;
+    public void processInvalidRanges(Protein protein, UpdateCaseEvent evt, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges) {
+        for (Map.Entry<Component, Collection<InvalidRange>> entry : report.getInvalidComponents().entrySet()){
+            for (InvalidRange invalid : entry.getValue()){
+                // range is bad from the beginning, not after the range shifting
+                if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
+                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(evt.getDataContext(), invalid);
+                    processor.fireOnInvalidRange(invalidEvent);
+                    fixInvalidRanges(invalidEvent);
+                }
+                else {
+                    int sequenceVersion = -1;
+                    try {
+                        sequenceVersion = unisave.getSequenceVersion(uniprotAc, false, protein.getSequence());
+                    } catch (UnisaveServiceException e) {
+                        log.error("The version of the sequence for the protein " + protein.getAc() + "could not be found in unisave.");
+                    }
+
+                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(evt.getDataContext(), invalid);
+
+                    if (sequenceVersion != -1){
+                        invalid.setValidSequenceVersion(sequenceVersion);
+                    }
+
+                    if (fixedProtein == null && fixOutOfDateRanges){
+                        fixOutOfDateRanges(invalidEvent);
+                    }
+                    processor.fireOnOutOfDateRange(invalidEvent);
+                }
+            }
+        }
+    }
+
+    public RangeUpdateReport updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor, DataContext datacontext){
+
+        RangeUpdateReport report = new RangeUpdateReport();
 
         String oldSequence = protein.getSequence();
         String sequence = uniprotSequence;
-        if ( (oldSequence == null && sequence != null)) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Sequence requires update." );
-            }
-            sequenceToBeUpdated = true;
-        }
-        else if (oldSequence != null && sequence != null){
-            if (!sequence.equals( oldSequence ) ){
-                if ( log.isDebugEnabled() ) {
-                    log.debug( "Sequence requires update." );
-                }
-                sequenceToBeUpdated = true;
-            }
-        }
-
-        Set<String> interactionAcsWithBadFeatures = new HashSet<String>();
 
         Collection<Component> components = protein.getActiveInstances();
 
-        if ( sequenceToBeUpdated) {
+        for (Component component : components){
 
-            for (Component component : components){
-                String interactionac = component.getInteraction().getAc();
+            Collection<Feature> features = component.getBindingDomains();
+            Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
 
-                Collection<Feature> features = component.getBindingDomains();
-                for (Feature feature : features){
-                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
+            for (Feature feature : features){
+                Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
+                totalInvalidRanges.addAll(invalidRanges);
 
-                    if (!invalidRanges.isEmpty()){
-                        interactionAcsWithBadFeatures.add(interactionac);
-
-                        for (InvalidRange invalid : invalidRanges){
-                            // range is bad from the beginning, not after the range shifting
-                            if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
-                                InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
-                                processor.fireOnInvalidRange(invalidEvent);
-                                fixInvalidRanges(invalidEvent);
-                            }
-                        }
-                    }
+                if (!invalidRanges.isEmpty()){
+                    report.getInvalidComponents().put(component, totalInvalidRanges);
                 }
             }
+        }
 
-            if (!interactionAcsWithBadFeatures.isEmpty()){
-                Collection<Component> componentsToFix = new ArrayList<Component>();
-                for (Component c : components){
-                    if (interactionAcsWithBadFeatures.contains(c.getInteraction().getAc())){
-                        componentsToFix.add(c);
-                    }
-                }
+        if (!report.getInvalidComponents().isEmpty()){
+            Collection<Component> componentsToFix = report.getInvalidComponents().keySet();
 
-                Collection<Component> componentsToUpdate = CollectionUtils.subtract(components, componentsToFix);
+            Collection<Component> componentsToUpdate = CollectionUtils.subtract(components, componentsToFix);
 
-                if (!componentsToUpdate.isEmpty()){
-                    shiftRanges(oldSequence, uniprotSequence, componentsToUpdate, processor, datacontext);
-                }
-
-                return componentsToFix;
-            }
-            else {
-                shiftRanges(oldSequence, uniprotSequence, components, processor, datacontext);
+            if (!componentsToUpdate.isEmpty()){
+                shiftRanges(oldSequence, uniprotSequence, componentsToUpdate, processor, datacontext);
             }
         }
         else {
-            for (Component component : components){
-                Interaction interaction = component.getInteraction();
-
-                Collection<Feature> features = component.getBindingDomains();
-                for (Feature feature : features){
-                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
-
-                    if (!invalidRanges.isEmpty()){
-                        interactionAcsWithBadFeatures.add(interaction.getAc());
-
-                        for (InvalidRange invalid : invalidRanges){
-                            // range is bad from the beginning, not after the range shifting
-                            InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
-                            processor.fireOnInvalidRange(invalidEvent);
-                            fixInvalidRanges(invalidEvent);
-                        }
-                    }
-                }
-            }
-
-            if (!interactionAcsWithBadFeatures.isEmpty()){
-                Collection<Component> componentsToFix = new ArrayList<Component>();
-                for (Component c : components){
-                    if (interactionAcsWithBadFeatures.contains(c.getInteraction().getAc())){
-                        componentsToFix.add(c);
-                    }
-                }
-
-                return componentsToFix;
-            }
+            shiftRanges(oldSequence, uniprotSequence, components, processor, datacontext);
         }
 
-        return Collections.EMPTY_LIST;
+        return report;
     }
 }

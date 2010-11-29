@@ -19,6 +19,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
+import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -28,6 +30,7 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -351,6 +354,9 @@ public class UniprotProteinUpdater {
     }
 
     private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt) throws ProteinServiceException {
+        InteractorXref ref = ProteinUtils.getUniprotXref(protein);
+        String uniprotAc = ref.getPrimaryId();
+
         boolean sequenceToBeUpdated = false;
         String oldSequence = protein.getSequence();
         String sequence = uniprotSequence;
@@ -375,23 +381,22 @@ public class UniprotProteinUpdater {
         }
 
         if ( sequenceToBeUpdated) {
-            Collection<Component> componentsWithRangeConflicts =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
+
+            RangeUpdateReport report =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
+            Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
 
             if (!componentsWithRangeConflicts.isEmpty()){
 
                 processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "The protein " + protein.getAc() + " contains " +
-                                        componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts));
+                        "The protein " + protein.getAc() + " contains " +
+                                componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts));
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains());
-                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, true);
+                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
-                evt.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                if (fixedProtein != null){
+                    evt.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
 
-                if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
-                    processor.fireNonUniprotProteinFound(new ProteinEvent(evt.getSource(), evt.getDataContext(), fixedProtein.getProtein()));
-                }
-                else {
                     boolean hasToBeAdded = true;
 
                     for (ProteinTranscript t : evt.getPrimaryIsoforms()){
@@ -430,6 +435,8 @@ public class UniprotProteinUpdater {
 
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
+
+                rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, true);
             }
 
             protein.setSequence( sequence );

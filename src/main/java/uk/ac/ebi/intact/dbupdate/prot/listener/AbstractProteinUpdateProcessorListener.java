@@ -63,6 +63,10 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinU
         // nothing
     }
 
+    public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
+        // nothing
+    }
+
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
         // nothing
     }

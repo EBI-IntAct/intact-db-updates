@@ -23,10 +23,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
@@ -141,12 +138,13 @@ public class DuplicatesFixer{
 
                 // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
                 for (Protein p : duplicatesHavingDifferentSequence){
-                    Collection<Component> componentWithRangeConflicts = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
+                    RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
+                    Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
 
                     if (!componentWithRangeConflicts.isEmpty()){
                         log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
                         proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
-                        report.getComponentsWithFeatureConflicts().put(p, componentWithRangeConflicts);
+                        report.getComponentsWithFeatureConflicts().put(p, rangeReport);
                     }
                 }
 
@@ -305,17 +303,6 @@ public class DuplicatesFixer{
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
-                            log.debug( "sequence of "+duplicate.getAc()+" requires update." );
-                            duplicate.setSequence( evt.getUniprotSequence() );
-
-                            // CRC64
-                            String crc64 = evt.getUniprotCrc64();
-                            if ( duplicate.getCrc64() == null || !duplicate.getCrc64().equals( crc64 ) ) {
-                                log.debug( "CRC64 requires update." );
-                                duplicate.setCrc64( crc64 );
-                            }
-
-                            factory.getProteinDao().update((ProteinImpl) duplicate);
                             processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
                         }
                     }
@@ -338,10 +325,12 @@ public class DuplicatesFixer{
                                         proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts));
                         Collection<Component> componentsToFix = new ArrayList<Component>();
                         componentsToFix.addAll(proteinsNeedingPartialMerge.get(originalProt.getAc()));
-                        report.getComponentsWithFeatureConflicts().remove(originalProt);
 
                         Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST), true).getProtein();
-                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, componentsToFix);
+                        RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(originalProt);
+                        report.getComponentsWithFeatureConflicts().remove(originalProt);
+
+                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, rangeReport);
                     }
 
                     // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges

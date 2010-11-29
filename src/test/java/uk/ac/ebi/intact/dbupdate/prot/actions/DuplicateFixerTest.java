@@ -266,7 +266,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
         ref.setPrimaryId("P60953-1");
         getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
-        
+
         IntactContext.getCurrentInstance().getDaoFactory().getXrefDao(InteractorXref.class).persist(parent);
         isoform2.addXref(parent);
 
@@ -426,15 +426,17 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
             c.getBindingDomains().clear();
         }
 
+        Feature f = getMockBuilder().createFeatureRandom();
+        Range r = getMockBuilder().createRange(1, 1, 50, 50);
+
+        f.getRanges().clear();
+        f.addRange(r);
+
         for (Component c : interactionWithConflict.getComponents()){
             c.getBindingDomains().clear();
 
             if (prot.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                Feature f = getMockBuilder().createFeatureRandom();
-                Range r = getMockBuilder().createRange(1, 1, 50, 50);
 
-                f.getRanges().clear();
-                f.addRange(r);
                 c.addBindingDomain(f);
             }
         }
@@ -467,6 +469,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, prot.getActiveInstances().size());
         Assert.assertTrue(hasAnnotation(prot, null, CvTopic.NON_UNIPROT));
         Assert.assertTrue(hasAnnotation(prot, null, CvTopic.CAUTION));
+
+        // the ranges have not been reset by the duplicate fixer
+        Assert.assertEquals(1, r.getFromIntervalStart());
+        Assert.assertEquals(1, r.getFromIntervalEnd());
+        Assert.assertEquals(50, r.getToIntervalStart());
+        Assert.assertEquals(50, r.getToIntervalEnd());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
@@ -612,15 +620,17 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
             c.getBindingDomains().clear();
         }
 
+        Feature f = getMockBuilder().createFeatureRandom();
+        Range r = getMockBuilder().createRange(1, 1, 50, 50);
+
+        f.getRanges().clear();
+        f.addRange(r);
+
         for (Component c : interactionWithConflict.getComponents()){
             c.getBindingDomains().clear();
 
             if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                Feature f = getMockBuilder().createFeatureRandom();
-                Range r = getMockBuilder().createRange(1, 1, 50, 50);
 
-                f.getRanges().clear();
-                f.addRange(r);
                 c.addBindingDomain(f);
             }
         }
@@ -654,6 +664,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, no_uniprot.getActiveInstances().size());
         Assert.assertTrue(hasAnnotation(no_uniprot, null, CvTopic.NON_UNIPROT));
         Assert.assertTrue(hasAnnotation(no_uniprot, null, CvTopic.CAUTION));
+
+        // the ranges have not been reset by the duplicate fixer
+        Assert.assertEquals(1, r.getFromIntervalStart());
+        Assert.assertEquals(1, r.getFromIntervalEnd());
+        Assert.assertEquals(50, r.getToIntervalStart());
+        Assert.assertEquals(50, r.getToIntervalEnd());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }

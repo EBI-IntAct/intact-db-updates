@@ -149,6 +149,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireOnOutOfDateRange(InvalidRangeEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onOutOfDateRange(evt);
+        }
+    }
+
     public void fireOnUniprotDeadEntry(ProteinEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onDeadProteinFound(evt);

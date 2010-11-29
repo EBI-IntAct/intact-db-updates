@@ -707,7 +707,7 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
 
         Assert.assertEquals(3, intactproteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(secondary.getAc()));
-        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
 
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -746,25 +746,5 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
         }
 
         return hasFoundAlias;
-    }
-
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
     }
 }

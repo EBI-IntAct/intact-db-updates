@@ -796,19 +796,21 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         Set<String> updatedProteins = processor.update(secondary, context);
 
-        Assert.assertEquals(4, updatedProteins.size());
+        Assert.assertEquals(3, updatedProteins.size());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(secondary.getAc()));
-        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(0, secondary.getActiveInstances().size());
+        Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, secondary.getActiveInstances().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
-        Assert.assertEquals(5, range.getToIntervalStart());
-        Assert.assertEquals(5, range.getToIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
+        Assert.assertTrue(hasAnnotation(feature, null, "invalid-range"));
+        Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]0-5", "invalid-positions"));
 
         Protein noUniprotUpdate = (Protein) componentWithFeatureConflicts.getInteractor();
-        Assert.assertFalse(ProteinUtils.isFromUniprot(noUniprotUpdate));
-        Assert.assertNotSame(secondary.getAc(), noUniprotUpdate.getAc());
+        Assert.assertTrue(ProteinUtils.isFromUniprot(noUniprotUpdate));
+        Assert.assertEquals(secondary.getAc(), noUniprotUpdate.getAc());
 
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -886,7 +888,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
         return hasFoundAlias;
     }
 
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
+    private boolean hasAnnotation( Feature p, String text, String cvTopic) {
         final Collection<Annotation> annotations = p.getAnnotations();
         boolean hasAnnotation = false;
 

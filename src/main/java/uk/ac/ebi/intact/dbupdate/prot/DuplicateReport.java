@@ -20,12 +20,12 @@ public class DuplicateReport {
 
     private Protein originalProtein;
     private UniprotProteinTranscript transcript;
-    private Map<Protein, Collection<Component>> componentsWithFeatureConflicts;
+    private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts;
 
     public DuplicateReport(){
         originalProtein = null;
         this.transcript = null;
-        componentsWithFeatureConflicts = new HashMap<Protein, Collection<Component>>();
+        componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
     }
 
     public Protein getOriginalProtein() {
@@ -36,11 +36,11 @@ public class DuplicateReport {
         this.originalProtein = originalProtein;
     }
 
-    public Map<Protein, Collection<Component>> getComponentsWithFeatureConflicts() {
+    public Map<Protein, RangeUpdateReport> getComponentsWithFeatureConflicts() {
         return componentsWithFeatureConflicts;
     }
 
-    public void setComponentsWithFeatureConflicts(Map<Protein, Collection<Component>> componentsWithFeatureConflicts) {
+    public void setComponentsWithFeatureConflicts(Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts) {
         this.componentsWithFeatureConflicts = componentsWithFeatureConflicts;
     }
 

@@ -43,7 +43,7 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
     }
 
     /**
-     * Delete: master prot does not have interactions, but has splice variants with interactions
+     * One participant with range conflicts
      */
     @Test
     @DirtiesContext
@@ -137,13 +137,13 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
         DataContext context2 = getDataContext();
         TransactionStatus status2 = context2.beginTransaction();
 
-        Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(4, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
 
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1.getAc());
         Assert.assertNotNull(dupe2FromDb);
-        Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
+        Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
 
         context2.commitTransaction(status2);
     }

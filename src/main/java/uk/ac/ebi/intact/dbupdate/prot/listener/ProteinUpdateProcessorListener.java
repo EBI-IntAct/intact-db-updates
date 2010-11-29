@@ -44,6 +44,8 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException;
 
+    void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException;
+
     void onDeadProteinFound(ProteinEvent evt) throws ProcessorException;
 
     void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException;

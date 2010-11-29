@@ -330,7 +330,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter writer = reportHandler.getInvalidRangeWriter();
             writer.writeHeaderIfNecessary("Range AC",
                     "Pos.",
-                    "Computed Pos.",
                     "Sequence length.",
                     "Feature AC",
                     "Feature Label",
@@ -341,7 +340,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Message");
             writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
                     outOfBoundRange.getInvalidRange().toString(),
-                    dashIfNull(outOfBoundRange.getNewRanges()),
                     Integer.toString(outOfBoundRange.getSequence().length()),
                     feature.getAc(),
                     feature.getShortLabel(),
@@ -355,6 +353,49 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             throw new ProcessorException("Problem writing update case to stream", e);
         }
     }
+
+    @Override
+    public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
+        InvalidRange outOfBoundRange = evt.getInvalidRange();
+        Feature feature = outOfBoundRange.getInvalidRange().getFeature();
+        Component component = feature.getComponent();
+        Interactor interactor = component.getInteractor();
+
+        final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
+        String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+
+        try {
+            ReportWriter writer = reportHandler.getOutOfDateRangeWriter();
+            writer.writeHeaderIfNecessary("Range AC",
+                    "Pos.",
+                    "Computed Pos.",
+                    "Sequence length.",
+                    "Valid sequence version",
+                    "Feature AC",
+                    "Feature Label",
+                    "Comp. AC",
+                    "Prot. AC",
+                    "Prot. Label",
+                    "Prot. Uniprot",
+                    "Message");
+            writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
+                    outOfBoundRange.getInvalidRange().toString(),
+                    dashIfNull(outOfBoundRange.getNewRanges()),
+                    Integer.toString(outOfBoundRange.getSequence().length()),
+                    dashIfNull(Integer.toString(outOfBoundRange.getValidSequenceVersion())),
+                    feature.getAc(),
+                    feature.getShortLabel(),
+                    component.getAc(),
+                    interactor.getAc(),
+                    interactor.getShortLabel(),
+                    uniprotAc,
+                    dashIfNull(outOfBoundRange.getMessage()));
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing update case to stream", e);
+        }
+    }
+
 
     private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
         StringBuilder sb = new StringBuilder(oldSequence);

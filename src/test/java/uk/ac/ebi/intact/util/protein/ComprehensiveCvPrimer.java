@@ -50,11 +50,15 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvInteractionType.class, CvInteractionType.DIRECT_INTERACTION, CvInteractionType.DIRECT_INTERACTION_MI_REF);
         getCvObject(CvExperimentalRole.class, CvExperimentalRole.ANCILLARY, CvExperimentalRole.ANCILLARY_MI_REF);
         getCvObject(CvBiologicalRole.class, CvBiologicalRole.COFACTOR, CvBiologicalRole.COFACTOR_MI_REF);
+        getCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED, CvFuzzyType.UNDETERMINED_MI_REF);
 
         getCvObject(CvTopic.class, CvTopic.ISOFORM_COMMENT);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_START);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_END);
         getCvObject(CvTopic.class, CvTopic.INVALID_RANGE);
+        getCvObject(CvTopic.class, "invalid-positions");
+        getCvObject(CvTopic.class, "range-conflicts");
+        getCvObject(CvTopic.class, "sequence-version");
         getCvObject(CvTopic.class, CvTopic.NON_UNIPROT);
         getCvObject(CvTopic.class, CvTopic.CAUTION, CvTopic.CAUTION_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.UNIPROT_REMOVED_AC);

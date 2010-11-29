@@ -67,7 +67,13 @@ public class LoggingProcessorListener implements ProteinUpdateProcessorListener 
 
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Range "+evt.getInvalidRange().getInvalidRange().getAc()+" wasn't updated because it " +
-                "is invalid (range "+evt.getInvalidRange().getInvalidRange()+" doesn't fit in sequence of length "+evt.getInvalidRange().getSequence().length()+")");
+                "is invalid (range "+evt.getInvalidRange().getInvalidRange()+")");
+    }
+
+    @Override
+    public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Range "+evt.getInvalidRange().getInvalidRange().getAc()+" wasn't updated because it " +
+                "is invalid with the new protein sequence (range "+evt.getInvalidRange().getInvalidRange()+")");
     }
 
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {

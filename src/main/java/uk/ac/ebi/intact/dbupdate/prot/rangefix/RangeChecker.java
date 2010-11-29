@@ -437,7 +437,7 @@ public class RangeChecker {
                 // the new full feature sequence is null but was not before shifting the ranges
                 else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                     // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                    invalidRange = new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence cannot be computed.", clone.toString());
+                    invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
                 }
             }
             // one position has been shifted but is not valid
@@ -461,7 +461,7 @@ public class RangeChecker {
             // the new full feature sequence is null but was not before shifting the ranges
             else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                 // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                invalidRange = new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence cannot be computed.", clone.toString());
+                invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
             }
         }
 
@@ -552,13 +552,13 @@ public class RangeChecker {
                 // check that the corrected positions are not overlapping because the start/end intervals are conserved
                 if (correctedFromIntervalEnd > correctedToIntervalStart || correctedFromIntervalEnd > newSequence.length() || correctedToIntervalStart < 1){
                     // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                    new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping.", clone.toString());
+                    new InvalidRange(range, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping with the new protein sequence.", clone.toString());
                 }
             }
             // we can't correct the positions of the ranges to have the conserved feature sequence
             else {
                 // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                invalidRange = new InvalidRange(range, newSequence, "The new feature ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString());
+                invalidRange = new InvalidRange(range, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString());
             }
         }
         return invalidRange;
