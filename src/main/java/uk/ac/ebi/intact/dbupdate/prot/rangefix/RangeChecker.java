@@ -62,36 +62,26 @@ public class RangeChecker {
 
         List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
 
-        boolean hasInvalidRangeAnnotation = false;
+        for (Range range : feature.getRanges()) {
+            if (!FeatureUtils.isABadRange(range, oldSequence)){
+                final IntactCloner intactCloner = new IntactCloner();
+                Range oldRange = null;
+                try {
+                    oldRange = intactCloner.clone(range);
+                } catch (IntactClonerException e) {
+                    throw new IntactException("Could not clone range: "+range, e);
+                }
 
-        for (Annotation a : feature.getAnnotations()){
-            if (a.getCvTopic().getShortLabel().equalsIgnoreCase(CvTopic.INVALID_RANGE)){
-                hasInvalidRangeAnnotation = true;
-            }
-        }
+                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
 
-        if (!hasInvalidRangeAnnotation){
-            for (Range range : feature.getRanges()) {
-                if (!FeatureUtils.isABadRange(range, oldSequence)){
-                    final IntactCloner intactCloner = new IntactCloner();
-                    Range oldRange = null;
-                    try {
-                        oldRange = intactCloner.clone(range);
-                    } catch (IntactClonerException e) {
-                        throw new IntactException("Could not clone range: "+range, e);
-                    }
+                if (rangeShifted) {
+                    if (log.isInfoEnabled())
+                        log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
 
-                    boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
+                    range.prepareSequence(newSequence);
+                    context.getDaoFactory().getRangeDao().update(range);
 
-                    if (rangeShifted) {
-                        if (log.isInfoEnabled())
-                            log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
-
-                        range.prepareSequence(newSequence);
-                        context.getDaoFactory().getRangeDao().update(range);
-
-                        updatedRanges.add(new UpdatedRange(oldRange, range));
-                    }
+                    updatedRanges.add(new UpdatedRange(oldRange, range));
                 }
             }
         }
@@ -613,41 +603,31 @@ public class RangeChecker {
 
         Collection<InvalidRange> invalidRanges = new ArrayList<InvalidRange>();
 
-        boolean hasInvalidRangeAnnotation = false;
-
-        for (Annotation a : feature.getAnnotations()){
-            if (a.getCvTopic().getShortLabel().equalsIgnoreCase(CvTopic.INVALID_RANGE)){
-                hasInvalidRangeAnnotation = true;
-            }
+        List<Diff> diffs = new ArrayList<Diff>();
+        if (oldSequence != null){
+            diffs = DiffUtils.diff(oldSequence, newSequence);
         }
 
-        if (!hasInvalidRangeAnnotation){
-            List<Diff> diffs = new ArrayList<Diff>();
+        for (Range range : feature.getRanges()) {
             if (oldSequence != null){
-                diffs = DiffUtils.diff(oldSequence, newSequence);
-            }
-
-            for (Range range : feature.getRanges()) {
-                if (oldSequence != null){
-                    String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
-                    if (isABadRange == null){
-                        InvalidRange invalid = collectBadlyShiftedRangeInfo(diffs, range, oldSequence, newSequence);
-                        if (invalid != null){
-                            invalidRanges.add(invalid);
-                        }
-                    }
-                    else {
-                        InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+                if (isABadRange == null){
+                    InvalidRange invalid = collectBadlyShiftedRangeInfo(diffs, range, oldSequence, newSequence);
+                    if (invalid != null){
                         invalidRanges.add(invalid);
                     }
                 }
                 else {
-                    String isABadRange = FeatureUtils.getBadRangeInfo(range, newSequence);
+                    InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                    invalidRanges.add(invalid);
+                }
+            }
+            else {
+                String isABadRange = FeatureUtils.getBadRangeInfo(range, newSequence);
 
-                    if (isABadRange != null){
-                        InvalidRange invalid = new InvalidRange(range, newSequence, isABadRange);
-                        invalidRanges.add(invalid);
-                    }
+                if (isABadRange != null){
+                    InvalidRange invalid = new InvalidRange(range, newSequence, isABadRange);
+                    invalidRanges.add(invalid);
                 }
             }
         }

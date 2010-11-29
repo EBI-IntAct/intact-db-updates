@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -203,7 +204,10 @@ public abstract class ProteinProcessor {
     public List<Protein> retrieveAndUpdateProteinFromUniprot(String uniprotAc) throws ProcessorException{
         List<Protein> intactProteins = new ArrayList<Protein>();
         // register the listeners
-        registerListenersIfNotDoneYet();
+        if (getListeners(SequenceChangedListener.class) == null){
+           addListener(new SequenceChangedListener()); 
+        }
+
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
