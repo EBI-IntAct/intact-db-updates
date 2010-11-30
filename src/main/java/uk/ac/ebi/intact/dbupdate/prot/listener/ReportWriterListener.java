@@ -277,7 +277,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
         UpdatedRange updatedRange = evt.getUpdatedRange();
-        Feature feature = updatedRange.getNewRange().getFeature();
+        Feature feature = updatedRange.getOldRange().getFeature();
         Component component = feature.getComponent();
         Interactor interactor = component.getInteractor();
 
