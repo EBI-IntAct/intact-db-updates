@@ -125,7 +125,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    private boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
