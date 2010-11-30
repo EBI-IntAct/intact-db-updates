@@ -61,7 +61,7 @@ public class RangeFixer {
         this.unisave = new UnisaveService();
     }
 
-    protected void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
+    private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
 
         if (oldSequence != null && newSequence != null) {
 
@@ -92,7 +92,7 @@ public class RangeFixer {
         }
     }
 
-    protected String convertPositionsToString(Range r){
+    private String convertPositionsToString(Range r){
         String start;
         String end;
 
@@ -289,7 +289,7 @@ public class RangeFixer {
         f.getRangeDao().update(r);
     }
 
-    protected boolean hasAnnotationMessage(String message, Annotation a) {
+    private boolean hasAnnotationMessage(String message, Annotation a) {
 
         if (message != null){
             if (message.equals(a.getAnnotationText())){
