@@ -293,7 +293,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
         Protein reloadedProtein = getDaoFactory().getProteinDao().getByAc( prot.getAc() );
         Assert.assertEquals(true_sequence, reloadedProtein.getSequence());
         Assert.assertEquals(reloadedComponent.getInteractor().getAc(), reloadedProtein.getAc());
-        Assert.assertEquals(0, reloadedProtein.getActiveInstances().size());
+        Assert.assertEquals(1, reloadedProtein.getActiveInstances().size());
 
         context2.commitTransaction(status2);
     }

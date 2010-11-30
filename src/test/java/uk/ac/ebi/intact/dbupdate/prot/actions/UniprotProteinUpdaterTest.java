@@ -703,16 +703,16 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
         Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
-        Assert.assertEquals(0, updatedProtein.getActiveInstances().size());
-        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(1, updatedProtein.getActiveInstances().size());
+        Assert.assertEquals(2, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
-        Assert.assertEquals(2, range.getFromIntervalStart());
-        Assert.assertEquals(2, range.getFromIntervalEnd());
-        Assert.assertEquals(5, range.getToIntervalStart());
-        Assert.assertEquals(5, range.getToIntervalEnd());
+        Assert.assertEquals(0, range.getFromIntervalStart());
+        Assert.assertEquals(0, range.getFromIntervalEnd());
+        Assert.assertEquals(0, range.getToIntervalStart());
+        Assert.assertEquals(0, range.getToIntervalEnd());
 
         Protein noUniprotUpdate = (Protein) componentWithFeatureConflicts.getInteractor();
-        Assert.assertFalse(ProteinUtils.isFromUniprot(noUniprotUpdate));
+        Assert.assertTrue(ProteinUtils.isFromUniprot(noUniprotUpdate));
         Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(noUniprotUpdate.getAc()));
 
         getDataContext().commitTransaction(status);
