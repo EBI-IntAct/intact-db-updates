@@ -47,29 +47,28 @@ import java.util.*;
 public class RangeFixer {
 
     private static final Log log = LogFactory.getLog( RangeFixer.class );
-    private RangeChecker checker;
-    private static final String invalidPositions = "invalid-positions";
-    private static final String rangeSeparator = "..";
-    private static final String positionsSeparator = "-";
-    private static final String rangeConflicts = "range-conflicts";
-    private static final String sequenceVersion = "sequence-version";
+    protected RangeChecker checker;
+    public static final String invalidPositions = "invalid-positions";
+    public static final String rangeSeparator = "..";
+    public static final String positionsSeparator = "-";
+    public static final String rangeConflicts = "range-conflicts";
+    public static final String sequenceVersion = "sequence-version";
 
-    private UnisaveService unisave;
+    protected UnisaveService unisave;
 
     public RangeFixer(){
         this.checker = new RangeChecker();
         this.unisave = new UnisaveService();
     }
 
-    private void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
-        RangeChecker rangeChecker = new RangeChecker();
+    protected void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
 
         if (oldSequence != null && newSequence != null) {
 
             for (Component component : componentsToUpdate) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, context);
+                    Collection<UpdatedRange> updatedRanges = checker.shiftFeatureRanges(feature, oldSequence, newSequence, context);
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
@@ -82,7 +81,7 @@ public class RangeFixer {
             for (Component component : componentsToUpdate) {
                 for (Feature feature : component.getBindingDomains()) {
 
-                    Collection<UpdatedRange> updatedRanges = rangeChecker.prepareFeatureSequences(feature, newSequence, context);
+                    Collection<UpdatedRange> updatedRanges = checker.prepareFeatureSequences(feature, newSequence, context);
 
                     // fire the events for the range changes
                     for (UpdatedRange updatedRange : updatedRanges) {
@@ -93,7 +92,7 @@ public class RangeFixer {
         }
     }
 
-    private String convertPositionsToString(Range r){
+    protected String convertPositionsToString(Range r){
         String start;
         String end;
 
@@ -272,7 +271,7 @@ public class RangeFixer {
         }
     }
 
-    private void setRangeUndetermined(Range r, DaoFactory f){
+    protected void setRangeUndetermined(Range r, DaoFactory f){
         CvFuzzyType undetermined = f.getCvObjectDao(CvFuzzyType.class).getByPsiMiRef(CvFuzzyType.UNDETERMINED_MI_REF);
 
         if (undetermined == null) {
@@ -290,7 +289,7 @@ public class RangeFixer {
         f.getRangeDao().update(r);
     }
 
-    private boolean hasAnnotationMessage(String message, Annotation a) {
+    protected boolean hasAnnotationMessage(String message, Annotation a) {
 
         if (message != null){
             if (message.equals(a.getAnnotationText())){

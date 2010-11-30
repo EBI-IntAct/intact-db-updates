@@ -125,7 +125,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    private boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -323,7 +323,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    private InvalidRange collectBadlyShiftedRangeInfo(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
+    protected InvalidRange collectBadlyShiftedRangeInfo(List<Diff> diffs, Range range, String oldSequence, String newSequence) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -468,7 +468,7 @@ public class RangeChecker {
      * @param newFeatureSequence : the new feature sequence
      * @return true if the shifted ranges are valid and the feature sequence is conserved
      */
-    private boolean checkNewFeatureContent(Range range, String newSequence, boolean rangeShifted, String oldFeatureSequence, Range clone, String newFeatureSequence) {
+    protected boolean checkNewFeatureContent(Range range, String newSequence, boolean rangeShifted, String oldFeatureSequence, Range clone, String newFeatureSequence) {
         // the feature sequence is conserved, we can update the range
         if (newFeatureSequence.equals(oldFeatureSequence)){
             range.setFromIntervalStart(clone.getFromIntervalStart());
@@ -517,7 +517,7 @@ public class RangeChecker {
         return rangeShifted;
     }
 
-    private InvalidRange collectInvalidFeatureContent(Range range, String newSequence, String oldFeatureSequence, Range clone, String newFeatureSequence) {
+    protected InvalidRange collectInvalidFeatureContent(Range range, String newSequence, String oldFeatureSequence, Range clone, String newFeatureSequence) {
         InvalidRange invalidRange = null;
 
         // the feature sequence is not conserved. We need to check if there have been some inserts at the beginning of the feature which could explain
@@ -560,7 +560,7 @@ public class RangeChecker {
      * @param sequencePosition The original position in the sequence
      * @return The final position in the sequence. If it couldn't be found, returns 0.
      */
-    private int calculatePositionShift(List<Diff> diffs, int sequencePosition, String oldSequence) {
+    protected int calculatePositionShift(List<Diff> diffs, int sequencePosition, String oldSequence) {
         if (sequencePosition <= 0) {
             throw new IllegalArgumentException("We can't shift a range which is inferior or equal to 0 ("+sequencePosition+")");
         }
