@@ -332,10 +332,10 @@ public class RangeFixer {
                         invalid.setValidSequenceVersion(sequenceVersion);
                     }
 
+                    processor.fireOnOutOfDateRange(invalidEvent);
                     if (fixedProtein == null && fixOutOfDateRanges){
                         fixOutOfDateRanges(invalidEvent);
                     }
-                    processor.fireOnOutOfDateRange(invalidEvent);
                 }
             }
         }
