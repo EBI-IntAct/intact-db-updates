@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.model.proteinupdate;
 
 import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResults;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.Annotation;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.CrossReference;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
@@ -23,18 +24,22 @@ public class DeadProteinEvent extends XRefUpdateEvent{
 
     private Collection<Annotation> addedAnnotations;
 
-    private CrossReference uniprotReference;
+    private String uniprotReference;
+
+    private IdentificationResults identificationResult;
 
     public DeadProteinEvent(){
         super();
         addedAnnotations = new ArrayList<Annotation>();
         this.uniprotReference = null;
+        this.identificationResult = null;
     }
 
-    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created, int index){
+    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created, IdentificationResults result, int index){
         super(deletedRefs, addedRefs, intactProtein, EventName.dead_protein, created, index);
         setAddedAnnotationsFromInteractor(addedAnnotations);
         setUniprotReference(uniprotRef);
+        this.identificationResult = result;
     }
 
     @OneToMany
@@ -58,17 +63,26 @@ public class DeadProteinEvent extends XRefUpdateEvent{
         }
     }
 
-    @ManyToOne
-    @JoinColumn( name = "uniprot_xref_id" )    
-    public CrossReference getUniprotReference() {
+    @Column(name = "uniprot_reference", nullable = false)
+    public String getUniprotReference() {
         return uniprotReference;
     }
 
-    public void setUniprotReference(CrossReference uniprotReference) {
+    public void setUniprotReference(String uniprotReference) {
         this.uniprotReference = uniprotReference;
     }
 
     public void setUniprotReference(InteractorXref xRef){
-        this.uniprotReference = new CrossReference(xRef, getCreated());
+        this.uniprotReference = xRef.getPrimaryId();
+    }
+
+    @OneToOne
+    @JoinColumn(name = "identification_result_id")
+    public IdentificationResults getIdentificationResult() {
+        return identificationResult;
+    }
+
+    public void setIdentificationResult(IdentificationResults identificationResult) {
+        this.identificationResult = identificationResult;
     }
 }
