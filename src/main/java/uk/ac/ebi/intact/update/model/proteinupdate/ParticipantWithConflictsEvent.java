@@ -2,8 +2,7 @@ package uk.ac.ebi.intact.update.model.proteinupdate;
 
 import uk.ac.ebi.intact.model.Component;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -42,6 +41,9 @@ public class ParticipantWithConflictsEvent extends ProteinEvent{
         this.remapped_protein_ac = remappedProteinAc;
     }
 
+    @ElementCollection
+    @JoinTable(name = "ia_participant2components", joinColumns = @JoinColumn(name="participant_id"))
+    @Column(name = "component_ac", nullable = false)
     public Collection<String> getComponentsWithFeatureConflicts() {
         return componentsWithFeatureConflicts;
     }
@@ -50,6 +52,7 @@ public class ParticipantWithConflictsEvent extends ProteinEvent{
         this.componentsWithFeatureConflicts = componentsWithFeatureConflicts;
     }
 
+    @Column(name = "remapped_protein_ac", nullable = true)
     public String getRemapped_protein_ac() {
         return remapped_protein_ac;
     }

@@ -16,8 +16,7 @@ import java.util.*;
 
 public class UniprotUpdateEvent extends XRefUpdateEvent{
 
-    private Collection<String> messages;
-    private Collection<ProcessErrorEvent> errors;
+    private Collection<String> errors;
     int taxId;
     String shortLabel;
     String fullName;
@@ -29,45 +28,32 @@ public class UniprotUpdateEvent extends XRefUpdateEvent{
         this.taxId = 0;
         this.shortLabel = null;
         this.fullName = null;
-        messages = new ArrayList<String>();
-        errors = new ArrayList<ProcessErrorEvent>();
+        errors = new ArrayList<String>();
         deletedAlias = new ArrayList<Alias>();
         createdAlias = new ArrayList<Alias>();
     }
 
     public UniprotUpdateEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<Alias> deletedAlias,
-                              Collection<Alias> createdAlias, IntactProtein intactProtein, Collection<String> messages, Collection<ProcessErrorEvent> errors,
+                              Collection<Alias> createdAlias, IntactProtein intactProtein, Collection<String> errors,
                               int taxId, String shortLabel, String fullName, Date created, int index){
         super(deletedRefs, addedRefs, intactProtein, EventName.uniprot_update, created, index);
         this.taxId = taxId;
         this.shortLabel = shortLabel;
         this.fullName = fullName;
-        setMessages(messages);
         setErrors(errors);
+        this.createdAlias = createdAlias;
+        this.deletedAlias = deletedAlias;
     }
     
     @ElementCollection
-    @JoinTable(name = "ia_update2message", joinColumns = @JoinColumn(name="update_event_id"))
-    @Column(name = "update_message", nullable = false)
-    public Collection<String> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(Collection<String> messages) {
-        this.messages = messages;
-    }
-
-    @OneToMany( mappedBy = "updateEvent", cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE} )
-    public Collection<ProcessErrorEvent> getErrors() {
+    @JoinTable(name = "ia_update2error", joinColumns = @JoinColumn(name="update_event_id"))
+    @Column(name = "update_error", nullable = false)
+    public Collection<String> getErrors() {
         return errors;
     }
 
-    public void setErrors(Collection<ProcessErrorEvent> errors) {
+    public void setErrors(Collection<String> errors) {
         this.errors = errors;
-
-        for (ProcessErrorEvent error : errors){
-            error.setUpdateEvent(this);
-        }
     }
 
     @Column(name = "taxid", nullable = false)
