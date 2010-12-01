@@ -184,7 +184,7 @@ public class RangeFixer {
         String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
         int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
 
-        String validSequence = null;
+        String validSequence = "["+range.getAc()+"]"+validSequenceVersion;;
 
         if (range != null){
             Feature feature = range.getFeature();
@@ -234,8 +234,6 @@ public class RangeFixer {
                     }
                     else if (sequenceVersion.equals(a.getCvTopic())){
                         if (validSequenceVersion != -1){
-                            validSequence = "["+range.getAc()+"]"+validSequenceVersion;
-
                             if (hasAnnotationMessage(validSequence, a)){
                                 hasSequenceVersion = true;
                             }
