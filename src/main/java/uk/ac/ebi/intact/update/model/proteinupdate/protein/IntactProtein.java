@@ -2,9 +2,9 @@ package uk.ac.ebi.intact.update.model.proteinupdate.protein;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
+import uk.ac.ebi.intact.update.model.proteinupdate.range.UpdatedRange;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.update.model.range.UpdatedRange;
 
 import javax.persistence.*;
 import java.util.ArrayList;

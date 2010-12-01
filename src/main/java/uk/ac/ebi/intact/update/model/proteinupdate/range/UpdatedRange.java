@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.model.range;
+package uk.ac.ebi.intact.update.model.proteinupdate.range;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 
