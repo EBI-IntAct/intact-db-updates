@@ -233,10 +233,9 @@ public class RangeFixer {
                         }
                     }
                     else if (sequenceVersion.equals(a.getCvTopic())){
-                        if (validSequenceVersion != -1){
-                            if (hasAnnotationMessage(validSequence, a)){
-                                hasSequenceVersion = true;
-                            }
+
+                        if (hasAnnotationMessage(validSequence, a)){
+                            hasSequenceVersion = true;
                         }
                     }
                 }
@@ -255,7 +254,7 @@ public class RangeFixer {
                     feature.addAnnotation(invalidPosRange);
                 }
 
-                if (!hasSequenceVersion && validSequence != null){
+                if (!hasSequenceVersion && validSequenceVersion != -1){
                     Annotation validSeqVersion = new Annotation(sequenceVersion, validSequence);
                     daoFactory.getAnnotationDao().persist(validSeqVersion);
 
