@@ -12,10 +12,10 @@ import java.util.Date;
  */
 @Entity
 @DiscriminatorValue("SequenceUpdateEvent")
-@Table(name = "ia_updated_protein_sequence")
 public class SequenceUpdateEvent extends ProteinEvent {
 
     private String newSequence;
+    private String oldSequence;
     private String message;
     private double relativeConservation;
 
@@ -24,12 +24,14 @@ public class SequenceUpdateEvent extends ProteinEvent {
         this.newSequence = null;
         this.message = null;
         this.relativeConservation = 0;
+        this.oldSequence = null;
     }
 
-    public SequenceUpdateEvent(String newSequence, double relativeConservation, EventName name, Date created, int index){
+    public SequenceUpdateEvent(String newSequence, String oldSequence, double relativeConservation, EventName name, Date created, int index){
         super(name, created, index);
         this.newSequence = newSequence;
         this.relativeConservation = relativeConservation;
+        this.oldSequence = oldSequence;
     }
 
     @Lob
@@ -40,6 +42,16 @@ public class SequenceUpdateEvent extends ProteinEvent {
 
     public void setNewSequence(String newSequence) {
         this.newSequence = newSequence;
+    }
+
+    @Lob
+    @Column(name = "old_sequence", nullable = true)
+    public String getOldSequence() {
+        return oldSequence;
+    }
+
+    public void setOldSequence(String oldSequence) {
+        this.oldSequence = oldSequence;
     }
 
     @Column(name = "message", nullable = true)

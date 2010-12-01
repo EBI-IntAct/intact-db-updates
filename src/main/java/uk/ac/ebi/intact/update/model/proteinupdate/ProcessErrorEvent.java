@@ -1,9 +1,10 @@
-package uk.ac.ebi.intact.update.model.proteinupdate.protein;
+package uk.ac.ebi.intact.update.model.proteinupdate;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * TODO comment this
@@ -13,26 +14,22 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_update_error")
-public class UpdateError extends HibernatePersistentImpl{
+@DiscriminatorValue("ProcessErrorEvent")
+public class ProcessErrorEvent extends ProteinEvent{
 
     private String type;
     private String message;
 
-    private ProteinEvent updateEvent;
-
-    public UpdateError(){
+    public ProcessErrorEvent(){
         super();
         this.type = null;
         this.message = null;
-        this.updateEvent = null;
     }
 
-    public UpdateError(String type, String message){
-        super();
+    public ProcessErrorEvent(Date created, int index, String type, String message){
+        super(EventName.update_error, created, index);
         this.type = type;
         this.message = message;
-        this.updateEvent = null;
     }
 
     @Column(name = "message")
@@ -51,15 +48,5 @@ public class UpdateError extends HibernatePersistentImpl{
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @ManyToOne
-    @JoinColumn( name = "protein_event_id", nullable = false)
-    public ProteinEvent getUpdateEvent() {
-        return updateEvent;
-    }
-
-    public void setUpdateEvent(ProteinEvent updateEvent) {
-        this.updateEvent = updateEvent;
     }
 }

@@ -17,7 +17,7 @@ import java.util.*;
 public class UniprotUpdateEvent extends XRefUpdateEvent{
 
     private Collection<String> messages;
-    private Collection<UpdateError> errors;
+    private Collection<ProcessErrorEvent> errors;
     int taxId;
     String shortLabel;
     String fullName;
@@ -30,13 +30,13 @@ public class UniprotUpdateEvent extends XRefUpdateEvent{
         this.shortLabel = null;
         this.fullName = null;
         messages = new ArrayList<String>();
-        errors = new ArrayList<UpdateError>();
+        errors = new ArrayList<ProcessErrorEvent>();
         deletedAlias = new ArrayList<Alias>();
         createdAlias = new ArrayList<Alias>();
     }
 
     public UniprotUpdateEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<Alias> deletedAlias,
-                              Collection<Alias> createdAlias, IntactProtein intactProtein, Collection<String> messages, Collection<UpdateError> errors,
+                              Collection<Alias> createdAlias, IntactProtein intactProtein, Collection<String> messages, Collection<ProcessErrorEvent> errors,
                               int taxId, String shortLabel, String fullName, Date created, int index){
         super(deletedRefs, addedRefs, intactProtein, EventName.uniprot_update, created, index);
         this.taxId = taxId;
@@ -58,14 +58,14 @@ public class UniprotUpdateEvent extends XRefUpdateEvent{
     }
 
     @OneToMany( mappedBy = "updateEvent", cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE} )
-    public Collection<UpdateError> getErrors() {
+    public Collection<ProcessErrorEvent> getErrors() {
         return errors;
     }
 
-    public void setErrors(Collection<UpdateError> errors) {
+    public void setErrors(Collection<ProcessErrorEvent> errors) {
         this.errors = errors;
 
-        for (UpdateError error : errors){
+        for (ProcessErrorEvent error : errors){
             error.setUpdateEvent(this);
         }
     }

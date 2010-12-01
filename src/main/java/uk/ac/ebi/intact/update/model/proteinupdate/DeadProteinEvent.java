@@ -4,7 +4,6 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.Annotation;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.CrossReference;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
-import uk.ac.ebi.intact.update.model.proteinupdate.protein.XRefUpdateEvent;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.Date;
  */
 @Entity
 @DiscriminatorValue("DeadProteinEvent")
-@Table(name = "ia_dead_protein_event")
 public class DeadProteinEvent extends XRefUpdateEvent{
 
     private Collection<Annotation> addedAnnotations;

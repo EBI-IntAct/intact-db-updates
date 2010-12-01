@@ -1,8 +1,10 @@
-package uk.ac.ebi.intact.update.model.proteinupdate.protein;
+package uk.ac.ebi.intact.update.model.proteinupdate;
 
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.proteinupdate.EventName;
 import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
+import uk.ac.ebi.intact.update.model.proteinupdate.protein.CrossReference;
+import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
 
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;

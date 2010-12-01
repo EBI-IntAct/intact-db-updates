@@ -4,6 +4,7 @@ import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.update.model.range.UpdatedRange;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -30,12 +31,14 @@ public class IntactProtein extends HibernatePersistentImpl {
     private String uniprotAc;
 
     private Collection<ProteinEvent> events;
+    private Collection<UpdatedRange> rangeUpdates;
 
     public IntactProtein(){
         this.protein_ac = null;
         this.sequence = null;
         this.uniprotAc = null;
         this.events = new ArrayList<ProteinEvent>();
+        this.rangeUpdates = new ArrayList<UpdatedRange>();
     }
 
     public IntactProtein(Protein protein){
@@ -46,7 +49,7 @@ public class IntactProtein extends HibernatePersistentImpl {
 
             InteractorXref uniprot = ProteinUtils.getUniprotXref(protein);
             if (uniprot != null){
-               this.uniprotAc = uniprot.getPrimaryId(); 
+                this.uniprotAc = uniprot.getPrimaryId();
             }
 
             setCrossReferencesFromInteractorRefs(protein.getXrefs());
@@ -54,12 +57,14 @@ public class IntactProtein extends HibernatePersistentImpl {
             setInteractionsFromInteractor(protein.getActiveInstances());
 
             this.events = new ArrayList<ProteinEvent>();
+            this.rangeUpdates = new ArrayList<UpdatedRange>();
         }
         else {
             this.protein_ac = null;
             this.sequence = null;
             this.uniprotAc = null;
             this.events = new ArrayList<ProteinEvent>();
+            this.rangeUpdates = new ArrayList<UpdatedRange>();
         }
     }
 
@@ -183,6 +188,19 @@ public class IntactProtein extends HibernatePersistentImpl {
 
     public void setEvents(Collection<ProteinEvent> events) {
         this.events = events;
+    }
+
+    @JoinTable(
+            name = "ia_protein2range",
+            joinColumns = {@JoinColumn( name = "intact_protein_id" )},
+            inverseJoinColumns = {@JoinColumn( name = "range_update_id" )}
+    )
+    public Collection<UpdatedRange> getRangeUpdates() {
+        return rangeUpdates;
+    }
+
+    public void setRangeUpdates(Collection<UpdatedRange> rangeUpdates) {
+        this.rangeUpdates = rangeUpdates;
     }
 
     @Column(name = "uniprot_ac", nullable = true)

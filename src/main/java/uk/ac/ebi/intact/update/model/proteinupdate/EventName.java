@@ -10,6 +10,7 @@ package uk.ac.ebi.intact.update.model.proteinupdate;
 
 public enum EventName {
 
-    created_protein, duplicated_protein, dead_protein, protein_impossible_to_merge, uniprot_update, sequence_update, delete_protein_without_interactions,
-    merged_protein, protein_impossible_to_update_sequence, range_shifted, impossible_to_shift_ranges, invalid_ranges
+    dead_protein, uniprot_update, delete_protein, non_uniprot_protein, update_error, secondary_protein, protein_duplicate,
+    participant_with_feature_conflicts
+
 }
