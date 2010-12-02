@@ -441,8 +441,13 @@ public class UniprotProteinUpdater {
 
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
-
-                rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, true);
+                else if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
+                    fixedProtein = participantFixer.createDeprecatedProtein(participantEvent, true);
+                    rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, false);
+                }
+                else{
+                    rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, true);
+                }
             }
 
             protein.setSequence( sequence );
