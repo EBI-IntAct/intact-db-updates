@@ -728,7 +728,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         // update ranges and collect components with feature conflicts
         RangeUpdateReport rangeReport = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
         Collection<Component> componentToFix = rangeReport.getInvalidComponents().keySet();
-        
+
         Assert.assertEquals(1, componentToFix.size());
         Assert.assertEquals(componentWithConflicts.getAc(), componentToFix.iterator().next().getAc());
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
@@ -746,12 +746,6 @@ public class RangeFixerTest extends IntactBasicTestCase {
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    /**
-     * One protein has a sequence not up-to-date with uniprot and one range cannot be shifted because invalid with the current protein sequence.
-     * When updating the ranges attached to this protein, one component with range conflicts should be returned but the feature
-     * should have a caution and 'invalid-range' annotation.
-     * The ranges should not be shifted.
-     */
     public void update_range_sequence_change_one_feature_out_of_date_range() throws Exception {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
 
