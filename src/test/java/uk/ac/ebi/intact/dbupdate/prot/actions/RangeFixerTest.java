@@ -743,6 +743,81 @@ public class RangeFixerTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
 
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    /**
+     * One protein has a sequence not up-to-date with uniprot and one range cannot be shifted because invalid with the current protein sequence.
+     * When updating the ranges attached to this protein, one component with range conflicts should be returned but the feature
+     * should have a caution and 'invalid-range' annotation.
+     * The ranges should not be shifted.
+     */
+    public void update_range_sequence_change_one_feature_out_of_date_range() throws Exception {
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+
+        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
+        CvTopic invalid_positions = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-positions");
+
+        Protein prot = getMockBuilder().createProteinRandom();
+        prot.setSequence(uniprot.getSequence());
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
+        Protein randomProtein1 = getMockBuilder().createProteinRandom();
+        Protein randomProtein2 = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(randomProtein1, randomProtein2);
+
+        Range range = getMockBuilder().createRangeUndetermined();
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+        feature.addAnnotation(getMockBuilder().createAnnotation("[xxxxx]invalid", invalid_range));
+        feature.addAnnotation(getMockBuilder().createAnnotation("[xxxxx]0-0", invalid_positions));
+
+        Interaction interaction = getMockBuilder().createInteraction(prot, randomProtein1);
+        Component componentWithConflicts = null;
+
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(prot.getAc())){
+                c.addBindingDomain(feature);
+                componentWithConflicts = c;
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Interaction interaction2 = getMockBuilder().createInteraction(prot, randomProtein2);
+        for (Component c : interaction2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction2);
+
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(2, IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(2, prot.getActiveInstances().size());
+        final Collection<Annotation> invalidBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(1, invalidBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
+        Assert.assertEquals(1, cautionsBefore.size());
+
+        // update ranges and collect components with feature conflicts
+        RangeUpdateReport rangeReport = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
+        Collection<Component> componentToFix = rangeReport.getInvalidComponents().keySet();
+
+        final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, invalid.size());
+        final Collection<Annotation> cautions = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
+        Assert.assertEquals(0, cautions.size());
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+    }
+
     private boolean hasAnnotation( Feature f, String text, String cvTopic) {
         final Collection<Annotation> annotations = f.getAnnotations();
         boolean hasAnnotation = false;

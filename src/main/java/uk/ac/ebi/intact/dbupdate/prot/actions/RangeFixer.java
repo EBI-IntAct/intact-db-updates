@@ -22,12 +22,15 @@ import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
 import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.FeatureDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidFeatureReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
@@ -59,6 +62,96 @@ public class RangeFixer {
     public RangeFixer(){
         this.checker = new RangeChecker();
         this.unisave = new UnisaveService();
+    }
+
+    protected Map<String, InvalidFeatureReport> checkConsistencyFeature(Feature feature, DaoFactory factory){
+
+        feature.getAnnotations().size();
+
+        Collection<Annotation> annotationsFeature = new ArrayList<Annotation>();
+        annotationsFeature.addAll(feature.getAnnotations());
+
+        Map<String, InvalidFeatureReport> featureReports = new HashMap<String, InvalidFeatureReport>();
+
+        Collection<String> existingRanges = new ArrayList<String>();
+        Collection<String> invalidRanges = new ArrayList<String>();
+
+        for (Range r : feature.getRanges()){
+            if (r.getAc() != null){
+                existingRanges.add(r.getAc());
+            }
+        }
+        AnnotationDao annDao = factory.getAnnotationDao();
+        FeatureDao featureDao = factory.getFeatureDao();
+
+        for (Annotation annotation : annotationsFeature){
+            if (CvTopic.INVALID_RANGE.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
+
+                if (!existingRanges.contains(rangeAc)){
+                    feature.removeAnnotation(annotation);
+                    annDao.delete(annotation);
+                }
+                else{
+                    invalidRanges.add(rangeAc);
+                }
+            }
+            else if (rangeConflicts.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
+
+                if (!existingRanges.contains(rangeAc)){
+                    feature.removeAnnotation(annotation);
+                    annDao.delete(annotation);
+                }
+                else if(!featureReports.containsKey(rangeAc)){
+                    InvalidFeatureReport report = new InvalidFeatureReport();
+                    report.setRangeAc(rangeAc);
+                    featureReports.put(rangeAc, report);
+                }
+            }
+            else if (invalidPositions.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
+
+                if (!existingRanges.contains(rangeAc)){
+                    feature.removeAnnotation(annotation);
+                    annDao.delete(annotation);
+                }
+                else if(!invalidRanges.contains(rangeAc)){
+                    if (featureReports.containsKey(rangeAc)){
+                        InvalidFeatureReport report = featureReports.get(rangeAc);
+                        report.setRangePositions(annotation);
+                    }
+                    else{
+                        InvalidFeatureReport report = new InvalidFeatureReport();
+                        report.setRangeAc(rangeAc);
+                        report.setRangePositions(annotation);
+                        featureReports.put(rangeAc, report);
+                    }
+                }
+            }
+            else if (sequenceVersion.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
+
+                if (!existingRanges.contains(rangeAc)){
+                    feature.removeAnnotation(annotation);
+                    annDao.delete(annotation);
+                }
+                else if (featureReports.containsKey(rangeAc)){
+                    InvalidFeatureReport report = featureReports.get(rangeAc);
+                    report.setSequenceVersion(annotation);
+                }
+                else{
+                    InvalidFeatureReport report = new InvalidFeatureReport();
+                    report.setRangeAc(rangeAc);
+                    report.setSequenceVersion(annotation);
+                    featureReports.put(rangeAc, report);
+                }
+            }
+        }
+
+        featureDao.update(feature);
+
+        return featureReports;
     }
 
     protected void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
@@ -353,6 +446,8 @@ public class RangeFixer {
             Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
 
             for (Feature feature : features){
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeature(feature, datacontext.getDaoFactory());
+                
                 Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
                 totalInvalidRanges.addAll(invalidRanges);
 
