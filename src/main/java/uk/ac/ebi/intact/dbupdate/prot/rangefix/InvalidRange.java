@@ -23,6 +23,11 @@ public class InvalidRange {
     int validSequenceVersion;
 
     /**
+     * The uniprot ac associated with the sequence version
+     */
+    String uniprotAc;
+
+    /**
      * The new range positions
      */
     String newRanges;
@@ -42,6 +47,7 @@ public class InvalidRange {
         this.sequence = sequence;
         this.message = message;
         this.validSequenceVersion = -1;
+        this.uniprotAc = null;
     }
 
     public InvalidRange(Range range, String sequence, String message, String newRanges) {
@@ -50,6 +56,7 @@ public class InvalidRange {
         this.message = message;
         this.newRanges = newRanges;
         this.validSequenceVersion = -1;
+        this.uniprotAc = null;
     }
 
     public InvalidRange(Range range, String sequence, String message, String newRanges, int sequenceVersion) {
@@ -58,6 +65,7 @@ public class InvalidRange {
         this.message = message;
         this.newRanges = newRanges;
         this.validSequenceVersion = sequenceVersion;
+        this.uniprotAc = null;
     }
 
     public String getSequence() {
@@ -98,5 +106,13 @@ public class InvalidRange {
 
     public void setValidSequenceVersion(int validSequenceVersion) {
         this.validSequenceVersion = validSequenceVersion;
+    }
+
+    public String getUniprotAc() {
+        return uniprotAc;
+    }
+
+    public void setUniprotAc(String uniprotAc) {
+        this.uniprotAc = uniprotAc;
     }
 }

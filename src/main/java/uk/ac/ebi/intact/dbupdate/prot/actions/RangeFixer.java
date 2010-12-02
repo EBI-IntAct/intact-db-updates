@@ -56,6 +56,7 @@ public class RangeFixer {
     public static final String positionsSeparator = "-";
     public static final String rangeConflicts = "range-conflicts";
     public static final String sequenceVersion = "sequence-version";
+    public static final String sequenceVersionSeparator = ",";
 
     protected UnisaveService unisave;
 
@@ -277,7 +278,7 @@ public class RangeFixer {
         String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
         int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
 
-        String validSequence = "["+range.getAc()+"]"+validSequenceVersion;;
+        String validSequence = "["+range.getAc()+"]"+evt.getInvalidRange().getUniprotAc()+","+validSequenceVersion;;
 
         if (range != null){
             Feature feature = range.getFeature();
@@ -347,7 +348,7 @@ public class RangeFixer {
                     feature.addAnnotation(invalidPosRange);
                 }
 
-                if (!hasSequenceVersion && validSequenceVersion != -1){
+                if (!hasSequenceVersion && validSequenceVersion != -1 && evt.getInvalidRange().getUniprotAc() != null){
                     Annotation validSeqVersion = new Annotation(sequenceVersion, validSequence);
                     daoFactory.getAnnotationDao().persist(validSeqVersion);
 
@@ -421,6 +422,7 @@ public class RangeFixer {
                     if (sequenceVersion != -1){
                         invalid.setValidSequenceVersion(sequenceVersion);
                     }
+                    invalid.setUniprotAc(uniprotAc);
 
                     processor.fireOnOutOfDateRange(invalidEvent);
                     if (fixedProtein == null && fixOutOfDateRanges){

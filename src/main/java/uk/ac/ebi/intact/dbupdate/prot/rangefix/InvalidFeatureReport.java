@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.model.Annotation;
 public class InvalidFeatureReport {
 
     private String rangePositions;
+    private String uniprotAc;
     private int sequenceVersion;
     public static String rangeAcDelimiterEnd = "]";
     public static String rangeAcDelimiterStart = "[";
@@ -22,6 +23,7 @@ public class InvalidFeatureReport {
         this.rangePositions = null;
         this.sequenceVersion = -1;
         this.rangeAc = null;
+        this.uniprotAc = null;
     }
 
     public String getRangePositions() {
@@ -53,7 +55,12 @@ public class InvalidFeatureReport {
                     String seqVersion = sequenceString.substring(Math.min(sequenceString.length() - 1, sequenceString.indexOf(rangeAcDelimiterEnd + 1)));
 
                     if (seqVersion != null && seqVersion.trim().length() > 0){
-                        this.sequenceVersion = Integer.parseInt(seqVersion);
+                        if (seqVersion.contains(",")){
+                            int indexOfSeparator = seqVersion.indexOf(",");
+
+                            this.uniprotAc = seqVersion.substring(0, indexOfSeparator);
+                            this.sequenceVersion = Integer.parseInt(seqVersion.substring(indexOfSeparator + 1));
+                        }
                     }
                 }
             }
@@ -83,5 +90,13 @@ public class InvalidFeatureReport {
         }
 
         return null;
+    }
+
+    public String getUniprotAc() {
+        return uniprotAc;
+    }
+
+    public void setUniprotAc(String uniprotAc) {
+        this.uniprotAc = uniprotAc;
     }
 }
