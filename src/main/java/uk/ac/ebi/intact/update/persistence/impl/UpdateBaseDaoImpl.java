@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistent;
+import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 import org.hibernate.Session;
 import org.hibernate.ejb.HibernateEntityManager;
@@ -19,7 +20,7 @@ import java.util.List;
  * @since <pre>20-May-2010</pre>
  */
 @Transactional(readOnly = true)
-public class UpdateBaseDaoImpl<T extends HibernatePersistent> implements UpdateBaseDao<T> {
+public class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> implements UpdateBaseDao<T> {
 
     /**
      * The entity maneger

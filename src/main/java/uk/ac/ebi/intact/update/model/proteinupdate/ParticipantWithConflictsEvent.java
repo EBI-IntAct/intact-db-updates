@@ -52,6 +52,14 @@ public class ParticipantWithConflictsEvent extends ProteinEvent{
         this.componentsWithFeatureConflicts = componentsWithFeatureConflicts;
     }
 
+    public void setComponentsFromInteractor(Collection<Component> components) {
+        if (components != null){
+            for (Component component : components){
+                this.componentsWithFeatureConflicts.add(component.getAc());
+            }
+        }
+    }
+
     @Column(name = "remapped_protein_ac", nullable = true)
     public String getRemapped_protein_ac() {
         return remapped_protein_ac;
