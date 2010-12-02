@@ -53,7 +53,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         boolean global = ProteinUpdateContext.getInstance().getConfig().isGlobalProteinUpdate();
         ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( true );
-        
+
         super.updateAll();
 
         ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( global );
@@ -79,13 +79,13 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             dbInfo.setValue(value);
             dataContext.getDaoFactory().getEntityManager().merge(dbInfo);
         }
-        
+
         dataContext.commitTransaction(transactionStatus);
     }
 
     protected void registerListeners() {
         final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-        
+
         addListener(new LoggingProcessorListener());
 
         if (config.getReportHandler() != null) {
@@ -170,6 +170,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public void fireOnSecondaryAcsFound(UpdateCaseEvent evt){
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onSecondaryAcsFound(evt);
+        }
+    }
+
+    public void fireOnProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinTranscriptWithSameSequence(evt);
         }
     }
 }

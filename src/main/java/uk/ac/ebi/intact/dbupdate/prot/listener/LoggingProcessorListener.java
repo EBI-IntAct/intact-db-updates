@@ -27,7 +27,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class LoggingProcessorListener implements ProteinUpdateProcessorListener {
+public class LoggingProcessorListener extends AbstractProteinUpdateProcessorListener {
 
     private static final Log log = LogFactory.getLog( LoggingProcessorListener.class );
 
@@ -86,6 +86,10 @@ public class LoggingProcessorListener implements ProteinUpdateProcessorListener 
 
     public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("We found "+evt.getSecondaryProteins().size()+" secondary proteins matching the uniprot Protein " + evt.getProtein().getPrimaryAc());        
+    }
+
+    public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException{
+        if (log.isDebugEnabled()) log.debug("The protein transcript " + evt.getUniprotTranscriptAc() + " has exactly the same sequence as the protein " + evt.getProtein().getAc());
     }
 
 }

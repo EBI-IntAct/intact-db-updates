@@ -382,6 +382,12 @@ public class UniprotProteinUpdater {
 
         if ( sequenceToBeUpdated) {
 
+            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(protein.getSequence(), evt.getProtein());
+
+            if (transcriptsWithSameSequence != null){
+                processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, evt.getDataContext(), protein, transcriptsWithSameSequence.getPrimaryAc()));
+            }
+
             RangeUpdateReport report =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
             Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
 

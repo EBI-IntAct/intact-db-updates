@@ -40,6 +40,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter outOfDateParticipantWriter;
     private ReportWriter preprocessErrorWriter;
     private ReportWriter secondaryProteinsWriter;
+    private ReportWriter transcriptWithSameSequenceWriter;
 
     public FileReportHandler(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -62,6 +63,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.outOfDateParticipantWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "out_of_date_participants.csv")));
         this.preprocessErrorWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "process_errors.csv")));
         this.secondaryProteinsWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "secondary_proteins.csv")));
+        this.transcriptWithSameSequenceWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "transcript_same_sequence.csv")));
     }
 
     public ReportWriter getDuplicatedWriter() throws IOException {
@@ -112,6 +114,10 @@ public class FileReportHandler implements UpdateReportHandler{
         return secondaryProteinsWriter;
     }
 
+    public ReportWriter getTranscriptWithSameSequenceWriter() {
+        return transcriptWithSameSequenceWriter;
+    }
+
     @Override
     public ReportWriter getOutOfDateRangeWriter() throws IOException {
         return this.outOfDateRangeWriter;
@@ -131,5 +137,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.outOfDateParticipantWriter.close();
         this.preprocessErrorWriter.close();
         this.secondaryProteinsWriter.close();
+        this.transcriptWithSameSequenceWriter.close();
     }
 }

@@ -67,7 +67,7 @@ public class DeadUniprotFixer {
 
         boolean has_no_uniprot_update = false;
         boolean has_caution_obsolete = false;
-        String cautionMessage = "The uniprot Ac has been obsolete.";
+        String cautionMessage = "The sequence has been withdrawn from uniprot.";
 
         for (Annotation annotation : annotations){
             if (no_uniprot_update.equals(annotation.getCvTopic())){

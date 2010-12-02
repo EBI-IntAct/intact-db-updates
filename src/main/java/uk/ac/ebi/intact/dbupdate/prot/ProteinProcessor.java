@@ -29,11 +29,10 @@ import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 
@@ -205,7 +204,7 @@ public abstract class ProteinProcessor {
         List<Protein> intactProteins = new ArrayList<Protein>();
         // register the listeners
         if (getListeners(SequenceChangedListener.class) == null){
-           addListener(new SequenceChangedListener()); 
+            addListener(new SequenceChangedListener());
         }
 
         // the current config
@@ -511,6 +510,19 @@ public abstract class ProteinProcessor {
 
                     // if there are some duplicates and we can fix them, merge them
                     if (caseEvent.getPrimaryProteins().size() > 1){
+                        for (Protein prot : caseEvent.getPrimaryProteins()){
+                            if (prot.getSequence() != null){
+                                UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), caseEvent.getProtein());
+
+                                if (transcriptsWithSameSequence != null){
+                                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                        processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, transcriptsWithSameSequence.getPrimaryAc()));
+                                    }
+                                }
+                            }
+                        }
+
                         if (config.isFixDuplicates()){
                             if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
 
@@ -543,6 +555,7 @@ public abstract class ProteinProcessor {
                     // update isoforms
                     //isoform duplicates to merge
                     if (caseEvent.getPrimaryIsoforms().size() > 1 ){
+
                         if (config.isFixDuplicates()){
                             if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
 
@@ -741,7 +754,7 @@ public abstract class ProteinProcessor {
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
 
                 rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
-                
+
                 if (fixedProtein != null){
 
                     if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){

@@ -25,6 +25,8 @@ import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * TODO comment this
@@ -49,6 +51,23 @@ public class OutOfDateParticipantFixer {
         ProteinDao proteinDao = factory.getProteinDao();
         proteinDao.update((ProteinImpl)source);
         proteinDao.update((ProteinImpl)existingProtein);
+    }
+
+    public UniprotProteinTranscript findTranscriptsWithIdenticalSequence(String sequence, UniprotProtein uniprotProtein){
+        Collection<UniprotProteinTranscript> proteinTranscripts = new ArrayList<UniprotProteinTranscript>();
+        proteinTranscripts.addAll(uniprotProtein.getSpliceVariants());
+        proteinTranscripts.addAll(uniprotProtein.getFeatureChains());
+
+        if (!proteinTranscripts.isEmpty()){
+
+            for (UniprotProteinTranscript pt : proteinTranscripts){
+                if (sequence.equalsIgnoreCase(pt.getSequence()) && !sequence.equalsIgnoreCase(uniprotProtein.getSequence())){
+                    return pt;
+                }
+            }
+        }
+
+        return null;
     }
 
     private ProteinTranscript createSpliceVariant(UniprotSpliceVariant spliceVariant, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
@@ -211,6 +230,9 @@ public class OutOfDateParticipantFixer {
 
                         return createFeatureChain((UniprotFeatureChain) match, protein, componentsToFix, factory, evt);
                     }
+                }
+                else {
+                    log.error(possibleMatches.size() + " isoforms/feature chains have the same sequence.");
                 }
             }
         }

@@ -79,6 +79,21 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
+    public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
+        try {
+            ReportWriter transcriptWithSameSequenceWriter = reportHandler.getTranscriptWithSameSequenceWriter();
+            transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "Uniprot ac", "Transcript ac", "sequence");
+            transcriptWithSameSequenceWriter.writeColumnValues(evt.getProtein().getAc(),
+                    evt.getUniprotIdentity(),
+                    evt.getUniprotTranscriptAc(),
+                    evt.getProtein().getSequence());
+            reportHandler.getDuplicatedWriter().flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing protein to stream", e);
+        }
+    }
+
+    @Override
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         try {
             writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
