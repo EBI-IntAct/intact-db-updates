@@ -33,6 +33,8 @@ public class GlobaldProteinUpdate {
         System.out.println( "folder where are the log files = " + filename );
         System.out.println( "database = " + database );
 
+        IntactContext.initContext(new String[] {"/META-INF/"+database+".spring.xml"});
+
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setDeleteProtsWithoutInteractions(true);
@@ -41,8 +43,6 @@ public class GlobaldProteinUpdate {
         config.setProcessProteinNotFoundInUniprot(true);
         try {
             config.setReportHandler(new FileReportHandler(new File(filename)));
-
-            IntactContext.initContext(new String[] {"/META-INF/"+database+".spring.xml"});
 
             ProteinUpdateProcessor updateProcessor = new ProteinUpdateProcessor();
             System.out.println("Starting the global update");

@@ -13,7 +13,6 @@
 
     <name>IntAct Database Update :: Proteins Update</name>
     <properties>
-        <database>..</database>
         <folder>..</folder>
         <bridges.version>2.1.4-SNAPSHOT</bridges.version>
     </properties>
@@ -106,13 +105,6 @@
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.2</version>
-        </dependency>
-
-        <!-- PostgreSQL -->
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>8.2-504.jdbc3</version>
         </dependency>
 
         <!-- Oracle -->

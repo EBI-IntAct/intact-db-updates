@@ -112,6 +112,14 @@ public class DuplicatesFinder {
 
                     ProteinTranscript trans = iterator.next();
                     Protein protToCompare = trans.getProtein();
+
+                    InteractorXref firstIdentity = ProteinUtils.getUniprotXref(protToCompare);
+                    String firstUniprotAc = null;
+
+                    if (firstIdentity != null){
+                        firstUniprotAc = firstIdentity.getPrimaryId();
+                    }
+
                     duplicates.add(trans);
 
                     // extract the isoform parents of this protein
@@ -122,11 +130,21 @@ public class DuplicatesFinder {
                         // we extract the isoform parents of the next protein to compare
                         ProteinTranscript trans2 = iterator.next();
                         Protein proteinCompared = trans2.getProtein();
-                        Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
 
-                        // if the isoform parents are identical, we ad the protein to the list of duplicates
-                        if (hasSameParents(isoformParent, isoformParent2)){
-                            duplicates.add(trans2);
+                        InteractorXref secondIdentity = ProteinUtils.getUniprotXref(proteinCompared);
+                        String secondUniprotAc = null;
+
+                        if (secondIdentity != null){
+                            secondUniprotAc = secondIdentity.getPrimaryId();
+                        }
+
+                        if ((firstUniprotAc != null && secondUniprotAc != null && firstUniprotAc.equalsIgnoreCase(secondUniprotAc)) || (firstUniprotAc == null && secondUniprotAc == null)){
+                            Collection<InteractorXref> isoformParent2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
+
+                            // if the isoform parents are identical, we ad the protein to the list of duplicates
+                            if (hasSameParents(isoformParent, isoformParent2)){
+                                duplicates.add(trans2);
+                            }
                         }
                     }
 
@@ -198,6 +216,14 @@ public class DuplicatesFinder {
                     Iterator<ProteinTranscript> iterator = totalProteins.iterator();
                     ProteinTranscript trans = iterator.next();
                     Protein protToCompare = trans.getProtein();
+
+                    InteractorXref firstIdentity = ProteinUtils.getUniprotXref(protToCompare);
+                    String firstUniprotAc = null;
+
+                    if (firstIdentity != null){
+                        firstUniprotAc = firstIdentity.getPrimaryId();
+                    }
+
                     duplicates.add(trans);
 
                     // extract the chain parents of this protein
@@ -208,11 +234,21 @@ public class DuplicatesFinder {
                         // we extract the chain parents of the next protein to compare
                         ProteinTranscript trans2 = iterator.next();
                         Protein proteinCompared = trans2.getProtein();
-                        Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
 
-                        // if the chain parents are identical, we ad the protein to the list of duplicates
-                        if (hasSameParents(chainParents, chainParent2)){
-                            duplicates.add(trans2);
+                        InteractorXref secondIdentity = ProteinUtils.getUniprotXref(proteinCompared);
+                        String secondUniprotAc = null;
+
+                        if (secondIdentity != null){
+                            secondUniprotAc = secondIdentity.getPrimaryId();
+                        }
+
+                        if ((firstUniprotAc != null && secondUniprotAc != null && firstUniprotAc.equalsIgnoreCase(secondUniprotAc)) || (firstUniprotAc == null && secondUniprotAc == null)){
+                            Collection<InteractorXref> chainParent2 = ProteinUtils.extractChainParentCrossReferencesFrom(proteinCompared);
+
+                            // if the chain parents are identical, we ad the protein to the list of duplicates
+                            if (hasSameParents(chainParents, chainParent2)){
+                                duplicates.add(trans2);
+                            }
                         }
                     }
 
