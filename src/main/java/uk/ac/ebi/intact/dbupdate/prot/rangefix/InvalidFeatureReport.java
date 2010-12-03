@@ -36,7 +36,7 @@ public class InvalidFeatureReport {
 
             if (positions != null){
                 if (positions.contains(rangeAcDelimiterEnd)){
-                    this.rangePositions = positions.substring(Math.min(positions.length(), positions.indexOf(rangeAcDelimiterEnd + 1)));
+                    this.rangePositions = positions.substring(Math.min(positions.length(), positions.indexOf(rangeAcDelimiterEnd) + 1));
                 }
             }
         }
@@ -52,7 +52,7 @@ public class InvalidFeatureReport {
 
             if (sequenceString != null){
                 if (sequenceString.contains(rangeAcDelimiterEnd)){
-                    String seqVersion = sequenceString.substring(Math.min(sequenceString.length() - 1, sequenceString.indexOf(rangeAcDelimiterEnd + 1)));
+                    String seqVersion = sequenceString.substring(Math.min(sequenceString.length() - 1, sequenceString.indexOf(rangeAcDelimiterEnd) + 1));
 
                     if (seqVersion != null && seqVersion.trim().length() > 0){
                         if (seqVersion.contains(",")){

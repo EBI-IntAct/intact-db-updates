@@ -19,6 +19,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
@@ -808,6 +809,112 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, invalid.size());
         final Collection<Annotation> cautions = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
         Assert.assertEquals(0, cautions.size());
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void update_range_sequence_change_one_feature_out_of_date_range_possible_to_update() throws Exception {
+        String sequenceAfter = "MDEEQMWKGFFFKLQELKMNPPTEHEHQLQDGDDGFFEKFGSLLRQKSQIDEGVLKSSLA" +
+                "PLEENGSGGEEDSDESPDGTLQLSQDSECTSIDTFATESTLASSSDKDISTSVLDSAPVM" +
+                "NVTDLYEEILFEIFNNIGCENNEECTNSLVEFVQDAFKIPNATHEEIYEAARLKEPPNVR" +
+                "LNVEIIKAENLMSKDSNGLSDPFVTLYLESNGSHRYNSSVKPATLNPIWEEHFSLDFDAA" +
+                "ETVKEKVNKILDVKGVKGLSKLMKEIAVTASSGKHDNELIGRAAITLKSIPVSGLTVWYN" +
+                "LEKGSKGRSRGSLLVNLALSAEKNKSVAVQEHKNLLKLLLMYELETSQVANYWWSGKFSP" +
+                "NAELIRSQHAAQSGLTPFDCALSQWHAYSTIHETHKLNFTLFNSILDVVVPVITYMQNDS" +
+                "EDVKTFWDGVKRLLPSCFAVLRKLRSKNTSDKNIIRALNEVLDILKKIKELEVPESVDIF" +
+                "PKSVYGWLHTNDTDETCNIDTAIEDAINTGTREWLEHIVEGSRQSKNTETDDEKLQYVIK" +
+                "LIQMVRSDLQRAMEYFDKIFYHKIQLNYSAVLYLFYDSKLAEICKSIIIEVCNNIKRLDV" +
+                "PDDQFEYLPNLENVNMGTTLFEVYLILKRYVQLGESLCSEPLELSNFYPWFERGVTHWLD" +
+                "ISIIKALSRIQKAIDLDQLKAVDETVKYSSSAVDTLSIFYQIKIFWQQLDWPEVEGSYIF" +
+                "VAKIVNDLCRCCIFYAQQMSRRVENIFIADDNNKNFSKFYWKPFFIIYCLLGEYRTNLEA" +
+                "ERCASTIKTVIENALDTERNQIVELIEIVARKMAPPIRRYLAEGAEVLAKDSNSMDQLMM" +
+                "YLESSLATLYDTLNEINFQRILDGIWSELSIIMYDLIQSNLDKRRPPAFFQNLNNTLQTM" +
+                "MDCFKMGNLQTSDIKILSSIQSRLRLYSLETSDLIHQYYLERLENQKSQESSPYGQLTIT" +
+                "AQLTDTGLLVGLQSFET";
+
+        String sequence2 = "MWKGFFFKLQELKMNPPTEHEHQLQDGDDGFFEKFGSLLRQKSQIDEGVLKSSLAPLEEN" +
+                "GSGGEEDSDESPDGTLQLSQDSECTSIDTFATESTLASSSDKDISTSVLDSAPVMNVTDL" +
+                "YEEILFEIFNNIGCENNEECTNSLVEFVQDAFKIPNATHEEIYEAARLKEPPNVRLNVEI" +
+                "IKAENLMSKDSNGLSDPFVTLYLESNGSHRYNSSVKPATLNPIWEEHFSLDFDAAETVKE" +
+                "KVNKILDVKGVKGLSKLMKEIAVTASSGKHDNELIGRAAITLKSIPVSGLTVWYNLEKGS" +
+                "KGRSRGSLLVNLALSAEKNKSVAVQEHKNLLKLLLMYELETSQVANYWWSGKFSPNAELI" +
+                "RSQHAAQSGLTPFDCALSQWHAYSTIHETHKLNFTLFNSILDVVVPVITYMQNDSEDVKT" +
+                "FWDGVKRLLPSCFAVLRKLRSKNTSDKNIIRALNEVLDILKKIKELEVPESVDIFPKSVY" +
+                "GWLHTNDTDETCNIDTAIEDAINTGTREWLEHIVEGSRQSKNTETDDEKLQYVIKLIQMV" +
+                "RSDLQRAMEYFDKIFYHKIQLNYSAVLYLFYDSKLAEICKSIIIEVCNNIKRLDVPDDQF" +
+                "EYLPNLENVNMGTTLFEVYLILKRYVQLGESLCSEPLELSNFYPWFERGVTHWLDISIIK" +
+                "ALSRIQKAIDLDQLKAVDETVKYSSSAVDTLSIFYQIKIFWQQLDWPEVEGSYIFVAKIV" +
+                "NDLCRCCIFYAQQMSRRVENIFIADDNNKNFSKFYWKPFFIIYCLLGEYRTNLEAERCAS" +
+                "TIKTVIENALDTERNQIVELIEIVARKMAPPIRRYLAEGAEVLAKDSNSMDQLMMYLESS" +
+                "LATLYDTLNEINFQRILDGIWSELSIIMYDLIQSNLDKRRPPAFFQNLNNTLQTMMDCFK" +
+                "MGNLQTSDIKILSSIQSRLRLYSLETSDLIHQYYLERLENQKSQESSPYGQLTITAQLTD" +
+                "TGLLVGLQSFET";
+
+        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+
+        CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("range-conflicts");
+        CvTopic invalid_positions = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-positions");
+        CvTopic seq_version = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("sequence-version");
+
+        Protein prot = getMockBuilder().createProtein("Q9VBY8", "protein");
+        prot.setSequence("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
+        Protein randomProtein1 = getMockBuilder().createProteinRandom();
+        Protein randomProtein2 = getMockBuilder().createProteinRandom();
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(randomProtein1, randomProtein2);
+
+        Range range = getMockBuilder().createRangeUndetermined();
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        feature.addRange(range);
+
+        Interaction interaction = getMockBuilder().createInteraction(prot, randomProtein1);
+
+        for (Component c : interaction.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(prot.getAc())){
+                c.addBindingDomain(feature);
+            }
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
+
+        Interaction interaction2 = getMockBuilder().createInteraction(prot, randomProtein2);
+        for (Component c : interaction2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction2);
+
+        feature.addAnnotation(getMockBuilder().createAnnotation("["+range.getAc()+"]invalid", invalid_range));
+        feature.addAnnotation(getMockBuilder().createAnnotation("["+range.getAc()+"]1-7", invalid_positions));
+        feature.addAnnotation(getMockBuilder().createAnnotation("["+range.getAc()+"]Q9VBY8,2", seq_version));
+
+        getCorePersister().saveOrUpdate(feature);
+
+        Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(2, IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(2, prot.getActiveInstances().size());
+        final Collection<Annotation> invalidBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(1, invalidBefore.size());
+        final Collection<Annotation> cautionsBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
+        Assert.assertEquals(1, cautionsBefore.size());
+
+        // update ranges and collect components with feature conflicts
+        RangeUpdateReport rangeReport = rangeFixer.updateRanges(prot, sequenceAfter, new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
+
+        final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
+        Assert.assertEquals(0, invalid.size());
+        final Collection<Annotation> cautions = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
+        Assert.assertEquals(0, cautions.size());
+        Assert.assertEquals("6-12", FeatureUtils.convertRangeIntoString(range));
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }

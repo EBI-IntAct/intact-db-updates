@@ -89,6 +89,47 @@ public class RangeChecker {
         return updatedRanges;
     }
 
+    /**
+     * Changes the features ranges by analysing the shift in positions after a sequence is changed.
+     * @param range The range to update
+     * @param oldSequence The old sequence
+     * @param newSequence The new sequence
+     * @return a collection that contains the ranges that have been updated
+     */
+    public UpdatedRange shiftFeatureRange(Range range, String oldSequence, String newSequence, DataContext context) {
+        if (range == null) throw new NullPointerException("Range was null");
+        if (oldSequence == null) throw new NullPointerException("Old sequence was null");
+        if (newSequence == null) throw new NullPointerException("New sequence was null");
+
+        List<Diff> diffs = DiffUtils.diff(oldSequence, newSequence);
+
+        UpdatedRange updatedRange = null;
+
+        if (!FeatureUtils.isABadRange(range, oldSequence)){
+            final IntactCloner intactCloner = new IntactCloner();
+            Range oldRange = null;
+            try {
+                oldRange = intactCloner.clone(range);
+            } catch (IntactClonerException e) {
+                throw new IntactException("Could not clone range: "+range, e);
+            }
+
+            boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
+
+            if (rangeShifted) {
+                if (log.isInfoEnabled())
+                    log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
+
+                range.prepareSequence(newSequence);
+                context.getDaoFactory().getRangeDao().update(range);
+
+                updatedRange = new UpdatedRange(oldRange, range);
+            }
+        }
+
+        return updatedRange;
+    }
+
     public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence, DataContext context) {
         if (feature == null) throw new NullPointerException("Feature was null");
 
@@ -115,6 +156,32 @@ public class RangeChecker {
         }
 
         return updatedRanges;
+    }
+
+    public UpdatedRange prepareFeatureSequence(Range range, String newSequence, DataContext context) {
+        if (range == null) throw new NullPointerException("Range was null");
+
+        UpdatedRange updatedRange = null;
+
+        if (!FeatureUtils.isABadRange(range, newSequence)){
+            final IntactCloner intactCloner = new IntactCloner();
+            Range oldRange = null;
+            try {
+                oldRange = intactCloner.clone(range);
+            } catch (IntactClonerException e) {
+                throw new IntactException("Could not clone range: "+range, e);
+            }
+
+            if (log.isInfoEnabled())
+                log.info("Prepare sequence of the range " + logInfo(range));
+
+            range.prepareSequence(newSequence);
+            context.getDaoFactory().getRangeDao().update(range);
+
+            updatedRange = new UpdatedRange(oldRange, range);
+        }
+
+        return updatedRange;
     }
 
     /**
@@ -152,9 +219,7 @@ public class RangeChecker {
         }
 
         // we create a clone to test the new range positions
-        Range clone = new Range(range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
-        clone.setFromCvFuzzyType(range.getFromCvFuzzyType());
-        clone.setToCvFuzzyType(range.getToCvFuzzyType());
+        Range clone = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
 
         // If we can shift the positions, calculate the shift of each position based on the diffs between the old and the new sequences.
         // We need to apply a correction (-1/+1) because the shift calculation is index based (0 is the first position),
@@ -253,7 +318,8 @@ public class RangeChecker {
                 }
 
                 // get the caution from the DB or create it and persist it
-                final DaoFactory daoFactory = context.getDaoFactory();CvTopic caution = daoFactory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+                final DaoFactory daoFactory = context.getDaoFactory();
+                CvTopic caution = daoFactory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
                 if (caution == null) {
                     caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
@@ -633,5 +699,44 @@ public class RangeChecker {
         }
 
         return invalidRanges;
+    }
+
+    public InvalidRange collectRangeImpossibleToShift(Range range, String oldSequence, String newSequence){
+        if (range == null){
+            throw new IllegalArgumentException("The range should not be null");
+        }
+        if (newSequence == null){
+            throw new IllegalArgumentException("The new protein sequence should not be null");
+        }
+
+        InvalidRange invalidRange = null;
+
+        List<Diff> diffs = new ArrayList<Diff>();
+        if (oldSequence != null){
+            diffs = DiffUtils.diff(oldSequence, newSequence);
+        }
+
+        if (oldSequence != null){
+            String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+            if (isABadRange == null){
+                InvalidRange invalid = collectBadlyShiftedRangeInfo(diffs, range, oldSequence, newSequence);
+                if (invalid != null){
+                    invalidRange = invalid;
+                }
+            }
+            else {
+                InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                invalidRange = invalid;
+            }
+        }
+        else {
+            String isABadRange = FeatureUtils.getBadRangeInfo(range, newSequence);
+
+            if (isABadRange != null){
+                invalidRange = new InvalidRange(range, newSequence, isABadRange);
+            }
+        }
+
+        return invalidRange;
     }
 }
