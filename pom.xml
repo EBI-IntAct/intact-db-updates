@@ -108,6 +108,27 @@
             <version>3.2</version>
         </dependency>
 
+        <!-- PostgreSQL -->
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>8.2-504.jdbc3</version>
+        </dependency>
+
+        <!-- Oracle -->
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>oracle-thin</artifactId>
+            <version>10.2.0.4</version>
+        </dependency>
+
+        <!-- H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.0.20070617</version>
+        </dependency>
+
         <dependency>
             <groupId>hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
