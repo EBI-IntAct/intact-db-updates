@@ -273,6 +273,9 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         TransactionStatus status = context.beginTransaction();
 
+        CvXrefQualifier intactSecondary = context.getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+        CvDatabase intact = context.getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
+
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.getBioSource().setTaxId("9986"); // rabit
 
@@ -291,6 +294,9 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Interaction interaction3 = getMockBuilder().createInteraction(dupe1, prot3);
 
         getCorePersister().saveOrUpdate(dupe1, dupe2, interaction1, interaction2, interaction3);
+
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "EBI-xxxx", intactSecondary, intact));
+        getCorePersister().saveOrUpdate(dupe1);
 
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
@@ -403,6 +409,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
         Assert.assertNotNull(dupe2FromDb);
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
+        Assert.assertEquals(3, dupe2FromDb.getXrefs().size());
 
         context2.commitTransaction(status2);
     }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.util;
 
+import org.hibernate.Hibernate;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
@@ -244,9 +245,38 @@ public class ProteinTools {
         factory.getProteinDao().update((ProteinImpl) original);
     }
 
+    public static void loadCollections(List<ProteinImpl> proteinsInIntact) {
+        for (Protein p : proteinsInIntact){
+            Hibernate.initialize(p.getXrefs());
+            Hibernate.initialize(p.getAnnotations());
+            Hibernate.initialize(p.getAliases());
+            for (Component c : p.getActiveInstances()){
+                Hibernate.initialize(c.getXrefs());
+                Hibernate.initialize(c.getAnnotations());
+
+                for (Feature f : c.getBindingDomains()){
+                    Hibernate.initialize(f.getAnnotations());
+                    Hibernate.initialize(f.getRanges());
+                    Hibernate.initialize(f.getAliases());
+                    Hibernate.initialize(f.getXrefs());
+                }
+
+                Hibernate.initialize(c.getExperimentalRoles());
+                Hibernate.initialize(c.getAliases());
+                Hibernate.initialize(c.getExperimentalPreparations());
+                Hibernate.initialize(c.getParameters());
+                Hibernate.initialize(c.getParticipantDetectionMethods());
+            }
+        }
+    }
+
     public static void updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
         final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
+
+        ProteinTools.loadCollections(isoforms);
+
         for ( ProteinImpl isoform : isoforms ) {
+
             // each isoform should now point to the original protein
             final Collection<InteractorXref> isoformParents =
                     AnnotatedObjectUtils.searchXrefs( isoform,
@@ -257,6 +287,9 @@ public class ProteinTools {
         }
 
         final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
+
+        ProteinTools.loadCollections(proteinChains);
+
         for ( ProteinImpl chain : proteinChains ) {
             // each chain should now point to the original protein
             final Collection<InteractorXref> chainParents =

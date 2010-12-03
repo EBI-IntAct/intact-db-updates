@@ -385,6 +385,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Pos.",
                     "Computed Pos.",
                     "Sequence length.",
+                    "Uniprot ac",
                     "Valid sequence version",
                     "Feature AC",
                     "Feature Label",
@@ -397,6 +398,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     outOfBoundRange.getInvalidRange().toString(),
                     dashIfNull(outOfBoundRange.getNewRanges()),
                     Integer.toString(outOfBoundRange.getSequence().length()),
+                    dashIfNull(outOfBoundRange.getUniprotAc()),
                     dashIfNull(Integer.toString(outOfBoundRange.getValidSequenceVersion())),
                     feature.getAc(),
                     feature.getShortLabel(),
@@ -433,7 +435,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             Component component = iterator.next();
 
             sb.append(component.getShortLabel()).append("(").append(component.getAc()).append(")");
-            sb.append("[interaction:").append(component.getInteractionAc()).append(" ,interactor:").append(component.getInteractor()).append("]");
+            sb.append("[interaction:").append(component.getInteraction().getAc()).append(" ,interactor:").append(component.getInteractor().getAc()).append("]");
 
             if (iterator.hasNext()) {
                 sb.append(", ");

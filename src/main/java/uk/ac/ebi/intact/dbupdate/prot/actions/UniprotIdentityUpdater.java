@@ -11,10 +11,8 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
-import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -62,7 +60,7 @@ public class UniprotIdentityUpdater {
 
         List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
 
-        loadCollections(proteinsInIntact);
+        ProteinTools.loadCollections(proteinsInIntact);
 
         primaryProteins.addAll(proteinsInIntact);
 
@@ -71,7 +69,7 @@ public class UniprotIdentityUpdater {
         for (String secondaryAc : uniprotProtein.getSecondaryAcs()) {
             proteinsInIntact.clear();
             proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
-            loadCollections(proteinsInIntact);
+            ProteinTools.loadCollections(proteinsInIntact);
             secondaryProteins.addAll(proteinsInIntact);
         }
 
@@ -94,24 +92,6 @@ public class UniprotIdentityUpdater {
         return caseEvt;
     }
 
-    private void loadCollections(List<ProteinImpl> proteinsInIntact) {
-        for (Protein p : proteinsInIntact){
-            Hibernate.initialize(p.getXrefs());
-            Hibernate.initialize(p.getAnnotations());
-            Hibernate.initialize(p.getAliases());
-            for (Component c : p.getActiveInstances()){
-                Hibernate.initialize(c.getXrefs());
-                Hibernate.initialize(c.getAnnotations());
-                Hibernate.initialize(c.getBindingDomains());
-                Hibernate.initialize(c.getExperimentalRoles());
-                Hibernate.initialize(c.getAliases());
-                Hibernate.initialize(c.getExperimentalPreparations());
-                Hibernate.initialize(c.getParameters());
-                Hibernate.initialize(c.getParticipantDetectionMethods());
-            }
-        }
-    }
-
     private void collectSpliceVariants(UpdateCaseEvent evt){
         Collection<UniprotSpliceVariant> variants = evt.getProtein().getSpliceVariants();
         Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
@@ -132,7 +112,7 @@ public class UniprotIdentityUpdater {
         for (Protein primary : proteins){
             List<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants( primary );
 
-            loadCollections(spliceVariants);
+            ProteinTools.loadCollections(spliceVariants);
 
             if (!spliceVariants.isEmpty()){
                 for (Protein variant : spliceVariants){
@@ -195,7 +175,7 @@ public class UniprotIdentityUpdater {
         for (Protein primary : proteins){
             List<ProteinImpl> featureChains = proteinDao.getProteinChains( primary );
 
-            loadCollections(featureChains);
+            ProteinTools.loadCollections(featureChains);
 
             if (!featureChains.isEmpty()){
                 for (Protein variant : featureChains){

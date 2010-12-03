@@ -29,6 +29,7 @@ import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.Component;
+import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -166,7 +167,13 @@ public abstract class ProteinProcessor {
             for (Component c : prot.getActiveInstances()){
                 Hibernate.initialize(c.getXrefs());
                 Hibernate.initialize(c.getAnnotations());
-                Hibernate.initialize(c.getBindingDomains());
+
+                for (Feature f : c.getBindingDomains()){
+                    Hibernate.initialize(f.getAnnotations());
+                    Hibernate.initialize(f.getRanges());
+                    Hibernate.initialize(f.getAliases());
+                    Hibernate.initialize(f.getXrefs());
+                }
                 Hibernate.initialize(c.getExperimentalRoles());
                 Hibernate.initialize(c.getAliases());
                 Hibernate.initialize(c.getExperimentalPreparations());
