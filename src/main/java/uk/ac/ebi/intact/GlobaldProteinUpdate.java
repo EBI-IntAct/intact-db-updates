@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact;
 
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
@@ -22,13 +23,15 @@ public class GlobaldProteinUpdate {
     public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 1 ) {
-            System.err.println( "Usage: GlobalUpdate <folder>" );
+        if( args.length != 2 ) {
+            System.err.println( "Usage: GlobalUpdate <database> <folder>" );
             System.exit( 1 );
         }
-        final String filename = args[0];
+        final String database = args[0];
+        final String filename = args[1];
 
         System.out.println( "folder where are the log files = " + filename );
+        System.out.println( "database = " + database );
 
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -38,6 +41,8 @@ public class GlobaldProteinUpdate {
         config.setProcessProteinNotFoundInUniprot(true);
         try {
             config.setReportHandler(new FileReportHandler(new File(filename)));
+
+            IntactContext.initContext(new String[] {"/META-INF/"+database+".spring.xml"});
 
             ProteinUpdateProcessor updateProcessor = new ProteinUpdateProcessor();
             System.out.println("Starting the global update");

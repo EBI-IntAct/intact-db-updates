@@ -13,7 +13,9 @@
 
     <name>IntAct Database Update :: Proteins Update</name>
     <properties>
+        <database>..</database>
         <folder>..</folder>
+        <bridges.version>2.1.4-SNAPSHOT</bridges.version>
     </properties>
     
     <build>
@@ -55,6 +57,8 @@
                           also adding the project build directory -->
                                 <classpath/>
                                 <argument>uk.ac.ebi.intact.GlobaldProteinUpdate</argument>
+                                <!-- database to update -->
+                                <argument>${database}</argument>
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
                             </arguments>
@@ -64,10 +68,6 @@
             </build>
         </profile>
     </profiles>
-
-    <properties>
-        <bridges.version>2.1.4-SNAPSHOT</bridges.version>
-    </properties>
 
     <dependencies>
         <dependency>
