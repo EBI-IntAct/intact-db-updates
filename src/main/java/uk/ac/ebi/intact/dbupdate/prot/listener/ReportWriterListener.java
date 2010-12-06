@@ -63,7 +63,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             duplicatedWriter.writeColumnValues(protAc,
                     String.valueOf(evt.getReferenceProtein().getActiveInstances().size()),
                     protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
-            reportHandler.getDuplicatedWriter().flush();
+            duplicatedWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
         }
@@ -72,7 +72,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         try {
-            writeDefaultLine(reportHandler.getDeletedWriter(), evt.getProtein(), evt.getMessage());
+            ReportWriter deleteReportWriter = reportHandler.getDeletedWriter();
+
+            writeDefaultLine(deleteReportWriter, evt.getProtein(), evt.getMessage());
+
+            deleteReportWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -88,7 +92,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     evt.getUniprotIdentity(),
                     evt.getUniprotTranscriptAc(),
                     evt.getProtein().getSequence());
-            reportHandler.getDuplicatedWriter().flush();
+            transcriptWithSameSequenceWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
         }
@@ -97,7 +101,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         try {
+            ReportWriter createdWriter = reportHandler.getCreatedWriter();
+
             writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
+
+            createdWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
@@ -185,7 +193,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     @Override
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
         try {
-            writeDefaultLine(reportHandler.getNonUniprotProteinWriter(), evt.getProtein());
+            ReportWriter noUniprotWriter = reportHandler.getNonUniprotProteinWriter();
+
+            writeDefaultLine(noUniprotWriter, evt.getProtein());
+
+            noUniprotWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException(e);
         }
