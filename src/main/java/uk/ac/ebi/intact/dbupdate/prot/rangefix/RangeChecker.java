@@ -26,7 +26,6 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.clone.IntactClonerException;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
@@ -64,19 +63,14 @@ public class RangeChecker {
 
         for (Range range : feature.getRanges()) {
             if (!FeatureUtils.isABadRange(range, oldSequence)){
-                final IntactCloner intactCloner = new IntactCloner();
-                Range oldRange = null;
-                try {
-                    oldRange = intactCloner.clone(range);
-                } catch (IntactClonerException e) {
-                    throw new IntactException("Could not clone range: "+range, e);
-                }
+                Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+                oldRange.setFullSequence(range.getFullSequence());
 
                 boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
 
                 if (rangeShifted) {
                     if (log.isInfoEnabled())
-                        log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
+                        log.info("Range shifted from " + oldRange.toString() + " to " + range.toString() + ": " + logInfo(range));
 
                     range.prepareSequence(newSequence);
                     context.getDaoFactory().getRangeDao().update(range);
@@ -106,13 +100,8 @@ public class RangeChecker {
         UpdatedRange updatedRange = null;
 
         if (!FeatureUtils.isABadRange(range, oldSequence)){
-            final IntactCloner intactCloner = new IntactCloner();
-            Range oldRange = null;
-            try {
-                oldRange = intactCloner.clone(range);
-            } catch (IntactClonerException e) {
-                throw new IntactException("Could not clone range: "+range, e);
-            }
+            Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+            oldRange.setFullSequence(range.getFullSequence());
 
             boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
 
@@ -137,13 +126,8 @@ public class RangeChecker {
 
         for (Range range : feature.getRanges()) {
             if (!FeatureUtils.isABadRange(range, newSequence)){
-                final IntactCloner intactCloner = new IntactCloner();
-                Range oldRange = null;
-                try {
-                    oldRange = intactCloner.clone(range);
-                } catch (IntactClonerException e) {
-                    throw new IntactException("Could not clone range: "+range, e);
-                }
+                Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+                oldRange.setFullSequence(range.getFullSequence());
 
                 if (log.isInfoEnabled())
                     log.info("Prepare sequence of the range " + logInfo(range));
@@ -164,13 +148,8 @@ public class RangeChecker {
         UpdatedRange updatedRange = null;
 
         if (!FeatureUtils.isABadRange(range, newSequence)){
-            final IntactCloner intactCloner = new IntactCloner();
-            Range oldRange = null;
-            try {
-                oldRange = intactCloner.clone(range);
-            } catch (IntactClonerException e) {
-                throw new IntactException("Could not clone range: "+range, e);
-            }
+            Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+            oldRange.setFullSequence(range.getFullSequence());
 
             if (log.isInfoEnabled())
                 log.info("Prepare sequence of the range " + logInfo(range));
