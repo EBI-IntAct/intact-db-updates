@@ -59,7 +59,7 @@ public class ProtWithoutInteractionDeleter {
             log.debug("Protein without AC, cannot be deleted");
             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete));
+                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, protein, evt.getUniprotIdentity()));
             }
 
             return false;
@@ -145,7 +145,7 @@ public class ProtWithoutInteractionDeleter {
                 log.debug("Protein without AC, cannot be deleted");
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, evt.getUniprotServiceResult().getQuerySentToService()));
                 }
             }
             else {
@@ -204,7 +204,7 @@ public class ProtWithoutInteractionDeleter {
                 log.debug("Protein without AC, cannot be deleted");
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p.getProtein(), evt.getUniprotServiceResult().getQuerySentToService()));
                 }
             }
             else {

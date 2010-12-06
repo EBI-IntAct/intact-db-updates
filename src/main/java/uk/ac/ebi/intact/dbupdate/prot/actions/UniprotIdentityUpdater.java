@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Hibernate;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
@@ -143,14 +142,14 @@ public class UniprotIdentityUpdater {
                         if (!hasFoundAc){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript));
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                             }
                         }
                     }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                         }
                     }
                 }
@@ -200,14 +199,14 @@ public class UniprotIdentityUpdater {
                         if (!hasFoundAc){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript));
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                             }
                         }
                     }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                         }
                     }
                 }

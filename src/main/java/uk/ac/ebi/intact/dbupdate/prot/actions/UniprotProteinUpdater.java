@@ -17,22 +17,16 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
-import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -343,10 +337,10 @@ public class UniprotProteinUpdater {
         }
 
         if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
-            processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, context, "UpdateProteins is trying to modify" +
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "UpdateProteins is trying to modify" +
                     " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein protein " +
                     getProteinDescription(protein) + " by BioSource( " + t2 + "," +
-                    organism.getName() + " ). Changing the organism of an existing protein is a forbidden operation.", UpdateError.organism_conflict_with_uniprot_protein));
+                    organism.getName() + " ). Changing the organism of an existing protein is a forbidden operation.", UpdateError.organism_conflict_with_uniprot_protein, protein));
 
             return false;
         }
@@ -367,8 +361,8 @@ public class UniprotProteinUpdater {
             sequenceToBeUpdated = true;
         }
         else if (oldSequence != null && sequence == null){
-            processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The sequence of the protein " + protein.getAc() +
-                    " is not null but the uniprot entry has a sequence null.", UpdateError.uniprot_sequence_null));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The sequence of the protein " + protein.getAc() +
+                    " is not null but the uniprot entry has a sequence null.", UpdateError.uniprot_sequence_null, protein, uniprotAc));
             processor.finalizeAfterCurrentPhase();
         }
         else if (oldSequence != null && sequence != null){
@@ -393,9 +387,9 @@ public class UniprotProteinUpdater {
 
             if (!componentsWithRangeConflicts.isEmpty()){
 
-                processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                         "The protein " + protein.getAc() + " contains " +
-                                componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts));
+                                componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts, protein, uniprotAc));
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains());
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
@@ -538,8 +532,8 @@ public class UniprotProteinUpdater {
             updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt);
         }
         else if (uniprotTranscript.isNullSequenceAllowed() && transcript.getSequence() != null){
-            processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The feature chain " + transcript.getAc() + " has a sequence not null in IntAct but the sequence in uniprot is null because" +
-                    " one of the positions is unknown.", UpdateError.uniprot_sequence_null_intact_sequence_not_null));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The feature chain " + transcript.getAc() + " has a sequence not null in IntAct but the sequence in uniprot is null because" +
+                    " one of the positions is unknown.", UpdateError.uniprot_sequence_null_intact_sequence_not_null, transcript, uniprotTranscript.getPrimaryAc()));
         }
 
         // Add IntAct Xref

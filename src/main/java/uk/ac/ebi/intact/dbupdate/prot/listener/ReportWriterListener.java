@@ -82,8 +82,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
         try {
             ReportWriter transcriptWithSameSequenceWriter = reportHandler.getTranscriptWithSameSequenceWriter();
-            transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "Uniprot ac", "Transcript ac", "sequence");
+            transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "protein shortlabel", "Uniprot ac", "Transcript ac", "sequence");
             transcriptWithSameSequenceWriter.writeColumnValues(evt.getProtein().getAc(),
+                    evt.getProtein().getShortLabel(),
                     evt.getUniprotIdentity(),
                     evt.getUniprotTranscriptAc(),
                     evt.getProtein().getSequence());
@@ -156,6 +157,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             final ReportWriter writer = reportHandler.getDeadProteinWriter();
 
             writer.writeHeaderIfNecessary("Protein accession",
+                    "Protein shortlabel",
+                    "Protein taxId",
                     "Xrefs",
                     "Other messages");
 
@@ -167,8 +170,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
                 xRefs.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
             }
-
+            String taxId = protein.getBioSource() != null ? protein.getBioSource().getTaxId() : "-";
             writer.writeColumnValues(protein.getAc(),
+                    protein.getShortLabel(),
+                    taxId,
                     xRefs.toString(),
                     evt.getMessage());
             writer.flush();
@@ -190,9 +195,25 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException{
         try {
             ReportWriter writer = reportHandler.getPreProcessErrorWriter();
-            writer.writeHeaderIfNecessary("error type",
+
+            String proteinAc = "-";
+            String proteinShortlablel = "-";
+            String uniprotAc = evt.getUniprotAc() != null ? evt.getUniprotAc() : "-";
+
+            if (evt.getProtein() != null){
+                proteinAc = evt.getProtein().getAc();
+                proteinShortlablel = evt.getProtein().getShortLabel();
+            }
+
+            writer.writeHeaderIfNecessary("Protein ac",
+                    "Protein shortlabel",
+                    "Uniprot ac",
+                    "error type",
                     "error description");
-            writer.writeColumnValues(evt.getError().toString(),
+            writer.writeColumnValues(proteinAc,
+                    proteinShortlablel,
+                    uniprotAc,
+                    evt.getError().toString(),
                     evt.getMessage());
             writer.flush();
         } catch (IOException e) {
@@ -277,7 +298,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter writer = reportHandler.getOutOfDateParticipantWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
                     "IA primary c.",
-                    "Component acs",
+                    "Components",
                     "sequence");
             String uniprotId = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : "-";
             writer.writeColumnValues(uniprotId,

@@ -134,7 +134,7 @@ public class UniprotProteinRetriever {
                     if (config != null && !config.isProcessProteinNotFoundInUniprot()){
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + uniprotAc, UpdateError.dead_uniprot_ac));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + uniprotAc, UpdateError.dead_uniprot_ac, evt.getProtein(), evt.getUniprotIdentity()));
                         }
 
                         if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (no-uniprot-update)");
@@ -168,7 +168,7 @@ public class UniprotProteinRetriever {
                     // choose manually which of the new uniprot ac is relevant.
                     if (evt.getSource() instanceof ProteinUpdateProcessor) {
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_same_organim));
+                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_same_organim, evt.getProtein(), evt.getUniprotIdentity()));
                     }
 
                     if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several matching uniprot entries with the same organism)");
@@ -221,7 +221,7 @@ public class UniprotProteinRetriever {
                         // It has now been demerged in one entry for the human P99998 and one for the chimpanzee P99999.
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_different_organisms));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_different_organisms, evt.getProtein(), evt.getUniprotIdentity()));
                         }
 
                         if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several matching uniprot entries with different organisms)");
@@ -295,7 +295,7 @@ public class UniprotProteinRetriever {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim, prot, primaryAc));
                         }
                         secondaryAcToRemove.add(prot);
                     } else {
@@ -321,7 +321,7 @@ public class UniprotProteinRetriever {
                         if (proteinsWithSameTaxId.size() != 1){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms));
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms, prot, primaryAc));
                             }
                             secondaryAcToRemove.add(prot);
                         }
@@ -360,7 +360,7 @@ public class UniprotProteinRetriever {
                 if(uniprotProteins.size() == 0){
                     if (evt.getSource() instanceof ProteinUpdateProcessor) {
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac));
+                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac, prot, primaryAc));
                     }
                     secondaryAcToRemove.add(protTrans);
                 }
@@ -382,7 +382,7 @@ public class UniprotProteinRetriever {
                             // choose manually which of the new uniprot ac is relevant.
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim));
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim, prot, primaryAc));
                             }
                             secondaryAcToRemove.add(protTrans);
                         }
@@ -427,7 +427,7 @@ public class UniprotProteinRetriever {
                             if (proteinsWithSameBaseUniprotAc.size() != 1){
                                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms));
+                                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms, prot, primaryAc));
                                 }
                                 secondaryAcToRemove.add(protTrans);
                             }

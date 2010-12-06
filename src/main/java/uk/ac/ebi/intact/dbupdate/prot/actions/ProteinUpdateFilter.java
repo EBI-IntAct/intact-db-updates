@@ -53,7 +53,7 @@ public class ProteinUpdateFilter {
             else if (uniprotIdentities.size() > 1){
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities, protein));
                 }
             }
             else {
@@ -82,7 +82,7 @@ public class ProteinUpdateFilter {
                 ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities, protein));
                 }
                 proteinIterator.remove();
             }
@@ -106,7 +106,7 @@ public class ProteinUpdateFilter {
                 ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities, protein));
                 }
                 proteinIterator.remove();
             }

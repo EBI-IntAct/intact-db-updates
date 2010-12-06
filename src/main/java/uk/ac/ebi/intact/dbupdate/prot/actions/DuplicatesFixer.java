@@ -18,18 +18,13 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.util.*;
@@ -157,7 +152,7 @@ public class DuplicatesFixer{
             else {
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireonProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.", UpdateError.impossible_merge));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.", UpdateError.impossible_merge, calculateOriginalProtein(new ArrayList(evt.getProteins()))));
                 }
                 log.error("It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
             }
@@ -273,10 +268,10 @@ public class DuplicatesFixer{
 
                     // we have feature conflicts for this protein which cannot be merged
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
-                        processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                                 "The duplicate " + duplicate.getAc() + " cannot be merged with " +
                                         originalProt.getAc() + " because we have " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.impossible_merge));
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.impossible_merge, duplicate));
                         addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
                         Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
@@ -320,9 +315,9 @@ public class DuplicatesFixer{
                 else {
                     // if the original protein contains range conflict, we need to demerge it to keep the bad ranges attached to a no-uniprot-update protein
                     if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
-                        processor.fireonProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                                 "The duplicate " + duplicate.getAc() + " has been kept as original protein but a new protein has been created with " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts));
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts, duplicate));
                         Collection<Component> componentsToFix = new ArrayList<Component>();
                         componentsToFix.addAll(proteinsNeedingPartialMerge.get(originalProt.getAc()));
 
