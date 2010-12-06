@@ -310,11 +310,19 @@ public class RangeChecker {
                 }
                 // Either the previous feature sequence was null and is not anymore, or the previous sequence was null and is still null.
                 // if it was null, we need to update anyway (maybe a problem from a previous bug when loading xml files)
+                // but we check that the feature length is not affected
                 else {
-                    range.setFromIntervalStart(clone.getFromIntervalStart());
-                    range.setFromIntervalEnd(clone.getFromIntervalEnd());
-                    range.setToIntervalStart(clone.getToIntervalStart());
-                    range.setToIntervalEnd(clone.getToIntervalEnd());
+                    if (range.getToIntervalEnd() - range.getFromIntervalStart() == clone.getToIntervalEnd() - clone.getFromIntervalStart()
+                            && range.getToIntervalEnd() - range.getToIntervalStart() == clone.getToIntervalEnd() - clone.getToIntervalStart()
+                            && range.getFromIntervalEnd() - range.getFromIntervalStart() == clone.getFromIntervalEnd() - clone.getFromIntervalStart()){
+                        range.setFromIntervalStart(clone.getFromIntervalStart());
+                        range.setFromIntervalEnd(clone.getFromIntervalEnd());
+                        range.setToIntervalStart(clone.getToIntervalStart());
+                        range.setToIntervalEnd(clone.getToIntervalEnd());
+                    }
+                    else {
+                        rangeShifted = false;
+                    }
                 }
 
                 // get the caution from the DB or create it and persist it
