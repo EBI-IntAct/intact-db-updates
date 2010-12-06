@@ -279,7 +279,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "IA primary c.",
                     "Component acs",
                     "sequence");
-            writer.writeColumnValues(evt.getProtein().getPrimaryAc(),
+            String uniprotId = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : "-";
+            writer.writeColumnValues(uniprotId,
                     evt.getProteinWithConflicts().getAc(),
                     compCollectionToString(evt.getComponentsToFix()),
                     evt.getProteinWithConflicts().getSequence());
