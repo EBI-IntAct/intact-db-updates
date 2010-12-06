@@ -705,23 +705,21 @@ public class RangeFixer {
             for (Feature feature : features){
                 Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext.getDaoFactory());
 
-                if (!featureReports.isEmpty()){
-                    // shift other ranges first
+                // shift ranges without conflicts first
+                for (Range r : feature.getRanges()){
+                    if(!featureReports.containsKey(r.getAc())) {
+                        InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequence, sequence );
 
-                    for (Range r : feature.getRanges()){
-                        if(!featureReports.containsKey(r.getAc())) {
-                            InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequence, sequence );
-
-                            if (invalid != null){
-                                InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
-                                processor.fireOnOutOfDateRange(invalidEvent);
-                                fixOutOfDateRanges(invalidEvent);
-                            }
-                            else {
-                                shiftRange(oldSequence, uniprotSequence, r, processor, datacontext);
-                            }
+                        if (invalid != null){
+                            totalInvalidRanges.add(invalid);
+                        }
+                        else {
+                            shiftRange(oldSequence, uniprotSequence, r, processor, datacontext);
                         }
                     }
+                }
+
+                if (!featureReports.isEmpty()){
 
                     // try to shift ranges with previous range conflicts
                     for (Map.Entry<String, InvalidFeatureReport> entry : featureReports.entrySet()){
@@ -747,9 +745,8 @@ public class RangeFixer {
                                     InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequenceFromUnisave, sequence );
 
                                     if (invalid != null){
-                                        InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
-                                        processor.fireOnOutOfDateRange(invalidEvent);
-                                        fixOutOfDateRanges(invalidEvent);
+                                        fixInvalidRanges(new InvalidRangeEvent(datacontext, invalid));
+                                        totalInvalidRanges.add(invalid);
                                     }
                                     else {
                                         shiftRange(oldSequenceFromUnisave, uniprotSequence, r, processor, datacontext);
@@ -761,26 +758,9 @@ public class RangeFixer {
 
                     checkConsistencyFeatureAfterRangeShifting(feature, datacontext.getDaoFactory());
                 }
-                else{
-                    Collection<InvalidRange> invalidRanges = checker.collectRangesImpossibleToShift(feature, oldSequence, sequence);
-                    totalInvalidRanges.addAll(invalidRanges);
 
-                    if (!invalidRanges.isEmpty()){
-                        report.getInvalidComponents().put(component, totalInvalidRanges);
-                    }
-
-                    if (!report.getInvalidComponents().isEmpty()){
-                        Collection<Component> componentsToFix = report.getInvalidComponents().keySet();
-
-                        Collection<Component> componentsToUpdate = CollectionUtils.subtract(components, componentsToFix);
-
-                        if (!componentsToUpdate.isEmpty()){
-                            shiftRanges(oldSequence, uniprotSequence, componentsToUpdate, processor, datacontext);
-                        }
-                    }
-                    else {
-                        shiftRanges(oldSequence, uniprotSequence, components, processor, datacontext);
-                    }
+                if (!totalInvalidRanges.isEmpty()){
+                    report.getInvalidComponents().put(component, totalInvalidRanges);
                 }
             }
         }
