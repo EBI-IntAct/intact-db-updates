@@ -805,6 +805,8 @@ public class RangeFixerTest extends IntactBasicTestCase {
         RangeUpdateReport rangeReport = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
         Collection<Component> componentToFix = rangeReport.getInvalidComponents().keySet();
 
+        Assert.assertTrue(rangeReport.getInvalidComponents().isEmpty());
+
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
         Assert.assertEquals(0, invalid.size());
         final Collection<Annotation> cautions = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
@@ -915,6 +917,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> cautions = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
         Assert.assertEquals(0, cautions.size());
         Assert.assertEquals("6-12", FeatureUtils.convertRangeIntoString(range));
+        Assert.assertTrue(rangeReport.getInvalidComponents().isEmpty());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }

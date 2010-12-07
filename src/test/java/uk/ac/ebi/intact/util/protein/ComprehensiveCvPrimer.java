@@ -49,6 +49,7 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvAliasType.class, CvAliasType.ORF_NAME, CvAliasType.ORF_NAME_MI_REF);
         getCvObject(CvInteractionType.class, CvInteractionType.DIRECT_INTERACTION, CvInteractionType.DIRECT_INTERACTION_MI_REF);
         getCvObject(CvExperimentalRole.class, CvExperimentalRole.ANCILLARY, CvExperimentalRole.ANCILLARY_MI_REF);
+        getCvObject(CvExperimentalRole.class, CvExperimentalRole.NEUTRAL, CvExperimentalRole.NEUTRAL_PSI_REF);
         getCvObject(CvBiologicalRole.class, CvBiologicalRole.COFACTOR, CvBiologicalRole.COFACTOR_MI_REF);
         getCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED, CvFuzzyType.UNDETERMINED_MI_REF);
         getCvObject(CvFuzzyType.class, CvFuzzyType.CERTAIN, CvFuzzyType.CERTAIN_MI_REF);

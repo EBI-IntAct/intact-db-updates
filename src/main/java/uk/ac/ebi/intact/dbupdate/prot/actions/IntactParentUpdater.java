@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 import java.util.ArrayList;
@@ -65,7 +66,22 @@ public class IntactParentUpdater {
                     Protein par = proteinDao.getByAc(parent.getPrimaryId());
 
                     if (par == null){
-                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(CvDatabase.INTACT_MI_REF, parent.getCvXrefQualifier().getIdentifier(), parent.getPrimaryId());
+                        DaoFactory factory = evt.getDataContext().getDaoFactory();
+                        CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
+
+                        if (intact == null){
+                            intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+                            factory.getCvObjectDao(CvDatabase.class).persist(intact);
+                        }
+
+                        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+
+                        if (intactSecondary == null){
+                            intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
+                            factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
+                        }
+
+                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
 
                         if (remappedParents.size() == 0){
                             if (evt.getSource() instanceof ProteinUpdateProcessor ){
@@ -158,7 +174,22 @@ public class IntactParentUpdater {
                     Protein par = proteinDao.getByAc(parent.getPrimaryId());
 
                     if (par == null){
-                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(CvDatabase.INTACT_MI_REF, parent.getCvXrefQualifier().getIdentifier(), parent.getPrimaryId());
+                        DaoFactory factory = evt.getDataContext().getDaoFactory();
+                        CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
+
+                        if (intact == null){
+                            intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+                            factory.getCvObjectDao(CvDatabase.class).persist(intact);
+                        }
+
+                        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+
+                        if (intactSecondary == null){
+                            intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
+                            factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
+                        }
+
+                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
 
                         if (remappedParents.size() == 0){
                             if (evt.getSource() instanceof ProteinUpdateProcessor ){
