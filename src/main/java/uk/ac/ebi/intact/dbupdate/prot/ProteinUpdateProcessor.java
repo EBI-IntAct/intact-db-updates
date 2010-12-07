@@ -178,4 +178,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             listener.onProteinTranscriptWithSameSequence(evt);
         }
     }
+
+    public void fireOnInvalidIntactParentFound(InvalidIntactParentFoundEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onInvalidIntactParent(evt);
+        }
+    }
 }

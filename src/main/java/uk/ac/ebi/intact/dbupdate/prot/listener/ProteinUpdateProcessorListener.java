@@ -55,4 +55,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
     void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException;
 
     void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException;
+
+    void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException;
 }

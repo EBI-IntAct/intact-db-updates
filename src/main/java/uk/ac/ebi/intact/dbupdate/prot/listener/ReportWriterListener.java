@@ -447,6 +447,33 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
+    public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException{
+        ReportWriter writer = null;
+        try {
+            writer = reportHandler.getIntactParentWriter();
+            writer.writeHeaderIfNecessary("Protein Ac",
+                    "Old parent Ac",
+                    "Number of parents",
+                    "parents xrefs");
+            int numberParent = evt.getParents() != null ? evt.getParents().size() : 0;
+            StringBuilder xRefs = new StringBuilder();
+
+            for (String ref : evt.getParents()) {
+
+                String qual = (ref != null)? "("+ref+")" : "";
+
+                xRefs.append(qual);
+            }
+
+            writer.writeColumnValues(evt.getProtein().getAc(),
+                    dashIfNull(evt.getOldParentAc()),
+                    Integer.toString(numberParent),
+                    xRefs.toString());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing invalid intact parents to stream", e);
+        }
+    }
 
     private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
         StringBuilder sb = new StringBuilder(oldSequence);
@@ -484,8 +511,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private static String protTranscriptCollectionToString(Collection<ProteinTranscript> protCollection,
-                                                 boolean showInteractionsCount,
-                                                 AdditionalInfoMap<?> additionalInfo) {
+                                                           boolean showInteractionsCount,
+                                                           AdditionalInfoMap<?> additionalInfo) {
         StringBuilder sb = new StringBuilder();
 
         for (Iterator<ProteinTranscript> iterator = protCollection.iterator(); iterator.hasNext();) {

@@ -32,6 +32,7 @@ import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
@@ -91,7 +92,8 @@ public abstract class ProteinProcessor {
     private RangeFixer rangeFixer;
 
     private OutOfDateParticipantFixer participantFixer;
-    UniprotProteinUpdater updater;
+    private UniprotProteinUpdater updater;
+    private IntactParentUpdater parentUpdater;
 
     public ProteinProcessor() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
@@ -107,6 +109,7 @@ public abstract class ProteinProcessor {
         this.updater = new UniprotProteinUpdater(config.getTaxonomyService());
         this.participantFixer = new OutOfDateParticipantFixer();
         rangeFixer = new RangeFixer();
+        parentUpdater = new IntactParentUpdater();
     }
 
     /**
@@ -250,6 +253,8 @@ public abstract class ProteinProcessor {
                 }
             }
 
+            parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+            
             if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
             // filter on 'no-uniprot-update' and multi identities
@@ -460,6 +465,10 @@ public abstract class ProteinProcessor {
         else {
             if (log.isTraceEnabled()) log.trace("Filtering protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+") for uniprot update");
 
+            if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
+                parentUpdater.checkConsistencyProteinTranscript(processEvent);
+            }
+
             // get the uniprot identity of this protein
             String uniprotIdentity = updateFilter.filterOnUniprotIdentity(processEvent);
 
@@ -496,6 +505,8 @@ public abstract class ProteinProcessor {
                             proteinDeleter.delete(protEvent);
                         }
                     }
+
+                    parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
 
                     if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 

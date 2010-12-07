@@ -40,4 +40,5 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getSecondaryProteinsWriter() throws IOException;
     ReportWriter getOutOfDateRangeWriter() throws IOException;
     ReportWriter getTranscriptWithSameSequenceWriter() throws IOException;
+    ReportWriter getIntactParentWriter() throws IOException;
 }

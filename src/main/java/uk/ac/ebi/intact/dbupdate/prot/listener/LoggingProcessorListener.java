@@ -92,4 +92,8 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("The protein transcript " + evt.getUniprotTranscriptAc() + " has exactly the same sequence as the protein " + evt.getProtein().getAc());
     }
 
+    public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException{
+        if (log.isDebugEnabled()) log.debug("The protein transcript " + evt.getProtein().getAc() + " has invalid parent cross references.");
+    }
+
 }
