@@ -33,8 +33,10 @@ public class IntactParentUpdater {
 
     private static final Log log = LogFactory.getLog( IntactParentUpdater.class );
 
-    public void checkConsistencyProteinTranscript(ProteinEvent evt){
+    public boolean checkConsistencyProteinTranscript(ProteinEvent evt){
         Protein protein = evt.getProtein();
+
+        boolean canBeUpdated = true;
 
         Collection<InteractorXref> isoformParentXRefs = ProteinUtils.extractIsoformParentCrossReferencesFrom(protein);
         Collection<InteractorXref> chainParentXRefs = ProteinUtils.extractChainParentCrossReferencesFrom(protein);
@@ -48,6 +50,7 @@ public class IntactParentUpdater {
                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein " + protein.getAc() + " has " + isoformParentXRefs.size() + " " +
                             "isoform parents and " + chainParentXRefs + " chain parents.", UpdateError.both_isoform_and_chain_xrefs, protein, evt.getUniprotIdentity()));
                 }
+                canBeUpdated = false;
             }
             else {
                 Collection<InteractorXref> parents = isoformParentXRefs.isEmpty() ? chainParentXRefs : isoformParentXRefs;
@@ -60,6 +63,7 @@ public class IntactParentUpdater {
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has "+parents.size()+" different intact parents."
                                 , UpdateError.several_intact_parents, protein));
                     }
+                    canBeUpdated = false;
                 }
 
                 for (InteractorXref parent : parents){
@@ -84,6 +88,7 @@ public class IntactParentUpdater {
                         List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
 
                         if (remappedParents.size() == 0){
+                            canBeUpdated = false;
                             if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
@@ -108,6 +113,8 @@ public class IntactParentUpdater {
                             }
                         }
                         else {
+                            canBeUpdated = false;
+
                             for (Protein p : remappedParents){
                                 parentAc.add(p.getAc());
                             }
@@ -132,7 +139,10 @@ public class IntactParentUpdater {
                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " doesn't have any parents."
                         , UpdateError.transcript_without_parent, protein));
             }
+            canBeUpdated = false;
         }
+
+        return canBeUpdated;
     }
 
     private void checkConsistencyOf(Collection<ProteinTranscript> transcriptsToReview, UpdateCaseEvent evt){
@@ -151,9 +161,8 @@ public class IntactParentUpdater {
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein " + protein.getAc() + " has " + isoformParentXRefs.size() + " " +
                             "isoform parents and " + chainParentXRefs + " chain parents.", UpdateError.both_isoform_and_chain_xrefs, protein, evt.getUniprotServiceResult().getQuerySentToService()));
-
-                    transcriptToDelete.add(p);
                 }
+                transcriptToDelete.add(p);
             }
             else {
                 Collection<InteractorXref> parents = isoformParentXRefs.isEmpty() ? chainParentXRefs : isoformParentXRefs;
@@ -166,8 +175,8 @@ public class IntactParentUpdater {
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has "+parents.size()+" different intact parents."
                                 , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
 
-                        transcriptToDelete.add(p);
                     }
+                    transcriptToDelete.add(p);
                 }
 
                 for (InteractorXref parent : parents){
@@ -197,10 +206,13 @@ public class IntactParentUpdater {
                                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                         ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
                                         , UpdateError.dead_parent_xref, protein, evt.getUniprotServiceResult().getQuerySentToService()));
-                                transcriptToDelete.add(p);
 
                                 InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                 processor.fireOnInvalidIntactParentFound(invalidEvent);
+                            }
+
+                            if (!transcriptToDelete.contains(p)){
+                                transcriptToDelete.add(p);
                             }
                         }
                         else if (remappedParents.size() == 1){
@@ -227,10 +239,12 @@ public class IntactParentUpdater {
                                         ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
                                         , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
 
-                                transcriptToDelete.add(p);
-
                                 InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                 processor.fireOnInvalidIntactParentFound(invalidEvent);
+                            }
+
+                            if (!transcriptToDelete.contains(p)){
+                                transcriptToDelete.add(p);
                             }
                         }
                     }
