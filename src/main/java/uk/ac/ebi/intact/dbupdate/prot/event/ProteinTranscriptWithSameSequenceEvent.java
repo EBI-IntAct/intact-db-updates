@@ -16,8 +16,8 @@ public class ProteinTranscriptWithSameSequenceEvent extends ProteinEvent{
 
     private String uniprotTranscriptAc;
 
-    public ProteinTranscriptWithSameSequenceEvent(Object source, DataContext dataContext, Protein protein, String transcriptAc) {
-        super(source, dataContext, protein);
+    public ProteinTranscriptWithSameSequenceEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, String transcriptAc) {
+        super(source, dataContext, protein, uniprotProtein);
         this.uniprotTranscriptAc = transcriptAc;
     }
 

@@ -383,7 +383,7 @@ public class UniprotProteinUpdater {
             }
 
             if (transcriptsWithSameSequence != null){
-                processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, evt.getDataContext(), protein, transcriptsWithSameSequence.getPrimaryAc()));
+                processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, evt.getDataContext(), protein, evt.getProtein(), transcriptsWithSameSequence.getPrimaryAc()));
             }
 
             RangeUpdateReport report =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());

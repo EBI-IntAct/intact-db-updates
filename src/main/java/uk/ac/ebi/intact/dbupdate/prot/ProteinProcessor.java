@@ -535,7 +535,7 @@ public abstract class ProteinProcessor {
                                 if (transcriptsWithSameSequence != null){
                                     if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                                        processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, transcriptsWithSameSequence.getPrimaryAc()));
+                                        processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
                                     }
                                 }
                             }
