@@ -376,7 +376,11 @@ public class UniprotProteinUpdater {
 
         if ( sequenceToBeUpdated) {
 
-            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(protein.getSequence(), evt.getProtein());
+            UniprotProteinTranscript transcriptsWithSameSequence = null;
+
+            if (oldSequence != null){
+                transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(protein.getSequence(), evt.getProtein());
+            }
 
             if (transcriptsWithSameSequence != null){
                 processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, evt.getDataContext(), protein, transcriptsWithSameSequence.getPrimaryAc()));
