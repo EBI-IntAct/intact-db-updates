@@ -143,12 +143,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 levenshtein = seqDiff;
                 conservation = 0;
             }
-
+            int sequenceLength = protein.getSequence() != null ? protein.getSequence().length() : 0;
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
                     protein.getShortLabel()+"|"+
                     getPrimaryIdString(protein)+
                     "|CRC:"+evt.getUniprotCrc64()+
-                    "|Length:"+protein.getSequence().length()+
+                    "|Length:"+Integer.toString(sequenceLength)+
                     "|Diff:"+seqDiff+
                     "|Levenshtein:"+ levenshtein+
                     "|Conservation:"+conservation);
