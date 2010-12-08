@@ -64,6 +64,24 @@ public class RangeFixer {
         this.unisave = new UnisaveService();
     }
 
+    private boolean isInvalidRangeUndetermined(Range range){
+        if (range == null){
+            return true;
+        }
+
+        if (range.getFromCvFuzzyType() == null){
+            return true;
+        }
+        else if(range.getToCvFuzzyType() == null){
+            return true;
+        }
+        else if(range.getFromCvFuzzyType().isUndetermined() && range.getToCvFuzzyType().isUndetermined()){
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Checks if a feature contains annotations for invalid ranges or ranges with conflicts and checks if these annotations are still valids.
      * If not remove them.
@@ -95,13 +113,7 @@ public class RangeFixer {
         for (Range r : feature.getRanges()){
             if (r.getAc() != null){
                 // if one cvFuzzyType is null or both fuzzytypes are undetermined, the range is considered as fully undetermined
-                if (r.getFromCvFuzzyType() == null){
-                    existingRanges.put(r.getAc(), true);
-                }
-                else if(r.getToCvFuzzyType() == null){
-                    existingRanges.put(r.getAc(), true);
-                }
-                else if(r.getFromCvFuzzyType().isUndetermined() && r.getToCvFuzzyType().isUndetermined()){
+                if (isInvalidRangeUndetermined(r)){
                     existingRanges.put(r.getAc(), true);
                 }
                 else {
@@ -223,13 +235,7 @@ public class RangeFixer {
 
         for (Range r : feature.getRanges()){
             if (r.getAc() != null){
-                if (r.getFromCvFuzzyType() == null){
-                    existingInvalidRanges.put(r.getAc(), true);
-                }
-                else if(r.getToCvFuzzyType() == null){
-                    existingInvalidRanges.put(r.getAc(), true);
-                }
-                else if(r.getFromCvFuzzyType().isUndetermined() && r.getToCvFuzzyType().isUndetermined()){
+                if (isInvalidRangeUndetermined(r)){
                     existingInvalidRanges.put(r.getAc(), true);
                 }
                 else {
@@ -601,9 +607,11 @@ public class RangeFixer {
                     }
                     invalid.setUniprotAc(uniprotAc);
 
-                    processor.fireOnOutOfDateRange(invalidEvent);
-                    if (fixedProtein == null && fixOutOfDateRanges){
-                        fixOutOfDateRanges(invalidEvent);
+                    if (!isInvalidRangeUndetermined(invalid.getInvalidRange())){
+                        processor.fireOnOutOfDateRange(invalidEvent);
+                        if (fixedProtein == null && fixOutOfDateRanges){
+                            fixOutOfDateRanges(invalidEvent);
+                        }
                     }
                 }
             }
@@ -745,7 +753,9 @@ public class RangeFixer {
                                     InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequenceFromUnisave, sequence );
 
                                     if (invalid != null){
-                                        fixInvalidRanges(new InvalidRangeEvent(datacontext, invalid));
+                                        InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
+                                        processor.fireOnOutOfDateRange(invalidEvent);
+                                        fixInvalidRanges(invalidEvent);
                                         totalInvalidRanges.add(invalid);
                                     }
                                     else {
