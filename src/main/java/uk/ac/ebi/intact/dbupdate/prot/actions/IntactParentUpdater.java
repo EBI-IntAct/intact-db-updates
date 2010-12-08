@@ -101,16 +101,14 @@ public class IntactParentUpdater {
                         }
                         else if (remappedParents.size() == 1){
                             parentAc.add(remappedParents.iterator().next().getAc());
-
-                            parent.setPrimaryId(remappedParents.iterator().next().getAc());
-                            xRefDao.update(parent);
-
                             if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
                                 InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                 processor.fireOnInvalidIntactParentFound(invalidEvent);
                             }
+                            parent.setPrimaryId(remappedParents.iterator().next().getAc());
+                            xRefDao.update(parent);
                         }
                         else {
                             canBeUpdated = false;
