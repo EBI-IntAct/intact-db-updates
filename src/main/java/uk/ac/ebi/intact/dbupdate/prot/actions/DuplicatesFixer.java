@@ -137,6 +137,13 @@ public class DuplicatesFixer{
                     Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
 
                     if (!componentWithRangeConflicts.isEmpty()){
+                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(),
+                                    "The protein " + p.getAc() + " contains " +
+                                            componentWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts, p));
+                        }
+
                         log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
                         proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
                         report.getComponentsWithFeatureConflicts().put(p, rangeReport);
