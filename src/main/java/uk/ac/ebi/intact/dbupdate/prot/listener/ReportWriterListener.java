@@ -59,9 +59,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
             duplicatedWriter.writeHeaderIfNecessary("Kept", "Active instances", "Duplicates");
             String protAc = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getAc() : "All. Impossible to merge";
+            int activeInstanceNumber = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getActiveInstances().size() : 0;
 
             duplicatedWriter.writeColumnValues(protAc,
-                    String.valueOf(evt.getReferenceProtein().getActiveInstances().size()),
+                    String.valueOf(activeInstanceNumber),
                     protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
             duplicatedWriter.flush();
         } catch (IOException e) {
@@ -117,7 +118,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         final Protein protein = evt.getProtein();
         try {
             final ReportWriter writer = reportHandler.getSequenceChangedWriter();
-
             if (evt.getOldSequence() != null) {
                 writer.writeLine(">"+ protein.getAc()+"|OLD|"+
                         protein.getShortLabel()+"|"+
@@ -143,7 +143,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 levenshtein = seqDiff;
                 conservation = 0;
             }
-            int sequenceLength = protein.getSequence() != null ? protein.getSequence().length() : 0;
+            int sequenceLength = evt.getNewSequence().length();
             writer.writeLine(">"+ protein.getAc()+"|"+state+"|"+
                     protein.getShortLabel()+"|"+
                     getPrimaryIdString(protein)+
