@@ -191,7 +191,9 @@ public abstract class ProteinProcessor {
             try {
                 dataContext.commitTransaction(transactionStatus);
             } catch (IntactTransactionException e) {
-                throw new ProcessorException(e);
+                dataContext.rollbackTransaction(transactionStatus);
+
+                log.fatal("We failed to update the protein " + protAc);
             }
         }
     }
@@ -245,7 +247,7 @@ public abstract class ProteinProcessor {
             if (config.isDeleteProtsWithoutInteractions()){
                 if (log.isTraceEnabled()) log.trace("Checking for all protein interactions");
 
-                Set<Protein> protToDelete = protWithoutInteractionDeleter.collectProteinsWithoutInteractions(caseEvent);
+                Set<Protein> protToDelete = protWithoutInteractionDeleter.collectAndRemoveProteinsWithoutInteractions(caseEvent);
 
                 for (Protein p : protToDelete){
                     ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
@@ -422,7 +424,9 @@ public abstract class ProteinProcessor {
             try {
                 context.commitTransaction(status);
             } catch (IntactTransactionException e) {
-                throw new ProcessorException(e);
+                context.rollbackTransaction(status);
+
+                log.fatal("We failed to update the protein " + uniprotAc);
             }
         }
 
@@ -501,7 +505,7 @@ public abstract class ProteinProcessor {
                         if (config.isDeleteProtsWithoutInteractions()){
                             if (log.isTraceEnabled()) log.trace("Checking for all protein interactions");
 
-                            Set<Protein> protToDelete = protWithoutInteractionDeleter.collectProteinsWithoutInteractions(caseEvent);
+                            Set<Protein> protToDelete = protWithoutInteractionDeleter.collectAndRemoveProteinsWithoutInteractions(caseEvent);
 
                             for (Protein p : protToDelete){
                                 ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
@@ -906,7 +910,6 @@ public abstract class ProteinProcessor {
     }
 
     // other private methods
-
     private void commitTransaction(TransactionStatus transactionStatus, DataContext dataContext) throws ProcessorException {
         try {
             dataContext.commitTransaction(transactionStatus);

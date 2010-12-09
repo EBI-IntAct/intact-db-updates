@@ -351,7 +351,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertTrue(proteinsToDelete.isEmpty());
         Assert.assertEquals(1, evt.getPrimaryProteins().size());

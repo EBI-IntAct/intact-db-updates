@@ -403,6 +403,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         protein.setSequence(sequence);
         protein.getAnnotations().clear();
         protein.getAliases().clear();
+        protein.addAlias(getMockBuilder().createAliasGeneName(protein, "CDC42"));
 
         InteractorAlias alias = getMockBuilder().createAlias(protein, "name",
                 getMockBuilder().createCvObject(CvAliasType.class, CvAliasType.ORF_NAME_MI_REF,

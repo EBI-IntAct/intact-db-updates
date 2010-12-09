@@ -116,7 +116,7 @@ public class ProtWithoutInteractionDeleter {
         return false;
     }
 
-    public Set<Protein> collectProteinsWithoutInteractions(UpdateCaseEvent evt){
+    public Set<Protein> collectAndRemoveProteinsWithoutInteractions(UpdateCaseEvent evt){
         Set<Protein> protToDelete = new HashSet<Protein>();
 
         if (!evt.getPrimaryIsoforms().isEmpty()){

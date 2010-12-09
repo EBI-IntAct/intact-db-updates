@@ -15,7 +15,6 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
@@ -102,7 +101,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertTrue(proteinsToDelete.isEmpty());
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
@@ -160,7 +159,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertTrue(proteinsToDelete.isEmpty());
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
@@ -209,7 +208,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertEquals(2, proteinsToDelete.size());
         Assert.assertEquals(0, evt.getPrimaryProteins().size());
@@ -265,7 +264,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertEquals(3, proteinsToDelete.size());
         Assert.assertEquals(0, evt.getPrimaryProteins().size());
@@ -291,7 +290,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt2.getSecondaryProteins().size());
         Assert.assertEquals(1, evt2.getPrimaryFeatureChains().size());
 
-        Set<Protein> proteinsToDelete2 = deleter.collectProteinsWithoutInteractions(evt2);
+        Set<Protein> proteinsToDelete2 = deleter.collectAndRemoveProteinsWithoutInteractions(evt2);
 
         Assert.assertEquals(2, proteinsToDelete2.size());
         Assert.assertEquals(1, evt2.getPrimaryProteins().size());
@@ -351,7 +350,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertEquals(3, proteinsToDelete.size());
         Assert.assertEquals(0, evt.getPrimaryProteins().size());
@@ -377,7 +376,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt2.getSecondaryProteins().size());
         Assert.assertEquals(1, evt2.getPrimaryIsoforms().size());
 
-        Set<Protein> proteinsToDelete2 = deleter.collectProteinsWithoutInteractions(evt2);
+        Set<Protein> proteinsToDelete2 = deleter.collectAndRemoveProteinsWithoutInteractions(evt2);
 
         Assert.assertEquals(2, proteinsToDelete2.size());
         Assert.assertEquals(1, evt2.getPrimaryProteins().size());
@@ -441,7 +440,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getPrimaryFeatureChains().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertEquals(1, proteinsToDelete.size());
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
@@ -504,7 +503,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
 
-        Set<Protein> proteinsToDelete = deleter.collectProteinsWithoutInteractions(evt);
+        Set<Protein> proteinsToDelete = deleter.collectAndRemoveProteinsWithoutInteractions(evt);
 
         Assert.assertEquals(1, proteinsToDelete.size());
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
