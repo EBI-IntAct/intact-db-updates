@@ -6,9 +6,11 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.report.FileReportHandler;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.model.Protein;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * TODO comment this
@@ -23,12 +25,12 @@ public class GlobaldProteinUpdate {
     public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 2 ) {
-            System.err.println( "Usage: GlobalUpdate <database> <folder>" );
-            System.exit( 1 );
-        }
-        final String database = args[0];
-        final String filename = args[1];
+        //if( args.length != 2 ) {
+            //System.err.println( "Usage: GlobalUpdate <database> <folder>" );
+            //System.exit( 1 );
+        //}
+        final String database = "enztst";//args[0];
+        final String filename = "/home/marine/Desktop/protein-update-enztst";//args[1];
 
         System.out.println( "folder where are the log files = " + filename );
         System.out.println( "database = " + database );
@@ -47,6 +49,7 @@ public class GlobaldProteinUpdate {
             ProteinUpdateProcessor updateProcessor = new ProteinUpdateProcessor();
             System.out.println("Starting the global update");
             updateProcessor.updateAll();
+            //List<Protein> proteins = updateProcessor.retrieveAndUpdateProteinFromUniprot("Q8LGH4");
 
         } catch (IOException e) {
             System.err.println("The repository " + filename + " cannot be found. We cannot write log files and so we cannot run a global protein update.");

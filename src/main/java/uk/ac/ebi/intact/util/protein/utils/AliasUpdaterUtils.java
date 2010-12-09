@@ -152,8 +152,8 @@ public class AliasUpdaterUtils {
             protein.removeAlias( alias );
             alias.setParent(null);
 
-            context.getDaoFactory()
-                    .getAliasDao(InteractorAlias.class).delete(alias);
+            //context.getDaoFactory()
+                    //.getAliasDao(InteractorAlias.class).delete(alias);
             //aliasDao.delete( alias );
 
             updated = true;
