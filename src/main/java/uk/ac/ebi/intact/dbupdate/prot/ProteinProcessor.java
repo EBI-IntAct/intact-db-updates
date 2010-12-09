@@ -190,7 +190,7 @@ public abstract class ProteinProcessor {
 
             try {
                 dataContext.commitTransaction(transactionStatus);
-            } catch (IntactTransactionException e) {
+            } catch (Exception e) {
                 dataContext.rollbackTransaction(transactionStatus);
 
                 log.fatal("We failed to update the protein " + protAc);
@@ -423,7 +423,7 @@ public abstract class ProteinProcessor {
             }
             try {
                 context.commitTransaction(status);
-            } catch (IntactTransactionException e) {
+            } catch (Exception e) {
                 context.rollbackTransaction(status);
 
                 log.fatal("We failed to update the protein " + uniprotAc);
