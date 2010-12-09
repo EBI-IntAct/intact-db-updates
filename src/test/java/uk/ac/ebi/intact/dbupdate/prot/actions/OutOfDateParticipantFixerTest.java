@@ -9,6 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
@@ -64,11 +65,13 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
-        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
         String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.addAlias(getMockBuilder().createAliasGeneName(primary, "CDC42"));
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
 
         Protein random1 = getMockBuilder().createProteinRandom();
@@ -112,7 +115,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(proteinTranscript.getProtein().getXrefs().size(), primary.getXrefs().size());
         Assert.assertEquals(proteinTranscript.getProtein().getAliases().size(), primary.getAliases().size());
 
-        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+        context.commitTransaction(status);
     }
 
     @Test
@@ -253,6 +256,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
 
         Protein primaryIsoform = getMockBuilder().createProtein("P60953", "primary(futur isoform)");
         primaryIsoform.setSequence(variant.getSequence());
+        primaryIsoform.addAlias(getMockBuilder().createAliasGeneName(primaryIsoform, "CDC42"));
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primaryIsoform);
 
         Protein primaryChain = getMockBuilder().createProtein("P60954", "primary(futur chain)");

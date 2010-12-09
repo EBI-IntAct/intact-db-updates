@@ -71,12 +71,7 @@ public class OutOfDateParticipantFixer {
 
     private ProteinTranscript createSpliceVariant(UniprotSpliceVariant spliceVariant, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
 
-        Protein spliceIntact = cloneProtein(factory, proteinWithConflicts);
-        InteractorXref identity = ProteinUtils.getUniprotXref(spliceIntact);
-        identity.setPrimaryId(spliceVariant.getPrimaryAc());
-        spliceIntact.getAliases().clear();
-        spliceIntact.getXrefs().clear();
-        spliceIntact.addXref(identity);
+        Protein spliceIntact = cloneProteinForTranscript(factory, proteinWithConflicts, spliceVariant.getPrimaryAc());
 
         Institution owner = spliceIntact.getOwner();
         CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
@@ -120,12 +115,7 @@ public class OutOfDateParticipantFixer {
 
     private ProteinTranscript createFeatureChain(UniprotFeatureChain featureChain, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
 
-        Protein chainIntact = cloneProtein(factory, proteinWithConflicts);
-        InteractorXref identity = ProteinUtils.getUniprotXref(chainIntact);
-        identity.setPrimaryId(featureChain.getPrimaryAc());
-        chainIntact.getAliases().clear();
-        chainIntact.getXrefs().clear();
-        chainIntact.addXref(identity);
+        Protein chainIntact = cloneProteinForTranscript(factory, proteinWithConflicts, featureChain.getPrimaryAc());
 
         Institution owner = chainIntact.getOwner();
         CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
@@ -299,6 +289,26 @@ public class OutOfDateParticipantFixer {
             factory.getXrefDao(InteractorXref.class).persist(copy);
             created.addXref(copy);
         }
+
+        created.setCrc64(protein.getCrc64());
+        created.setSequence(protein.getSequence());
+
+        factory.getProteinDao().update((ProteinImpl) created);
+        return created;
+    }
+
+    private Protein cloneProteinForTranscript(DaoFactory factory, Protein protein, String primaryAc) {
+        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel(), protein.getCvInteractorType());
+
+        factory.getProteinDao().persist((ProteinImpl) created);
+
+        InteractorXref identity = ProteinUtils.getUniprotXref(protein);
+
+        InteractorXref copy = new InteractorXref(protein.getOwner(), identity.getCvDatabase(), primaryAc, identity.getCvXrefQualifier());
+        copy.setParent(created);
+        copy.setParentAc(created.getAc());
+        factory.getXrefDao(InteractorXref.class).persist(copy);
+        created.addXref(copy);
 
         created.setCrc64(protein.getCrc64());
         created.setSequence(protein.getSequence());

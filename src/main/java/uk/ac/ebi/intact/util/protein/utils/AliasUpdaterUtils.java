@@ -150,6 +150,7 @@ public class AliasUpdaterUtils {
             // delete remaining outdated/unrecycled aliases
             InteractorAlias alias = toDeleteIterator.next();
             protein.removeAlias( alias );
+            alias.setParent(null);
 
             context.getDaoFactory()
                     .getAliasDao(InteractorAlias.class).delete(alias);
