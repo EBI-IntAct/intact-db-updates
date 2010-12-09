@@ -147,52 +147,54 @@ public abstract class ProteinProcessor {
         Set<String> processedIntactProteins = new HashSet<String>();
 
         for (String protAc : protACsToUpdate) {
-
             DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-
             TransactionStatus transactionStatus = dataContext.beginTransaction();
-            ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
-
-            if (prot == null) {
-                if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
-                try {
-                    dataContext.commitTransaction(transactionStatus);
-                } catch (IntactTransactionException e) {
-                    throw new ProcessorException(e);
-                }
-                continue;
-            }
-
-            // load annotations (to avoid lazyinitializationexceptions later)
-            Hibernate.initialize(prot.getXrefs());
-            Hibernate.initialize(prot.getAnnotations());
-            Hibernate.initialize(prot.getAliases());
-            for (Component c : prot.getActiveInstances()){
-                Hibernate.initialize(c.getXrefs());
-                Hibernate.initialize(c.getAnnotations());
-
-                for (Feature f : c.getBindingDomains()){
-                    Hibernate.initialize(f.getAnnotations());
-                    Hibernate.initialize(f.getRanges());
-                    Hibernate.initialize(f.getAliases());
-                    Hibernate.initialize(f.getXrefs());
-                }
-                Hibernate.initialize(c.getExperimentalRoles());
-                Hibernate.initialize(c.getAliases());
-                Hibernate.initialize(c.getExperimentalPreparations());
-                Hibernate.initialize(c.getParameters());
-                Hibernate.initialize(c.getParticipantDetectionMethods());
-            }
-
-            if (!processedIntactProteins.contains(prot.getAc())){
-                processedIntactProteins.addAll(update(prot, dataContext));
-            }
 
             try {
+                ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
+
+                if (prot == null) {
+                    if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
+                    try {
+                        dataContext.commitTransaction(transactionStatus);
+                    } catch (IntactTransactionException e) {
+                        throw new ProcessorException(e);
+                    }
+                    continue;
+                }
+
+                // load annotations (to avoid lazyinitializationexceptions later)
+                Hibernate.initialize(prot.getXrefs());
+                Hibernate.initialize(prot.getAnnotations());
+                Hibernate.initialize(prot.getAliases());
+                for (Component c : prot.getActiveInstances()){
+                    Hibernate.initialize(c.getXrefs());
+                    Hibernate.initialize(c.getAnnotations());
+
+                    for (Feature f : c.getBindingDomains()){
+                        Hibernate.initialize(f.getAnnotations());
+                        Hibernate.initialize(f.getRanges());
+                        Hibernate.initialize(f.getAliases());
+                        Hibernate.initialize(f.getXrefs());
+                    }
+                    Hibernate.initialize(c.getExperimentalRoles());
+                    Hibernate.initialize(c.getAliases());
+                    Hibernate.initialize(c.getExperimentalPreparations());
+                    Hibernate.initialize(c.getParameters());
+                    Hibernate.initialize(c.getParticipantDetectionMethods());
+                }
+
+                if (!processedIntactProteins.contains(prot.getAc())){
+                    processedIntactProteins.addAll(update(prot, dataContext));
+                }
+
+
                 dataContext.commitTransaction(transactionStatus);
-            } catch (IntactTransactionException e) {
+            } catch (Exception e) {
                 log.fatal("We failed to update the protein " + protAc);
-                dataContext.rollbackTransaction(transactionStatus);
+                if (!transactionStatus.isCompleted()){
+                    dataContext.rollbackTransaction(transactionStatus);
+                }
             }
         }
     }
@@ -232,200 +234,202 @@ public abstract class ProteinProcessor {
         if (uniprotProtein != null){
             DataContext context = IntactContext.getCurrentInstance().getDataContext();
             TransactionStatus status = context.beginTransaction();
+            try {
+                if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotAc);
 
-            if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotAc);
+                ProteinEvent processEvent = new ProteinEvent(this, context, null);
+                processEvent.setUniprotIdentity(uniprotAc);
+                processEvent.setUniprotProtein(uniprotProtein);
 
-            ProteinEvent processEvent = new ProteinEvent(this, context, null);
-            processEvent.setUniprotIdentity(uniprotAc);
-            processEvent.setUniprotProtein(uniprotProtein);
+                // get all the proteins in intact matching primary and secondary acs of this uniprot protein. Get also all the splice variants and feature chains attached to this protein
+                UpdateCaseEvent caseEvent = uniprotIdentityUpdater.collectPrimaryAndSecondaryProteins(processEvent);
 
-            // get all the proteins in intact matching primary and secondary acs of this uniprot protein. Get also all the splice variants and feature chains attached to this protein
-            UpdateCaseEvent caseEvent = uniprotIdentityUpdater.collectPrimaryAndSecondaryProteins(processEvent);
+                // if we can delete proteins without interactions, delete all of the proteins attached to this uniprot entry without interactions
+                if (config.isDeleteProtsWithoutInteractions()){
+                    if (log.isTraceEnabled()) log.trace("Checking for all protein interactions");
 
-            // if we can delete proteins without interactions, delete all of the proteins attached to this uniprot entry without interactions
-            if (config.isDeleteProtsWithoutInteractions()){
-                if (log.isTraceEnabled()) log.trace("Checking for all protein interactions");
+                    Set<Protein> protToDelete = protWithoutInteractionDeleter.collectAndRemoveProteinsWithoutInteractions(caseEvent);
 
-                Set<Protein> protToDelete = protWithoutInteractionDeleter.collectAndRemoveProteinsWithoutInteractions(caseEvent);
-
-                for (Protein p : protToDelete){
-                    ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
-                    proteinDeleter.delete(protEvent);
+                    for (Protein p : protToDelete){
+                        ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
+                        proteinDeleter.delete(protEvent);
+                    }
                 }
-            }
 
-            parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+                parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
 
-            if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
+                if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
-            // filter on 'no-uniprot-update' and multi identities
-            updateFilter.filterNonUniprotAndMultipleUniprot(caseEvent);
+                // filter on 'no-uniprot-update' and multi identities
+                updateFilter.filterNonUniprotAndMultipleUniprot(caseEvent);
 
-            if (log.isTraceEnabled()) log.trace("Checking that it is possible to update existing secondary proteins for " + uniprotProtein.getPrimaryAc() );
+                if (log.isTraceEnabled()) log.trace("Checking that it is possible to update existing secondary proteins for " + uniprotProtein.getPrimaryAc() );
 
-            // filter on the proteins matching a single uniprot protein
-            uniprotRetriever.filterAllSecondaryProteinsPossibleToUpdate(caseEvent);
+                // filter on the proteins matching a single uniprot protein
+                uniprotRetriever.filterAllSecondaryProteinsPossibleToUpdate(caseEvent);
 
-            // secondary acs
-            if (!caseEvent.getSecondaryProteins().isEmpty() || !caseEvent.getSecondaryIsoforms().isEmpty()){
-                uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
-            }
+                // secondary acs
+                if (!caseEvent.getSecondaryProteins().isEmpty() || !caseEvent.getSecondaryIsoforms().isEmpty()){
+                    uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
+                }
 
-            // the master protein in IntAct
-            Protein masterProtein = null;
+                // the master protein in IntAct
+                Protein masterProtein = null;
 
-            // if there are some duplicates and we can fix them, merge them
-            if (caseEvent.getPrimaryProteins().size() > 1){
-                if (config.isFixDuplicates()){
-                    if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
+                // if there are some duplicates and we can fix them, merge them
+                if (caseEvent.getPrimaryProteins().size() > 1){
+                    if (config.isFixDuplicates()){
+                        if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
 
-                    DuplicatesFoundEvent duplicateEvent = duplicateFinder.findProteinDuplicates(caseEvent);
+                        DuplicatesFoundEvent duplicateEvent = duplicateFinder.findProteinDuplicates(caseEvent);
 
-                    // we found real duplicates, we merge them
-                    if (duplicateEvent != null){
-                        if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
+                        // we found real duplicates, we merge them
+                        if (duplicateEvent != null){
+                            if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
 
-                        DuplicateReport report = processDuplicatesProtein(caseEvent, duplicateEvent);
+                            DuplicateReport report = processDuplicatesProtein(caseEvent, duplicateEvent);
 
-                        // the master protein is the result of the merge
-                        if (report.getOriginalProtein() != null){
-                            masterProtein = report.getOriginalProtein();
-                            caseEvent.getPrimaryProteins().clear();
-                            caseEvent.getPrimaryProteins().add(masterProtein);
+                            // the master protein is the result of the merge
+                            if (report.getOriginalProtein() != null){
+                                masterProtein = report.getOriginalProtein();
+                                caseEvent.getPrimaryProteins().clear();
+                                caseEvent.getPrimaryProteins().add(masterProtein);
+                            }
                         }
                     }
                 }
-            }
 
-            try {
-                // update master protein first
-                // update the protein
-                updater.createOrUpdateProtein(caseEvent);
-            } catch (ProteinServiceException e) {
-                caseEvent.getUniprotServiceResult().addException(e);
-            }
-
-            // update isoforms
-            //isoform duplicates to merge
-            if (caseEvent.getPrimaryIsoforms().size() > 1 ){
-                if (config.isFixDuplicates()){
-                    if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
-
-                    Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformsDuplicates(caseEvent);
-
-                    if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-                    Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();
-
-                    for (DuplicatesFoundEvent duplEvt : duplicateEvents){
-                        processDuplicatesTranscript(caseEvent, mergedIsoforms, duplEvt);
-                    }
-
-                    if (!mergedIsoforms.isEmpty()){
-                        caseEvent.getPrimaryIsoforms().clear();
-                        caseEvent.getPrimaryIsoforms().addAll(mergedIsoforms);
-                    }
-                }
-            }
-
-            // update feature chains
-
-            //chain duplicates to merge
-            if (caseEvent.getPrimaryFeatureChains().size() > 1){
-                if (config.isFixDuplicates()){
-                    if (log.isTraceEnabled()) log.trace("Check for possible feature chains duplicates." );
-
-                    Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findFeatureChainDuplicates(caseEvent);
-
-                    if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-                    Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>();
-
-                    for (DuplicatesFoundEvent duplEvt : duplicateEvents){
-                        processDuplicatesTranscript(caseEvent, mergedChains, duplEvt);
-                    }
-
-                    if (!mergedChains.isEmpty()){
-                        caseEvent.getPrimaryFeatureChains().clear();
-                        caseEvent.getPrimaryFeatureChains().addAll(mergedChains);
-                    }
-                }
-
-            }
-
-            boolean canUpdateProteinTranscript = false;
-
-            if (masterProtein == null && caseEvent.getPrimaryProteins().size() == 1){
-                masterProtein = caseEvent.getPrimaryProteins().iterator().next();
-                canUpdateProteinTranscript = true;
-            }
-            else if (masterProtein == null && caseEvent.getPrimaryProteins().size() != 1){
-                caseEvent.getUniprotServiceResult().addException( new ProcessorException("The splice variants of " + uniprotProtein.getPrimaryAc() + " cannot be updated because we found " + caseEvent.getPrimaryProteins().size() + " possible master proteins in IntAct"));
-            }
-            else {
-                canUpdateProteinTranscript = true;
-            }
-
-            if ((!caseEvent.getPrimaryIsoforms().isEmpty() || (caseEvent.getPrimaryIsoforms().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())) && canUpdateProteinTranscript){
                 try {
-                    updater.createOrUpdateIsoform(caseEvent, masterProtein);
+                    // update master protein first
+                    // update the protein
+                    updater.createOrUpdateProtein(caseEvent);
                 } catch (ProteinServiceException e) {
                     caseEvent.getUniprotServiceResult().addException(e);
                 }
-            }
 
-            if ((!caseEvent.getPrimaryFeatureChains().isEmpty() || (caseEvent.getPrimaryFeatureChains().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())) && canUpdateProteinTranscript){
-                try {
-                    updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
-                } catch (ProteinServiceException e) {
-                    caseEvent.getUniprotServiceResult().addException(e);
+                // update isoforms
+                //isoform duplicates to merge
+                if (caseEvent.getPrimaryIsoforms().size() > 1 ){
+                    if (config.isFixDuplicates()){
+                        if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
+
+                        Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformsDuplicates(caseEvent);
+
+                        if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
+                        Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();
+
+                        for (DuplicatesFoundEvent duplEvt : duplicateEvents){
+                            processDuplicatesTranscript(caseEvent, mergedIsoforms, duplEvt);
+                        }
+
+                        if (!mergedIsoforms.isEmpty()){
+                            caseEvent.getPrimaryIsoforms().clear();
+                            caseEvent.getPrimaryIsoforms().addAll(mergedIsoforms);
+                        }
+                    }
                 }
-            }
 
-            if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                processor.fireOnUpdateCase(caseEvent);
-            }
+                // update feature chains
 
-            try {
+                //chain duplicates to merge
+                if (caseEvent.getPrimaryFeatureChains().size() > 1){
+                    if (config.isFixDuplicates()){
+                        if (log.isTraceEnabled()) log.trace("Check for possible feature chains duplicates." );
+
+                        Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findFeatureChainDuplicates(caseEvent);
+
+                        if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
+                        Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>();
+
+                        for (DuplicatesFoundEvent duplEvt : duplicateEvents){
+                            processDuplicatesTranscript(caseEvent, mergedChains, duplEvt);
+                        }
+
+                        if (!mergedChains.isEmpty()){
+                            caseEvent.getPrimaryFeatureChains().clear();
+                            caseEvent.getPrimaryFeatureChains().addAll(mergedChains);
+                        }
+                    }
+
+                }
+
+                boolean canUpdateProteinTranscript = false;
+
+                if (masterProtein == null && caseEvent.getPrimaryProteins().size() == 1){
+                    masterProtein = caseEvent.getPrimaryProteins().iterator().next();
+                    canUpdateProteinTranscript = true;
+                }
+                else if (masterProtein == null && caseEvent.getPrimaryProteins().size() != 1){
+                    caseEvent.getUniprotServiceResult().addException( new ProcessorException("The splice variants of " + uniprotProtein.getPrimaryAc() + " cannot be updated because we found " + caseEvent.getPrimaryProteins().size() + " possible master proteins in IntAct"));
+                }
+                else {
+                    canUpdateProteinTranscript = true;
+                }
+
+                if ((!caseEvent.getPrimaryIsoforms().isEmpty() || (caseEvent.getPrimaryIsoforms().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())) && canUpdateProteinTranscript){
+                    try {
+                        updater.createOrUpdateIsoform(caseEvent, masterProtein);
+                    } catch (ProteinServiceException e) {
+                        caseEvent.getUniprotServiceResult().addException(e);
+                    }
+                }
+
+                if ((!caseEvent.getPrimaryFeatureChains().isEmpty() || (caseEvent.getPrimaryFeatureChains().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())) && canUpdateProteinTranscript){
+                    try {
+                        updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
+                    } catch (ProteinServiceException e) {
+                        caseEvent.getUniprotServiceResult().addException(e);
+                    }
+                }
+
+                if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                    processor.fireOnUpdateCase(caseEvent);
+                }
+                intactProteins.addAll(caseEvent.getPrimaryProteins());
+                intactProteins.addAll(caseEvent.getSecondaryProteins());
+
+                for (ProteinTranscript pt : caseEvent.getPrimaryIsoforms()){
+                    intactProteins.add(pt.getProtein());
+                }
+                for (ProteinTranscript pt : caseEvent.getSecondaryIsoforms()){
+                    intactProteins.add(pt.getProtein());
+                }
+                for (ProteinTranscript pt : caseEvent.getPrimaryFeatureChains()){
+                    intactProteins.add(pt.getProtein());
+                }
+
                 context.commitTransaction(status);
-            } catch (IntactTransactionException e) {
-                throw new ProcessorException(e);
-            }
-
-            intactProteins.addAll(caseEvent.getPrimaryProteins());
-            intactProteins.addAll(caseEvent.getSecondaryProteins());
-
-            for (ProteinTranscript pt : caseEvent.getPrimaryIsoforms()){
-                intactProteins.add(pt.getProtein());
-            }
-            for (ProteinTranscript pt : caseEvent.getSecondaryIsoforms()){
-                intactProteins.add(pt.getProtein());
-            }
-            for (ProteinTranscript pt : caseEvent.getPrimaryFeatureChains()){
-                intactProteins.add(pt.getProtein());
+            }  catch (Exception e) {
+                log.fatal("We failed to update the protein " + uniprotAc);
+                if (!status.isCompleted()){
+                    context.rollbackTransaction(status);
+                }
             }
         }
         else if (config.isProcessProteinNotFoundInUniprot()){
             DataContext context = IntactContext.getCurrentInstance().getDataContext();
             TransactionStatus status = context.beginTransaction();
+            try {
+                List<ProteinImpl> deadProteins = IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByUniprotId(uniprotAc);
 
-            List<ProteinImpl> deadProteins = IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByUniprotId(uniprotAc);
+                if (!deadProteins.isEmpty()){
+                    for (ProteinImpl prot : deadProteins){
+                        ProteinEvent evt = new ProteinEvent(this, context, prot);
 
-            if (!deadProteins.isEmpty()){
-                for (ProteinImpl prot : deadProteins){
-                    ProteinEvent evt = new ProteinEvent(this, context, prot);
-
-                    if (evt.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnUniprotDeadEntry(evt);
+                        if (evt.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                            processor.fireOnUniprotDeadEntry(evt);
+                        }
                     }
                 }
-            }
-            try {
+
                 context.commitTransaction(status);
-            } catch (IntactTransactionException e) {
+            } catch (Exception e) {
                 log.fatal("We failed to update the protein " + uniprotAc);
-                
-                context.rollbackTransaction(status);
+                if (!status.isCompleted()){
+                    context.rollbackTransaction(status);
+                }
             }
         }
 
