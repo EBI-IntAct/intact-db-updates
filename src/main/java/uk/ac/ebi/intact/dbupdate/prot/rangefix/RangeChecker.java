@@ -367,16 +367,18 @@ public class RangeChecker {
             }
         }
         else {
-            // we prepare the new feature sequence
-            clone.prepareSequence(newSequence);
-            // the new full feature sequence
-            String newFullFeatureSequence = clone.getFullSequence();
+            if (!FeatureUtils.isABadRange(clone, newSequence)){
+                // we prepare the new feature sequence
+                clone.prepareSequence(newSequence);
+                // the new full feature sequence
+                String newFullFeatureSequence = clone.getFullSequence();
 
-            // the full feature sequence was and is still not null
-            if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
+                // the full feature sequence was and is still not null
+                if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
 
-                // check that the new feature sequence is the same
-                rangeShifted = checkNewFeatureContent(range, newSequence, rangeShifted, oldFullFeatureSequence, clone, newFullFeatureSequence);
+                    // check that the new feature sequence is the same
+                    rangeShifted = checkNewFeatureContent(range, newSequence, rangeShifted, oldFullFeatureSequence, clone, newFullFeatureSequence);
+                }
             }
         }
         return rangeShifted;
@@ -504,21 +506,26 @@ public class RangeChecker {
             }
         }
         else {
-            // we prepare the new feature sequence
-            clone.prepareSequence(newSequence);
-            // the new full feature sequence
-            String newFullFeatureSequence = clone.getFullSequence();
-
-            // the full feature sequence was and is still not null
-            if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
-
-                // check that the new feature sequence is the same
-                invalidRange = collectInvalidFeatureContent(range, newSequence, oldFullFeatureSequence, clone, newFullFeatureSequence);
+            if (!FeatureUtils.isABadRange(clone, newSequence)){
+                invalidRange = new InvalidRange(range, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.", clone.toString());
             }
-            // the new full feature sequence is null but was not before shifting the ranges
-            else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
-                // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
+            else {
+                // we prepare the new feature sequence
+                clone.prepareSequence(newSequence);
+                // the new full feature sequence
+                String newFullFeatureSequence = clone.getFullSequence();
+
+                // the full feature sequence was and is still not null
+                if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
+
+                    // check that the new feature sequence is the same
+                    invalidRange = collectInvalidFeatureContent(range, newSequence, oldFullFeatureSequence, clone, newFullFeatureSequence);
+                }
+                // the new full feature sequence is null but was not before shifting the ranges
+                else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
+                    // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
+                    invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
+                }
             }
         }
 
