@@ -142,12 +142,12 @@ public class RangeChecker {
         return updatedRanges;
     }
 
-    public UpdatedRange prepareFeatureSequence(Range range, String oldSequence, String newSequence, DataContext context) {
+    public UpdatedRange prepareFeatureSequence(Range range, String newSequence, DataContext context) {
         if (range == null) throw new NullPointerException("Range was null");
 
         UpdatedRange updatedRange = null;
 
-        if (!FeatureUtils.isABadRange(range, oldSequence)){
+        if (!FeatureUtils.isABadRange(range, null)){
             if (!FeatureUtils.isABadRange(range, newSequence)){
                 Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
                 oldRange.setFullSequence(range.getFullSequence());
