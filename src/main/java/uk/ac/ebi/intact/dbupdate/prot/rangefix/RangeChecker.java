@@ -142,22 +142,24 @@ public class RangeChecker {
         return updatedRanges;
     }
 
-    public UpdatedRange prepareFeatureSequence(Range range, String newSequence, DataContext context) {
+    public UpdatedRange prepareFeatureSequence(Range range, String oldSequence, String newSequence, DataContext context) {
         if (range == null) throw new NullPointerException("Range was null");
 
         UpdatedRange updatedRange = null;
 
-        if (!FeatureUtils.isABadRange(range, newSequence)){
-            Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
-            oldRange.setFullSequence(range.getFullSequence());
+        if (!FeatureUtils.isABadRange(range, oldSequence)){
+            if (!FeatureUtils.isABadRange(range, newSequence)){
+                Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
+                oldRange.setFullSequence(range.getFullSequence());
 
-            if (log.isInfoEnabled())
-                log.info("Prepare sequence of the range " + logInfo(range));
+                if (log.isInfoEnabled())
+                    log.info("Prepare sequence of the range " + logInfo(range));
 
-            range.prepareSequence(newSequence);
-            context.getDaoFactory().getRangeDao().update(range);
+                range.prepareSequence(newSequence);
+                context.getDaoFactory().getRangeDao().update(range);
 
-            updatedRange = new UpdatedRange(oldRange, range);
+                updatedRange = new UpdatedRange(oldRange, range);
+            }
         }
 
         return updatedRange;
@@ -676,11 +678,19 @@ public class RangeChecker {
                 }
             }
             else {
-                String isABadRange = FeatureUtils.getBadRangeInfo(range, newSequence);
+                String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
                 if (isABadRange != null){
-                    InvalidRange invalid = new InvalidRange(range, newSequence, isABadRange);
+                    InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
                     invalidRanges.add(invalid);
+                }
+                else {
+                    String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
+
+                    if (isABadRange2 != null){
+                        InvalidRange invalid = new InvalidRange(range, newSequence, isABadRange2);
+                        invalidRanges.add(invalid);
+                    }
                 }
             }
         }
@@ -717,10 +727,17 @@ public class RangeChecker {
             }
         }
         else {
-            String isABadRange = FeatureUtils.getBadRangeInfo(range, newSequence);
+            String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
             if (isABadRange != null){
-                invalidRange = new InvalidRange(range, newSequence, isABadRange);
+                invalidRange = new InvalidRange(range, oldSequence, isABadRange);
+            }
+            else {
+                String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
+
+                if (isABadRange2 != null){
+                    invalidRange = new InvalidRange(range, newSequence, isABadRange2);
+                }
             }
         }
 
