@@ -302,7 +302,7 @@ public class UniprotProteinUpdater {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext() );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
 
         for (XrefUpdaterReport report : reports){
             if (report.isUpdated()) {
@@ -311,7 +311,7 @@ public class UniprotProteinUpdater {
         }
 
         // Aliases
-        AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext() );
+        AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext(), processor);
 
         // Sequence
         updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt);
@@ -520,7 +520,7 @@ public class UniprotProteinUpdater {
         }
 
         // update all Xrefs
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext() );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
 
         for (XrefUpdaterReport report : reports){
             if (report.isUpdated()) {
@@ -529,7 +529,7 @@ public class UniprotProteinUpdater {
         }
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext() );
+        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
 
         // Sequence
         if (uniprotTranscript.getSequence() != null){
@@ -696,7 +696,7 @@ public class UniprotProteinUpdater {
             pdao.persist( ( ProteinImpl ) protein );
 
             // Create UniProt Xrefs
-            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context );
+            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context, processor);
 
             pdao.update( ( ProteinImpl ) protein );
             return protein;
@@ -762,7 +762,7 @@ public class UniprotProteinUpdater {
         xdao.persist( xref );
 
         // Create UniProt Xrefs
-        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, context );
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, context, processor);
 
         pdao.update( ( ProteinImpl ) variant );
 

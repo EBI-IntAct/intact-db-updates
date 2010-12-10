@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -73,18 +74,18 @@ public final class XrefUpdaterUtils {
     public static Collection<XrefUpdaterReport> updateAllProteinTranscriptXrefs( Protein protein,
                                                     UniprotProteinTranscript uniprotTranscript,
                                                     UniprotProtein uniprot,
-                                                    DataContext context
+                                                    DataContext context,
+                                                    ProteinUpdateProcessor processor
     ) {
 
         List<Xref> deletedXrefs = new ArrayList<Xref>();
 
         //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotTranscript, uniprot, context );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotTranscript, uniprot, context, processor );
 
         // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
-        Collection<InteractorXref> xrefs = protein.getXrefs();
-        for (Iterator<InteractorXref> iterator = xrefs.iterator(); iterator.hasNext();) {
-            InteractorXref xref =  iterator.next();
+        Collection<InteractorXref> xrefs = new ArrayList(protein.getXrefs());
+        for (InteractorXref xref : xrefs) {
 
             // Dont's check uniprot xref as those one have been done earlier and as anyway, the uniprot Xref won't have
             // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
@@ -96,10 +97,8 @@ public final class XrefUpdaterUtils {
                 continue;
             }
             else {
-                context.getDaoFactory().getXrefDao(InteractorXref.class).delete(xref);
                 deletedXrefs.add(xref);
-                iterator.remove();
-
+                ProteinTools.deleteInteractorXRef(protein, context, xref, processor);
             }
         }
 
@@ -112,7 +111,8 @@ public final class XrefUpdaterUtils {
     public static Collection<XrefUpdaterReport> updateAllXrefs( Protein protein,
                                                     UniprotProtein uniprotProtein,
                                                     Map<String, String> databaseName2mi,
-                                                    DataContext context
+                                                    DataContext context,
+                                                    ProteinUpdateProcessor processor
     ) {
 
         Map<String, Collection<UniprotXref>> xrefCluster = XrefUpdaterUtils.clusterByDatabaseName( uniprotProtein.getCrossReferences() );
@@ -142,7 +142,7 @@ public final class XrefUpdaterUtils {
             if(cvDatabase != null){
                 // Convert collection into Xref
                 Collection<Xref> xrefs = XrefUpdaterUtils.convert( uniprotXrefs, cvDatabase );
-                XrefUpdaterReport report = XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs, context );
+                XrefUpdaterReport report = XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs, context, processor);
                 createdXrefs.addAll(Arrays.asList(report.getAddedXrefs()));
                 deletedXrefs.addAll(Arrays.asList(report.getRemovedXrefs()));
             }else{
@@ -150,7 +150,7 @@ public final class XrefUpdaterUtils {
             }
         }
         //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context, processor );
 
         // CONVERT ALL THE uniprotProtein crossReferences to intact protein InteractorXref and put them in the convertedXrefs
         // collection.
@@ -175,9 +175,8 @@ public final class XrefUpdaterUtils {
         }
 
         // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
-        Collection<InteractorXref> xrefs = protein.getXrefs();
-        for (Iterator<InteractorXref> iterator = xrefs.iterator(); iterator.hasNext();) {
-            InteractorXref xref =  iterator.next();
+        Collection<InteractorXref> xrefs = new ArrayList(protein.getXrefs());
+        for (InteractorXref xref : xrefs) {
 
             // Dont's check uniprot xref as those one have been done earlier and as anyway, the uniprot Xref won't have
             // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
@@ -190,8 +189,7 @@ public final class XrefUpdaterUtils {
             }
             // If the protein xref does not exist in the uniprot entry anymore delete it.
             if(!convertedXrefs.contains(xref)){
-                context.getDaoFactory().getXrefDao(InteractorXref.class).delete(xref);
-                iterator.remove();
+                ProteinTools.deleteInteractorXRef(protein, context, xref, processor);
             }
         }
 
@@ -217,7 +215,7 @@ public final class XrefUpdaterUtils {
      *
      * @return true if the protein has been updated, otherwise false
      */
-    public static XrefUpdaterReport updateXrefCollection( Protein protein, CvDatabase database, Collection<Xref> newXrefs, DataContext context ) {
+    public static XrefUpdaterReport updateXrefCollection( Protein protein, CvDatabase database, Collection<Xref> newXrefs, DataContext context, ProteinUpdateProcessor processor) {
 
         if ( protein == null ) {
             throw new IllegalArgumentException( "You must give a non null protein." );
@@ -266,14 +264,13 @@ public final class XrefUpdaterUtils {
             if( log.isDebugEnabled() ) {
                 log.debug( "DELETING: " + xref );
             }
-            Iterator<InteractorXref> protXrefsIterator = protein.getXrefs().iterator();
+            Collection<InteractorXref> refs = new ArrayList(protein.getXrefs());
+            Iterator<InteractorXref> protXrefsIterator = refs.iterator();
             while (protXrefsIterator.hasNext()) {
                 InteractorXref interactorXref =  protXrefsIterator.next();
 
                 if (interactorXref.getPrimaryId().equals(xref.getPrimaryId())) {
-                    context.getDaoFactory()
-                            .getXrefDao(InteractorXref.class).delete(interactorXref);
-                    protXrefsIterator.remove();
+                    ProteinTools.deleteInteractorXRef(protein, context, interactorXref, processor);
                 }
 
             }
@@ -317,19 +314,17 @@ public final class XrefUpdaterUtils {
         return older;
     }
 
-    public static XrefUpdaterReport fixDuplicateOfSameUniprotIdentity(List<InteractorXref> uniprotIdentities, Protein prot, DataContext context){
+    public static XrefUpdaterReport fixDuplicateOfSameUniprotIdentity(List<InteractorXref> uniprotIdentities, Protein prot, DataContext context, ProteinUpdateProcessor processor){
         InteractorXref original = getOlderUniprotIdentity(uniprotIdentities);
 
-        XrefDao<InteractorXref> refDao = context.getDaoFactory().getXrefDao(InteractorXref.class);
         ProteinDao proteinDao =  context.getDaoFactory().getProteinDao();
         Collection<InteractorXref> deletedDuplicate = new ArrayList<InteractorXref>();
 
         if (original != null){
             for (InteractorXref ref : uniprotIdentities){
                 if (!ref.equals(original)){
-                    prot.removeXref(ref);
                     deletedDuplicate.add(ref);
-                    refDao.delete(ref);
+                    ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
                 }
             }
         }
@@ -341,12 +336,12 @@ public final class XrefUpdaterUtils {
         return report;
     }
 
-    public static Collection<XrefUpdaterReport> updateUniprotXrefs( Protein protein, UniprotProtein uniprotProtein, DataContext context ) {
+    public static Collection<XrefUpdaterReport> updateUniprotXrefs( Protein protein, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor ) {
         Collection<XrefUpdaterReport> reports = new ArrayList<XrefUpdaterReport> ();
 
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
         if (uniprotIdentities.size() > 1){
-            XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, protein, context);
+            XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, protein, context, processor);
             if (intermediary != null){
                 reports.add(intermediary);
             }
@@ -377,19 +372,20 @@ public final class XrefUpdaterUtils {
             log.debug( "Built " + ux.size() + " UniProt Xref(s)." );
         }
 
-        reports.add(XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux, context ));
+        reports.add(XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux, context, processor));
         return reports;
     }
 
     public static Collection<XrefUpdaterReport> updateProteinTranscriptUniprotXrefs( Protein intactTranscript,
                                                                                      UniprotProteinTranscript uniprotProteinTranscript,
                                                                                      UniprotProtein uniprotProtein,
-                                                                                     DataContext context) {
+                                                                                     DataContext context,
+                                                                                     ProteinUpdateProcessor processor) {
         Collection<XrefUpdaterReport> reports = new ArrayList<XrefUpdaterReport> ();
 
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(intactTranscript);
         if (uniprotIdentities.size() > 1){
-            XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, intactTranscript, context);
+            XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, intactTranscript, context, processor);
             if (intermediary != null){
                 reports.add(intermediary);
             }
@@ -415,7 +411,7 @@ public final class XrefUpdaterUtils {
         if ( log.isDebugEnabled() ) {
             log.debug( "Built " + ux.size() + " Xref(s)." );
         }
-        reports.add(XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux, context ));
+        reports.add(XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux, context, processor));
 
         return reports;
     }

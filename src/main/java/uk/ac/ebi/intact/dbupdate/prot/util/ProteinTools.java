@@ -4,8 +4,15 @@ import org.hibernate.Hibernate;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -335,5 +342,143 @@ public class ProteinTools {
         }
 
         return false;
+    }
+
+    public static void deleteInteractorXRef(Protein protein, DataContext context, InteractorXref xref, ProteinUpdateProcessor processor) {
+        List<InteractorXref> xrefDuplicates = new ArrayList<InteractorXref>();
+
+        for (InteractorXref ref : protein.getXrefs()){
+            if (xref.equals(ref)){
+                xrefDuplicates.add(ref);
+            }
+        }
+
+        if (xrefDuplicates.size() > 1){
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.alias_duplicates));
+
+            for (InteractorXref ref : xrefDuplicates){
+                protein.removeXref( ref );
+            }
+
+            String refAcKept = null;
+            for (InteractorXref ref : xrefDuplicates){
+                if (!ref.getAc().equalsIgnoreCase(xref.getAc())){
+                    protein.addXref(ref);
+                    refAcKept = ref.getAc();
+                    break;
+                }
+            }
+            XrefDao<InteractorXref> refDao = context.getDaoFactory().getXrefDao(InteractorXref.class);
+
+            for (InteractorXref ref : xrefDuplicates){
+                if (!refAcKept.equalsIgnoreCase(ref.getAc())){
+                    ref.setParent(null);
+
+                    if (!refDao.isTransient(ref)) {
+
+                        refDao.delete(ref);
+                    } else {
+                        refDao.deleteByAc(ref.getAc());
+                    }
+                }
+            }
+        }
+        else{
+            protein.removeXref( xref );
+            xref.setParent(null);
+
+            context.getDaoFactory().getXrefDao(InteractorXref.class).delete(xref);
+        }
+    }
+
+    public static void deleteAlias(Protein protein, DataContext context, InteractorAlias alias, ProteinUpdateProcessor processor) {
+        List<InteractorAlias> aliasDuplicates = new ArrayList<InteractorAlias>();
+
+        for (InteractorAlias a : protein.getAliases()){
+            if (alias.equals(a)){
+                aliasDuplicates.add(a);
+            }
+        }
+
+        if (aliasDuplicates.size() > 1){
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + aliasDuplicates.size() + " duplicates of the same interactorAlias " + alias.getName(), UpdateError.alias_duplicates));
+
+            for (InteractorAlias a : aliasDuplicates){
+                protein.removeAlias( a );
+            }
+
+            String aliasAcKept = null;
+            for (InteractorAlias a : aliasDuplicates){
+                if (!a.getAc().equalsIgnoreCase(alias.getAc())){
+                    protein.addAlias(a);
+                    aliasAcKept = a.getAc();
+                    break;
+                }
+            }
+            AliasDao<InteractorAlias> aliasDao = context.getDaoFactory().getAliasDao(InteractorAlias.class);
+
+            for (InteractorAlias a : aliasDuplicates){
+                if (!aliasAcKept.equalsIgnoreCase(a.getAc())){
+                    a.setParent(null);
+
+                    if (!aliasDao.isTransient(a)) {
+
+                        aliasDao.delete(a);
+                    } else {
+                        aliasDao.deleteByAc(a.getAc());
+                    }
+                }
+            }
+        }
+        else{
+            protein.removeAlias( alias );
+            alias.setParent(null);
+
+            context.getDaoFactory().getAliasDao(InteractorAlias.class).delete(alias);
+        }
+    }
+
+    public static void deleteAnnotation(AnnotatedObject ao, DataContext context, Annotation annotation, ProteinUpdateProcessor processor) {
+        List<Annotation> annotationDuplicates = new ArrayList<Annotation>();
+
+        for (Annotation a : ao.getAnnotations()){
+            if (annotation.equals(a)){
+                annotationDuplicates.add(a);
+            }
+        }
+
+        if (annotationDuplicates.size() > 1){
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + annotationDuplicates.size() + " duplicates of the same annotation " + annotation.getAnnotationText(), UpdateError.annotations_duplicates));
+
+            for (Annotation a : annotationDuplicates){
+                ao.removeAnnotation( a );
+            }
+
+            String annotationAcKept = null;
+            for (Annotation a : annotationDuplicates){
+                if (!a.getAc().equalsIgnoreCase(annotation.getAc())){
+                    ao.addAnnotation(a);
+                    annotationAcKept = a.getAc();
+                    break;
+                }
+            }
+            AnnotationDao annDao = context.getDaoFactory().getAnnotationDao();
+
+            for (Annotation a : annotationDuplicates){
+                if (!annotationAcKept.equalsIgnoreCase(a.getAc())){
+                    if (!annDao.isTransient(a)) {
+
+                        annDao.delete(a);
+                    } else {
+                        annDao.deleteByAc(a.getAc());
+                    }
+                }
+            }
+        }
+        else{
+            ao.removeAnnotation( annotation );
+
+            context.getDaoFactory().getAnnotationDao().delete(annotation);
+        }
     }
 }

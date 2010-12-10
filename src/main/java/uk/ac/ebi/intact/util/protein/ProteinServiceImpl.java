@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFinder;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFixer;
@@ -82,6 +83,8 @@ public class ProteinServiceImpl implements ProteinService {
      */
     private boolean isGlobalProteinUpdate = false;
 
+    private ProteinUpdateProcessor processor;
+
     private DuplicatesFixer duplicateFixer;
     private DuplicatesFinder duplicateFinder;
 
@@ -95,6 +98,7 @@ public class ProteinServiceImpl implements ProteinService {
         //    throw new IllegalArgumentException( "You must give a non null implementation of a UniProt Service." );
         //}
         this.uniprotService = uniprotService;
+        this.processor = new ProteinUpdateProcessor();
     }
 
     /////////////////////////
@@ -394,7 +398,7 @@ public class ProteinServiceImpl implements ProteinService {
             for (Protein protein : primaryProteins){
                 List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
                 if (uniprotIdentities.size() > 1){
-                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, IntactContext.getCurrentInstance().getDataContext());
+                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, IntactContext.getCurrentInstance().getDataContext(), processor);
                     if (report != null){
                         if (report.isUpdated()) {
                             uniprotServiceResult.addXrefUpdaterReport(report);
@@ -408,7 +412,7 @@ public class ProteinServiceImpl implements ProteinService {
             for (Protein protein : secondaryProteins){
 
                 // update UniProt Xrefs
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
                 for (XrefUpdaterReport report : xrefReports){
                     if (report.isUpdated()) {
@@ -462,7 +466,7 @@ public class ProteinServiceImpl implements ProteinService {
 
                 List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
                 if (uniprotIdentities.size() > 1){
-                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, IntactContext.getCurrentInstance().getDataContext());
+                    XrefUpdaterReport report = XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, IntactContext.getCurrentInstance().getDataContext(), processor);
                     if (report != null){
                         if (report.isUpdated()) {
                             uniprotServiceResult.addXrefUpdaterReport(report);
@@ -477,7 +481,7 @@ public class ProteinServiceImpl implements ProteinService {
                 proteins.add( protein );
 
                 // update UniProt Xrefs
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
                 for (XrefUpdaterReport report : xrefReports){
                     if (report.isUpdated()) {
@@ -773,7 +777,7 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext() );
+        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor);
 
         for (XrefUpdaterReport report : reports){
             if (report.isUpdated()) {
@@ -782,7 +786,7 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         // Aliases
-        AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+        AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
         // Sequence
         updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64());
@@ -1164,10 +1168,10 @@ public class ProteinServiceImpl implements ProteinService {
         }
 
         // update UniProt Xrefs
-        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( transcript, uniprotTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( transcript, uniprotTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
         // Sequence
         updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()));
@@ -1326,7 +1330,7 @@ public class ProteinServiceImpl implements ProteinService {
         xdao.persist( xref );
 
         // Create UniProt Xrefs
-        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext() );
+        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
         pdao.update( ( ProteinImpl ) variant );
 
@@ -1378,7 +1382,7 @@ public class ProteinServiceImpl implements ProteinService {
             pdao.persist( ( ProteinImpl ) protein );
 
             // Create UniProt Xrefs
-            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein,IntactContext.getCurrentInstance().getDataContext() );
+            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein,IntactContext.getCurrentInstance().getDataContext(), processor);
 
             pdao.update( ( ProteinImpl ) protein );
             IntactContext.getCurrentInstance().getDataContext().commitTransaction(transactionStatus);

@@ -221,7 +221,7 @@ public class UniprotIdentityUpdater {
         if (evt.getSecondaryIsoforms().size() > 0){
             updateSecondaryAcsForIsoforms(evt);
         }
-        
+
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
             processor.fireOnSecondaryAcsFound(evt);
@@ -240,8 +240,11 @@ public class UniprotIdentityUpdater {
 
         for (Protein prot : secondaryProteins){
 
-            Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext());
-            serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
+                serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+            }
             primaryProteins.add(prot);
         }
 
@@ -259,8 +262,11 @@ public class UniprotIdentityUpdater {
             UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();
 
             if (spliceVariant != null){
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext());
-                serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+                if (evt.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                    Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
+                    serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+                }
                 primaryProteins.add(prot);
             }
         }

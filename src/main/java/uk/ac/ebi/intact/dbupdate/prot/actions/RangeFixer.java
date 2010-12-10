@@ -86,10 +86,11 @@ public class RangeFixer {
      * Checks if a feature contains annotations for invalid ranges or ranges with conflicts and checks if these annotations are still valids.
      * If not remove them.
      * @param feature
-     * @param factory
+     * @param context
      * @return
      */
-    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DaoFactory factory){
+    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor){
+        DaoFactory factory = context.getDaoFactory();
 
         // the annotations of a feature
         feature.getAnnotations().size();
@@ -131,16 +132,14 @@ public class RangeFixer {
                 String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
 
                 if (!existingRanges.containsKey(rangeAc)){
-                    feature.removeAnnotation(annotation);
-                    annDao.delete(annotation);
+                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 else{
                     if (existingRanges.get(rangeAc)){
                         invalidRanges.add(rangeAc);
                     }
                     else{
-                        feature.removeAnnotation(annotation);
-                        annDao.delete(annotation);
+                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                 }
             }
@@ -148,13 +147,11 @@ public class RangeFixer {
                 String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
 
                 if (!existingRanges.containsKey(rangeAc)){
-                    feature.removeAnnotation(annotation);
-                    annDao.delete(annotation);
+                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 else {
                     if (!existingRanges.get(rangeAc)){
-                        feature.removeAnnotation(annotation);
-                        annDao.delete(annotation);
+                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     else if(!featureReports.containsKey(rangeAc)){
                         InvalidFeatureReport report = new InvalidFeatureReport();
@@ -167,13 +164,11 @@ public class RangeFixer {
                 String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
 
                 if (!existingRanges.containsKey(rangeAc)){
-                    feature.removeAnnotation(annotation);
-                    annDao.delete(annotation);
+                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 else {
                     if (!existingRanges.get(rangeAc)){
-                        feature.removeAnnotation(annotation);
-                        annDao.delete(annotation);
+                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     else if(!invalidRanges.contains(rangeAc)){
                         if (featureReports.containsKey(rangeAc)){
@@ -193,13 +188,11 @@ public class RangeFixer {
                 String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
 
                 if (!existingRanges.containsKey(rangeAc)){
-                    feature.removeAnnotation(annotation);
-                    annDao.delete(annotation);
+                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 else{
                     if (!existingRanges.get(rangeAc)){
-                        feature.removeAnnotation(annotation);
-                        annDao.delete(annotation);
+                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     else if (featureReports.containsKey(rangeAc)){
                         InvalidFeatureReport report = featureReports.get(rangeAc);
@@ -224,9 +217,10 @@ public class RangeFixer {
      * After having shifted the ranges, it is possible that ranges with previous range conflicts have been fixed and we need to
      * remove annotations concerning this ranges at the level of the feature
      * @param feature
-     * @param factory
+     * @param context
      */
-    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DaoFactory factory){
+    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor){
+        DaoFactory factory = context.getDaoFactory();
 
         Collection<Annotation> annotationsFeature = new ArrayList<Annotation>();
         annotationsFeature.addAll(feature.getAnnotations());
@@ -256,8 +250,7 @@ public class RangeFixer {
 
                 if (existingInvalidRanges.containsKey(rangeAc)){
                     if (!existingInvalidRanges.get(rangeAc)){
-                        feature.removeAnnotation(annotation);
-                        annDao.delete(annotation);
+                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                 }
             }
@@ -711,7 +704,7 @@ public class RangeFixer {
             Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
 
             for (Feature feature : features){
-                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext.getDaoFactory());
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor);
 
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){
@@ -766,7 +759,7 @@ public class RangeFixer {
                         }
                     }
 
-                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext.getDaoFactory());
+                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext, processor);
                 }
 
                 if (!totalInvalidRanges.isEmpty()){

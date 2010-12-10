@@ -37,10 +37,11 @@ public class DeadUniprotFixer {
         Protein protein = evt.getProtein();
 
         updateAnnotations(protein, evt.getDataContext());
-        updateXRefs(protein, evt.getDataContext());
         
         if (evt.getSource() instanceof ProteinUpdateProcessor) {
             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+            updateXRefs(protein, evt.getDataContext(), updateProcessor);
+
             updateProcessor.fireOnUniprotDeadEntry(new ProteinEvent(updateProcessor, evt.getDataContext(), evt.getProtein()));
         }
     }
@@ -105,12 +106,12 @@ public class DeadUniprotFixer {
      * This method removes all the cross references which are not intact cross references and replace the uniprot identity with 'uniprot-removed-ac'
      * @param protein : the dead protein in IntAct
      */
-    private void updateXRefs(Protein protein, DataContext context){
+    private void updateXRefs(Protein protein, DataContext context, ProteinUpdateProcessor processor){
         DaoFactory factory = context.getDaoFactory();
 
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
         if (uniprotIdentities.size() > 1){
-            XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, context);
+            XrefUpdaterUtils.fixDuplicateOfSameUniprotIdentity(ProteinTools.getAllUniprotIdentities(protein), protein, context, processor);
         }
 
         Collection<InteractorXref> xRefs = protein.getXrefs();
@@ -154,7 +155,9 @@ public class DeadUniprotFixer {
             }
 
             if (toDelete){
-                xRefsToRemove.add(ref);
+                if (!xRefsToRemove.contains(ref)){
+                    xRefsToRemove.add(ref);
+                }
             }
             else if (isUniprotIdentity){
                 CvXrefQualifier uniprot_removed_ac = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
@@ -170,9 +173,7 @@ public class DeadUniprotFixer {
         }
 
         for (InteractorXref refToRemove : xRefsToRemove){
-            protein.removeXref(refToRemove);
-
-            refDao.delete(refToRemove);
+            ProteinTools.deleteInteractorXRef(protein, context, refToRemove, processor);
         }
 
         factory.getProteinDao().update((ProteinImpl) protein);
