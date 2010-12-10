@@ -366,7 +366,19 @@ public class RangeChecker {
                 rangeShifted = false;
             }
         }
+        else {
+            // we prepare the new feature sequence
+            clone.prepareSequence(newSequence);
+            // the new full feature sequence
+            String newFullFeatureSequence = clone.getFullSequence();
 
+            // the full feature sequence was and is still not null
+            if (newFullFeatureSequence != null && oldFullFeatureSequence != null){
+
+                // check that the new feature sequence is the same
+                rangeShifted = checkNewFeatureContent(range, newSequence, rangeShifted, oldFullFeatureSequence, clone, newFullFeatureSequence);
+            }
+        }
         return rangeShifted;
     }
 
