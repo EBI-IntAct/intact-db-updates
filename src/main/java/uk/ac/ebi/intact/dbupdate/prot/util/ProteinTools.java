@@ -354,7 +354,7 @@ public class ProteinTools {
         }
 
         if (xrefDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.alias_duplicates));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.xref_duplicates));
 
             for (InteractorXref ref : xrefDuplicates){
                 protein.removeXref( ref );
