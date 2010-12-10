@@ -506,7 +506,7 @@ public class RangeChecker {
             }
         }
         else {
-            if (!FeatureUtils.isABadRange(clone, newSequence)){
+            if (FeatureUtils.isABadRange(clone, newSequence)){
                 invalidRange = new InvalidRange(range, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.", clone.toString());
             }
             else {
