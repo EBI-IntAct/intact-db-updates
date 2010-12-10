@@ -48,8 +48,8 @@ public class GlobaldProteinUpdate {
 
             ProteinUpdateProcessor updateProcessor = new ProteinUpdateProcessor();
             System.out.println("Starting the global update");
-            //updateProcessor.updateAll();
-            List<Protein> proteins = updateProcessor.retrieveAndUpdateProteinFromUniprot("Q9XYZ4");
+            updateProcessor.updateAll();
+            //List<Protein> proteins = updateProcessor.retrieveAndUpdateProteinFromUniprot("Q9XYZ4");
 
         } catch (IOException e) {
             System.err.println("The repository " + filename + " cannot be found. We cannot write log files and so we cannot run a global protein update.");
