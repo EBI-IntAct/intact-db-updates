@@ -354,7 +354,7 @@ public class ProteinTools {
         }
 
         if (xrefDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.xref_duplicates));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.xref_duplicates, protein));
 
             for (InteractorXref ref : xrefDuplicates){
                 protein.removeXref( ref );
@@ -401,7 +401,7 @@ public class ProteinTools {
         }
 
         if (aliasDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + aliasDuplicates.size() + " duplicates of the same interactorAlias " + alias.getName(), UpdateError.alias_duplicates));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + aliasDuplicates.size() + " duplicates of the same interactorAlias " + alias.getName(), UpdateError.alias_duplicates, protein));
 
             for (InteractorAlias a : aliasDuplicates){
                 protein.removeAlias( a );
