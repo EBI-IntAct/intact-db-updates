@@ -278,6 +278,19 @@ public abstract class ProteinProcessor {
 
                 // if there are some duplicates and we can fix them, merge them
                 if (caseEvent.getPrimaryProteins().size() > 1){
+                    for (Protein prot : caseEvent.getPrimaryProteins()){
+                        if (prot.getSequence() != null){
+                            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), caseEvent.getProtein());
+
+                            if (transcriptsWithSameSequence != null){
+                                if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                    processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                }
+                            }
+                        }
+                    }
+
                     if (config.isFixDuplicates()){
                         if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
 
