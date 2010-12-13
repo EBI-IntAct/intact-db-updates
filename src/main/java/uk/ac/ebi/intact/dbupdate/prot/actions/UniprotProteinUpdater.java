@@ -27,6 +27,7 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -439,7 +440,7 @@ public class UniprotProteinUpdater {
 
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
-                else if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
+                else if (ProteinUtils.isSpliceVariant(protein) || ProteinTools.isFeatureChain(protein)){
                     fixedProtein = participantFixer.createDeprecatedProtein(participantEvent, true);
                     rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, false);
                 }

@@ -528,7 +528,7 @@ public abstract class ProteinProcessor {
             boolean canBeUpdated = true;
             boolean isProteinTranscript = false;
 
-            if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
+            if (ProteinTools.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
                 canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent);
                 isProteinTranscript = true;
             }

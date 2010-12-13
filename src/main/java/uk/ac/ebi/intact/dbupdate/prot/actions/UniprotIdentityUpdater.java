@@ -121,7 +121,7 @@ public class UniprotIdentityUpdater {
         ProteinTools.loadCollections(proteinsInIntact);
 
         for (ProteinImpl p : proteinsInIntact){
-            if (!ProteinUtils.isFeatureChain(p)){
+            if (!ProteinTools.isFeatureChain(p)){
                 primaryFeatureChains.add(new ProteinTranscript(p, uniprotTranscript));
             }
         }
@@ -206,11 +206,11 @@ public class UniprotIdentityUpdater {
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
         evt.setPrimaryFeatureChains(primaryChains);
 
-        collectFeatureChainsFrom(evt, evt.getPrimaryProteins(), chains, proteinDao);
-        collectFeatureChainsFrom(evt, evt.getSecondaryProteins(), chains, proteinDao);
+        collectFeatureChainsFrom(evt, evt.getPrimaryProteins(), chains, proteinDao, true);
+        collectFeatureChainsFrom(evt, evt.getSecondaryProteins(), chains, proteinDao, false);
     }
 
-    private void collectFeatureChainsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotFeatureChain> variants, ProteinDao proteinDao) {
+    private void collectFeatureChainsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotFeatureChain> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         for (Protein primary : proteins){
@@ -255,8 +255,10 @@ public class UniprotIdentityUpdater {
             }
         }
 
-        for (UniprotFeatureChain variant : variants){
-            addFeatureChainsWithoutParents(evt.getPrimaryFeatureChains(), variant, proteinDao);
+        if (collectTranscriptWithoutParents){
+            for (UniprotFeatureChain variant : variants){
+                addFeatureChainsWithoutParents(evt.getPrimaryFeatureChains(), variant, proteinDao);
+            }
         }
     }
 
