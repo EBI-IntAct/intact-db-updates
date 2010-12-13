@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
@@ -273,7 +274,8 @@ public class IntactParentUpdater {
         return proteinTranscriptsWithoutParent;
     }
 
-    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, DaoFactory factory){
+    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, DataContext context, ProteinUpdateProcessor processor){
+        DaoFactory factory = context.getDaoFactory();
 
         if (masterProtein != null){
             String masterAc = masterProtein.getAc();
@@ -285,6 +287,9 @@ public class IntactParentUpdater {
                     db = CvObjectUtils.createCvObject(masterProtein.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
                     factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
                 }
+
+                Collection<String> parentAcs = new ArrayList<String> (1);
+                parentAcs.add(masterAc);
 
                 for (Protein t : transcripts){
                     InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(t);
@@ -311,6 +316,9 @@ public class IntactParentUpdater {
                     InteractorXref parent = new InteractorXref(t.getOwner(), db, masterAc, parentXRef);
 
                     if (!t.getXrefs().contains(parent)){
+                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, null, parentAcs);
+                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                        
                         factory.getXrefDao(InteractorXref.class).persist(parent);
                         t.addXref(parent);
 
