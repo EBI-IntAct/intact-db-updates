@@ -526,11 +526,9 @@ public abstract class ProteinProcessor {
             if (log.isTraceEnabled()) log.trace("Filtering protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+") for uniprot update");
 
             boolean canBeUpdated = true;
-            boolean isProteinTranscript = false;
 
             if (ProteinTools.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
                 canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent);
-                isProteinTranscript = true;
             }
 
             if (canBeUpdated){

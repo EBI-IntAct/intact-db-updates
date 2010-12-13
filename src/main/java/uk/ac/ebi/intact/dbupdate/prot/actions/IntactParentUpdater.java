@@ -139,7 +139,6 @@ public class IntactParentUpdater {
                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " doesn't have any parents."
                         , UpdateError.transcript_without_parent, protein));
             }
-            canBeUpdated = false;
         }
 
         return canBeUpdated;

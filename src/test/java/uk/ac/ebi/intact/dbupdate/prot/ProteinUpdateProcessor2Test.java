@@ -139,7 +139,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx1", null, getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT)));
         deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx2", null, getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.CHEBI_MI_REF, CvDatabase.CHEBI)));
-        deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx3", getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT)));
+        deadProtein.addXref(getMockBuilder().createXref(deadProtein, "xxxx3", getMockBuilder().createCvObject(CvXrefQualifier.class, null, "intact-secondary"), getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT)));
 
         getCorePersister().saveOrUpdate(deadProtein);
 
@@ -168,7 +168,7 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         Assert.assertEquals(2, reloadedMaster.getXrefs().size());
         assertHasXref(reloadedMaster, CvDatabase.UNIPROT, CvXrefQualifier.UNIPROT_REMOVED_AC, "Pxxxxx");
-        assertHasXref(reloadedMaster, CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT, "xxxx3");
+        assertHasXref(reloadedMaster, CvDatabase.INTACT, "intact-secondary", "xxxx3");
 
         boolean hasNoUniprotUpdate = false;
         boolean hasCaution = false;
