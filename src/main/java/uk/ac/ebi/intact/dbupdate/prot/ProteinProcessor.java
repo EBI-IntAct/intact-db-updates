@@ -256,7 +256,7 @@ public abstract class ProteinProcessor {
                     }
                 }
 
-                parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+                List<Protein> transcriptsWithoutParents = parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
 
                 if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
@@ -318,6 +318,16 @@ public abstract class ProteinProcessor {
                     updater.createOrUpdateProtein(caseEvent);
                 } catch (ProteinServiceException e) {
                     caseEvent.getUniprotServiceResult().addException(e);
+                }
+
+                if (!transcriptsWithoutParents.isEmpty()){
+                    if (masterProtein != null){
+                        parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, context.getDaoFactory());
+                    }
+                    else if (!caseEvent.getPrimaryProteins().isEmpty()){
+                        parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), context.getDaoFactory());
+                    }
+
                 }
 
                 // update isoforms
