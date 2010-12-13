@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.IntactParentUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.CvDatabase;
@@ -35,10 +36,10 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
-    private IntactParentUpdater intactUpdater;
+    private IntactParentUpdaterImpl intactUpdater;
     @Before
     public void setUp(){
-        intactUpdater = new IntactParentUpdater();
+        intactUpdater = new IntactParentUpdaterImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
