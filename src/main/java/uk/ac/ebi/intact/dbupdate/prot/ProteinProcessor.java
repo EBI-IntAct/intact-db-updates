@@ -24,6 +24,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFinderImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
@@ -75,7 +76,7 @@ public abstract class ProteinProcessor {
     /**
      * The duplicate fixer
      */
-    protected DuplicatesFixer duplicateFixer;
+    protected DuplicatesFixerImpl duplicateFixer;
     /**
      * The protein deleter
      */
@@ -99,7 +100,7 @@ public abstract class ProteinProcessor {
         this.uniprotIdentityUpdater = new UniprotIdentityUpdater();
         this.uniprotRetriever = new UniprotProteinRetriever(config.getUniprotService());
         this.duplicateFinder = new DuplicatesFinderImpl();
-        this.duplicateFixer = new DuplicatesFixer();
+        this.duplicateFixer = new DuplicatesFixerImpl();
         this.proteinDeleter = new ProteinDeleter();
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleter();
         this.updater = new UniprotProteinUpdater(config.getTaxonomyService());

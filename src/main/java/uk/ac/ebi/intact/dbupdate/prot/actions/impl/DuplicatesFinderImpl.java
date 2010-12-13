@@ -24,7 +24,6 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFinder;
-import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
@@ -46,7 +45,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder{
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
+    private static final Log log = LogFactory.getLog( DuplicatesFixerImpl.class );
 
     /**
      * In the update case event, if the list of primary proteins and secondary proteins contain more than 1 protein, returns
