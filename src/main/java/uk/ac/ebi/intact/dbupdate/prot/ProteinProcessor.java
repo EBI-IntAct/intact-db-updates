@@ -321,13 +321,16 @@ public abstract class ProteinProcessor {
                 }
 
                 if (!transcriptsWithoutParents.isEmpty()){
-                    if (masterProtein != null){
-                        parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, context.getDaoFactory());
-                    }
-                    else if (!caseEvent.getPrimaryProteins().isEmpty()){
-                        parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), context.getDaoFactory());
-                    }
+                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) caseEvent.getSource();
 
+                        if (masterProtein != null){
+                            parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, context, updateProcessor);
+                        }
+                        else if (!caseEvent.getPrimaryProteins().isEmpty()){
+                            parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), context, updateProcessor);
+                        }
+                    }
                 }
 
                 // update isoforms
@@ -635,11 +638,15 @@ public abstract class ProteinProcessor {
                         }
 
                         if (!transcriptsWithoutParents.isEmpty()){
-                            if (masterProtein != null){
-                                parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, dataContext.getDaoFactory());
-                            }
-                            else if (!caseEvent.getPrimaryProteins().isEmpty()){
-                                parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), dataContext.getDaoFactory());
+                            if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) caseEvent.getSource();
+
+                                if (masterProtein != null){
+                                    parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, dataContext, updateProcessor);
+                                }
+                                else if (!caseEvent.getPrimaryProteins().isEmpty()){
+                                    parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), dataContext, updateProcessor);
+                                }
                             }
 
                         }
