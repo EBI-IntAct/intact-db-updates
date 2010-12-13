@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.dbupdate.prot.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
@@ -34,7 +35,7 @@ public class UniprotProteinRetriever {
      * UniProt Data Source.
      */
     private UniprotService uniprotService;
-    private DeadUniprotFixer deadUniprotFixer;
+    private DeadUniprotProteinFixer deadUniprotFixer;
 
     private static final Log log = LogFactory.getLog( UniprotProteinRetriever.class );
 
@@ -43,7 +44,7 @@ public class UniprotProteinRetriever {
 
     public UniprotProteinRetriever(UniprotService uniprotService) {
         this.uniprotService = uniprotService;
-        this.deadUniprotFixer = new DeadUniprotFixer();
+        this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
     }
 
     public UniprotProtein retrieveUniprotEntry(String uniprotAc){
