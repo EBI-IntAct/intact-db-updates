@@ -206,6 +206,13 @@ public class RangeFixer {
                     }
                 }
             }
+            else if (CvTopic.CAUTION_MI_REF.equals(annotation.getCvTopic().getIdentifier())){
+                String rangeAc = InvalidFeatureReport.extractRangeAcFromAnnotation(annotation);
+
+                if (!existingRanges.containsKey(rangeAc)){
+                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                }                
+            }
         }
 
         featureDao.update(feature);

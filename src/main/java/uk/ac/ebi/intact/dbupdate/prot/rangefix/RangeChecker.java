@@ -319,7 +319,7 @@ public class RangeChecker {
                 Collection<Annotation> annotations = f.getAnnotations();
 
                 if (rangeShifted && wasCTerminal){
-                    String cautionMessage = "The range " + range.toString() + " was C-terminal and is not anymore.";
+                    String cautionMessage = "["+range.getAc()+"] The range " + range.toString() + " was C-terminal and is not anymore.";
                     boolean hasAnnotation = false;
 
                     for (Annotation a : annotations){
@@ -339,7 +339,7 @@ public class RangeChecker {
                     }
                 }
                 else if (rangeShifted && wasNTerminal){
-                    String cautionMessage = "The range " + range.toString() + " was N-terminal and is not anymore.";
+                    String cautionMessage = "["+range.getAc()+"] The range " + range.toString() + " was N-terminal and is not anymore.";
 
                     boolean hasAnnotation = false;
 
