@@ -516,9 +516,11 @@ public abstract class ProteinProcessor {
             if (log.isTraceEnabled()) log.trace("Filtering protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+") for uniprot update");
 
             boolean canBeUpdated = true;
+            boolean isProteinTranscript = false;
 
             if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
                 canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent);
+                isProteinTranscript = true;
             }
 
             if (canBeUpdated){
@@ -559,7 +561,7 @@ public abstract class ProteinProcessor {
                             }
                         }
 
-                        parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+                        List<Protein> transcriptsWithoutParents = parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
 
                         if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
@@ -619,8 +621,19 @@ public abstract class ProteinProcessor {
                             // update master protein first
                             // update the protein
                             updater.createOrUpdateProtein(caseEvent);
+
                         } catch (ProteinServiceException e) {
                             caseEvent.getUniprotServiceResult().addException(e);
+                        }
+
+                        if (!transcriptsWithoutParents.isEmpty()){
+                            if (masterProtein != null){
+                                parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, dataContext.getDaoFactory());
+                            }
+                            else if (!caseEvent.getPrimaryProteins().isEmpty()){
+                                parentUpdater.createParentXRefs(transcriptsWithoutParents, caseEvent.getPrimaryProteins().iterator().next(), dataContext.getDaoFactory());
+                            }
+
                         }
 
                         // update isoforms

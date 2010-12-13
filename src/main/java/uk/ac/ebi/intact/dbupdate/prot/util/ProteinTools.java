@@ -187,7 +187,7 @@ public class ProteinTools {
         CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
 
         if (db == null){
-            db = CvObjectUtils.createCvObject(owner, CvDatabase.class, CvDatabase.MINT_MI_REF, CvDatabase.INTACT);
+            db = CvObjectUtils.createCvObject(owner, CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
             factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
         }
 

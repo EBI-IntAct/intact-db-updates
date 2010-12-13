@@ -16,6 +16,8 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.model.util.XrefUtils;
+import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -143,7 +145,7 @@ public class IntactParentUpdater {
         return canBeUpdated;
     }
 
-    private void checkConsistencyOf(Collection<ProteinTranscript> transcriptsToReview, UpdateCaseEvent evt){
+    private void checkConsistencyOf(Collection<ProteinTranscript> transcriptsToReview, UpdateCaseEvent evt, List<Protein> proteinWithoutParents){
         Collection<ProteinTranscript> transcriptToDelete = new ArrayList<ProteinTranscript>();
 
         for (ProteinTranscript p : transcriptsToReview){
@@ -175,6 +177,15 @@ public class IntactParentUpdater {
 
                     }
                     transcriptToDelete.add(p);
+                }
+                else if (parents.size() == 0){
+                    if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " does not have any intact parents."
+                                , UpdateError.transcript_without_parent, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+
+                    }
+                    proteinWithoutParents.add(protein);
                 }
 
                 for (InteractorXref parent : parents){
@@ -253,9 +264,61 @@ public class IntactParentUpdater {
         transcriptsToReview.removeAll(transcriptToDelete);
     }
 
-    public void checkConsistencyOfAllTranscripts(UpdateCaseEvent evt){
-        checkConsistencyOf(evt.getPrimaryIsoforms(), evt);
-        checkConsistencyOf(evt.getSecondaryIsoforms(), evt);
-        checkConsistencyOf(evt.getPrimaryFeatureChains(), evt);
+    public List<Protein> checkConsistencyOfAllTranscripts(UpdateCaseEvent evt){
+        List<Protein> proteinTranscriptsWithoutParent = new ArrayList<Protein>();
+
+        checkConsistencyOf(evt.getPrimaryIsoforms(), evt, proteinTranscriptsWithoutParent);
+        checkConsistencyOf(evt.getSecondaryIsoforms(), evt, proteinTranscriptsWithoutParent);
+        checkConsistencyOf(evt.getPrimaryFeatureChains(), evt, proteinTranscriptsWithoutParent);
+
+        return proteinTranscriptsWithoutParent;
+    }
+
+    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, DaoFactory factory){
+
+        if (masterProtein != null){
+            String masterAc = masterProtein.getAc();
+
+            if (masterAc != null){
+                CvDatabase db = factory.getCvObjectDao( CvDatabase.class ).getByPsiMiRef( CvDatabase.INTACT_MI_REF );
+
+                if (db == null){
+                    db = CvObjectUtils.createCvObject(masterProtein.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+                    factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
+                }
+
+                for (Protein t : transcripts){
+                    InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(t);
+
+                    CvXrefQualifier parentXRef = null;
+
+                    if (IdentifierChecker.isSpliceVariantId(uniprotIdentity.getPrimaryId())){
+                        parentXRef = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
+
+                        if (parentXRef == null) {
+                            parentXRef = CvObjectUtils.createCvObject(masterProtein.getOwner(), CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT_MI_REF, CvXrefQualifier.ISOFORM_PARENT);
+                            factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(parentXRef);
+                        }
+                    }
+                    else {
+                        parentXRef = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.CHAIN_PARENT_MI_REF);
+
+                        if (parentXRef == null) {
+                            parentXRef = CvObjectUtils.createCvObject(masterProtein.getOwner(), CvXrefQualifier.class, CvXrefQualifier.CHAIN_PARENT_MI_REF, CvXrefQualifier.CHAIN_PARENT);
+                            factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(parentXRef);
+                        }
+                    }
+
+                    InteractorXref parent = new InteractorXref(t.getOwner(), db, masterAc, parentXRef);
+
+                    if (!t.getXrefs().contains(parent)){
+                        factory.getXrefDao(InteractorXref.class).persist(parent);
+                        t.addXref(parent);
+
+                        factory.getProteinDao().update((ProteinImpl) t);
+                    }
+                }
+            }
+        }
     }
 }

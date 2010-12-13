@@ -91,6 +91,42 @@ public class UniprotIdentityUpdater {
         return caseEvt;
     }
 
+    private void addIsoformsWithoutParents(Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, UniprotProteinTranscript uniprotTranscript, ProteinDao proteinDao){
+        List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotTranscript.getPrimaryAc());
+
+        ProteinTools.loadCollections(proteinsInIntact);
+
+        for (ProteinImpl p : proteinsInIntact){
+            if (!ProteinUtils.isSpliceVariant(p)){
+                primaryIsoforms.add(new ProteinTranscript(p, uniprotTranscript));
+            }
+        }
+
+        for (String secondaryAc : uniprotTranscript.getSecondaryAcs()) {
+            proteinsInIntact.clear();
+            proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
+            ProteinTools.loadCollections(proteinsInIntact);
+
+            for (ProteinImpl p : proteinsInIntact){
+                if (!ProteinUtils.isSpliceVariant(p)){
+                    secondaryIsoforms.add(new ProteinTranscript(p, uniprotTranscript));
+                }
+            }
+        }
+    }
+
+    private void addFeatureChainsWithoutParents(Collection<ProteinTranscript> primaryFeatureChains, UniprotProteinTranscript uniprotTranscript, ProteinDao proteinDao){
+        List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotTranscript.getPrimaryAc());
+
+        ProteinTools.loadCollections(proteinsInIntact);
+
+        for (ProteinImpl p : proteinsInIntact){
+            if (!ProteinUtils.isFeatureChain(p)){
+                primaryFeatureChains.add(new ProteinTranscript(p, uniprotTranscript));
+            }
+        }
+    }
+
     private void collectSpliceVariants(UpdateCaseEvent evt){
         Collection<UniprotSpliceVariant> variants = evt.getProtein().getSpliceVariants();
         Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
@@ -100,11 +136,11 @@ public class UniprotIdentityUpdater {
         evt.setPrimaryIsoforms(primaryIsoforms);
         evt.setSecondaryIsoforms(secondaryIsoforms);
 
-        collectSpliceVariantsFrom(evt, evt.getPrimaryProteins(), variants, proteinDao);
-        collectSpliceVariantsFrom(evt, evt.getSecondaryProteins(), variants, proteinDao);
+        collectSpliceVariantsFrom(evt, evt.getPrimaryProteins(), variants, proteinDao, true);
+        collectSpliceVariantsFrom(evt, evt.getSecondaryProteins(), variants, proteinDao, false);
     }
 
-    private void collectSpliceVariantsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotSpliceVariant> variants, ProteinDao proteinDao) {
+    private void collectSpliceVariantsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotSpliceVariant> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
         Collection<ProteinTranscript> primaryIsoforms = evt.getPrimaryIsoforms();
         Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
 
@@ -153,6 +189,12 @@ public class UniprotIdentityUpdater {
                         }
                     }
                 }
+            }
+        }
+
+        if (collectTranscriptWithoutParents){
+            for (UniprotSpliceVariant variant : variants){
+                addIsoformsWithoutParents(evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), variant, proteinDao);
             }
         }
     }
@@ -211,6 +253,10 @@ public class UniprotIdentityUpdater {
                     }
                 }
             }
+        }
+
+        for (UniprotFeatureChain variant : variants){
+            addFeatureChainsWithoutParents(evt.getPrimaryFeatureChains(), variant, proteinDao);
         }
     }
 
