@@ -14,10 +14,9 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFinderImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.CvDatabase;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.InteractorXref;
@@ -43,11 +42,11 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class DuplicateFinderTest extends IntactBasicTestCase {
 
-    private DuplicatesFinder duplicateFinder;
+    private DuplicatesFinderImpl duplicateFinder;
 
     @Before
     public void setUp(){
-        duplicateFinder = new DuplicatesFinder();
+        duplicateFinder = new DuplicatesFinderImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -111,7 +110,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);
 
-        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformsDuplicates(evt);
+        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformDuplicates(evt);
         Assert.assertTrue(dupIsoforms.isEmpty());
 
         Collection<DuplicatesFoundEvent> dupChains = duplicateFinder.findFeatureChainDuplicates(evt);
@@ -190,7 +189,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);
 
-        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformsDuplicates(evt);
+        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformDuplicates(evt);
         Assert.assertTrue(dupIsoforms.isEmpty());
 
         Collection<DuplicatesFoundEvent> dupChains = duplicateFinder.findFeatureChainDuplicates(evt);
@@ -279,7 +278,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         Assert.assertEquals(dupEvt.getUniprotCrc64(), uniprot.getCrc64());
         Assert.assertEquals(2, dupEvt.getProteins().size());
 
-        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformsDuplicates(evt);
+        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformDuplicates(evt);
         Assert.assertEquals(1, dupIsoforms.size());
         DuplicatesFoundEvent isoEvt = dupIsoforms.iterator().next();
         Assert.assertEquals(isoEvt.getUniprotSequence(), variants1.getSequence());
@@ -440,7 +439,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);
 
-        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformsDuplicates(evt);
+        Collection<DuplicatesFoundEvent> dupIsoforms = duplicateFinder.findIsoformDuplicates(evt);
         Assert.assertEquals(2, dupIsoforms.size());
         DuplicatesFoundEvent isoEvt1 = dupIsoforms.iterator().next();
         Assert.assertEquals(isoEvt1.getUniprotSequence(), variants1.getSequence());

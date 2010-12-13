@@ -336,7 +336,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     if (config.isFixDuplicates()){
                         if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
 
-                        Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformsDuplicates(caseEvent);
+                        Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformDuplicates(caseEvent);
 
                         if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
                         Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();
@@ -646,7 +646,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                             if (config.isFixDuplicates()){
                                 if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
 
-                                Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformsDuplicates(caseEvent);
+                                Collection<DuplicatesFoundEvent> duplicateEvents = duplicateFinder.findIsoformDuplicates(caseEvent);
 
                                 if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
                                 Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();

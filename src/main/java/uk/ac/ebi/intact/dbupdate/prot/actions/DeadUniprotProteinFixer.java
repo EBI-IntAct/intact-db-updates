@@ -4,7 +4,9 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 
 /**
- * This interface is for classes updating dead proteins in uniprot
+ * This interface is for classes updating dead proteins in uniprot.
+ *
+ * A dead protein in uniprot is a uniprot ac which has been deleted in uniprot and which is not matching any uniprot entries anymore
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

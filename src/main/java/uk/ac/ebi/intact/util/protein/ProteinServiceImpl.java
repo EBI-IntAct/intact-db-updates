@@ -18,7 +18,7 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFinderImpl;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFixer;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
@@ -86,7 +86,7 @@ public class ProteinServiceImpl implements ProteinService {
     private ProteinUpdateProcessor processor;
 
     private DuplicatesFixer duplicateFixer;
-    private DuplicatesFinder duplicateFinder;
+    private DuplicatesFinderImpl duplicateFinder;
 
     //////////////////////////
     // Constructor

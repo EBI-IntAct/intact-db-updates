@@ -23,20 +23,16 @@ import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFinderImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
-import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 
 import javax.swing.event.EventListenerList;
 import java.util.*;
@@ -75,7 +71,7 @@ public abstract class ProteinProcessor {
     /**
      * The duplicate finder
      */
-    protected DuplicatesFinder duplicateFinder;
+    protected DuplicatesFinderImpl duplicateFinder;
     /**
      * The duplicate fixer
      */
@@ -102,7 +98,7 @@ public abstract class ProteinProcessor {
         updateFilter = new ProteinUpdateFilter();
         this.uniprotIdentityUpdater = new UniprotIdentityUpdater();
         this.uniprotRetriever = new UniprotProteinRetriever(config.getUniprotService());
-        this.duplicateFinder = new DuplicatesFinder();
+        this.duplicateFinder = new DuplicatesFinderImpl();
         this.duplicateFixer = new DuplicatesFixer();
         this.proteinDeleter = new ProteinDeleter();
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleter();
