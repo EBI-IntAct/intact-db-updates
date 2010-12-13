@@ -120,7 +120,7 @@ public class UniprotProteinUpdater {
             Protein protein = createMinimalisticProtein( uniprotProtein, evt.getDataContext() );
             updateProtein( protein, uniprotProtein, evt);
 
-            proteinCreated(protein, evt.getDataContext());
+            proteinCreated(protein, evt.getDataContext(), "No Intact master protein existed (or was valid) for the uniprot ac " + uniprotProtein.getPrimaryAc());
             evt.getPrimaryProteins().add(protein);
             evt.getUniprotServiceResult().getProteins().add(protein);
 
@@ -216,7 +216,7 @@ public class UniprotProteinUpdater {
                     evt.getPrimaryIsoforms().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
-                    proteinCreated(protein, evt.getDataContext());
+                    proteinCreated(protein, evt.getDataContext(), "No IntAct splice variant existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
                     evt.getUniprotServiceResult().getProteins().add(protein);
                 }
             }
@@ -256,7 +256,7 @@ public class UniprotProteinUpdater {
                     evt.getPrimaryFeatureChains().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
-                    proteinCreated(protein, evt.getDataContext());
+                    proteinCreated(protein, evt.getDataContext(), "No IntAct feature chain existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
                     evt.getUniprotServiceResult().getProteins().add(protein);
                 }
             }
@@ -638,8 +638,8 @@ public class UniprotProteinUpdater {
         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, oldSequence, newSequence, crc64));
     }
 
-    private void proteinCreated(Protein protein, DataContext context) {
-        processor.fireOnProteinCreated(new ProteinEvent(processor, context, protein));
+    private void proteinCreated(Protein protein, DataContext context, String message) {
+        processor.fireOnProteinCreated(new ProteinEvent(processor, context, protein, message));
     }
 
     public BioSourceService getBioSourceService() {

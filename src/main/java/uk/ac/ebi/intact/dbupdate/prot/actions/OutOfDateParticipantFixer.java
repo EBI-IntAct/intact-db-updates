@@ -69,6 +69,23 @@ public class OutOfDateParticipantFixer {
         return null;
     }
 
+    public UniprotProteinTranscript findTranscriptsWithIdenticalSequence(String sequence, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein){
+        Collection<UniprotProteinTranscript> proteinTranscripts = new ArrayList<UniprotProteinTranscript>();
+        proteinTranscripts.addAll(uniprotProtein.getSpliceVariants());
+        proteinTranscripts.addAll(uniprotProtein.getFeatureChains());
+
+        if (!proteinTranscripts.isEmpty()){
+
+            for (UniprotProteinTranscript pt : proteinTranscripts){
+                if (sequence.equalsIgnoreCase(pt.getSequence()) && !sequence.equalsIgnoreCase(uniprotProteinTranscript.getSequence())){
+                    return pt;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private ProteinTranscript createSpliceVariant(UniprotSpliceVariant spliceVariant, Protein proteinWithConflicts, Collection<Component> componentsToFix, DaoFactory factory, OutOfDateParticipantFoundEvent evt){
 
         Protein spliceIntact = cloneProteinForTranscript(factory, proteinWithConflicts, spliceVariant.getPrimaryAc());
@@ -107,7 +124,7 @@ public class OutOfDateParticipantFixer {
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), spliceIntact));
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), spliceIntact,"The protein is a splice variant created because of feature ranges impossible to remap to the canonical sequence in uniprot."));
         }
 
         return new ProteinTranscript(spliceIntact, spliceVariant);
@@ -151,7 +168,7 @@ public class OutOfDateParticipantFixer {
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), chainIntact));
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), chainIntact, "The protein is a feature chain created because of feature ranges impossible to remap to the canonical sequence in uniprot."));
         }
 
         return new ProteinTranscript(chainIntact, featureChain);
@@ -264,7 +281,7 @@ public class OutOfDateParticipantFixer {
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate));
+            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate, "The protein is a deprecated protein which needed to be created possibly because of range conflicts and duplicate problems."));
         }
 
         return new ProteinTranscript(noUniprotUpdate, null);

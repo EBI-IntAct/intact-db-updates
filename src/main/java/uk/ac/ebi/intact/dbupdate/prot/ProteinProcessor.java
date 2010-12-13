@@ -310,6 +310,21 @@ public abstract class ProteinProcessor {
                 // update isoforms
                 //isoform duplicates to merge
                 if (caseEvent.getPrimaryIsoforms().size() > 1 ){
+                    for (ProteinTranscript trans : caseEvent.getPrimaryIsoforms()){
+                        Protein prot = trans.getProtein();
+
+                        if (prot.getSequence() != null){
+                            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+
+                            if (transcriptsWithSameSequence != null){
+                                if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                    processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                }
+                            }
+                        }
+                    }
+
                     if (config.isFixDuplicates()){
                         if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
 
@@ -333,6 +348,21 @@ public abstract class ProteinProcessor {
 
                 //chain duplicates to merge
                 if (caseEvent.getPrimaryFeatureChains().size() > 1){
+                    for (ProteinTranscript trans : caseEvent.getPrimaryFeatureChains()){
+                        Protein prot = trans.getProtein();
+
+                        if (prot.getSequence() != null){
+                            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+
+                            if (transcriptsWithSameSequence != null){
+                                if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                    processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                }
+                            }
+                        }
+                    }
+
                     if (config.isFixDuplicates()){
                         if (log.isTraceEnabled()) log.trace("Check for possible feature chains duplicates." );
 
@@ -584,6 +614,21 @@ public abstract class ProteinProcessor {
                         //isoform duplicates to merge
                         if (caseEvent.getPrimaryIsoforms().size() > 1 ){
 
+                            for (ProteinTranscript trans : caseEvent.getPrimaryIsoforms()){
+                                Protein prot = trans.getProtein();
+
+                                if (prot.getSequence() != null){
+                                    UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+
+                                    if (transcriptsWithSameSequence != null){
+                                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                            processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                        }
+                                    }
+                                }
+                            }
+
                             if (config.isFixDuplicates()){
                                 if (log.isTraceEnabled()) log.trace("Check for possible isoform duplicates." );
 
@@ -607,6 +652,22 @@ public abstract class ProteinProcessor {
 
                         //chain duplicates to merge
                         if (caseEvent.getPrimaryFeatureChains().size() > 1){
+
+                            for (ProteinTranscript trans : caseEvent.getPrimaryFeatureChains()){
+                                Protein prot = trans.getProtein();
+
+                                if (prot.getSequence() != null){
+                                    UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+
+                                    if (transcriptsWithSameSequence != null){
+                                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                                            processor.fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(processor, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                        }
+                                    }
+                                }
+                            }
+
                             if (config.isFixDuplicates()){
                                 if (log.isTraceEnabled()) log.trace("Check for possible feature chains duplicates." );
 
