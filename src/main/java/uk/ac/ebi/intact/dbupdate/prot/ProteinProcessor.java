@@ -98,7 +98,7 @@ public abstract class ProteinProcessor {
         this.duplicateFinder = new DuplicatesFinderImpl();
         this.duplicateFixer = new DuplicatesFixerImpl();
         this.proteinDeleter = new ProteinDeleterImpl();
-        this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleter();
+        this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
         this.updater = new UniprotProteinUpdater(config.getTaxonomyService());
         this.participantFixer = new OutOfDateParticipantFixerImpl();
         rangeFixer = new RangeFixer();

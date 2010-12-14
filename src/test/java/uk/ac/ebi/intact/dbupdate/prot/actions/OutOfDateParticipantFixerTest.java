@@ -248,7 +248,14 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
-        UniprotSpliceVariant variant = uniprot.getSpliceVariants().iterator().next();
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant sv : uniprot.getSpliceVariants()){
+            if (sv.getPrimaryAc().equalsIgnoreCase("P60953-2")){
+                variant = sv;
+            }
+        }
+
         UniprotFeatureChain chain = uniprot.getFeatureChains().iterator().next();
 
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -346,7 +353,14 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
-        UniprotSpliceVariant variant = uniprot.getSpliceVariants().iterator().next();
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant sv : uniprot.getSpliceVariants()){
+            if (sv.getPrimaryAc().equalsIgnoreCase("P60953-2")){
+                variant = sv;
+            }
+        }
+
         UniprotFeatureChain chain = uniprot.getFeatureChains().iterator().next();
 
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -453,7 +467,14 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
         uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
 
-        UniprotSpliceVariant variant = uniprot.getSpliceVariants().iterator().next();
+        UniprotSpliceVariant variant = null;
+
+        for (UniprotSpliceVariant sv : uniprot.getSpliceVariants()){
+            if (sv.getPrimaryAc().equalsIgnoreCase("P60953-2")){
+                variant = sv;
+            }
+        }
+
         UniprotFeatureChain chain = uniprot.getFeatureChains().iterator().next();
 
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
@@ -528,7 +549,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, proteinTranscript.getProtein().getActiveInstances().size());
         Assert.assertNotSame(isoform.getAc(), proteinTranscript.getProtein().getAc());
         Assert.assertEquals(variant.getPrimaryAc(), ProteinUtils.getUniprotXref(proteinTranscript.getProtein()).getPrimaryId());
-        Assert.assertTrue(hasXRef(proteinTranscript.getProtein(), primaryIsoform.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
+        Assert.assertTrue(hasXRef(proteinTranscript.getProtein(), primary.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertEquals(8, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, proteinTranscript.getProtein().getXrefs().size());
         Assert.assertEquals(0, proteinTranscript.getProtein().getAnnotations().size());
@@ -547,7 +568,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, proteinTranscript2.getProtein().getActiveInstances().size());
         Assert.assertNotSame(isoform.getAc(), proteinTranscript.getProtein().getAc());
         Assert.assertEquals(chain.getPrimaryAc(), ProteinUtils.getUniprotXref(proteinTranscript2.getProtein()).getPrimaryId());
-        Assert.assertTrue(hasXRef(proteinTranscript2.getProtein(), primaryChain.getAc(), CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT));
+        Assert.assertTrue(hasXRef(proteinTranscript2.getProtein(), primary.getAc(), CvDatabase.INTACT, CvXrefQualifier.CHAIN_PARENT));
         Assert.assertEquals(9, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(chain.getSequence(), proteinTranscript2.getProtein().getSequence());
         Assert.assertEquals(2, proteinTranscript2.getProtein().getXrefs().size());

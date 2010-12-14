@@ -15,6 +15,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProtWithoutInteractionDeleterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
@@ -26,7 +27,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Second tester of ProtWithoutInteractionDeleter
+ * Second tester of ProtWithoutInteractionDeleterImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -35,10 +36,10 @@ import java.util.Set;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
 
-    private ProtWithoutInteractionDeleter deleter;
+    private ProtWithoutInteractionDeleterImpl deleter;
     @Before
     public void before_schema() throws Exception {
-        deleter = new ProtWithoutInteractionDeleter();
+        deleter = new ProtWithoutInteractionDeleterImpl();
 
         TransactionStatus status = getDataContext().beginTransaction();
 
