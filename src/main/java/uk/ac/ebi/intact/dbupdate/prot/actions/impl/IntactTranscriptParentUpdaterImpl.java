@@ -9,7 +9,7 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-import uk.ac.ebi.intact.dbupdate.prot.actions.IntactParentUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.actions.IntactTranscriptParentUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidIntactParentFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
@@ -31,12 +31,12 @@ import java.util.List;
  * @since <pre>06-Dec-2010</pre>
  */
 
-public class IntactParentUpdaterImpl implements IntactParentUpdater{
+public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParentUpdater {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( IntactParentUpdaterImpl.class );
+    private static final Log log = LogFactory.getLog( IntactTranscriptParentUpdaterImpl.class );
 
     /**
      *

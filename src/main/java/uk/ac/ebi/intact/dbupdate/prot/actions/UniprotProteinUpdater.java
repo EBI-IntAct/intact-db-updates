@@ -25,6 +25,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -68,13 +69,13 @@ public class UniprotProteinUpdater {
      * BioSource service allowing to create new BioSource in the database.
      */
     private BioSourceService bioSourceService;
-    private OutOfDateParticipantFixer participantFixer;
+    private OutOfDateParticipantFixerImpl participantFixer;
 
     public UniprotProteinUpdater(TaxonomyService taxonomyService) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
-        participantFixer = new OutOfDateParticipantFixer();
+        participantFixer = new OutOfDateParticipantFixerImpl();
         rangeFixer = new RangeFixer();
     }
 
@@ -83,7 +84,7 @@ public class UniprotProteinUpdater {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService());
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
-        participantFixer = new OutOfDateParticipantFixer();
+        participantFixer = new OutOfDateParticipantFixerImpl();
         rangeFixer = new RangeFixer();
     }
 
@@ -315,7 +316,7 @@ public class UniprotProteinUpdater {
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext(), processor);
 
         // Sequence
-        updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt);
+        updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc());
 
         // Persist changes
         DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
@@ -348,7 +349,7 @@ public class UniprotProteinUpdater {
         return true;
     }
 
-    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) throws ProteinServiceException {
         InteractorXref ref = ProteinUtils.getUniprotXref(protein);
         String uniprotAc = ref.getPrimaryId();
 
@@ -396,7 +397,7 @@ public class UniprotProteinUpdater {
                         "The protein " + protein.getAc() + " contains " +
                                 componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts, protein, uniprotAc));
 
-                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains());
+                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
                 if (fixedProtein != null){
@@ -534,7 +535,7 @@ public class UniprotProteinUpdater {
 
         // Sequence
         if (uniprotTranscript.getSequence() != null){
-            updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt);
+            updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc());
         }
         else if (uniprotTranscript.isNullSequenceAllowed() && transcript.getSequence() != null){
             processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The feature chain " + transcript.getAc() + " has a sequence not null in IntAct but the sequence in uniprot is null because" +

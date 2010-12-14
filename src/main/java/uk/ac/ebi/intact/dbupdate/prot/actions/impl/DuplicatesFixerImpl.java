@@ -63,7 +63,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
     public DuplicatesFixerImpl(){
         proteinDeleter = new ProteinDeleter();
-        deprecatedParticipantFixer = new OutOfDateParticipantFixer();
+        deprecatedParticipantFixer = new OutOfDateParticipantFixerImpl();
         this.rangeFixer = new RangeFixer();
     }
 
@@ -378,7 +378,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         componentsToFix.addAll(proteinsNeedingPartialMerge.get(originalProt.getAc()));
 
                         // create a deprecated protein and attach interactions with range conflicts to this protein
-                        Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST), true).getProtein();
+                        Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, originalProt.getAc()), true).getProtein();
 
                         // update the report to attach the component with range conflicts to the deprecated protein and not the original protein
                         RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(originalProt);

@@ -21,16 +21,19 @@ import java.util.Collections;
 public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
     private Collection<Component> componentsToFix = new ArrayList<Component>();
     private Protein proteinWithConflicts;
+    String validParentAc;
 
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Collection<Component> components, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains) {
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Collection<Component> components, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
         super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
         this.componentsToFix = components;
         this.proteinWithConflicts = protein;
+        this.validParentAc = validParentAc;
     }
 
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains) {
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
         super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
         this.proteinWithConflicts = protein;
+        this.validParentAc = validParentAc;
     }
 
     public Collection<Component> getComponentsToFix() {
@@ -43,5 +46,9 @@ public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
 
     public Protein getProteinWithConflicts() {
         return proteinWithConflicts;
+    }
+
+    public String getValidParentAc() {
+        return validParentAc;
     }
 }

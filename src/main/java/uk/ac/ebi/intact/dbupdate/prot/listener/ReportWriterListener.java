@@ -105,7 +105,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         try {
             ReportWriter createdWriter = reportHandler.getCreatedWriter();
 
-            writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein());
+            writeDefaultLine(reportHandler.getCreatedWriter(), evt.getProtein(), evt.getMessage());
 
             createdWriter.flush();
         } catch (IOException e) {
@@ -311,11 +311,13 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             ReportWriter writer = reportHandler.getOutOfDateParticipantWriter();
             writer.writeHeaderIfNecessary("UniProt ID",
                     "IA primary c.",
+                    "parent ac to remap",
                     "Components",
                     "sequence");
             String uniprotId = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : "-";
             writer.writeColumnValues(uniprotId,
                     evt.getProteinWithConflicts().getAc(),
+                    dashIfNull(evt.getValidParentAc()),
                     compCollectionToString(evt.getComponentsToFix()),
                     evt.getProteinWithConflicts().getSequence());
             writer.flush();

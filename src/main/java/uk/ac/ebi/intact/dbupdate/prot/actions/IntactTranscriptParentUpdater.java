@@ -17,7 +17,7 @@ import java.util.List;
  * @since <pre>13-Dec-2010</pre>
  */
 
-public interface IntactParentUpdater {
+public interface IntactTranscriptParentUpdater {
 
     /**
      *
