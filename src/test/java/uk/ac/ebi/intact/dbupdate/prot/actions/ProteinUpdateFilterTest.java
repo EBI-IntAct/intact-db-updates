@@ -14,10 +14,9 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProteinUpdateFilterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Tester of the ProteinUpdateFilter
+ * Tester of the ProteinUpdateFilterImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -35,11 +34,11 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
-    ProteinUpdateFilter filter;
+    ProteinUpdateFilterImpl filter;
 
     @Before
     public void before() throws Exception {
-        filter = new ProteinUpdateFilter();
+        filter = new ProteinUpdateFilterImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -122,7 +121,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ProteinProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(uniprotIdentity);
@@ -150,7 +149,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
-        ProteinUpdateFilter listener = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl listener = new ProteinUpdateFilterImpl();
         String uniprotIdentity = listener.filterOnUniprotIdentity(evt);
 
         Assert.assertNull(uniprotIdentity);
@@ -204,7 +203,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         filter.filterNonUniprotAndMultipleUniprot(evt);
 
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
@@ -264,7 +263,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         filter.filterNonUniprotAndMultipleUniprot(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
@@ -331,7 +330,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         filter.filterNonUniprotAndMultipleUniprot(evt);
 
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
@@ -394,7 +393,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
 
-        ProteinUpdateFilter filter = new ProteinUpdateFilter();
+        ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         filter.filterNonUniprotAndMultipleUniprot(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());

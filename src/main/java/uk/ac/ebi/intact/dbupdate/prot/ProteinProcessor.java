@@ -92,7 +92,7 @@ public abstract class ProteinProcessor {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         previousBatchACs = new ArrayList<String>();
-        updateFilter = new ProteinUpdateFilter();
+        updateFilter = new ProteinUpdateFilterImpl();
         this.uniprotIdentityUpdater = new UniprotIdentityUpdater();
         this.uniprotRetriever = new UniprotProteinRetriever(config.getUniprotService());
         this.duplicateFinder = new DuplicatesFinderImpl();
