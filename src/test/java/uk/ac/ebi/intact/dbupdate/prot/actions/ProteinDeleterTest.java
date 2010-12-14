@@ -12,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProteinDeleterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 /**
- * Tester of ProteinDeleter
+ * Tester of ProteinDeleterImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -27,11 +27,11 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinDeleterTest extends IntactBasicTestCase {
 
-    private ProteinDeleter deleter;
+    private ProteinDeleterImpl deleter;
 
     @Before
     public void before_schema() throws Exception {
-        deleter = new ProteinDeleter();
+        deleter = new ProteinDeleterImpl();
 
         TransactionStatus status = getDataContext().beginTransaction();
 
