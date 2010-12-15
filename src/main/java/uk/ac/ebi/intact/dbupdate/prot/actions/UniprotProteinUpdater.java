@@ -10,7 +10,7 @@ import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 
 /**
- * TODO comment this
+ * The interface to implement for classes updating a protein against a single uniprot entry
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -19,10 +19,27 @@ import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 
 public interface UniprotProteinUpdater {
 
+    /**
+     * Create of update the master proteins
+     * @param evt : contains the uniprot entry and the list of proteins to update
+     * @throws ProteinServiceException
+     */
      public void createOrUpdateProtein( UpdateCaseEvent evt) throws ProteinServiceException;
 
+    /**
+     * Create of update the isoforms
+     * @param caseEvent : contains the uniprot entry and the list of proteins to update
+     * @param masterProtein : the master protein which is the parent of the isoforms
+     * @throws ProteinServiceException
+     */
     public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException;
 
+    /**
+     * Create of update the feature chains
+     * @param caseEvent : contains the uniprot entry and the list of proteins to update
+     * @param masterProtein : the master protein which is the parent of the isoforms
+     * @throws ProteinServiceException
+     */
     public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException;
 
     public BioSourceService getBioSourceService();

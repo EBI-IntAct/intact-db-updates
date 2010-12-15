@@ -127,60 +127,119 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @param proteinDao
      */
     private void addIsoformsWithoutParents(Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, UniprotProteinTranscript uniprotTranscript, ProteinDao proteinDao){
+        addTranscriptWithoutParents(primaryIsoforms, secondaryIsoforms, uniprotTranscript, true, proteinDao);
+    }
+
+    /**
+     * collect all intact proteins having a uniprot identity related to a specific uniprot transcript
+     * but without proper parent and add them to the list of feature chains
+     * @param primaryFeatureChains : the list of feature chains in intact
+     * @param uniprotTranscript : the transcript
+     * @param proteinDao
+     */
+    private void addFeatureChainsWithoutParents(Collection<ProteinTranscript> primaryFeatureChains, UniprotProteinTranscript uniprotTranscript, ProteinDao proteinDao){
+        addTranscriptWithoutParents(primaryFeatureChains, Collections.EMPTY_LIST, uniprotTranscript, false, proteinDao);
+    }
+
+    /**
+     * collect all intact proteins having a uniprot identity related to a specific uniprot transcript
+     * but without proper parent and add them to the list of protein transcripts to update
+     * @param primary : list of primary isoforms or feature chains
+     * @param secondary : list of secondary isoforms (feature chains doesn't have secondary acs)
+     * @param uniprotTranscript : the transcript
+     * @param hasSecondary : true if isoform, false if feature chain
+     * @param proteinDao
+     */
+    private void addTranscriptWithoutParents(Collection<ProteinTranscript> primary, Collection<ProteinTranscript> secondary, UniprotProteinTranscript uniprotTranscript, boolean hasSecondary, ProteinDao proteinDao){
         // get all proteins having same primary ac as the protein transcript
         List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotTranscript.getPrimaryAc());
 
-        // load 
+        // load
         ProteinTools.loadCollections(proteinsInIntact);
 
+        // for each isoform in intact having this primary ac
         for (ProteinImpl p : proteinsInIntact){
-            if (!ProteinUtils.isSpliceVariant(p)){
-                primaryIsoforms.add(new ProteinTranscript(p, uniprotTranscript));
+            // if it is not a splice variant, it means that the protein doesn't have parent which should be added later
+            // add it to the list of primary isoforms
+            if (!ProteinUtils.isSpliceVariant(p) && !ProteinTools.isFeatureChain(p)){
+                primary.add(new ProteinTranscript(p, uniprotTranscript));
             }
         }
 
-        for (String secondaryAc : uniprotTranscript.getSecondaryAcs()) {
-            proteinsInIntact.clear();
-            proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
-            ProteinTools.loadCollections(proteinsInIntact);
+        if (hasSecondary){
+            // try to catch all proteins in intact having one of the secondary acs of the component
+            for (String secondaryAc : uniprotTranscript.getSecondaryAcs()) {
+                proteinsInIntact.clear();
+                proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
+                ProteinTools.loadCollections(proteinsInIntact);
 
-            for (ProteinImpl p : proteinsInIntact){
-                if (!ProteinUtils.isSpliceVariant(p)){
-                    secondaryIsoforms.add(new ProteinTranscript(p, uniprotTranscript));
+                for (ProteinImpl p : proteinsInIntact){
+                    // if it is not a splice variant, it means that the protein doesn't have isoform parent which should be added later
+                    // add it to the list of primary isoforms
+                    if (!ProteinUtils.isSpliceVariant(p) && !ProteinTools.isFeatureChain(p)){
+                        secondary.add(new ProteinTranscript(p, uniprotTranscript));
+                    }
                 }
             }
         }
     }
 
-    private void addFeatureChainsWithoutParents(Collection<ProteinTranscript> primaryFeatureChains, UniprotProteinTranscript uniprotTranscript, ProteinDao proteinDao){
-        List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotTranscript.getPrimaryAc());
-
-        ProteinTools.loadCollections(proteinsInIntact);
-
-        for (ProteinImpl p : proteinsInIntact){
-            if (!ProteinTools.isFeatureChain(p)){
-                primaryFeatureChains.add(new ProteinTranscript(p, uniprotTranscript));
-            }
-        }
-    }
-
+    /**
+     * Fill the updateCase event with isoforms from intact which are related to the uniprot entry of this event
+     * @param evt
+     */
     private void collectSpliceVariants(UpdateCaseEvent evt){
+        // collect all splice variants of the uniprot entry
         Collection<UniprotSpliceVariant> variants = evt.getProtein().getSpliceVariants();
+
+        // lists of splice variants in intact
         Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
         Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
+
+        // set lists of isoforms
         evt.setPrimaryIsoforms(primaryIsoforms);
         evt.setSecondaryIsoforms(secondaryIsoforms);
 
+        // collect primary and secondary isoforms
         collectSpliceVariantsFrom(evt, evt.getPrimaryProteins(), variants, proteinDao, true);
         collectSpliceVariantsFrom(evt, evt.getSecondaryProteins(), variants, proteinDao, false);
     }
 
+    /**
+     * Fill the updateCase event with isoforms from intact which are related to the uniprot entry of this event
+     * @param evt
+     */
+    private void collectFeatureChains(UpdateCaseEvent evt){
+        // collect all feature chains of the uniprot entry
+        Collection<UniprotFeatureChain> chains = evt.getProtein().getFeatureChains();
+        // list of feature chains in intact
+        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+
+        ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
+        // set lists of isoforms
+        evt.setPrimaryFeatureChains(primaryChains);
+
+        // collect feature chains
+        collectFeatureChainsFrom(evt, evt.getPrimaryProteins(), chains, proteinDao, true);
+        collectFeatureChainsFrom(evt, evt.getSecondaryProteins(), chains, proteinDao, false);
+    }
+
+    /**
+     * Collect all splice variants in intact matching one of the uniprot splice variants
+     * @param evt
+     * @param proteins
+     * @param variants
+     * @param proteinDao
+     * @param collectTranscriptWithoutParents : true if we want to collect splice variants without parents as well having a uniprot ac related to this uniprot entry
+     */
     private void collectSpliceVariantsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotSpliceVariant> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
+        // isoforms
         Collection<ProteinTranscript> primaryIsoforms = evt.getPrimaryIsoforms();
         Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
 
+        // for each master protein, collect its isoforms and try to remap it to one of the uniprot transcript
         for (Protein primary : proteins){
             List<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants( primary );
 
@@ -229,6 +288,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             }
         }
 
+        // if enabled, collect all splice variants having one of the variant acs but without parents attached to it
         if (collectTranscriptWithoutParents){
             for (UniprotSpliceVariant variant : variants){
                 addIsoformsWithoutParents(evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), variant, proteinDao);
@@ -236,20 +296,18 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         }
     }
 
-    private void collectFeatureChains(UpdateCaseEvent evt){
-        Collection<UniprotFeatureChain> chains = evt.getProtein().getFeatureChains();
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
-
-        ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
-        evt.setPrimaryFeatureChains(primaryChains);
-
-        collectFeatureChainsFrom(evt, evt.getPrimaryProteins(), chains, proteinDao, true);
-        collectFeatureChainsFrom(evt, evt.getSecondaryProteins(), chains, proteinDao, false);
-    }
-
+    /**
+     * Collect all feature chains in intact matching one of the uniprot feature chain
+     * @param evt
+     * @param proteins
+     * @param variants
+     * @param proteinDao
+     * @param collectTranscriptWithoutParents : true if we want to collect splice variants without parents as well having a uniprot ac related to this uniprot entry
+     */
     private void collectFeatureChainsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotFeatureChain> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
+        // for each master protein, collect its feature chains and try to remap it to one of the uniprot transcript
         for (Protein primary : proteins){
             List<ProteinImpl> featureChains = proteinDao.getProteinChains( primary );
 
@@ -292,6 +350,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             }
         }
 
+        // if enabled, collect all feature chains having one of the variant acs but without parents attached to it
         if (collectTranscriptWithoutParents){
             for (UniprotFeatureChain variant : variants){
                 addFeatureChainsWithoutParents(evt.getPrimaryFeatureChains(), variant, proteinDao);
@@ -299,6 +358,10 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         }
     }
 
+    /**
+     * All secondary proteins and secondary isoforms are updated to have a valid primary ac as uniprot identity and not a secondary ac
+     * @param evt
+     */
     public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
         if (evt.getSecondaryProteins().size() > 0){
             updateSecondaryAcsForProteins(evt);
@@ -316,6 +379,11 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         }
     }
 
+    /**
+     * Update the secondary proteins
+     * @param evt
+     * @throws ProcessorException
+     */
     private void updateSecondaryAcsForProteins(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
@@ -336,6 +404,11 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         evt.getSecondaryProteins().clear();
     }
 
+    /**
+     * Update the secondary isoforms
+     * @param evt
+     * @throws ProcessorException
+     */
     private void updateSecondaryAcsForIsoforms(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<ProteinTranscript> secondaryProteins = evt.getSecondaryIsoforms();
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();

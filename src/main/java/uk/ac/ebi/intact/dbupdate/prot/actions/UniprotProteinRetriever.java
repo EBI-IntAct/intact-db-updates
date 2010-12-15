@@ -7,7 +7,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 /**
- * TODO comment this
+ * This interface is for classes retrieving uniprot entries matching an intact protein
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -16,10 +16,26 @@ import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 public interface UniprotProteinRetriever {
 
+    /**
+     *
+     * @param uniprotAc
+     * @return the unique uniprot entry matching this ac, null otherwise
+     */
     public UniprotProtein retrieveUniprotEntry(String uniprotAc);
 
+    /**
+     *
+     * @param evt
+     * @return the unique uniprot entry matching the uniprot identity of the event, null otherwise
+     * @throws ProcessorException
+     */
     public UniprotProtein retrieveUniprotEntry(ProteinEvent evt) throws ProcessorException;
 
+    /**
+     * Filter proteins which could not be updated because not matching a single uniprot entry
+     * @param evt
+     * @throws ProcessorException
+     */
     public void filterAllSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException;
 
     public UniprotService getUniprotService();

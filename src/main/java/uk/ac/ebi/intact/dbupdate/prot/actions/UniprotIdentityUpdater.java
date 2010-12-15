@@ -5,7 +5,8 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 
 /**
- * TODO comment this
+ * Interface to implement for classes dealing with proteins having secondary acs in uniprot.
+ * Collect all proteins in the database related to a single uniprot entry
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -14,7 +15,17 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 
 public interface UniprotIdentityUpdater {
 
+    /**
+     * Collect all proteins related to a single uniprot entry in the event and set the lists of intact proteins related to this uniprot entry
+     * @param evt
+     * @return
+     * @throws ProcessorException
+     */
     public UpdateCaseEvent collectPrimaryAndSecondaryProteins(ProteinEvent evt) throws ProcessorException;
 
+    /**
+     * Update all the secondary proteins/isoforms in the event.
+     * @param evt
+     */
     public void updateAllSecondaryProteins(UpdateCaseEvent evt);
 }

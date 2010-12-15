@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * TODO comment this
+ * This class retrieves uniprot entries using uniprot acs (secondary or primary)
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -36,11 +36,23 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * UniProt Data Source.
      */
     private UniprotService uniprotService;
+
+    /**
+     * The fixer of proteins dead in uniprot
+     */
     private DeadUniprotProteinFixer deadUniprotFixer;
 
+    /**
+     * The logger of this class
+     */
     private static final Log log = LogFactory.getLog( UniprotProteinRetrieverImpl.class );
 
+    /**
+     * Max Number of attempts if the uniprot service fails to retrieve a protein
+     */
     private final int MAX_RETRY_ATTEMPTS = 100;
+
+
     private int retryAttempt = 0;
 
     public UniprotProteinRetrieverImpl(UniprotService uniprotService) {
@@ -48,6 +60,11 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
     }
 
+    /**
+     *
+     * @param uniprotAc
+     * @return the unique uniprot entry matching this uniprot ac if possible, null otherwise
+     */
     public UniprotProtein retrieveUniprotEntry(String uniprotAc){
         Collection<UniprotProtein> uniprotProteins;
         try{
@@ -73,39 +90,44 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             return null;
         }
         else if ( uniprotProteins.size() > 1 ) {
-            if ( 1 == getSpeciesCount( uniprotProteins ) ) {
-                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
-                if (IdentifierChecker.isSpliceVariantId(uniprotAc)){
-                    String truncatedAc = uniprotAc.substring(0, Math.max(0, uniprotAc.indexOf("-")));
-                    List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
 
-                    for (UniprotProtein uniprot : uniprotProteins){
-                        if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
-                            proteinsWithSameBaseUniprotAc.add(uniprot);
-                        }
-                    }
+            // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+            if (IdentifierChecker.isSpliceVariantId(uniprotAc)){
+                String truncatedAc = uniprotAc.substring(0, Math.max(0, uniprotAc.indexOf("-")));
+                List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
 
-                    if (proteinsWithSameBaseUniprotAc.size() == 1){
-                        return proteinsWithSameBaseUniprotAc.iterator().next();
+                for (UniprotProtein uniprot : uniprotProteins){
+                    if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                        proteinsWithSameBaseUniprotAc.add(uniprot);
                     }
                 }
-                // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
-                // in uniprot we should not update it automatically but send a message to the curators so that they
-                // choose manually which of the new uniprot ac is relevant.
-                return null;
-            } else {
 
-                return null;
+                if (proteinsWithSameBaseUniprotAc.size() == 1){
+                    return proteinsWithSameBaseUniprotAc.iterator().next();
+                }
             }
+            // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
+            // in uniprot we should not update it automatically but send a message to the curators so that they
+            // choose manually which of the new uniprot ac is relevant.
+            return null;
         } else {
             return uniprotProteins.iterator().next();
         }
     }
 
+    /**
+     *
+     * @param evt
+     * @return the unique uniprot entry matching this uniprot identity in the ProteinEvent if possible, null otherwise
+     * @throws ProcessorException
+     */
     public UniprotProtein retrieveUniprotEntry(ProteinEvent evt) throws ProcessorException {
+        // the uniprot ac is the uniprot identity in the protein event
         String uniprotAc = evt.getUniprotIdentity();
 
+        // if not null, query uniprot
         if (uniprotAc != null){
+            // try to collect uniprot entries
             Collection<UniprotProtein> uniprotProteins;
             try{
                 uniprotProteins = uniprotService.retrieve( uniprotAc );
@@ -262,16 +284,30 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         return species.size();
     }
 
+    /**
+     * Filter all possible protein in the event whcih cannot match a single uniprot entry
+     * @param evt
+     * @throws ProcessorException
+     */
     public void filterAllSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
+        // a secondary protein can be remapped to several uniprot entries so we only have to filter secondary proteins having several uniprot entries
+
+        // filter secondary proteins only!
         if (evt.getSecondaryProteins().size() > 0){
             filterSecondaryProteinsPossibleToUpdate(evt);
         }
 
+        // filter secondary isoforms only!
         if (evt.getSecondaryIsoforms().size() > 0){
             filterSecondaryIsoformsPossibleToUpdate(evt);
         }
     }
 
+    /**
+     * Filter secondary proteins having several uniprot entries and remove them from the list of proteins to update
+     * @param evt
+     * @throws ProcessorException
+     */
     private void filterSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<? extends Protein> secondaryProteins = evt.getSecondaryProteins();
         UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
@@ -340,6 +376,11 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         evt.getSecondaryProteins().removeAll(secondaryAcToRemove);
     }
 
+    /**
+     * Filter secondary isoforms having several uniprot entries and remove them from the list of proteins to update
+     * @param evt
+     * @throws ProcessorException
+     */
     private void filterSecondaryIsoformsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<ProteinTranscript> secondaryProteins = evt.getSecondaryIsoforms();
         UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
