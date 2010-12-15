@@ -28,6 +28,7 @@ import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -39,7 +40,7 @@ import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 import java.util.*;
 
 /**
- * Tester of UniprotProteinUpdater
+ * Tester of UniprotProteinUpdaterImpl
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -47,11 +48,11 @@ import java.util.*;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
-    private UniprotProteinUpdater updater;
+    private UniprotProteinUpdaterImpl updater;
 
     @Before
     public void before() throws Exception {
-        updater = new UniprotProteinUpdater();
+        updater = new UniprotProteinUpdaterImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

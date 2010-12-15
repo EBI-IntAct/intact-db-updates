@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 
@@ -12,9 +11,9 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
  * @since <pre>14-Dec-2010</pre>
  */
 
-public interface UniprotIdentityUpdater {
+public interface ProteinUpdateAction {
 
-    public UpdateCaseEvent collectPrimaryAndSecondaryProteins(ProteinEvent evt) throws ProcessorException;
+    public boolean runAction(ProteinEvent evt);
 
-    public void updateAllSecondaryProteins(UpdateCaseEvent evt);
+    public void runActionForAll(UpdateCaseEvent evt);
 }

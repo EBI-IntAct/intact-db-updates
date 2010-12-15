@@ -64,7 +64,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     public DuplicatesFixerImpl(){
         proteinDeleter = new ProteinDeleterImpl();
         deprecatedParticipantFixer = new OutOfDateParticipantFixerImpl();
-        this.rangeFixer = new RangeFixer();
+        this.rangeFixer = new RangeFixerImpl();
     }
 
     /**

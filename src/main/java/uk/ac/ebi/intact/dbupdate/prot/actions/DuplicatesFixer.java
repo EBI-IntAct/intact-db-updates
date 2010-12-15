@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProteinDeleterImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 
 /**

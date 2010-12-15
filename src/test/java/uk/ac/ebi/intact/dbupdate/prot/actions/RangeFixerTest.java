@@ -14,12 +14,11 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
-import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
-import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
@@ -28,7 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Tester of RangeFixer
+ * Tester of RangeFixerImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -37,10 +36,10 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class RangeFixerTest extends IntactBasicTestCase {
 
-    private RangeFixer rangeFixer;
+    private RangeFixerImpl rangeFixer;
     @Before
     public void setUp(){
-        rangeFixer = new RangeFixer();
+        rangeFixer = new RangeFixerImpl();
 
         TransactionStatus status = getDataContext().beginTransaction();
 

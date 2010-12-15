@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinRetrieverImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Protein;
@@ -30,7 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Second tester of UniprotProteinRetriever
+ * Second tester of UniprotProteinRetrieverImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -39,12 +40,12 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
-    UniprotProteinRetriever retriever;
+    UniprotProteinRetrieverImpl retriever;
 
     @Before
     public void before() throws Exception {
         UniprotService uniprotService = new MockUniprotService();
-        retriever = new UniprotProteinRetriever(uniprotService);
+        retriever = new UniprotProteinRetrieverImpl(uniprotService);
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

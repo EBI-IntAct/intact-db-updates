@@ -24,7 +24,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
@@ -93,15 +93,15 @@ public abstract class ProteinProcessor {
 
         previousBatchACs = new ArrayList<String>();
         updateFilter = new ProteinUpdateFilterImpl();
-        this.uniprotIdentityUpdater = new UniprotIdentityUpdater();
-        this.uniprotRetriever = new UniprotProteinRetriever(config.getUniprotService());
+        this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
+        this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService());
         this.duplicateFinder = new DuplicatesFinderImpl();
         this.duplicateFixer = new DuplicatesFixerImpl();
         this.proteinDeleter = new ProteinDeleterImpl();
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
-        this.updater = new UniprotProteinUpdater(config.getTaxonomyService());
+        this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService());
         this.participantFixer = new OutOfDateParticipantFixerImpl();
-        rangeFixer = new RangeFixer();
+        rangeFixer = new RangeFixerImpl();
         parentUpdater = new IntactTranscriptParentUpdaterImpl();
     }
 
@@ -294,5 +294,93 @@ public abstract class ProteinProcessor {
 
     public Protein getCurrentProtein() {
         return currentProtein;
+    }
+
+    public ProteinUpdateFilter getUpdateFilter() {
+        return updateFilter;
+    }
+
+    public void setUpdateFilter(ProteinUpdateFilter updateFilter) {
+        this.updateFilter = updateFilter;
+    }
+
+    public UniprotIdentityUpdater getUniprotIdentityUpdater() {
+        return uniprotIdentityUpdater;
+    }
+
+    public void setUniprotIdentityUpdater(UniprotIdentityUpdater uniprotIdentityUpdater) {
+        this.uniprotIdentityUpdater = uniprotIdentityUpdater;
+    }
+
+    public UniprotProteinRetriever getUniprotRetriever() {
+        return uniprotRetriever;
+    }
+
+    public void setUniprotRetriever(UniprotProteinRetriever uniprotRetriever) {
+        this.uniprotRetriever = uniprotRetriever;
+    }
+
+    public DuplicatesFinder getDuplicateFinder() {
+        return duplicateFinder;
+    }
+
+    public void setDuplicateFinder(DuplicatesFinder duplicateFinder) {
+        this.duplicateFinder = duplicateFinder;
+    }
+
+    public DuplicatesFixer getDuplicateFixer() {
+        return duplicateFixer;
+    }
+
+    public void setDuplicateFixer(DuplicatesFixer duplicateFixer) {
+        this.duplicateFixer = duplicateFixer;
+    }
+
+    public ProteinDeleter getProteinDeleter() {
+        return proteinDeleter;
+    }
+
+    public void setProteinDeleter(ProteinDeleter proteinDeleter) {
+        this.proteinDeleter = proteinDeleter;
+    }
+
+    public ProtWithoutInteractionDeleter getProtWithoutInteractionDeleter() {
+        return protWithoutInteractionDeleter;
+    }
+
+    public void setProtWithoutInteractionDeleter(ProtWithoutInteractionDeleter protWithoutInteractionDeleter) {
+        this.protWithoutInteractionDeleter = protWithoutInteractionDeleter;
+    }
+
+    public RangeFixer getRangeFixer() {
+        return rangeFixer;
+    }
+
+    public void setRangeFixer(RangeFixer rangeFixer) {
+        this.rangeFixer = rangeFixer;
+    }
+
+    public OutOfDateParticipantFixer getParticipantFixer() {
+        return participantFixer;
+    }
+
+    public void setParticipantFixer(OutOfDateParticipantFixer participantFixer) {
+        this.participantFixer = participantFixer;
+    }
+
+    public UniprotProteinUpdater getUpdater() {
+        return updater;
+    }
+
+    public void setUpdater(UniprotProteinUpdater updater) {
+        this.updater = updater;
+    }
+
+    public IntactTranscriptParentUpdater getParentUpdater() {
+        return parentUpdater;
+    }
+
+    public void setParentUpdater(IntactTranscriptParentUpdater parentUpdater) {
+        this.parentUpdater = parentUpdater;
     }
 }

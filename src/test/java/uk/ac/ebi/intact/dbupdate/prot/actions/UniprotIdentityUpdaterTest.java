@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotIdentityUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Annotation;
@@ -22,7 +23,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
-import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
 /**
  * Tester of UniprotIdentityUpdaterTest
@@ -34,11 +34,11 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
 
-    private UniprotIdentityUpdater updater;
+    private UniprotIdentityUpdaterImpl updater;
 
     @Before
     public void setUp(){
-        updater = new UniprotIdentityUpdater();
+        updater = new UniprotIdentityUpdaterImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
