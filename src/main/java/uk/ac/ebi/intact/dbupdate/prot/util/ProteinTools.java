@@ -45,8 +45,14 @@ public class ProteinTools {
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);
-            destinationProtein.addActiveInstance(component);
-            factory.getComponentDao().update(component);
+
+            if (destinationProtein.getActiveInstances().contains(component)){
+                factory.getComponentDao().delete(component);
+            }
+            else {
+                destinationProtein.addActiveInstance(component);
+                factory.getComponentDao().update(component);
+            }
         }
 
         factory.getProteinDao().update((ProteinImpl) sourceProtein);

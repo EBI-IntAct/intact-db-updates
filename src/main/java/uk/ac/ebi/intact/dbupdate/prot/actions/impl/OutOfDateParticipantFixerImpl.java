@@ -172,9 +172,8 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         // move the components having range conflicts
         for (Component c : componentsToFix){
             proteinWithConflicts.removeActiveInstance(c);
-            transcriptIntact.addActiveInstance(c);
-            c.setInteractorAc(transcriptIntact.getAc());
 
+            transcriptIntact.addActiveInstance(c);
             factory.getComponentDao().update(c);
         }
 

@@ -332,8 +332,14 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         for (Component component : componentToMove) {
 
                             duplicate.removeActiveInstance(component);
-                            originalProt.addActiveInstance(component);
-                            factory.getComponentDao().update(component);
+
+                            if (duplicate.getActiveInstances().contains(component)){
+                                factory.getComponentDao().delete(component);
+                            }
+                            else {
+                                originalProt.addActiveInstance(component);
+                                factory.getComponentDao().update(component);
+                            }
                         }
 
                         // update protein
