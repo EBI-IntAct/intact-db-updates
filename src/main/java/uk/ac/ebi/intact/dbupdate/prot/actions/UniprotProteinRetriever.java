@@ -38,6 +38,12 @@ public interface UniprotProteinRetriever {
      */
     public void filterAllSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException;
 
+    /**
+     * Process the protein not found in uniprot
+     * @param evt
+     */
+    public void processProteinNotFoundInUniprot(ProteinEvent evt);
+
     public UniprotService getUniprotService();
 
     public void setUniprotService(UniprotService uniprotService);

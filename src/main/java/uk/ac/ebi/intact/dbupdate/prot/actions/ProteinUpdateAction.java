@@ -4,7 +4,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 
 /**
- * TODO comment this
+ * During a protein update, specific actions can be run, either from a Proteinevent or an UpdateCaseEvent
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

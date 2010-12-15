@@ -495,6 +495,33 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         evt.getSecondaryIsoforms().removeAll(secondaryAcToRemove);
     }
 
+    /**
+     * process proteins not found in uniprot
+     * @param evt
+     */
+    public void processProteinNotFoundInUniprot(ProteinEvent evt){
+        // the intact protein matching this ac is not null
+        if(evt.getProtein() != null){
+
+            final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+            // if we can update the dead proteins, we update them, otherwise we add an error in uniprotServiceResult
+            if (config != null && !config.isProcessProteinNotFoundInUniprot()){
+                if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + evt.getUniprotIdentity(), UpdateError.dead_uniprot_ac, evt.getProtein(), evt.getUniprotIdentity()));
+                }
+
+                if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (no-uniprot-update)");
+                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
+            }
+            else {
+                deadUniprotFixer.fixDeadProtein(evt);
+            }
+
+        }
+    }
+
     public UniprotService getUniprotService() {
         return uniprotService;
     }
