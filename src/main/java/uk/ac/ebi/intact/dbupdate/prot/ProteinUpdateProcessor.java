@@ -75,8 +75,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
      */
     protected ProtWithoutInteractionDeleter protWithoutInteractionDeleter;
 
-    protected RangeFixer rangeFixer;
-
     protected OutOfDateParticipantFixer participantFixer;
     protected UniprotProteinUpdater updater;
     protected IntactTranscriptParentUpdater parentUpdater;
@@ -93,7 +91,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
         this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService());
         this.participantFixer = new OutOfDateParticipantFixerImpl();
-        rangeFixer = new RangeFixerImpl();
         parentUpdater = new IntactTranscriptParentUpdaterImpl();
     }
 
@@ -610,14 +607,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     public void setProtWithoutInteractionDeleter(ProtWithoutInteractionDeleter protWithoutInteractionDeleter) {
         this.protWithoutInteractionDeleter = protWithoutInteractionDeleter;
-    }
-
-    public RangeFixer getRangeFixer() {
-        return rangeFixer;
-    }
-
-    public void setRangeFixer(RangeFixer rangeFixer) {
-        this.rangeFixer = rangeFixer;
     }
 
     public OutOfDateParticipantFixer getParticipantFixer() {
