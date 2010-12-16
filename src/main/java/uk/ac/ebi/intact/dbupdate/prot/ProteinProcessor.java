@@ -53,56 +53,9 @@ public abstract class ProteinProcessor {
 
     protected Protein currentProtein;
 
-    /**
-     * The filter of no-uniprot-update and multi uniprot identities
-     */
-    protected ProteinUpdateFilter updateFilter;
-    /**
-     * The updater for the uniprot identity cross references
-     */
-    protected UniprotIdentityUpdater uniprotIdentityUpdater;
-    /**
-     * The uniprot protein retriever
-     */
-    protected UniprotProteinRetriever uniprotRetriever;
-    /**
-     * The duplicate finder
-     */
-    protected DuplicatesFinder duplicateFinder;
-    /**
-     * The duplicate fixer
-     */
-    protected DuplicatesFixer duplicateFixer;
-    /**
-     * The protein deleter
-     */
-    protected ProteinDeleter proteinDeleter;
-    /**
-     * The deleter of proteins without interactions
-     */
-    protected ProtWithoutInteractionDeleter protWithoutInteractionDeleter;
-
-    protected RangeFixer rangeFixer;
-
-    protected OutOfDateParticipantFixer participantFixer;
-    protected UniprotProteinUpdater updater;
-    protected IntactTranscriptParentUpdater parentUpdater;
-
     public ProteinProcessor() {
-        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-
-        previousBatchACs = new ArrayList<String>();
-        updateFilter = new ProteinUpdateFilterImpl();
-        this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
-        this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService());
-        this.duplicateFinder = new DuplicatesFinderImpl();
-        this.duplicateFixer = new DuplicatesFixerImpl();
-        this.proteinDeleter = new ProteinDeleterImpl();
-        this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
-        this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService());
-        this.participantFixer = new OutOfDateParticipantFixerImpl();
-        rangeFixer = new RangeFixerImpl();
-        parentUpdater = new IntactTranscriptParentUpdaterImpl();
+        
+        previousBatchACs = new ArrayList<String>();        
     }
 
     /**
@@ -294,93 +247,5 @@ public abstract class ProteinProcessor {
 
     public Protein getCurrentProtein() {
         return currentProtein;
-    }
-
-    public ProteinUpdateFilter getUpdateFilter() {
-        return updateFilter;
-    }
-
-    public void setUpdateFilter(ProteinUpdateFilter updateFilter) {
-        this.updateFilter = updateFilter;
-    }
-
-    public UniprotIdentityUpdater getUniprotIdentityUpdater() {
-        return uniprotIdentityUpdater;
-    }
-
-    public void setUniprotIdentityUpdater(UniprotIdentityUpdater uniprotIdentityUpdater) {
-        this.uniprotIdentityUpdater = uniprotIdentityUpdater;
-    }
-
-    public UniprotProteinRetriever getUniprotRetriever() {
-        return uniprotRetriever;
-    }
-
-    public void setUniprotRetriever(UniprotProteinRetriever uniprotRetriever) {
-        this.uniprotRetriever = uniprotRetriever;
-    }
-
-    public DuplicatesFinder getDuplicateFinder() {
-        return duplicateFinder;
-    }
-
-    public void setDuplicateFinder(DuplicatesFinder duplicateFinder) {
-        this.duplicateFinder = duplicateFinder;
-    }
-
-    public DuplicatesFixer getDuplicateFixer() {
-        return duplicateFixer;
-    }
-
-    public void setDuplicateFixer(DuplicatesFixer duplicateFixer) {
-        this.duplicateFixer = duplicateFixer;
-    }
-
-    public ProteinDeleter getProteinDeleter() {
-        return proteinDeleter;
-    }
-
-    public void setProteinDeleter(ProteinDeleter proteinDeleter) {
-        this.proteinDeleter = proteinDeleter;
-    }
-
-    public ProtWithoutInteractionDeleter getProtWithoutInteractionDeleter() {
-        return protWithoutInteractionDeleter;
-    }
-
-    public void setProtWithoutInteractionDeleter(ProtWithoutInteractionDeleter protWithoutInteractionDeleter) {
-        this.protWithoutInteractionDeleter = protWithoutInteractionDeleter;
-    }
-
-    public RangeFixer getRangeFixer() {
-        return rangeFixer;
-    }
-
-    public void setRangeFixer(RangeFixer rangeFixer) {
-        this.rangeFixer = rangeFixer;
-    }
-
-    public OutOfDateParticipantFixer getParticipantFixer() {
-        return participantFixer;
-    }
-
-    public void setParticipantFixer(OutOfDateParticipantFixer participantFixer) {
-        this.participantFixer = participantFixer;
-    }
-
-    public UniprotProteinUpdater getUpdater() {
-        return updater;
-    }
-
-    public void setUpdater(UniprotProteinUpdater updater) {
-        this.updater = updater;
-    }
-
-    public IntactTranscriptParentUpdater getParentUpdater() {
-        return parentUpdater;
-    }
-
-    public void setParentUpdater(IntactTranscriptParentUpdater parentUpdater) {
-        this.parentUpdater = parentUpdater;
     }
 }

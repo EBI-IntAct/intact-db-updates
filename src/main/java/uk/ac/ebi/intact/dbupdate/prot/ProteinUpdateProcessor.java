@@ -21,6 +21,8 @@ import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
+import uk.ac.ebi.intact.dbupdate.prot.actions.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -47,8 +49,56 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     private static final Log log = LogFactory.getLog( ProteinUpdateProcessor.class );
 
+    /**
+     * The filter of no-uniprot-update and multi uniprot identities
+     */
+    protected ProteinUpdateFilter updateFilter;
+    /**
+     * The updater for the uniprot identity cross references
+     */
+    protected UniprotIdentityUpdater uniprotIdentityUpdater;
+    /**
+     * The uniprot protein retriever
+     */
+    protected UniprotProteinRetriever uniprotRetriever;
+    /**
+     * The duplicate finder
+     */
+    protected DuplicatesFinder duplicateFinder;
+    /**
+     * The duplicate fixer
+     */
+    protected DuplicatesFixer duplicateFixer;
+    /**
+     * The protein deleter
+     */
+    protected ProteinDeleter proteinDeleter;
+    /**
+     * The deleter of proteins without interactions
+     */
+    protected ProtWithoutInteractionDeleter protWithoutInteractionDeleter;
+
+    protected RangeFixer rangeFixer;
+
+    protected OutOfDateParticipantFixer participantFixer;
+    protected UniprotProteinUpdater updater;
+    protected IntactTranscriptParentUpdater parentUpdater;
+
     public ProteinUpdateProcessor(){
         super();
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+        updateFilter = new ProteinUpdateFilterImpl();
+        this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
+        this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService());
+        this.duplicateFinder = new DuplicatesFinderImpl();
+        this.duplicateFixer = new DuplicatesFixerImpl();
+        this.proteinDeleter = new ProteinDeleterImpl();
+        this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
+        this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService());
+        this.participantFixer = new OutOfDateParticipantFixerImpl();
+        rangeFixer = new RangeFixerImpl();
+        parentUpdater = new IntactTranscriptParentUpdaterImpl();
     }
 
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
@@ -218,7 +268,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                 ProteinEvent processEvent = new ProteinEvent(this, context, null);
                 processEvent.setUniprotIdentity(uniprotAc);
-                processEvent.setUniprotProtein(uniprotProtein);
 
                 UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent);
 
@@ -273,11 +322,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     @Override
     public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
+        // register the listeners
+        registerListenersIfNotDoneYet();
+        
         // the proteins processed during this update
         Set<String> processedProteins = super.update(protToUpdate, dataContext);
 
-        // register the listeners
-        registerListenersIfNotDoneYet();
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         // the protein to update
@@ -328,7 +378,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                     // if the uniprot protein exists, start to update
                     if (uniprotProtein != null){
-                        processEvent.setUniprotProtein(uniprotProtein);
 
                         if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotIdentity);
 
@@ -339,7 +388,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                             for (Protein p : caseEvent.getUniprotServiceResult().getProteins()){
                                 processedProteins.add(p.getAc());
                             }
-                        }                       
+                        }
                     }
                 }
             }
@@ -539,15 +588,22 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         // if the uniprot protein exists, start to update
         if (uniprotProtein != null){
+            // set the uniprot protein of the event
             processEvent.setUniprotProtein(uniprotProtein);
 
+            // if the uniprot identity is null, set the uniprot identity to the primary ac of the uniprot entry.
+            // it is possible that the uniprot identity is different that th uniprot primary ac, it depends which protein we were updating first (
+            // could be secondary ac, isoform ac, feature chain id, etc.)
             if (processEvent.getUniprotIdentity() == null){
                 processEvent.setUniprotIdentity(uniprotProtein.getPrimaryAc());
             }
 
             if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+processEvent.getUniprotIdentity());
 
-            // get all the proteins in intact matching primary and secondary acs of this uniprot protein. Get also all the splice variants and feature chains attached to this protein
+            // get all the proteins in intact attached to this uniprot entry :
+            // - all intact proteins with uniprot identity = uniprot primary ac => primary proteins
+            // - all intact proteins with uniprot identity = one of the uniprot secondary acs => secondary proteins
+            // - For each primary and secondary
             UpdateCaseEvent caseEvent = uniprotIdentityUpdater.collectPrimaryAndSecondaryProteins(processEvent);
 
             // if we can delete proteins without interactions, delete all of the proteins attached to this uniprot entry without interactions
@@ -572,7 +628,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             if (log.isTraceEnabled()) log.trace("Checking that it is possible to update existing secondary proteins for " + uniprotProtein.getPrimaryAc() );
 
             // filter on the proteins matching a single uniprot protein
-            uniprotRetriever.filterAllSecondaryProteinsPossibleToUpdate(caseEvent);
+            uniprotRetriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(caseEvent);
 
             // secondary acs
             if (!caseEvent.getSecondaryProteins().isEmpty() || !caseEvent.getSecondaryIsoforms().isEmpty()){
@@ -737,5 +793,93 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
 
         return null;
+    }
+
+    public ProteinUpdateFilter getUpdateFilter() {
+        return updateFilter;
+    }
+
+    public void setUpdateFilter(ProteinUpdateFilter updateFilter) {
+        this.updateFilter = updateFilter;
+    }
+
+    public UniprotIdentityUpdater getUniprotIdentityUpdater() {
+        return uniprotIdentityUpdater;
+    }
+
+    public void setUniprotIdentityUpdater(UniprotIdentityUpdater uniprotIdentityUpdater) {
+        this.uniprotIdentityUpdater = uniprotIdentityUpdater;
+    }
+
+    public UniprotProteinRetriever getUniprotRetriever() {
+        return uniprotRetriever;
+    }
+
+    public void setUniprotRetriever(UniprotProteinRetriever uniprotRetriever) {
+        this.uniprotRetriever = uniprotRetriever;
+    }
+
+    public DuplicatesFinder getDuplicateFinder() {
+        return duplicateFinder;
+    }
+
+    public void setDuplicateFinder(DuplicatesFinder duplicateFinder) {
+        this.duplicateFinder = duplicateFinder;
+    }
+
+    public DuplicatesFixer getDuplicateFixer() {
+        return duplicateFixer;
+    }
+
+    public void setDuplicateFixer(DuplicatesFixer duplicateFixer) {
+        this.duplicateFixer = duplicateFixer;
+    }
+
+    public ProteinDeleter getProteinDeleter() {
+        return proteinDeleter;
+    }
+
+    public void setProteinDeleter(ProteinDeleter proteinDeleter) {
+        this.proteinDeleter = proteinDeleter;
+    }
+
+    public ProtWithoutInteractionDeleter getProtWithoutInteractionDeleter() {
+        return protWithoutInteractionDeleter;
+    }
+
+    public void setProtWithoutInteractionDeleter(ProtWithoutInteractionDeleter protWithoutInteractionDeleter) {
+        this.protWithoutInteractionDeleter = protWithoutInteractionDeleter;
+    }
+
+    public RangeFixer getRangeFixer() {
+        return rangeFixer;
+    }
+
+    public void setRangeFixer(RangeFixer rangeFixer) {
+        this.rangeFixer = rangeFixer;
+    }
+
+    public OutOfDateParticipantFixer getParticipantFixer() {
+        return participantFixer;
+    }
+
+    public void setParticipantFixer(OutOfDateParticipantFixer participantFixer) {
+        this.participantFixer = participantFixer;
+    }
+
+    public UniprotProteinUpdater getUpdater() {
+        return updater;
+    }
+
+    public void setUpdater(UniprotProteinUpdater updater) {
+        this.updater = updater;
+    }
+
+    public IntactTranscriptParentUpdater getParentUpdater() {
+        return parentUpdater;
+    }
+
+    public void setParentUpdater(IntactTranscriptParentUpdater parentUpdater) {
+        this.parentUpdater = parentUpdater;
     }
 }

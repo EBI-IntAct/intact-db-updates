@@ -132,7 +132,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
@@ -186,7 +186,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
@@ -240,7 +240,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
@@ -303,7 +303,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
@@ -366,7 +366,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
@@ -422,7 +422,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
-        retriever.filterAllSecondaryProteinsPossibleToUpdate(evt);
+        retriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(evt);
 
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());

@@ -276,6 +276,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                                 updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                             }
+
+                            primaryIsoforms.add(new ProteinTranscript(variant, null));
+                            evt.getUniprotServiceResult().getProteins().add(variant);
                         }
                     }
                     else {
@@ -283,6 +286,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                         }
+
+                        primaryIsoforms.add(new ProteinTranscript(variant, null));
+                        evt.getUniprotServiceResult().getProteins().add(variant);
                     }
                 }
             }
@@ -338,6 +344,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                                 updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                             }
+
+                            primaryChains.add(new ProteinTranscript(variant, null));
+                            evt.getUniprotServiceResult().getProteins().add(variant);
                         }
                     }
                     else {
@@ -345,6 +354,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
                         }
+
+                        primaryChains.add(new ProteinTranscript(variant, null));
+                        evt.getUniprotServiceResult().getProteins().add(variant);
                     }
                 }
             }

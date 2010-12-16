@@ -266,11 +266,11 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     }
 
     /**
-     * Filter all possible protein in the event whcih cannot match a single uniprot entry
+     * Filter all possible protein in the event which cannot match a single uniprot entry
      * @param evt
      * @throws ProcessorException
      */
-    public void filterAllSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
+    public void filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
         // a secondary protein can be remapped to several uniprot entries so we only have to filter secondary proteins having several uniprot entries
 
         // filter secondary proteins only!
@@ -281,6 +281,36 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         // filter secondary isoforms only!
         if (evt.getSecondaryIsoforms().size() > 0){
             filterSecondaryIsoformsPossibleToUpdate(evt);
+        }
+
+        if (evt.getPrimaryIsoforms().size() > 0){
+            Collection<ProteinTranscript> acsToRemove = new ArrayList<ProteinTranscript>();
+
+            for (ProteinTranscript protTrans : evt.getPrimaryIsoforms()){
+                Protein prot = protTrans.getProtein();
+
+                if (protTrans.getUniprotVariant() == null){
+                    processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
+                    acsToRemove.add(protTrans);
+                }
+            }
+
+            evt.getPrimaryIsoforms().removeAll(acsToRemove);
+        }
+
+        if (evt.getPrimaryFeatureChains().size() > 0){
+            Collection<ProteinTranscript> acsToRemove = new ArrayList<ProteinTranscript>();
+
+            for (ProteinTranscript protTrans : evt.getPrimaryFeatureChains()){
+                Protein prot = protTrans.getProtein();
+
+                if (protTrans.getUniprotVariant() == null){
+                    processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
+                    acsToRemove.add(protTrans);
+                }
+            }
+
+            evt.getPrimaryFeatureChains().removeAll(acsToRemove);
         }
     }
 
@@ -372,86 +402,46 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         for (ProteinTranscript protTrans : secondaryProteins){
             Protein prot = protTrans.getProtein();
 
-            InteractorXref primary = ProteinUtils.getUniprotXref(prot);
+            if (protTrans.getUniprotVariant() == null){
+                processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
+                secondaryAcToRemove.add(protTrans);
+            }
+            else {
+                InteractorXref primary = ProteinUtils.getUniprotXref(prot);
 
-            String primaryAc = primary.getPrimaryId();
+                String primaryAc = primary.getPrimaryId();
 
-            // the protein is not the protein being updated at the moment so we need to query uniprot with this primary ac
-            if (!serviceResult.getQuerySentToService().equals(primaryAc)){
-                Collection<UniprotProtein> uniprotProteins = uniprotService.retrieve( primaryAc );
+                // the protein is not the protein being updated at the moment so we need to query uniprot with this primary ac
+                if (!serviceResult.getQuerySentToService().equals(primaryAc)){
+                    Collection<UniprotProtein> uniprotProteins = uniprotService.retrieve( primaryAc );
 
-                // no uniprot protein matches this uniprot ac
-                if(uniprotProteins.size() == 0){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac, prot, primaryAc));
+                    // no uniprot protein matches this uniprot ac
+                    if(uniprotProteins.size() == 0){
+                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac, prot, primaryAc));
+                        }
+                        secondaryAcToRemove.add(protTrans);
                     }
-                    secondaryAcToRemove.add(protTrans);
-                }
-                else if ( uniprotProteins.size() > 1 ) {
-                    if ( 1 == getSpeciesCount( uniprotProteins ) ) {
-                        // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
-                        String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
-                        List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
-
-                        for (UniprotProtein uniprot : uniprotProteins){
-                            if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
-                                proteinsWithSameBaseUniprotAc.add(uniprot);
-                            }
-                        }
-
-                        if (proteinsWithSameBaseUniprotAc.size() != 1){
-                            // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
-                            // in uniprot we should not update it automatically but send a message to the curators so that they
-                            // choose manually which of the new uniprot ac is relevant.
-                            if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim, prot, primaryAc));
-                            }
-                            secondaryAcToRemove.add(protTrans);
-                        }
-                        else if (proteinsWithSameBaseUniprotAc.size() == 1){
-                            if (!uniprotProtein.equals(proteinsWithSameBaseUniprotAc.iterator().next())){
-                                secondaryAcToRemove.add(protTrans);
-                            }
-                        }
-
-                    } else {
-
-                        String taxId = null;
-                        if (prot.getBioSource() != null){
-                            taxId = prot.getBioSource().getTaxId();
-                        }
-
-                        List<UniprotProtein> proteinsWithSameTaxId = new ArrayList<UniprotProtein>();
-
-                        if (taxId != null){
-                            for (UniprotProtein uniprot : uniprotProteins){
-                                if (uniprot.getOrganism() != null){
-                                    Organism o = uniprot.getOrganism();
-                                    if (o.getTaxid() == Integer.parseInt(taxId)){
-                                        proteinsWithSameTaxId.add(uniprot);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (proteinsWithSameTaxId.size() != 1){
-
+                    else if ( uniprotProteins.size() > 1 ) {
+                        if ( 1 == getSpeciesCount( uniprotProteins ) ) {
                             // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
                             String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
                             List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
 
-                            for (UniprotProtein uniprot : proteinsWithSameTaxId){
+                            for (UniprotProtein uniprot : uniprotProteins){
                                 if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
                                     proteinsWithSameBaseUniprotAc.add(uniprot);
                                 }
                             }
 
                             if (proteinsWithSameBaseUniprotAc.size() != 1){
+                                // If a uniprot ac we have in Intact as identity xref in IntAct, now corresponds to 2 or more proteins
+                                // in uniprot we should not update it automatically but send a message to the curators so that they
+                                // choose manually which of the new uniprot ac is relevant.
                                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms, prot, primaryAc));
+                                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim, prot, primaryAc));
                                 }
                                 secondaryAcToRemove.add(protTrans);
                             }
@@ -460,16 +450,62 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                                     secondaryAcToRemove.add(protTrans);
                                 }
                             }
-                        }
-                        else if (proteinsWithSameTaxId.size() == 1){
-                            if (!uniprotProtein.equals(proteinsWithSameTaxId.iterator().next())){
-                                secondaryAcToRemove.add(protTrans);
+
+                        } else {
+
+                            String taxId = null;
+                            if (prot.getBioSource() != null){
+                                taxId = prot.getBioSource().getTaxId();
+                            }
+
+                            List<UniprotProtein> proteinsWithSameTaxId = new ArrayList<UniprotProtein>();
+
+                            if (taxId != null){
+                                for (UniprotProtein uniprot : uniprotProteins){
+                                    if (uniprot.getOrganism() != null){
+                                        Organism o = uniprot.getOrganism();
+                                        if (o.getTaxid() == Integer.parseInt(taxId)){
+                                            proteinsWithSameTaxId.add(uniprot);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (proteinsWithSameTaxId.size() != 1){
+
+                                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+                                String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
+                                List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+
+                                for (UniprotProtein uniprot : proteinsWithSameTaxId){
+                                    if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                                        proteinsWithSameBaseUniprotAc.add(uniprot);
+                                    }
+                                }
+
+                                if (proteinsWithSameBaseUniprotAc.size() != 1){
+                                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms, prot, primaryAc));
+                                    }
+                                    secondaryAcToRemove.add(protTrans);
+                                }
+                                else if (proteinsWithSameBaseUniprotAc.size() == 1){
+                                    if (!uniprotProtein.equals(proteinsWithSameBaseUniprotAc.iterator().next())){
+                                        secondaryAcToRemove.add(protTrans);
+                                    }
+                                }
+                            }
+                            else if (proteinsWithSameTaxId.size() == 1){
+                                if (!uniprotProtein.equals(proteinsWithSameTaxId.iterator().next())){
+                                    secondaryAcToRemove.add(protTrans);
+                                }
                             }
                         }
                     }
-                }
-                else if (!uniprotProtein.equals(uniprotProteins.iterator().next())){
-                    secondaryAcToRemove.add(protTrans);
+                    else if (!uniprotProtein.equals(uniprotProteins.iterator().next())){
+                        secondaryAcToRemove.add(protTrans);
+                    }
                 }
             }
         }
