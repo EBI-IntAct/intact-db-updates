@@ -53,7 +53,7 @@ public class BlastResults extends HibernatePersistentImpl {
         if( protein == null ) {
             throw new IllegalArgumentException( "You must give a non null protein" );
         }
-        this.blastProtein = blastProtein;
+        this.blastProtein = protein;
         this.tremblAccession = null;
     }
 
