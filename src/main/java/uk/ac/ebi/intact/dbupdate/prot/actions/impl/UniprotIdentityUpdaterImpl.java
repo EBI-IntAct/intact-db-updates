@@ -442,5 +442,5 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         }
 
         evt.getSecondaryIsoforms().clear();
-    }
+    }    
 }

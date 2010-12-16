@@ -603,7 +603,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // get all the proteins in intact attached to this uniprot entry :
             // - all intact proteins with uniprot identity = uniprot primary ac => primary proteins
             // - all intact proteins with uniprot identity = one of the uniprot secondary acs => secondary proteins
-            // - For each primary and secondary
+            // - For each primary and secondary proteins, collect all splice variants and feature chains attached to it
+            //     - primary isoforms : each primary isoform match a primary ac of a uniprot splice variant or doesn't match any splice variants
+            //     - secondary isoforms : each secondary isoform match a secondary ac of a uniprot splice variant
+            //     - primary feature chains : each primary feature chain match a primary ac of a uniprot feature chain or doesn't match any feature chains           
             UpdateCaseEvent caseEvent = uniprotIdentityUpdater.collectPrimaryAndSecondaryProteins(processEvent);
 
             // if we can delete proteins without interactions, delete all of the proteins attached to this uniprot entry without interactions

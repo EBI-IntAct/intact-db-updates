@@ -273,14 +273,14 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     public void filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
         // a secondary protein can be remapped to several uniprot entries so we only have to filter secondary proteins having several uniprot entries
 
-        // filter secondary proteins only!
-        if (evt.getSecondaryProteins().size() > 0){
-            filterSecondaryProteinsPossibleToUpdate(evt);
-        }
-
         // filter secondary isoforms only!
         if (evt.getSecondaryIsoforms().size() > 0){
             filterSecondaryIsoformsPossibleToUpdate(evt);
+        }
+        
+        // filter secondary proteins only!
+        if (evt.getSecondaryProteins().size() > 0){
+            filterSecondaryProteinsPossibleToUpdate(evt);
         }
 
         if (evt.getPrimaryIsoforms().size() > 0){
@@ -337,7 +337,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
                 // no uniprot protein matches this uniprot ac
                 if(uniprotProteins.size() == 0){
-                    deadUniprotFixer.fixDeadProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
+                    processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
                     secondaryAcToRemove.add(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
@@ -421,6 +421,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + "No uniprot entry is matching the ac " + primaryAc, UpdateError.dead_uniprot_ac, prot, primaryAc));
                         }
+                        processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
                         secondaryAcToRemove.add(protTrans);
                     }
                     else if ( uniprotProteins.size() > 1 ) {

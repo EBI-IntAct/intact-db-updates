@@ -181,7 +181,7 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
      * Create a protein for each isoform  of cdc42_human (2 primary, 3 secondary). Create another isoform which is not in uniprot
      * and doesn't have 'no-uniprot-update'
      * Create a protein for a feature chain
-     * Collect all these proteins and update the secondary ac : the isoform not in uniprot should be ignored
+     * Collect all these proteins and update the secondary ac : the isoform not in uniprot should be added
      *
      */
     public void collect_cdc42_human_excludeTranscript_notInUniprot(){
@@ -213,7 +213,7 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         Assert.assertEquals(caseEvt.getUniprotServiceResult().getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(3, caseEvt.getSecondaryProteins().size());
-        Assert.assertEquals(2, caseEvt.getPrimaryIsoforms().size());
+        Assert.assertEquals(3, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
         Assert.assertEquals(10, caseEvt.getUniprotServiceResult().getProteins().size());

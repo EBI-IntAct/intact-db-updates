@@ -379,6 +379,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
     /**
      * One secondary protein and one isoform pass the filter because of a single uniprot entry
      * One secondary protein and one isoform pass the filter : No uniprot entries. Can be updated because we can process dead proteins
+     *
      */
     public void onSecondaryAcFound_no_uniprot_protein() throws Exception{
 
@@ -400,15 +401,13 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         for (UniprotSpliceVariant v : cdc.getSpliceVariants()){
             if (v.getPrimaryAc().equals("P60953-1")){
                 variants1 = v;
-            }
-            else if (v.getPrimaryAc().equals("P60953-1")){
                 variants2 = v;
             }
         }
 
-        Protein prot3 = getMockBuilder().createProteinSpliceVariant(prot, "P12345-1", "no_uniprot"); // should not be removed
+        Protein prot3 = getMockBuilder().createProteinSpliceVariant(prot, "P12345-1", "no_uniprot");
 
-        Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P60953-1", "one_uniprot"); // should be removed
+        Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P60953-1", "one_uniprot");
 
         Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
