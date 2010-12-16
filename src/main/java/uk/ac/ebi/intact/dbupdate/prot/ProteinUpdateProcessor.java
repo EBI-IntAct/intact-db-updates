@@ -317,7 +317,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
         // register the listeners
         registerListenersIfNotDoneYet();
-        
+
         // the proteins processed during this update
         Set<String> processedProteins = super.update(protToUpdate, dataContext);
 
@@ -480,33 +480,44 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 if (config.isFixDuplicates()){
                     if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
 
+                    // return the master protein which is the result of the merge if there is one. Returns null if there were no duplicated proteins
+                    // or if it was impossible to have an original protein after the merge
                     masterProtein = duplicateFixer.fixAllProteinDuplicates(caseEvent);
                 }
             }
 
-            try {
-                // update master protein first
-                // update the protein
-                updater.createOrUpdateProtein(caseEvent);
-
-            } catch (ProteinServiceException e) {
-                caseEvent.getUniprotServiceResult().addException(e);
+            // update master proteins first
+            try{
+               updater.createOrUpdateProtein(caseEvent);
+            }
+            catch (ProteinServiceException e){
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when createing a new protein", UpdateError.impossible_update_master, caseEvent.getProtein().getPrimaryAc()));
             }
 
+
+            // it is possible to update protein transcripts only if a master protein is available :
+            // - a master protein not nul which is the result of a merge
+            // - a master protein which is the unique protein in primary proteins
+            // if master protein is null and the list of primary proteins contains more than one protein, it is impossible to update the transcripts because no parent available
             boolean canUpdateProteinTranscript = false;
 
+            // master protein null because no merge done before and number of primary proteins = 1 : the master protein exists
             if (masterProtein == null && caseEvent.getPrimaryProteins().size() == 1){
                 masterProtein = caseEvent.getPrimaryProteins().iterator().next();
                 canUpdateProteinTranscript = true;
             }
+            // master protein null because no merge done before and number of primary proteins != 1 : the master protein is impossible to decide
             else if (masterProtein == null && caseEvent.getPrimaryProteins().size() != 1){
                 caseEvent.getUniprotServiceResult().addException( new ProcessorException("The splice variants of " + uniprotProtein.getPrimaryAc() + " cannot be updated because we found " + caseEvent.getPrimaryProteins().size() + " possible master proteins in IntAct"));
             }
+            // a merge has been done, the master protein is the result of the merge
             else {
                 canUpdateProteinTranscript = true;
             }
 
+            // if a single master protein has been found
             if (canUpdateProteinTranscript){
+                // add first a parent xref for all the protein transcripts without parent xref if it is necessary
                 if (!transcriptsWithoutParents.isEmpty()){
                     parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, caseEvent.getDataContext(), this);
                 }
@@ -517,18 +528,22 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     Collection<ProteinTranscript> proteinTranscript = new ArrayList(caseEvent.getPrimaryIsoforms());
                     proteinTranscript.addAll(caseEvent.getPrimaryFeatureChains());
 
+                    // for each primary transcript, if one uniprot transcript has the exact same sequence and is not the uniprot transcript it has been remapped to, log it because
+                    // can be useful in case of merge problems
                     for (ProteinTranscript trans : proteinTranscript){
                         Protein prot = trans.getProtein();
 
                         if (prot.getSequence() != null){
                             UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
 
+                            // if the uniprot transcript exists, log it
                             if (transcriptsWithSameSequence != null){
                                 fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(this, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
                             }
                         }
                     }
 
+                    // fixing duplicates is enabled
                     if (config.isFixDuplicates()){
                         if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
 
@@ -536,23 +551,18 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     }
                 }
 
+                // update isoforms if necessary
                 if (!caseEvent.getPrimaryIsoforms().isEmpty() || (caseEvent.getPrimaryIsoforms().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
-                    try {
-                        updater.createOrUpdateIsoform(caseEvent, masterProtein);
-                    } catch (ProteinServiceException e) {
-                        caseEvent.getUniprotServiceResult().addException(e);
-                    }
+                    updater.createOrUpdateIsoform(caseEvent, masterProtein);
                 }
 
+                // update chains if necessary
                 if (!caseEvent.getPrimaryFeatureChains().isEmpty() || (caseEvent.getPrimaryFeatureChains().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
-                    try {
-                        updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
-                    } catch (ProteinServiceException e) {
-                        caseEvent.getUniprotServiceResult().addException(e);
-                    }
+                    updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
                 }
             }
 
+            // log in updated.csv
             fireOnUpdateCase(caseEvent);
 
             return caseEvent;

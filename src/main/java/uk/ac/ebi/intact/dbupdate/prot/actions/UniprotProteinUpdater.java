@@ -32,7 +32,7 @@ public interface UniprotProteinUpdater {
      * @param masterProtein : the master protein which is the parent of the isoforms
      * @throws ProteinServiceException
      */
-    public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException;
+    public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein) ;
 
     /**
      * Create of update the feature chains
@@ -40,7 +40,7 @@ public interface UniprotProteinUpdater {
      * @param masterProtein : the master protein which is the parent of the isoforms
      * @throws ProteinServiceException
      */
-    public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException;
+    public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein);
 
     public BioSourceService getBioSourceService();
 

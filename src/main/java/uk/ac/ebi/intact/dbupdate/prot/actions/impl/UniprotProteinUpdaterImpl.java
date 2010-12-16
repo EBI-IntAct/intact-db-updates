@@ -98,7 +98,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      *
      * @throws ProteinServiceException
      */
-    public void createOrUpdateProtein( UpdateCaseEvent evt) throws ProteinServiceException {
+    public void createOrUpdateProtein( UpdateCaseEvent evt) throws ProteinServiceException{
         this.processor = (ProteinUpdateProcessor) evt.getSource();
         UniprotProtein uniprotProtein = evt.getProtein();
 
@@ -115,7 +115,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         processProteinCase(uniprotProtein, primaryProteins, secondaryProteins, evt);
     }
 
-    private void processProteinCase(UniprotProtein uniprotProtein, Collection<Protein> primaryProteins, Collection<Protein> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processProteinCase(UniprotProtein uniprotProtein, Collection<Protein> primaryProteins, Collection<Protein> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException{
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
 
@@ -148,7 +148,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      * @return the list of protein transcripts created or updated
      * @throws ProteinServiceException
      */
-    public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException {
+    public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein){
         this.processor = (ProteinUpdateProcessor) caseEvent.getSource();
 
         UniprotProtein uniprotProtein = caseEvent.getProtein();
@@ -166,7 +166,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         processIsoform(uniprotProtein, masterProtein, primaryProteins, secondaryProteins, caseEvent);
     }
 
-    public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein) throws ProteinServiceException {
+    public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein){
         this.processor = (ProteinUpdateProcessor) caseEvent.getSource();
 
         UniprotProtein uniprotProtein = caseEvent.getProtein();
@@ -191,7 +191,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      * @return
      * @throws ProteinServiceException
      */
-    private void processIsoform(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, Collection<ProteinTranscript> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processIsoform(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, Collection<ProteinTranscript> secondaryProteins, UpdateCaseEvent evt){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         for (UniprotProteinTranscript ut : uniprotProtein.getSpliceVariants()){
@@ -240,7 +240,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
     }
 
-    private void processChain(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void processChain(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, UpdateCaseEvent evt){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         for (UniprotProteinTranscript ut : uniprotProtein.getFeatureChains()){
@@ -284,7 +284,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      * @param protein        the intact protein to update.
      * @param uniprotProtein the uniprot protein used for data input.
      */
-    private void updateProtein( Protein protein, UniprotProtein uniprotProtein, UpdateCaseEvent evt) throws ProteinServiceException {
+    private void updateProtein( Protein protein, UniprotProtein uniprotProtein, UpdateCaseEvent evt){
 
         // check that both protein carry the same organism information
         if (!UpdateBioSource(protein, uniprotProtein.getOrganism(), evt.getDataContext())){
@@ -351,7 +351,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         return true;
     }
 
-    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) throws ProteinServiceException {
+    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) {
         InteractorXref ref = ProteinUtils.getUniprotXref(protein);
         String uniprotAc = ref.getPrimaryId();
 
@@ -474,7 +474,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private boolean updateProteinTranscript( Protein transcript, Protein master,
                                              UniprotProteinTranscript uniprotTranscript,
                                              UniprotProtein uniprotProtein,
-                                             UpdateCaseEvent evt) throws ProteinServiceException {
+                                             UpdateCaseEvent evt) {
 
         if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism(), evt.getDataContext())){
             ProteinTranscript transcriptToRemove = null;
