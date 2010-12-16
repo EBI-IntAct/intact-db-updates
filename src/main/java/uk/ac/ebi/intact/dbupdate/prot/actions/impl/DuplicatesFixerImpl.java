@@ -75,7 +75,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * and which couldn't be merged
      * @throws ProcessorException
      */
-    private DuplicateReport fixProteinDuplicates(DuplicatesFoundEvent evt) throws ProcessorException {
+    public DuplicateReport fixProteinDuplicates(DuplicatesFoundEvent evt) throws ProcessorException {
         // merge protein duplicates and shift ranges when necessary
         DuplicateReport report = mergeDuplicates(evt.getProteins(), evt);
 
