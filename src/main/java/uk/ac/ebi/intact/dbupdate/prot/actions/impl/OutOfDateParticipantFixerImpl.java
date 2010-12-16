@@ -236,11 +236,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                 if (possibleMatch instanceof UniprotSpliceVariant){
 
                     // try to find an intact primary isoform representing the same uniprot transcript and having its sequence up to date with uniprot
-                    ProteinTranscript intactMatch = findAndRemapToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryIsoforms());
+                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryIsoforms());
 
                     // no primary isoforms in intact are mapping the uniprot transcript, try to find an intact secondary isoform representing the same uniprot transcript and having its sequence up to date with uniprot
                     if (intactMatch == null){
-                        intactMatch = findAndRemapToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getSecondaryIsoforms());
+                        intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getSecondaryIsoforms());
                     }
 
                     // return the intact entry if it exists and is up to date with uniprot
@@ -253,7 +253,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                 }
                 else if (possibleMatch instanceof UniprotFeatureChain){
                     // try to find an intact feature chain representing the same uniprot transcript and having its sequence up to date with uniprot
-                    ProteinTranscript intactMatch = findAndRemapToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryFeatureChains());
+                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryFeatureChains());
 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
@@ -289,7 +289,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @param proteinTranscripts
      * @return Protein transcript in intact matching the uniprot transcript and having the exact same sequence, null otherwise
      */
-    private ProteinTranscript findAndRemapToIntactProteinTranscript(DaoFactory factory, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts) {
+    private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DaoFactory factory, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts) {
         for (ProteinTranscript p : proteinTranscripts){
             if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts)){
                 ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, factory);
