@@ -40,7 +40,7 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class DuplicatesFinderImpl implements DuplicatesFinder{
+public class DuplicatesFinderImpl implements DuplicatesFinder {
 
     /**
      * The logger of this class

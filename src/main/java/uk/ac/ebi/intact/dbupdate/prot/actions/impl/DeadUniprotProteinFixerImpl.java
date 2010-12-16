@@ -9,18 +9,16 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateAction;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EventObject;
 import java.util.List;
 
 /**
@@ -31,7 +29,7 @@ import java.util.List;
  * @since <pre>01-Oct-2010</pre>
  */
 
-public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer, ProteinUpdateAction {
+public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
 
     /**
      * Logger for this class
@@ -222,32 +220,5 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer, Pro
 
         // update the protein to be deleted
         factory.getProteinDao().update((ProteinImpl) protein);
-    }
-
-    @Override
-    public boolean runAction(ProteinEvent evt) {
-        if(evt.getProtein() != null){
-
-            final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-
-            // if we can update the dead proteins, we update them, otherwise we add an error in uniprotServiceResult
-            if (config != null && !config.isProcessProteinNotFoundInUniprot()){
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + evt.getUniprotIdentity(), UpdateError.dead_uniprot_ac, evt.getProtein(), evt.getUniprotIdentity()));
-                }
-            }
-            else {
-                fixDeadProtein(evt);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public void runActionForAll(UpdateCaseEvent evt) {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }
