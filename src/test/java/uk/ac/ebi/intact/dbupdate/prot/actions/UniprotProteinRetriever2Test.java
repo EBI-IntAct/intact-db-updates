@@ -176,7 +176,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P00012-2", "several_uniprot"); // should be removed
         Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
-        secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
+        secondaryIsoforms.add(new ProteinTranscript(prot4, null));
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
@@ -395,12 +395,10 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot, prot2);
 
-        UniprotSpliceVariant variants1 = null;
         UniprotSpliceVariant variants2 = null;
 
         for (UniprotSpliceVariant v : cdc.getSpliceVariants()){
             if (v.getPrimaryAc().equals("P60953-1")){
-                variants1 = v;
                 variants2 = v;
             }
         }
@@ -410,7 +408,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P60953-1", "one_uniprot");
 
         Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
-        secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
+        secondaryIsoforms.add(new ProteinTranscript(prot3, null));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);

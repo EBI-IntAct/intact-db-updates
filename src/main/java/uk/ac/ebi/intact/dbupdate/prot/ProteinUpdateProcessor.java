@@ -613,8 +613,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             if (config.isDeleteProtsWithoutInteractions()){
                 if (log.isTraceEnabled()) log.trace("Checking for all protein interactions");
 
+                // get the list of proteins to delete. All these proteins have been removed from the UpdateCaseEvent and will not be updated
                 Set<Protein> protToDelete = protWithoutInteractionDeleter.collectAndRemoveProteinsWithoutInteractions(caseEvent);
 
+                // delete these proteins
                 for (Protein p : protToDelete){
                     ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
                     proteinDeleter.delete(protEvent);
