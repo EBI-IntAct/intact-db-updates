@@ -2,11 +2,16 @@ package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
+import uk.ac.ebi.intact.model.Protein;
+
+import java.util.Collection;
 
 /**
- * TODO comment this
+ * Interface for classes fixing protein duplicates
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -14,14 +19,6 @@ import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
  */
 
 public interface DuplicatesFixer {
-
-    /**
-     * Merge protein duplicates
-     * @param evt : contains the lits of duplicated proteins to merge
-     * @return A DuplicateReport containing the protein kept from the merge and the list of components having feature range conflicts
-     * @throws ProcessorException
-     */
-    public DuplicateReport fixProteinDuplicates(DuplicatesFoundEvent evt) throws ProcessorException;
 
     /**
      *
@@ -40,4 +37,12 @@ public interface DuplicatesFixer {
      * @return the participant fixer which is charged to create deprecated proteins if the original protein have range conflicts with uniprot
      */
     public OutOfDateParticipantFixer getDeprecatedParticipantFixer();
+
+    public Protein fixAllProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException;
+
+    public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt) throws ProcessorException;
+
+    public DuplicatesFinder getDuplicatesFinder();
+
+    public void setDuplicatesFinder(DuplicatesFinder duplicatesFinder);
 }

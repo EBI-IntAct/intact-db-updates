@@ -216,13 +216,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         Assert.assertEquals(3, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(10, caseEvt.getUniprotServiceResult().getProteins().size());
+        Assert.assertEquals(11, caseEvt.getUniprotServiceResult().getProteins().size());
 
         // update
         updater.updateAllSecondaryProteins(caseEvt);
         Assert.assertEquals(4, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(0, caseEvt.getSecondaryProteins().size());
-        Assert.assertEquals(5, caseEvt.getPrimaryIsoforms().size());
+        Assert.assertEquals(6, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(0, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
 
