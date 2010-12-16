@@ -346,21 +346,20 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
         final TransactionStatus transactionStatus = context.beginTransaction();
 
         Protein[] proteins = createDuplicatedSpliceVariants();
-        Assert.assertEquals( 4, proteins.length );
+        Assert.assertEquals( 3, proteins.length );
 
         final ProteinDao proteinDao = getDaoFactory().getProteinDao();
 
         Protein master1 = proteins[0];
         Protein isoform1 = proteins[1];
-        Protein master2 = proteins[2];
-        Protein isoform2 = proteins[3];
+        Protein isoform2 = proteins[2];
 
-        Assert.assertEquals(4, proteinDao.countAll());
+        Assert.assertEquals(3, proteinDao.countAll());
         Assert.assertEquals(2, proteinDao.countUniprotProteinsInvolvedInInteractions(), 0);
-        Assert.assertEquals(1, proteinDao.getSpliceVariants(master2).size());
+        Assert.assertEquals(2, proteinDao.getSpliceVariants(master1).size());
         Assert.assertEquals(2, getDaoFactory().getInteractionDao().countAll());
         assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
-        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master2.getAc() );
+        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
 
         // note that master1.created < master2.created so that master will be retained as part of the merge procedure.
         context.commitTransaction(transactionStatus);
@@ -382,9 +381,9 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
         Assert.assertNotNull( isoform1 );
 
         // master2 should have been merged into master1
-        final String master2ac = master2.getAc();
-        master2 = proteinDao.getByAc( master2.getAc() );
-        Assert.assertNull( master2 );
+        final String master2ac = master1.getAc();
+        master1 = proteinDao.getByAc( master1.getAc() );
+        Assert.assertNotNull( master1 );
 
         // isoform2 should have been merged into isoform1
         final String isoform2ac = isoform2.getAc();
@@ -396,7 +395,6 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 //        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
 
         // master/isoform 1 should have an xref pointing to the former master/isoform 2 AC
-        assertHasXref( master1, CvDatabase.INTACT_MI_REF, "intact-secondary", master2ac );
         assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, "intact-secondary", isoform2ac );
 
         Assert.assertEquals(2, proteinDao.countAll());
@@ -454,6 +452,7 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         // interaction: no
         Protein master1 = getMockBuilder().createProtein("P18459", "master1");
+        master1.getBioSource().setTaxId("7227");
         master1.setCreated( formatter.parse( "2010/06/23" ) );
 
         persister.saveOrUpdate(master1);
@@ -472,22 +471,21 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getSpliceVariants(master1).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        // interaction: no
-        Protein master2 = getMockBuilder().createProtein("P18459", "master2");
-        master2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than master 1
-        master2.setSequence(master1.getSequence());
-
-        persister.saveOrUpdate(master2);
 
         // interaction: yes
-        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(master2, "P18459-1", "isoform2");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(master1, "P18459-2", "isoform2");
         isoform2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than isoform 1
         isoform2.setSequence(isoform1.getSequence());
         Interaction interaction2 = getMockBuilder().createInteraction( isoform2 );
 
         persister.saveOrUpdate(isoform2, interaction2);
 
-        return new Protein[]{ master1, isoform1, master2, isoform2 };
+        InteractorXref identity = ProteinUtils.getUniprotXref(isoform2);
+        identity.setPrimaryId("P18459-1");
+
+        persister.saveOrUpdate(isoform2);
+
+        return new Protein[]{ master1, isoform1, isoform2 };
     }
 
     @Test
