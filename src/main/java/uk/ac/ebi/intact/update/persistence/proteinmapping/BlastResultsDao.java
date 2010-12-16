@@ -1,7 +1,8 @@
-package uk.ac.ebi.intact.update.persistence;
+package uk.ac.ebi.intact.update.persistence.proteinmapping;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.BlastResults;
+import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
  * @since <pre>19-May-2010</pre>
  */
 @Mockable
-public interface BlastResultsDao extends UpdateBaseDao<BlastResults>{
+public interface BlastResultsDao extends UpdateBaseDao<BlastResults> {
 
     /**
      *

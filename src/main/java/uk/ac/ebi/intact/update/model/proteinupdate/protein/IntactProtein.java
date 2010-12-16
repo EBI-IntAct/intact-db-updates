@@ -176,7 +176,6 @@ public class IntactProtein extends HibernatePersistentImpl {
     }
 
     @ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE} )
-
     @JoinTable(
             name = "ia_protein2event",
             joinColumns = {@JoinColumn( name = "intact_protein_id" )},
@@ -190,6 +189,7 @@ public class IntactProtein extends HibernatePersistentImpl {
         this.events = events;
     }
 
+    @ManyToMany( cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE} )
     @JoinTable(
             name = "ia_protein2range",
             joinColumns = {@JoinColumn( name = "intact_protein_id" )},

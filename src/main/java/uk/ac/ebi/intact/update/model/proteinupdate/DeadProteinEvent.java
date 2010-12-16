@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.model.proteinupdate;
 
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.proteinmapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.Annotation;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.CrossReference;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
@@ -26,7 +27,7 @@ public class DeadProteinEvent extends XRefUpdateEvent{
 
     private String uniprotReference;
 
-    private IdentificationResults identificationResult;
+    private UpdateResults identificationResult;
 
     public DeadProteinEvent(){
         super();
@@ -35,7 +36,7 @@ public class DeadProteinEvent extends XRefUpdateEvent{
         this.identificationResult = null;
     }
 
-    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created, IdentificationResults result, int index){
+    public DeadProteinEvent(Collection<InteractorXref> deletedRefs, Collection<InteractorXref> addedRefs, Collection<uk.ac.ebi.intact.model.Annotation> addedAnnotations, InteractorXref uniprotRef, IntactProtein intactProtein, Date created, UpdateResults result, int index){
         super(deletedRefs, addedRefs, intactProtein, EventName.dead_protein, created, index);
         setAddedAnnotationsFromInteractor(addedAnnotations);
         setUniprotReference(uniprotRef);
@@ -78,11 +79,11 @@ public class DeadProteinEvent extends XRefUpdateEvent{
 
     @OneToOne
     @JoinColumn(name = "identification_result_id")
-    public IdentificationResults getIdentificationResult() {
+    public UpdateResults getIdentificationResult() {
         return identificationResult;
     }
 
-    public void setIdentificationResult(IdentificationResults identificationResult) {
+    public void setIdentificationResult(UpdateResults identificationResult) {
         this.identificationResult = identificationResult;
     }
 }

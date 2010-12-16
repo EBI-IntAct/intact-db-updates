@@ -13,7 +13,8 @@ import java.util.*;
  * @version $Id$
  * @since <pre>28-Oct-2010</pre>
  */
-
+@Entity
+@DiscriminatorValue("UniprotUpdateEvent")
 public class UniprotUpdateEvent extends XRefUpdateEvent{
 
     private Collection<String> errors;

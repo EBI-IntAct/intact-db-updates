@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.update.model.proteinupdate;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.proteinmapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.Annotation;
 import uk.ac.ebi.intact.update.model.proteinupdate.protein.IntactProtein;
 
@@ -21,25 +22,25 @@ import java.util.Date;
 
 public class NoUniprotUpdateProteinEvent extends ProteinEvent{
 
-    private IdentificationResults identificationResult;
+    private UpdateResults identificationResult;
 
     public NoUniprotUpdateProteinEvent(){
         super();
         this.identificationResult = null;
     }
 
-    public NoUniprotUpdateProteinEvent(Date created, IdentificationResults result, int index){
+    public NoUniprotUpdateProteinEvent(Date created, UpdateResults result, int index){
         super(EventName.non_uniprot_protein, created, index);
         this.identificationResult = result;
     }
 
     @OneToOne
     @JoinColumn(name = "identification_result_id")
-    public IdentificationResults getIdentificationResult() {
+    public UpdateResults getIdentificationResult() {
         return identificationResult;
     }
 
-    public void setIdentificationResult(IdentificationResults identificationResult) {
+    public void setIdentificationResult(UpdateResults identificationResult) {
         this.identificationResult = identificationResult;
     }
 

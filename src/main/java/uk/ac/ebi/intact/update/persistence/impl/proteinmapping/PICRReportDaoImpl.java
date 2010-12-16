@@ -1,9 +1,9 @@
-package uk.ac.ebi.intact.update.persistence.impl;
+package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.persistence.PICRReportDao;
+import uk.ac.ebi.intact.update.persistence.proteinmapping.PICRReportDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;

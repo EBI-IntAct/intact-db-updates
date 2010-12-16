@@ -20,12 +20,12 @@ import java.util.List;
  * @since <pre>20-May-2010</pre>
  */
 @Transactional(readOnly = true)
-public class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> implements UpdateBaseDao<T> {
+public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> implements UpdateBaseDao<T> {
 
     /**
      * The entity maneger
      */
-    @PersistenceContext( unitName = "intact-curation-default" )
+    @PersistenceContext( unitName = "intact-update" )
     private EntityManager entityManager;
 
     /**

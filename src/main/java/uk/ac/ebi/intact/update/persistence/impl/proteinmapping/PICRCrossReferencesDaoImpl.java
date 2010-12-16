@@ -1,9 +1,10 @@
-package uk.ac.ebi.intact.update.persistence.impl;
+package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.proteinmapping.PICRCrossReferencesDao;
 
 import javax.persistence.Query;
 import java.util.List;

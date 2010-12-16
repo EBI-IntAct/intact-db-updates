@@ -20,7 +20,7 @@ import java.io.Serializable;
  * @since <pre>19-May-2010</pre>
  */
 @Component
-public class UpdateDaoFactory implements Serializable{
+public class CurationToolsDaoFactory implements Serializable{
     /**
      * The entuty manager
      */
@@ -64,9 +64,9 @@ public class UpdateDaoFactory implements Serializable{
     private UpdateResultsDao updateResultsDao;
 
     /**
-     * Creates a UpdateDaoFactory
+     * Creates a CurationToolsDaoFactory
      */
-    public UpdateDaoFactory() {
+    public CurationToolsDaoFactory() {
     }
 
     /**

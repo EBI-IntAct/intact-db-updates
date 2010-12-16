@@ -11,7 +11,7 @@ import java.util.Date;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorValue("SequenceUpdateEvent")
+@DiscriminatorValue("SequenceUpdateEventDao")
 public class SequenceUpdateEvent extends ProteinEvent {
 
     private String newSequence;

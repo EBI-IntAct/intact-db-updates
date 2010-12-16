@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.persistence.impl;
+package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
@@ -8,7 +8,8 @@ import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.persistence.ActionReportDao;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.proteinmapping.ActionReportDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;

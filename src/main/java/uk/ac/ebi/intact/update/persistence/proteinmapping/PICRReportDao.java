@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.persistence;
+package uk.ac.ebi.intact.update.persistence.proteinmapping;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;

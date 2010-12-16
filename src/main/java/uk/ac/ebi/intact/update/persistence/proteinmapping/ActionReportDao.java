@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.persistence;
+package uk.ac.ebi.intact.update.persistence.proteinmapping;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionName;
@@ -6,6 +6,7 @@ import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.proteinmapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.io.Serializable;
 import java.util.List;
