@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -236,11 +237,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                 if (possibleMatch instanceof UniprotSpliceVariant){
 
                     // try to find an intact primary isoform representing the same uniprot transcript and having its sequence up to date with uniprot
-                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryIsoforms());
+                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(evt.getDataContext(), protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryIsoforms());
 
                     // no primary isoforms in intact are mapping the uniprot transcript, try to find an intact secondary isoform representing the same uniprot transcript and having its sequence up to date with uniprot
                     if (intactMatch == null){
-                        intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getSecondaryIsoforms());
+                        intactMatch = findAndMoveInteractionsToIntactProteinTranscript(evt.getDataContext(), protein, sequenceWithoutConflicts, possibleMatch, evt.getSecondaryIsoforms());
                     }
 
                     // return the intact entry if it exists and is up to date with uniprot
@@ -253,7 +254,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                 }
                 else if (possibleMatch instanceof UniprotFeatureChain){
                     // try to find an intact feature chain representing the same uniprot transcript and having its sequence up to date with uniprot
-                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(factory, protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryFeatureChains());
+                    ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(evt.getDataContext(), protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryFeatureChains());
 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
@@ -282,17 +283,17 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
     /**
      * Move components from the protein with conflicts to the intact splice variant if possible
-     * @param factory : the daofactory
-     * @param protein : the 
+     * @param context : the context
+     * @param protein : the protein
      * @param sequenceWithoutConflicts
      * @param possibleMatch
      * @param proteinTranscripts
      * @return Protein transcript in intact matching the uniprot transcript and having the exact same sequence, null otherwise
      */
-    private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DaoFactory factory, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts) {
+    private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DataContext context, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts) {
         for (ProteinTranscript p : proteinTranscripts){
             if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts)){
-                ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, factory);
+                ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, context);
                 return p;
             }
         }

@@ -24,8 +24,10 @@ import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.ComponentUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
@@ -354,7 +356,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
                     // move the interactions
-                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext().getDaoFactory());
+                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext());
 
                     // add the intact secondary references
                     ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
@@ -406,7 +408,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                             duplicate.removeActiveInstance(component);
 
-                            if (duplicate.getActiveInstances().contains(component)){
+                            if (ComponentTools.containsParticipant(originalProt, component)){
+                                Interaction interaction = component.getInteraction();
+
+                                if (interaction != null){
+                                    ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
+                                }
                                 factory.getComponentDao().delete(component);
                             }
                             else {
@@ -425,7 +432,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
                         // move the interactions
-                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext().getDaoFactory());
+                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext());
 
                         // the duplicate will be deleted, add intact secondary references
                         ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);

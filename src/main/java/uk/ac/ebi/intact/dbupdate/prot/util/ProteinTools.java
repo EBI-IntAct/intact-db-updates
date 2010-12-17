@@ -30,9 +30,9 @@ public class ProteinTools {
 
     private ProteinTools() {}
 
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DaoFactory factory) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context) {
         for (Protein sourceProtein : sourceProteins) {
-            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, factory);
+            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context);
         }
     }
 
@@ -41,12 +41,19 @@ public class ProteinTools {
      * @param destinationProtein : protein where to move the interactions
      * @param sourceProtein : the protein for what we want to move the interactions
      */
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DaoFactory factory) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context) {
+        DaoFactory factory = context.getDaoFactory();
+
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);
 
-            if (destinationProtein.getActiveInstances().contains(component)){
+            if (ComponentTools.containsParticipant(destinationProtein, component)){
+                Interaction interaction = component.getInteraction();
+
+                if (interaction != null){
+                    ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
+                }
                 factory.getComponentDao().delete(component);
             }
             else {
