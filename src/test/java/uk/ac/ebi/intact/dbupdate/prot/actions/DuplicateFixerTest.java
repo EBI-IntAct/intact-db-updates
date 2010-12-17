@@ -376,7 +376,8 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(2, report.getOriginalProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getOriginalProtein().getSequence());
+        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(sequence, report.getOriginalProtein().getSequence());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
     }
@@ -462,7 +463,8 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
         Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(2, report.getOriginalProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getOriginalProtein().getSequence());
+        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(sequence, report.getOriginalProtein().getSequence());
         Assert.assertEquals(prot.getAc(), report.getComponentsWithFeatureConflicts().keySet().iterator().next().getAc());
         Assert.assertEquals(sequence2, prot.getSequence());
         Assert.assertEquals(1, prot.getActiveInstances().size());
@@ -557,7 +559,8 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(3, report.getOriginalProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getOriginalProtein().getSequence());
+        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(sequence, report.getOriginalProtein().getSequence());
 
         for (Component c : interactionWithFeatures.getComponents()){
 
@@ -655,8 +658,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
-        Assert.assertEquals(2, report.getOriginalProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getOriginalProtein().getSequence());
+        Assert.assertEquals(3, report.getOriginalProtein().getActiveInstances().size()); // not moved yet because it has to be processed by out of date participant fixerfirst
+        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(sequence, report.getOriginalProtein().getSequence());
 
         Protein no_uniprot = report.getComponentsWithFeatureConflicts().keySet().iterator().next();
         Assert.assertEquals(sequence, no_uniprot.getSequence());

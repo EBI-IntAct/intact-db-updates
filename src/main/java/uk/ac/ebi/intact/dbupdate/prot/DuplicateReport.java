@@ -21,13 +21,17 @@ public class DuplicateReport {
     private Protein originalProtein;
     private UniprotProteinTranscript transcript;
     private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts;
-    private String oldProteinSequence;
+    private String uniprotSequence;
+    private String crc64;
+    private boolean hasShiftedRanges;
 
     public DuplicateReport(){
         originalProtein = null;
         this.transcript = null;
         componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
-        oldProteinSequence = null;
+        uniprotSequence = null;
+        crc64 = null;
+        hasShiftedRanges = false;
     }
 
     public Protein getOriginalProtein() {
@@ -54,11 +58,27 @@ public class DuplicateReport {
         this.transcript = transcript;
     }
 
-    public String getOldProteinSequence() {
-        return oldProteinSequence;
+    public String getUniprotSequence() {
+        return uniprotSequence;
     }
 
-    public void setOldProteinSequence(String oldProteinSequence) {
-        this.oldProteinSequence = oldProteinSequence;
+    public void setUniprotSequence(String uniprotSequence) {
+        this.uniprotSequence = uniprotSequence;
+    }
+
+    public String getCrc64() {
+        return crc64;
+    }
+
+    public void setCrc64(String crc64) {
+        this.crc64 = crc64;
+    }
+
+    public boolean hasShiftedRanges() {
+        return hasShiftedRanges;
+    }
+
+    public void setHasShiftedRanges(boolean hasShiftedRanges) {
+        this.hasShiftedRanges = hasShiftedRanges;
     }
 }
