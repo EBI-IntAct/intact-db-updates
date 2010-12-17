@@ -664,9 +664,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein no_uniprot = report.getComponentsWithFeatureConflicts().keySet().iterator().next();
         Assert.assertEquals(sequence, no_uniprot.getSequence());
-        Assert.assertEquals(1, no_uniprot.getActiveInstances().size());
-        Assert.assertTrue(hasAnnotation(no_uniprot, null, CvTopic.NON_UNIPROT));
-        Assert.assertTrue(hasAnnotation(no_uniprot, null, CvTopic.CAUTION));
+        Assert.assertEquals(3, no_uniprot.getActiveInstances().size()); // not moved yet because it has to be processed by out of date participant fixer first
+        Assert.assertFalse(hasAnnotation(no_uniprot, null, CvTopic.NON_UNIPROT));
+        Assert.assertFalse(hasAnnotation(no_uniprot, null, CvTopic.CAUTION));
 
         // the ranges have not been reset by the duplicate fixer
         Assert.assertEquals(1, r.getFromIntervalStart());
