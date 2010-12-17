@@ -340,6 +340,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         // set the protein kept from the merge
         evt.setReferenceProtein(originalProt);
 
+        report.setOriginalProtein(originalProt);
+        report.setOldProteinSequence(originalProt.getSequence());
+
         // the merge can be done without looking at the sequence of the duplicates
         if (!isSequenceChanged){
             // move the interactions from the rest of proteins to the original
