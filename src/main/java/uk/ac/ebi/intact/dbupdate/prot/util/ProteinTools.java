@@ -30,9 +30,9 @@ public class ProteinTools {
 
     private ProteinTools() {}
 
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context, ProteinUpdateProcessor processor) {
         for (Protein sourceProtein : sourceProteins) {
-            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context);
+            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context, processor);
         }
     }
 
@@ -41,7 +41,7 @@ public class ProteinTools {
      * @param destinationProtein : protein where to move the interactions
      * @param sourceProtein : the protein for what we want to move the interactions
      */
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor) {
         DaoFactory factory = context.getDaoFactory();
 
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
@@ -50,6 +50,10 @@ public class ProteinTools {
 
             if (ComponentTools.containsParticipant(destinationProtein, component)){
                 Interaction interaction = component.getInteraction();
+
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
+                                "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
+                                        " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, sourceProtein));
 
                 if (interaction != null){
                     ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);

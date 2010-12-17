@@ -356,7 +356,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
                     // move the interactions
-                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext());
+                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
 
                     // add the intact secondary references
                     ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
@@ -411,6 +411,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                             if (ComponentTools.containsParticipant(originalProt, component)){
                                 Interaction interaction = component.getInteraction();
 
+                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "The protein " + duplicate.getAc() + " has been merged with " + originalProt.getAc() +
+                                        " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, duplicate));
+
                                 if (interaction != null){
                                     ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
                                 }
@@ -432,7 +436,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
                         // move the interactions
-                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext());
+                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor);
 
                         // the duplicate will be deleted, add intact secondary references
                         ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
