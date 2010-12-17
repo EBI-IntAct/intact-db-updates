@@ -297,7 +297,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     for (ProteinImpl prot : deadProteins){
                         ProteinEvent evt = new ProteinEvent(this, context, prot);
 
-                        uniprotRetriever.processProteinNotFoundInUniprot(evt);
+                        uniprotRetriever.retrieveUniprotEntry(evt);
                     }
                 }
 

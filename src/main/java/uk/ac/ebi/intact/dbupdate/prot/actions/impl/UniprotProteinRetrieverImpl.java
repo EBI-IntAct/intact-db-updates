@@ -12,6 +12,7 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -400,6 +401,8 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     public void processProteinNotFoundInUniprot(ProteinEvent evt){
         // the intact protein matching this ac is not null
         if(evt.getProtein() != null){
+            List<ProteinImpl> transcripts = evt.getDataContext().getDaoFactory().getProteinDao().getSpliceVariants(evt.getProtein());
+            transcripts.addAll(evt.getDataContext().getDaoFactory().getProteinDao().getProteinChains(evt.getProtein()));
 
             final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
@@ -410,13 +413,49 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + evt.getUniprotIdentity(), UpdateError.dead_uniprot_ac, evt.getProtein(), evt.getUniprotIdentity()));
                 }
 
-                if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (no-uniprot-update)");
-                ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
             }
             else {
                 deadUniprotFixer.fixDeadProtein(evt);
             }
 
+            if (!transcripts.isEmpty()){
+                for (Protein pt : transcripts){
+                    InteractorXref uniprot = ProteinUtils.getUniprotXref(pt);
+
+                    if (uniprot != null){
+                        Collection<UniprotProtein> uniprotProteins;
+                        try{
+                            uniprotProteins = uniprotService.retrieve( uniprot.getPrimaryId() );
+
+                        } catch (RemoteConnectFailureException ce) {
+                            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
+                                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprot.getPrimaryId() );
+                            }
+                            retryAttempt++;
+
+                            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
+                            try {
+                                Thread.sleep(60*1000);
+                                uniprotProteins = uniprotService.retrieve( uniprot.getPrimaryId() );
+                            } catch (InterruptedException e) {
+                                throw new ProcessorException("Problem while waiting before retrying for "+uniprot.getPrimaryId(), e);
+                            }
+
+                        }
+
+                        if (uniprotProteins.size() >= 1){
+                            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor,
+                                        evt.getDataContext(), "The protein transcript " + pt.getAc() + " is attached to the dead uniprot parent "
+                                                + evt.getProtein().getAc() + " but we could find " + uniprotProteins.size() + " existing proteins in Uniprot matching the uniprot ac "
+                                                + uniprot.getPrimaryId(), UpdateError.dead_protein_with_transcripts_not_dead, evt.getProtein(), evt.getUniprotIdentity()));
+                            }
+
+                        }
+                    }
+                }
+            }
         }
     }
 
