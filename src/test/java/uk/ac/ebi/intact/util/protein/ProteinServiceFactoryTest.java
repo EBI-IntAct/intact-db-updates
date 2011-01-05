@@ -4,7 +4,10 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.service.AbstractUniprotService;
 
 import java.util.Collection;
@@ -61,6 +64,21 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
         @Deprecated
         public Map<String, Collection<UniprotProtein>> retreive(Collection<String> strings) {
             return retrieve(strings);
+        }
+
+        @Override
+        public Collection<UniprotProteinTranscript> retrieveProteinTranscripts(String ac) {
+            return null;
+        }
+
+        @Override
+        public Collection<UniprotSpliceVariant> retrieveSpliceVariant(String ac) {
+            return null;
+        }
+
+        @Override
+        public Collection<UniprotFeatureChain> retrieveFeatureChain(String ac) {
+            return null;
         }
     }
 

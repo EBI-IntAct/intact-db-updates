@@ -5,7 +5,10 @@
  */
 package uk.ac.ebi.intact.util.protein.mock;
 
+import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.uniprot.service.AbstractUniprotService;
 
 import java.util.*;
@@ -71,5 +74,20 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
     @Deprecated
     public Map<String, Collection<UniprotProtein>> retreive(Collection<String> strings){
         return retrieve(strings);
+    }
+
+    @Override
+    public Collection<UniprotProteinTranscript> retrieveProteinTranscripts(String ac) {
+        return null;
+    }
+
+    @Override
+    public Collection<UniprotSpliceVariant> retrieveSpliceVariant(String ac) {
+        return null;
+    }
+
+    @Override
+    public Collection<UniprotFeatureChain> retrieveFeatureChain(String ac) {
+        return null;
     }
 }
