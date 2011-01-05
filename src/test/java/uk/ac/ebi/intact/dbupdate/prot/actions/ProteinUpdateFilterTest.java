@@ -31,7 +31,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>05-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
     ProteinUpdateFilterImpl filter;

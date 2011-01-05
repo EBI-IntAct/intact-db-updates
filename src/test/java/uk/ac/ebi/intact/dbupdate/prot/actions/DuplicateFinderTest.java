@@ -39,7 +39,7 @@ import java.util.Collections;
  * @version $Id$
  * @since <pre>12-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class DuplicateFinderTest extends IntactBasicTestCase {
 
     private DuplicatesFinderImpl duplicateFinder;

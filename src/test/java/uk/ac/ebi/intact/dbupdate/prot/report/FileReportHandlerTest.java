@@ -46,7 +46,7 @@ import java.util.Iterator;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
     ProteinProcessor processor;

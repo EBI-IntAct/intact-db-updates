@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.util.protein;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -20,6 +21,7 @@ import java.util.Map;
  * @version 1.0
  * @since <pre>02/09/2007</pre>
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class ProteinServiceFactoryTest extends IntactBasicTestCase {
 
     ////////////////////

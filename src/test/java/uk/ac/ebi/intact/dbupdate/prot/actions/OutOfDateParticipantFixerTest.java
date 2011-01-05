@@ -35,7 +35,7 @@ import java.util.Collections;
  * @version $Id$
  * @since <pre>15-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
 
     private OutOfDateParticipantFixerImpl participantFixer;

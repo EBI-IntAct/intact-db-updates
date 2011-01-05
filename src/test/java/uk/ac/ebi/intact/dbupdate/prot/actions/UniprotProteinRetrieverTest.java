@@ -29,7 +29,7 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
  * @version $Id$
  * @since <pre>05-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
     UniprotProteinRetrieverImpl retriever;
 

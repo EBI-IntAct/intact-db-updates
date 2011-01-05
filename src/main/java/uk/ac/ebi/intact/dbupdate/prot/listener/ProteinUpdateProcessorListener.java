@@ -57,4 +57,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
     void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException;
 
     void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException;
+
+    void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException;
 }

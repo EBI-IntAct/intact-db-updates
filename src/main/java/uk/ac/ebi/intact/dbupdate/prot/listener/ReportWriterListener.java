@@ -29,12 +29,18 @@ import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.proteinmapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.proteinmapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.proteinmapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Listener for logging the actions during the update
@@ -472,6 +478,77 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     dashIfNull(evt.getOldParentAc()),
                     Integer.toString(numberParent),
                     xRefs.toString());
+            writer.flush();
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing invalid intact parents to stream", e);
+        }
+    }
+
+    public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException{
+        ReportWriter writer = null;
+        try {
+            writer = reportHandler.getProteinMappingWriter();
+            writer.writeHeaderIfNecessary("Protein Ac",
+                    "Sequence",
+                    "Protein identifiers",
+                    "Message",
+                    "Actions");
+
+            StringBuffer identifiers = new StringBuffer(1064);
+
+            for (Map.Entry<String, String> entry : evt.getContext().getIdentifiers().entrySet()){
+                identifiers.append(entry.getKey() + " : " + entry.getValue() + ",");
+            }
+
+            String uniprotId = "-";
+            StringBuffer actions = new StringBuffer(1064);
+            if (evt.getResult() != null){
+                uniprotId = dashIfNull(evt.getResult().getFinalUniprotId());
+                List<ActionReport> reports = evt.getResult().getListOfActions();
+
+                for (ActionReport report : reports){
+                    actions.append(report.getName().toString() + " : " + report.getStatus().getLabel() + ", " + report.getStatus().getDescription() + "\n");
+
+                    for (String warn : report.getWarnings()){
+                        actions.append(warn + ";");
+                    }
+
+                    if (!report.getPossibleAccessions().isEmpty()){
+                        actions.append("\n \"possible accessions : ");
+                        for (String ac : report.getPossibleAccessions()){
+                            actions.append(ac + ";");
+                        }
+                    }
+
+                    if (report instanceof PICRReport){
+                        actions.append("\n");
+
+                        PICRReport picr = (PICRReport) report;
+                        actions.append("Is a Swissprot entry : " + picr.isASwissprotEntry() + "\n");
+
+                        for (PICRCrossReferences xrefs : picr.getCrossReferences()){
+                            actions.append(xrefs.getDatabase() + " cross reference : " + xrefs.getAccessions() + ";");
+                        }
+                    }
+                    else if (report instanceof BlastReport){
+                        actions.append("\n");
+
+                        BlastReport blast = (BlastReport) report;
+
+                        for (BlastResults prot : blast.getBlastMatchingProteins()){
+                            actions.append("BLAST Protein " + prot.getAccession() + " : identity = " + prot.getIdentity() + ";");
+                            actions.append("Query start = " + prot.getStartQuery() + ", end = " + prot.getEndQuery() + ";");
+                            actions.append("Match start = " + prot.getStartMatch() + ", end = " + prot.getEndMatch() + "\n");
+                        }
+                    }
+                }
+            }
+
+            writer.writeColumnValues(evt.getContext().getIntactAccession(),
+                    dashIfNull(evt.getContext().getSequence()),
+                    dashIfNull(identifiers.toString()),
+                    evt.getMessage(),
+                    actions.toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing invalid intact parents to stream", e);

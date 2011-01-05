@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.util.protein.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.model.Institution;
 import uk.ac.ebi.intact.model.Xref;
@@ -27,6 +28,7 @@ import uk.ac.ebi.intact.model.Xref;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class XrefUpdaterReportTest {
 
     @Test

@@ -43,6 +43,8 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      */
     private DeadUniprotProteinFixer deadUniprotFixer;
 
+    private ProteinMappingManagerImpl proteinMappingManager;
+
     /**
      * The logger of this class
      */
@@ -59,6 +61,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     public UniprotProteinRetrieverImpl(UniprotService uniprotService) {
         this.uniprotService = uniprotService;
         this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
+        this.proteinMappingManager = new ProteinMappingManagerImpl();
     }
 
     /**
@@ -150,7 +153,10 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
             // no uniprot protein matches this uniprot ac
             if(uniprotProteins.size() == 0){
-                processProteinNotFoundInUniprot(evt);
+                evt.setMessage(uniprotAc + " doesn't match any uniprot entries.");
+                if (!proteinMappingManager.processProteinRemappingFor(evt)){
+                    processProteinNotFoundInUniprot(evt);
+                }                
             }
             else if ( uniprotProteins.size() > 1 ) {
                 if ( 1 == getSpeciesCount( uniprotProteins ) ) {

@@ -96,4 +96,8 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("The protein transcript " + evt.getProtein().getAc() + " has invalid parent cross references.");
     }
 
+    public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException{
+        if (log.isDebugEnabled()) log.debug("The protein " + evt.getContext().getIntactAccession() + " needs to be remapped to a uniprot entry.");
+    }
+
 }

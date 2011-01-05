@@ -31,7 +31,7 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
  * @version $Id$
  * @since <pre>12-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
 
     private UniprotIdentityUpdaterImpl updater;

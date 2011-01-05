@@ -45,7 +45,7 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
     ProteinProcessor processor;

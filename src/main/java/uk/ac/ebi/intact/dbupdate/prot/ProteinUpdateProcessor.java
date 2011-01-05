@@ -236,6 +236,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireOnProteinToBeRemapped(ProteinRemappingEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinRemapping(evt);
+        }
+    }
+
     @Override
     public List<Protein> retrieveAndUpdateProteinFromUniprot(String uniprotAc) throws ProcessorException{
         List<Protein> intactProteins = super.retrieveAndUpdateProteinFromUniprot(uniprotAc);
