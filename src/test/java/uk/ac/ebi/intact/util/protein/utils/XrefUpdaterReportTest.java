@@ -17,7 +17,9 @@ package uk.ac.ebi.intact.util.protein.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.model.Institution;
 import uk.ac.ebi.intact.model.Xref;
@@ -29,7 +31,8 @@ import uk.ac.ebi.intact.model.Xref;
  * @version $Id$
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
-public class XrefUpdaterReportTest {
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+public class XrefUpdaterReportTest extends IntactBasicTestCase {
 
     @Test
     public void updated() {
@@ -67,6 +70,4 @@ public class XrefUpdaterReportTest {
         Assert.assertTrue(report.isUpdated());
     }
 
-    private IntactMockBuilder getMockBuilder() {
-        return new IntactMockBuilder(new Institution("lalaInst"));}
 }
