@@ -21,10 +21,8 @@ import javax.persistence.PersistenceContext;
  * @since <pre>20-May-2010</pre>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
-        "classpath*:/META-INF/intact.spring.xml", "classpath*:/META-INF/standalone/jpa-standalone.spring.xml",
-        "classpath*:/META-INF/standalone/intact-standalone.spring.xml",
-        "/META-INF/standalone/update-jpa.spring.xml"})
+@ContextConfiguration(locations = {"classpath*:/META-INF/update-jpa.spring.xml",
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml"})
 @TransactionConfiguration( transactionManager = "updateTransactionManager" )
 @Transactional
 public abstract class UpdateBasicTestCase {
