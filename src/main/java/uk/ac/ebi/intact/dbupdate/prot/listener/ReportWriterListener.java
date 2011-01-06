@@ -492,6 +492,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Sequence",
                     "Protein identifiers",
                     "Message",
+                    "Uniprot id found",
                     "Actions");
 
             StringBuffer identifiers = new StringBuffer(1064);
@@ -507,40 +508,51 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 List<ActionReport> reports = evt.getResult().getListOfActions();
 
                 for (ActionReport report : reports){
-                    actions.append(report.getName().toString() + " : " + report.getStatus().getLabel() + ", " + report.getStatus().getDescription() + "\n");
+                    actions.append("[");
+                    actions.append(report.getName().toString() + " : " + report.getStatus().getLabel() + " : " + report.getStatus().getDescription());
 
-                    for (String warn : report.getWarnings()){
-                        actions.append(warn + ";");
+                    if (!report.getWarnings().isEmpty()){
+                        actions.append(" (");
+                        for (String warn : report.getWarnings()){
+                            actions.append(warn + ";");
+                        }
+                        actions.append(")");
                     }
 
                     if (!report.getPossibleAccessions().isEmpty()){
-                        actions.append("\n \"possible accessions : ");
+                        actions.append(", possible accessions : ");
                         for (String ac : report.getPossibleAccessions()){
                             actions.append(ac + ";");
                         }
                     }
 
                     if (report instanceof PICRReport){
-                        actions.append("\n");
+                        actions.append(", ");
 
                         PICRReport picr = (PICRReport) report;
-                        actions.append("Is a Swissprot entry : " + picr.isASwissprotEntry() + "\n");
+                        actions.append("Is a Swissprot entry : " + picr.isASwissprotEntry());
 
-                        for (PICRCrossReferences xrefs : picr.getCrossReferences()){
-                            actions.append(xrefs.getDatabase() + " cross reference : " + xrefs.getAccessions() + ";");
+                        if (!picr.getCrossReferences().isEmpty()){
+                            actions.append(", other cross references : ");
+                            for (PICRCrossReferences xrefs : picr.getCrossReferences()){
+                                actions.append(xrefs.getDatabase() + " : " + xrefs.getAccessions() + ";");
+                            }
                         }
                     }
                     else if (report instanceof BlastReport){
-                        actions.append("\n");
 
                         BlastReport blast = (BlastReport) report;
 
-                        for (BlastResults prot : blast.getBlastMatchingProteins()){
-                            actions.append("BLAST Protein " + prot.getAccession() + " : identity = " + prot.getIdentity() + ";");
-                            actions.append("Query start = " + prot.getStartQuery() + ", end = " + prot.getEndQuery() + ";");
-                            actions.append("Match start = " + prot.getStartMatch() + ", end = " + prot.getEndMatch() + "\n");
+                        if (!blast.getBlastMatchingProteins().isEmpty()){
+                            actions.append(", Blast Results : ");
+                            for (BlastResults prot : blast.getBlastMatchingProteins()){
+                                actions.append("BLAST Protein " + prot.getAccession() + " : identity = " + prot.getIdentity() + ";");
+                                actions.append("Query start = " + prot.getStartQuery() + ": end = " + prot.getEndQuery() + ";");
+                                actions.append("Match start = " + prot.getStartMatch() + ": end = " + prot.getEndMatch() + ",");
+                            }
                         }
                     }
+                    actions.append("], ");
                 }
             }
 
@@ -548,10 +560,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     dashIfNull(evt.getContext().getSequence()),
                     dashIfNull(identifiers.toString()),
                     evt.getMessage(),
+                    dashIfNull(uniprotId),
                     actions.toString());
             writer.flush();
         } catch (IOException e) {
-            throw new ProcessorException("Problem writing invalid intact parents to stream", e);
+            throw new ProcessorException("Problem writing results of protein mapping", e);
         }
     }
 
