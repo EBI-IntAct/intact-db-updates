@@ -10,7 +10,6 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -18,7 +17,6 @@ import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EventObject;
 import java.util.List;
 
 /**
@@ -35,6 +33,8 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
      * Logger for this class
      */
     private static final Log log = LogFactory.getLog( DeadUniprotProteinFixerImpl.class );
+
+    public static final String CAUTION_OBSOLETE = "The sequence has been withdrawn from uniprot.";
 
     /**
      * Update the protein as a dead protein :
@@ -91,7 +91,6 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
 
         boolean has_no_uniprot_update = false;
         boolean has_caution_obsolete = false;
-        String cautionMessage = "The sequence has been withdrawn from uniprot.";
 
         for (Annotation annotation : annotations){
             if (no_uniprot_update.equals(annotation.getCvTopic())){
@@ -99,7 +98,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             }
             else if (caution.equals(annotation.getCvTopic())){
                 if (annotation.getAnnotationText() != null){
-                    if (annotation.getAnnotationText().equalsIgnoreCase(cautionMessage)){
+                    if (annotation.getAnnotationText().equalsIgnoreCase(CAUTION_OBSOLETE)){
                         has_caution_obsolete = true;
                     }
                 }
@@ -118,7 +117,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         }
         // if no 'caution' exists, add the annotation
         if (!has_caution_obsolete){
-            Annotation obsolete = new Annotation(caution, cautionMessage);
+            Annotation obsolete = new Annotation(caution, CAUTION_OBSOLETE);
             annotationDao.persist(obsolete);
 
             protein.addAnnotation(obsolete);

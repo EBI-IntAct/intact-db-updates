@@ -10,6 +10,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinRemappingEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
@@ -396,13 +397,12 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
     }
 
     private Annotation collectObsoleteAnnotation(Collection<Annotation> annotations){
-        String cautionMessage = "The sequence has been withdrawn from uniprot.";
         for (Annotation a : annotations){
             if (a.getCvTopic() != null){
                 CvTopic topic = a.getCvTopic();
 
                 if (a.getAnnotationText() != null){
-                    if (a.getAnnotationText().equalsIgnoreCase(cautionMessage)){
+                    if (a.getAnnotationText().equalsIgnoreCase(DeadUniprotProteinFixerImpl.CAUTION_OBSOLETE)){
                         if (topic.getIdentifier() != null){
                             if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
                                 return a;
@@ -425,13 +425,27 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
      * @param uniprotAc : the uniprot accession
      * @return the InteractorXref with the uniprot ac and qualifier identity
      */
-    private InteractorXref createIdentityInteractorXrefForUniprotAc(String uniprotAc, Protein parent){
+    private InteractorXref createIdentityInteractorXrefForUniprotAc(String uniprotAc, Protein parent, DaoFactory factory){
 
         if (uniprotAc == null){
             return null;
         }
 
-        InteractorXref xRef = XrefUtils.createIdentityXrefUniprot(parent, uniprotAc);
+        CvDatabase uniprot = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.UNIPROT_MI_REF);
+
+        if (uniprot == null){
+            uniprot = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT);
+            factory.getCvObjectDao(CvDatabase.class).persist(uniprot);
+        }
+
+        CvXrefQualifier identity = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
+
+        if (identity == null){
+            identity = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
+            factory.getCvObjectDao(CvXrefQualifier.class).persist(identity);
+        }
+
+        InteractorXref xRef = new InteractorXref(parent.getOwner(), uniprot, uniprotAc, identity);
 
         return xRef;
     }
@@ -443,7 +457,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
      * @param factory : the Intact factory (not used)
      */
     private void addUniprotCrossReferenceTo(ProteinImpl prot, String uniprotAc, DaoFactory factory){
-        InteractorXref ref = createIdentityInteractorXrefForUniprotAc(uniprotAc, prot);
+        InteractorXref ref = createIdentityInteractorXrefForUniprotAc(uniprotAc, prot, factory);
 
         if (ref != null){
             log.info("cross reference to uniprot "+ uniprotAc +" added to the cross references of " + prot.getAc());
