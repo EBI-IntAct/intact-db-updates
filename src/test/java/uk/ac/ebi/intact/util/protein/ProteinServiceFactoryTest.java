@@ -21,7 +21,7 @@ import java.util.Map;
  * @version 1.0
  * @since <pre>02/09/2007</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinServiceFactoryTest extends IntactBasicTestCase {
 
     ////////////////////

@@ -27,7 +27,7 @@ import uk.ac.ebi.intact.model.Range;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class UpdatedRangeTest extends IntactBasicTestCase {
 
     @Test 

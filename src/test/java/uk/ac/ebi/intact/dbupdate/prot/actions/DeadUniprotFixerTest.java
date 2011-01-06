@@ -26,7 +26,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>17-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class DeadUniprotFixerTest extends IntactBasicTestCase {
 
     private DeadUniprotProteinFixerImpl deadUniprotFixer;

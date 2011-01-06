@@ -24,7 +24,7 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
  * @version $Id$
  * @since <pre>11-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml", "/META-INF/standalone/update-jpa.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
 public class ProteinDeleterTest extends IntactBasicTestCase {
 
     private ProteinDeleterImpl deleter;
