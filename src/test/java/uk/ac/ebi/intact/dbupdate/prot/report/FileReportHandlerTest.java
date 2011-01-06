@@ -54,7 +54,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
     @Before
     public void before() throws Exception {
         TransactionStatus status = getDataContext().beginTransaction();
-
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setBlastEnabled(false);
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
         primer.createCVs();
 

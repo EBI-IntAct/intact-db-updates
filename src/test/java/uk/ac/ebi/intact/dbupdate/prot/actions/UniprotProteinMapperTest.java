@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinMapperImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -33,6 +35,8 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
 
     @Before
     public void setUp(){
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setBlastEnabled(false);
         mapper = new UniprotProteinMapperImpl();
         TransactionStatus status = getDataContext().beginTransaction();
 

@@ -62,6 +62,8 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean isGlobalProteinUpdate = false;
 
+    private boolean isBlastEnabled = true;
+
     public ProteinUpdateProcessorConfig() {
         this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
@@ -135,5 +137,13 @@ public class ProteinUpdateProcessorConfig {
 
     public void setProcessProteinNotFoundInUniprot(boolean processProteinNotFoundInUniprot) {
         this.processProteinNotFoundInUniprot = processProteinNotFoundInUniprot;
+    }
+
+    public boolean isBlastEnabled() {
+        return isBlastEnabled;
+    }
+
+    public void setBlastEnabled(boolean blastEnabled) {
+        isBlastEnabled = blastEnabled;
     }
 }

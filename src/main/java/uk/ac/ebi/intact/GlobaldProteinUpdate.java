@@ -43,6 +43,7 @@ public class GlobaldProteinUpdate {
         config.setGlobalProteinUpdate(true);
         config.setFixDuplicates(true);
         config.setProcessProteinNotFoundInUniprot(true);
+        config.setBlastEnabled(true);
         try {
             config.setReportHandler(new FileReportHandler(new File(filename)));
 

@@ -3,7 +3,9 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -53,9 +55,11 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
      * create a new ProteinUpdate manager.The strategy for update doesn't take into account the isoforms and keep the canonical sequence.
      */
     public UniprotProteinMapperImpl(){
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         this.strategy = new StrategyForProteinUpdate();
         this.strategy.enableIsoforms(false);
-        this.strategy.setBasicBlastProcessRequired(true);
+        this.strategy.setBasicBlastProcessRequired(config.isBlastEnabled());
         this.context = new UpdateContext();
     }
 
@@ -633,9 +637,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
     /**
      * write the results in a file
-     * @param protAc : the intact accession
-     * @param result : the result
-     * @param writer : the file writer
      * @throws ProteinUpdateException
      */
     /*private void writeResultReports(String protAc, IdentificationResults result, Writer writer) throws ProteinUpdateException {
