@@ -119,7 +119,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Assert.assertFalse(ProteinTools.hasUniqueDistinctUniprotIdentity(prot));
 
         ProteinProcessor processor = new ProteinUpdateProcessor();
-        ProteinEvent evt = new ProteinEvent(processor, null, prot);
+        ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
 
         ProteinUpdateFilterImpl filter = new ProteinUpdateFilterImpl();
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
