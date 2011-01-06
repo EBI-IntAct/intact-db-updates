@@ -51,4 +51,8 @@ public interface UniprotProteinRetriever {
     public DeadUniprotProteinFixer getDeadUniprotFixer();
 
     public void setDeadUniprotFixer(DeadUniprotProteinFixer deadUniprotFixer);
+
+    public UniprotProteinMapper getProteinMappingManager();
+
+    public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager);
 }

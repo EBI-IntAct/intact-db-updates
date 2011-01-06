@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinRetriever;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
@@ -43,7 +44,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      */
     private DeadUniprotProteinFixer deadUniprotFixer;
 
-    private ProteinMappingManagerImpl proteinMappingManager;
+    private UniprotProteinMapper proteinMappingManager;
 
     /**
      * The logger of this class
@@ -61,7 +62,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     public UniprotProteinRetrieverImpl(UniprotService uniprotService) {
         this.uniprotService = uniprotService;
         this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
-        this.proteinMappingManager = new ProteinMappingManagerImpl();
+        this.proteinMappingManager = new UniprotProteinMapperImpl();
     }
 
     /**
@@ -485,5 +486,13 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
     public void setDeadUniprotFixer(DeadUniprotProteinFixer deadUniprotFixer) {
         this.deadUniprotFixer = deadUniprotFixer;
+    }
+
+    public UniprotProteinMapper getProteinMappingManager() {
+        return proteinMappingManager;
+    }
+
+    public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager) {
+        this.proteinMappingManager = proteinMappingManager;
     }
 }

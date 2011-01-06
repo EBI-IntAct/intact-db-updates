@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinRemappingEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -19,19 +20,23 @@ import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResult
 import java.util.Collection;
 
 /**
- * TODO comment this
+ * Remap dead proteins and 'no-uniprot-update' proteins to a single uniprot entry :
+ * If successful :
+ * - remove no-uniprot-update
+ * - remove caution : sequence has become obsolete
+ * - add a cross reference uniprot identity
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>05-Jan-2011</pre>
  */
 
-public class ProteinMappingManagerImpl {
+public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
     /**
      * Sets up a logger for that class.
      */
-    public static final Log log = LogFactory.getLog( ProteinMappingManagerImpl.class );
+    public static final Log log = LogFactory.getLog( UniprotProteinMapperImpl.class );
 
     /**
      * the strategy used to update the proteins
@@ -46,13 +51,19 @@ public class ProteinMappingManagerImpl {
     /**
      * create a new ProteinUpdate manager.The strategy for update doesn't take into account the isoforms and keep the canonical sequence.
      */
-    public ProteinMappingManagerImpl(){
+    public UniprotProteinMapperImpl(){
         this.strategy = new StrategyForProteinUpdate();
         this.strategy.enableIsoforms(false);
-        this.strategy.setBasicBlastProcessRequired(false);
+        this.strategy.setBasicBlastProcessRequired(true);
         this.context = new UpdateContext();
     }
 
+    /**
+     *
+     * @param protein
+     * @return True if the protein is allowed to be remapped to uniprot (meaning it is a protein without uniprot identities or other uniprot cross references
+     * other than uniprot-removed-ac)
+     */
     private boolean isProteinMappingAllowed(Protein protein){
 
         if (protein != null){
@@ -74,6 +85,11 @@ public class ProteinMappingManagerImpl {
         return false;
     }
 
+    /**
+     *
+     * @param protein
+     * @return true if the protein has uniprot cross references other than uniprot identity and uniprot removed-ac
+     */
     private boolean isProteinMappingPossibleButNotAllowed(Protein protein){
 
         if (protein != null){
@@ -95,6 +111,11 @@ public class ProteinMappingManagerImpl {
         return false;
     }
 
+    /**
+     * Remap proteins to a single uniprot entry if the protein is allowed to be remapped to. 
+     * @param evt : evt with the protein to remap
+     * @return true if the protein has been remapped, false otherwise
+     */
     public boolean processProteinRemappingFor(ProteinEvent evt){
         Protein protein = evt.getProtein();
         if (protein != null){

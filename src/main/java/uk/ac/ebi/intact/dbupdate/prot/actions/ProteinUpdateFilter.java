@@ -28,4 +28,8 @@ public interface ProteinUpdateFilter {
      * @param evt : case event with all the proteins matching a single uniprot entry
      */
     public void filterNonUniprotAndMultipleUniprot(UpdateCaseEvent evt);
+
+    public UniprotProteinMapper getProteinMappingManager();
+
+    public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager);
 }

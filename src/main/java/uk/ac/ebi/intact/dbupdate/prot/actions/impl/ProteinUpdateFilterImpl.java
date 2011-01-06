@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
+import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
@@ -33,10 +34,10 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      */
     private static final Log log = LogFactory.getLog( ProteinUpdateFilterImpl.class );
 
-    private ProteinMappingManagerImpl proteinMappingManager;
+    private UniprotProteinMapper proteinMappingManager;
 
     public ProteinUpdateFilterImpl(){
-        proteinMappingManager = new ProteinMappingManagerImpl();
+        proteinMappingManager = new UniprotProteinMapperImpl();
     }
 
     /**
@@ -264,5 +265,13 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         }
 
         return sb.toString();
+    }
+
+    public UniprotProteinMapper getProteinMappingManager() {
+        return proteinMappingManager;
+    }
+
+    public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager) {
+        this.proteinMappingManager = proteinMappingManager;
     }
 }
