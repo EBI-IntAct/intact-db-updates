@@ -191,7 +191,7 @@ public class ProteinMappingManagerImpl {
 
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping));
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping, protein));
                     }
                 }
 
@@ -203,7 +203,7 @@ public class ProteinMappingManagerImpl {
             else {
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + protein.getAc() + " because a uniprot identity already exists for this protein.", UpdateError.impossible_protein_remapping));
+                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + protein.getAc() + " because a uniprot identity already exists for this protein.", UpdateError.impossible_protein_remapping, protein));
                 }
             }
         }

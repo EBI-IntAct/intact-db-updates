@@ -89,6 +89,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         // one protein no uniprot update with one interaction
         Protein noUniProtUpdate = getMockBuilder().createProtein("P12346", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
         Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
         noUniProtUpdate.addAnnotation(noUniprot);
         getCorePersister().saveOrUpdate(noUniProtUpdate);
@@ -115,7 +116,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Protein severalUniProtIdentity = getMockBuilder().createProtein("P12346", "several_uniprot_identities");
         InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12345",
                 getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
-                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT));
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
         severalUniProtIdentity.addXref(identity2);
         getCorePersister().saveOrUpdate(severalUniProtIdentity);
 
@@ -237,25 +238,25 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(dupe3);
         getCorePersister().saveOrUpdate(interaction1, interaction2, interaction3, interaction4);
 
-        Assert.assertEquals(12, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(11, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(22, getDaoFactory().getComponentDao().countAll());
 
-        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
         Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
         uniprotXref.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
 
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
         Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
         InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
         uniprotXref2.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
 
-        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(4, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
         getDataContext().commitTransaction(status);
 
         // try the updater
@@ -263,8 +264,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         protUpdateProcessor.updateAll();
 
         TransactionStatus status2 = getDataContext().beginTransaction();
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
-        Assert.assertEquals(10, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(11, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(11, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(22, getDaoFactory().getComponentDao().countAll());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
@@ -329,7 +330,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, countLinesInFile(invalidRangeFile)); // TODO can be changed later
         Assert.assertEquals(3, countLinesInFile(deadProteinFile));
         Assert.assertEquals(2, countLinesInFile(outOfDateProteinFile));
-        Assert.assertEquals(6, countLinesInFile(erroFile));
+        Assert.assertEquals(7, countLinesInFile(erroFile));
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
 
         getDataContext().commitTransaction(status2);

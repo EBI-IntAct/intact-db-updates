@@ -154,9 +154,10 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             // no uniprot protein matches this uniprot ac
             if(uniprotProteins.size() == 0){
                 evt.setMessage(uniprotAc + " doesn't match any uniprot entries.");
+                processProteinNotFoundInUniprot(evt);
                 if (!proteinMappingManager.processProteinRemappingFor(evt)){
-                    processProteinNotFoundInUniprot(evt);
-                }                
+                    log.info("The dead entry " + evt.getProtein().getAc() + " cannot be remapped to any uni-prot entries");
+                }
             }
             else if ( uniprotProteins.size() > 1 ) {
                 if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -324,7 +325,12 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
                 // no uniprot protein matches this uniprot ac
                 if(uniprotProteins.size() == 0){
-                    processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
+                    ProteinEvent protEvent = new ProteinEvent(evt.getSource(), evt.getDataContext(), prot);
+                    protEvent.setMessage("The protein " + prot.getAc() + " cannot match any uniprot entries.");
+                    processProteinNotFoundInUniprot(protEvent);
+                    if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
+                        log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
+                    }
                     secondaryAcToRemove.add(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
