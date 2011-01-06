@@ -8,7 +8,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.persistence.CurationToolsDaoFactory;
+import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -33,7 +33,7 @@ public abstract class UpdateBasicTestCase {
      * the daoFactory instance
      */
     @Autowired
-    private CurationToolsDaoFactory daoFactory;
+    private UpdateDaoFactory daoFactory;
 
     /**
      * The entity manager
@@ -76,7 +76,7 @@ public abstract class UpdateBasicTestCase {
      *
      * @return the DaoFactory
      */
-    public CurationToolsDaoFactory getDaoFactory() {
+    public UpdateDaoFactory getDaoFactory() {
         return daoFactory;
     }
 
