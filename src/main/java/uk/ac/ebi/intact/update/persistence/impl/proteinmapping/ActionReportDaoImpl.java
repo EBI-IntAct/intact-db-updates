@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.util.List;
 @Repository
 @Scope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE)
 @Transactional(readOnly = true)
+@Lazy
 public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoImpl<T> implements ActionReportDao<T> {
 
     /**

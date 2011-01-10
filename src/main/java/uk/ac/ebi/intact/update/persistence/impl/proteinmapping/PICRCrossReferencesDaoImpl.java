@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.PICRCrossReferences;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Repository
 @Transactional(readOnly = true)
+@Lazy
 public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossReferences> implements PICRCrossReferencesDao {
 
     /**
