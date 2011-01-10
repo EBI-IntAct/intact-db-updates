@@ -1,11 +1,11 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
-import uk.ac.ebi.intact.update.model.HibernatePersistent;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 import org.hibernate.Session;
 import org.hibernate.ejb.HibernateEntityManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -20,6 +20,7 @@ import java.util.List;
  * @since <pre>20-May-2010</pre>
  */
 @Transactional(readOnly = true)
+@Lazy
 public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> implements UpdateBaseDao<T> {
 
     /**
