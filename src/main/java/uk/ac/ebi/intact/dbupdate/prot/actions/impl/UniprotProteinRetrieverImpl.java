@@ -399,8 +399,13 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                         updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the protein transcript  " + prot.getAc(), UpdateError.dead_uniprot_ac, prot, evt.getUniprotServiceResult().getQuerySentToService()));
                     }
-                    processProteinNotFoundInUniprot(new ProteinEvent(evt.getSource(), evt.getDataContext(), prot));
-                    secondaryAcToRemove.add(protTrans);
+                    ProteinEvent protEvent = new ProteinEvent(evt.getSource(), evt.getDataContext(), prot);
+                    protEvent.setMessage("The protein transcript" + prot.getAc() + " cannot match any uniprot entries.");
+                    processProteinNotFoundInUniprot(protEvent);
+                    if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
+                        log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
+                        secondaryAcToRemove.add(protTrans);
+                    }
                 }
             }
         }
