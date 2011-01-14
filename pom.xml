@@ -57,7 +57,7 @@
                                 <classpath/>
                                 <argument>uk.ac.ebi.intact.GlobaldProteinUpdate</argument>
                                 <!-- database to update -->
-                                <argument>${database}</argument>
+                                <argument>${db}</argument>
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
                             </arguments>

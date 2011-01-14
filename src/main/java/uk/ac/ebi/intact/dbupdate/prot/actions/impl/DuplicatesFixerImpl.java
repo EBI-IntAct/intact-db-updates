@@ -590,10 +590,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         enableCreationDeprecatedProtein = true;
                     }
                 }
-                ProteinTranscript fixedProtein = null;
+
                 OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
-                fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
+                ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
                     rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
@@ -721,10 +721,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         enableCreationDeprecatedProtein = true;
                     }
                 }
-                ProteinTranscript fixedProtein = null;
+
                 OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
-                fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
+                ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
                     rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
@@ -773,7 +773,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                     caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                 }
                             }
-                        };
+                        }
                     }
 
                     if (entry.getKey().getActiveInstances().isEmpty()){
