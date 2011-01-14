@@ -130,7 +130,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();
 
                 for (DuplicatesFoundEvent duplEvt : duplicateEvents){
-                    processDuplicatedTranscript(evt, mergedIsoforms, duplEvt, masterProtein);
+                    DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, true, mergedIsoforms);
+
+                    if (report.getOriginalProtein() != null){
+                        mergedIsoforms.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+                    }
                 }
 
                 if (!mergedIsoforms.isEmpty()){
@@ -146,7 +150,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>();
 
                 for (DuplicatesFoundEvent duplEvt : duplicateEvents2){
-                    processDuplicatedTranscript(evt, mergedChains, duplEvt, masterProtein);
+                    DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
+                    if (report.getOriginalProtein() != null){
+                        mergedChains.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+                    }
                 }
 
                 if (!mergedChains.isEmpty()){
@@ -412,8 +419,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                 Interaction interaction = component.getInteraction();
 
                                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "The protein " + duplicate.getAc() + " has been merged with " + originalProt.getAc() +
-                                        " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, duplicate));
+                                        "The protein " + duplicate.getAc() + " has been merged with " + originalProt.getAc() +
+                                                " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, duplicate));
 
                                 if (interaction != null){
                                     ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
@@ -541,7 +548,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         return deprecatedParticipantFixer;
     }
 
-    private void processDuplicatesTranscript(UpdateCaseEvent caseEvent, Collection<ProteinTranscript> mergedTranscripts, DuplicatesFoundEvent duplEvt, Protein masterProtein) {
+    private DuplicateReport processDuplicatedTranscript(UpdateCaseEvent caseEvent, DuplicatesFoundEvent duplEvt, Protein masterProtein, boolean isIsoform, Collection<ProteinTranscript> mergedTranscripts) {
         DuplicateReport report = fixProteinDuplicates(duplEvt);
 
         String originalAc = report.getOriginalProtein().getAc();
@@ -570,13 +577,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
             for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
-                String validParentAc = entry.getKey().getAc();
+                String validParentAc = report.getOriginalProtein() != null ? report.getOriginalProtein().getAc() : entry.getKey().getAc();
 
                 if (masterProtein != null){
                     validParentAc = masterProtein.getAc();
                 }
-
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
                 boolean enableCreationDeprecatedProtein = false;
 
@@ -586,16 +591,16 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                 }
                 ProteinTranscript fixedProtein = null;
+                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
-                if (enableCreationDeprecatedProtein){
-                    fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, true);
-                }
-                else{
-                    fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
-                }
+                fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
                     rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+
+                    if (fixedProtein.getUniprotVariant() == null){
+                        fixedProtein.setUniprotVariant(report.getTranscript());
+                    }
 
                     if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
                         String ac = fixedProtein.getProtein().getAc();
@@ -617,8 +622,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                 }
 
                                 if (!hasFoundSpliceVariant){
-                                    mergedTranscripts.add(fixedProtein);
+                                    caseEvent.getPrimaryIsoforms().add(fixedProtein);
                                     caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+
+                                    if (isIsoform){
+                                        mergedTranscripts.add(fixedProtein);
+                                    }
                                 }
                             }
                         }
@@ -638,6 +647,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                             if (!hasFoundChain){
                                 caseEvent.getPrimaryFeatureChains().add(fixedProtein);
                                 caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+
+                                if (!isIsoform){
+                                    mergedTranscripts.add(fixedProtein);
+                                }
                             }
                         }
                     }
@@ -646,12 +659,19 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
+
+                    if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
+                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
+                        }
+                    }
                 }
                 else {
                     rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
                 }
 
-                if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
+                if (!ProteinUtils.isFromUniprot(entry.getKey())){
                     if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                         processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
@@ -681,8 +701,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), report.getOriginalProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64()));
                 }
             }
-            mergedTranscripts.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
         }
+
+        return report;
     }
 
     private DuplicateReport processDuplicatedProtein(UpdateCaseEvent caseEvent, DuplicatesFoundEvent duplicateEvent) {
@@ -692,171 +713,86 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
                 String validParentAc = entry.getKey().getAc();
 
+                boolean enableCreationDeprecatedProtein = false;
+
                 if (report.getOriginalProtein() != null){
                     validParentAc = report.getOriginalProtein().getAc();
+                    if (report.getOriginalProtein().getAc().equalsIgnoreCase(entry.getKey().getAc())){
+                        enableCreationDeprecatedProtein = true;
+                    }
                 }
+                ProteinTranscript fixedProtein = null;
                 OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
-                ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, false);
 
-                rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
+                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
-                    if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                    if (fixedProtein.getUniprotVariant() != null){
+                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                            String ac = fixedProtein.getProtein().getAc();
 
-                        String ac = fixedProtein.getProtein().getAc();
+                            if (ac != null){
+                                boolean hasFoundSpliceVariant = false;
 
-                        if (ac != null){
-                            boolean hasFoundSpliceVariant = false;
-
-                            for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundSpliceVariant = true;
-                                }
-                            }
-
-                            if (!hasFoundSpliceVariant){
-                                for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
+                                for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
                                     if (ac.equals(p.getProtein().getAc())){
                                         hasFoundSpliceVariant = true;
                                     }
                                 }
 
                                 if (!hasFoundSpliceVariant){
-                                    caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                    caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                    for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
+                                        if (ac.equals(p.getProtein().getAc())){
+                                            hasFoundSpliceVariant = true;
+                                        }
+                                    }
+
+                                    if (!hasFoundSpliceVariant){
+                                        caseEvent.getPrimaryIsoforms().add(fixedProtein);
+                                        caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                    }
                                 }
                             }
                         }
-                    }
-                    else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
-                        String ac = fixedProtein.getProtein().getAc();
+                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                            String ac = fixedProtein.getProtein().getAc();
 
-                        if (ac != null){
-                            boolean hasFoundChain = false;
+                            if (ac != null){
+                                boolean hasFoundChain = false;
 
-                            for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundChain = true;
-                                }
-                            }
-
-                            if (!hasFoundChain){
-                                caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
-                            }
-                        }
-                    }
-
-                    if (entry.getKey().getActiveInstances().isEmpty()){
-                        ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
-                        proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
-                    }
-                }
-                else {
-                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                        processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
-                    }
-                }
-            }
-        }
-        return report;
-    }
-
-    private void processDuplicatedTranscript(UpdateCaseEvent caseEvent, Collection<ProteinTranscript> mergedTranscripts, DuplicatesFoundEvent duplEvt, Protein masterProtein) {
-        DuplicateReport report = fixProteinDuplicates(duplEvt);
-
-        String originalAc = report.getOriginalProtein().getAc();
-
-        for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
-            if (originalAc.equals(p.getProtein().getAc())){
-                report.setTranscript(p.getUniprotVariant());
-            }
-        }
-
-        if (report.getTranscript() == null){
-            for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
-                if (originalAc.equals(p.getProtein().getAc())){
-                    report.setTranscript(p.getUniprotVariant());
-                }
-            }
-
-            if (report.getTranscript() == null){
-                for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
-                    if (originalAc.equals(p.getProtein().getAc())){
-                        report.setTranscript(p.getUniprotVariant());
-                    }
-                }
-            }
-        }
-
-        if (!report.getComponentsWithFeatureConflicts().isEmpty()){
-            for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
-                String validParentAc = entry.getKey().getAc();
-
-                if (masterProtein != null){
-                    validParentAc = masterProtein.getAc();
-                }
-
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
-                ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, true);
-
-                rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
-
-                if (fixedProtein != null){
-
-                    if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
-                        String ac = fixedProtein.getProtein().getAc();
-
-                        if (ac != null){
-                            boolean hasFoundSpliceVariant = false;
-
-                            for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundSpliceVariant = true;
-                                }
-                            }
-
-                            if (!hasFoundSpliceVariant){
-                                for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
+                                for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
                                     if (ac.equals(p.getProtein().getAc())){
-                                        hasFoundSpliceVariant = true;
+                                        hasFoundChain = true;
                                     }
                                 }
 
-                                if (!hasFoundSpliceVariant){
-                                    mergedTranscripts.add(fixedProtein);
+                                if (!hasFoundChain){
+                                    caseEvent.getPrimaryFeatureChains().add(fixedProtein);
                                     caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
                                 }
                             }
-                        }
-                    }
-                    else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
-                        String ac = fixedProtein.getProtein().getAc();
-
-                        if (ac != null){
-                            boolean hasFoundChain = false;
-
-                            for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundChain = true;
-                                }
-                            }
-
-                            if (!hasFoundChain){
-                                caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
-                            }
-                        }
+                        };
                     }
 
                     if (entry.getKey().getActiveInstances().isEmpty()){
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
+
+                    if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
+                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), fixedProtein.getProtein()));
+                        }
+                    }
                 }
                 else {
+                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                }
+
+                if (!ProteinUtils.isFromUniprot(entry.getKey())){
                     if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                         processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
@@ -866,8 +802,29 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
 
         if (report.getOriginalProtein() != null){
-            mergedTranscripts.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+            if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(report.getOriginalProtein().getSequence(), report.getUniprotSequence())){
+                String oldSequence = report.getOriginalProtein().getSequence();
+
+                log.debug( "sequence of "+report.getOriginalProtein().getAc()+" requires update." );
+                report.getOriginalProtein().setSequence( report.getUniprotSequence() );
+
+                // CRC64
+                String crc64 = report.getCrc64();
+                if ( report.getOriginalProtein().getCrc64() == null || !report.getOriginalProtein().getCrc64().equals( crc64 ) ) {
+                    log.debug( "CRC64 requires update." );
+                    report.getOriginalProtein().setCrc64( crc64 );
+                }
+
+                caseEvent.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) report.getOriginalProtein());
+
+                if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), report.getOriginalProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64()));
+                }
+            }
         }
+
+        return report;
     }
 
     public DuplicatesFinder getDuplicatesFinder() {

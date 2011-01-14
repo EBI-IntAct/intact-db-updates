@@ -381,6 +381,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
         secondary.getBioSource().setTaxId("9606");
+        secondary.setCreated(new Date(1));
         getCorePersister().saveOrUpdate(secondary);
 
         Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
@@ -400,7 +401,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
         feature.getRanges().clear();
         feature.addRange(range);
 
-        Interaction interaction = getMockBuilder().createInteraction(protein, random);
+        Interaction interaction = getMockBuilder().createInteraction(protein, random); // conflict with protein
         Component componentWithFeatureConflicts = null;
         for (Component c : interaction.getComponents()){
             c.getBindingDomains().clear();
@@ -413,7 +414,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Interaction interaction2 = getMockBuilder().createInteraction(secondary, random);
+        Interaction interaction2 = getMockBuilder().createInteraction(secondary, random);  // no conflicts with secondary
         for (Component c : interaction2.getComponents()){
             c.getBindingDomains().clear();
         }
@@ -471,6 +472,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         Protein secondary = getMockBuilder().createProtein("P21181", "secondary");
         secondary.getBioSource().setTaxId("9606");
+        secondary.setCreated(new Date(1));
         getCorePersister().saveOrUpdate(secondary);
 
         Protein protein = getMockBuilder().createProtein(uniprot.getPrimaryAc(), "intact");
@@ -668,6 +670,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(secondary, "P60953-1", "isoformValid");
         isoform.getBioSource().setTaxId("9606");
+        isoform.setCreated(new Date(1));
         getCorePersister().saveOrUpdate(isoform);
 
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(secondary, "P21181-1", "duplicate");
