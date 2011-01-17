@@ -40,6 +40,8 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      */
     private static final Log log = LogFactory.getLog( OutOfDateParticipantFixerImpl.class );
 
+    public static final String FEATURE_OBSOLETE = "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts. ";
+
     /**
      *
      * @param sequence : the protein sequence to retrieve
@@ -440,7 +442,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
         boolean has_no_uniprot_update = false;
         boolean has_caution = false;
-        String cautionMessage = "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts.";
 
         for (Annotation annotation : protein.getAnnotations()){
             if (no_uniprot_update.equals(annotation.getCvTopic())){
@@ -448,7 +449,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             }
             else if (caution.equals(annotation.getCvTopic())){
                 if (annotation.getAnnotationText() != null){
-                    if (annotation.getAnnotationText().equalsIgnoreCase(cautionMessage)){
+                    if (annotation.getAnnotationText().equalsIgnoreCase(FEATURE_OBSOLETE)){
                         has_caution = true;
                     }
                 }
@@ -464,7 +465,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         }
 
         if (!has_caution){
-            Annotation demerge = new Annotation(caution, "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts.");
+            Annotation demerge = new Annotation(caution, FEATURE_OBSOLETE);
             annotationDao.persist(demerge);
 
             protein.addAnnotation(demerge);

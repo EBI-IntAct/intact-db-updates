@@ -172,6 +172,15 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                             protein.removeAnnotation(a2);
                             factory.getAnnotationDao().delete(a2);
                         }
+
+                        Annotation a3 = collectFeatureObsoleteAnnotation(annotations);
+
+                        if (a3 != null){
+                            log.info("caution removed from the annotations of " + accession);
+                            protein.removeAnnotation(a3);
+                            factory.getAnnotationDao().delete(a3);
+                        }
+                        
                         addUniprotCrossReferenceTo((ProteinImpl) protein, result.getFinalUniprotId(), factory);
 
                         if (!IdentifierChecker.isSpliceVariantId(result.getFinalUniprotId()) && !IdentifierChecker.isFeatureChainId(result.getFinalUniprotId())){
@@ -433,6 +442,30 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
         return null;
     }
 
+    private Annotation collectFeatureObsoleteAnnotation(Collection<Annotation> annotations){
+        for (Annotation a : annotations){
+            if (a.getCvTopic() != null){
+                CvTopic topic = a.getCvTopic();
+
+                if (a.getAnnotationText() != null){
+                    if (a.getAnnotationText().equalsIgnoreCase(OutOfDateParticipantFixerImpl.FEATURE_OBSOLETE)){
+                        if (topic.getIdentifier() != null){
+                            if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
+                                return a;
+                            }
+                        }
+                        else if (topic.getShortLabel() != null){
+                            if (topic.getShortLabel().equals(CvTopic.CAUTION)){
+                                return a;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * Create a new InteractorXref for the protein
      * @param uniprotAc : the uniprot accession
@@ -480,7 +513,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
     }
 
     private void removeParentCrossReferenceTo(ProteinImpl prot, DataContext context, ProteinUpdateProcessor processor){
-        DaoFactory factory = context.getDaoFactory();
 
         Collection<InteractorXref> intRef = new ArrayList(prot.getXrefs());
         for (InteractorXref ref : intRef){
