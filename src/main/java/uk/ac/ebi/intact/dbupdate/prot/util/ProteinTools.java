@@ -256,8 +256,8 @@ public class ProteinTools {
                         if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
                             if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
                                 duplicate.removeXref(ref);
-                                ref.setAc(null);
-                                original.addXref(ref);
+
+                                original.addXref(new InteractorXref(ref.getOwner(), ref.getCvDatabase(), ref.getPrimaryId(), ref.getCvXrefQualifier()));
                                 factory.getXrefDao(InteractorXref.class).persist(ref);
                             }
                         }
