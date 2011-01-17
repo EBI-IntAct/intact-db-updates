@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -11,6 +12,7 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinRemappingEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
@@ -18,8 +20,10 @@ import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
 import uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException;
 import uk.ac.ebi.intact.protein.mapping.update.ProteinUpdateException;
+import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResults;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -169,6 +173,11 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                             factory.getAnnotationDao().delete(a2);
                         }
                         addUniprotCrossReferenceTo((ProteinImpl) protein, result.getFinalUniprotId(), factory);
+
+                        if (!IdentifierChecker.isSpliceVariantId(result.getFinalUniprotId()) && !IdentifierChecker.isFeatureChainId(result.getFinalUniprotId())){
+                            removeParentCrossReferenceTo((ProteinImpl) protein, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
+                        }
+
                         factory.getProteinDao().update( (ProteinImpl) protein );
 
                         return true;
@@ -467,6 +476,21 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
             log.info("cross reference to uniprot "+ uniprotAc +" added to the cross references of " + prot.getAc());
             factory.getXrefDao(InteractorXref.class).persist( ref );
             prot.addXref(ref);
+        }
+    }
+
+    private void removeParentCrossReferenceTo(ProteinImpl prot, DataContext context, ProteinUpdateProcessor processor){
+        DaoFactory factory = context.getDaoFactory();
+
+        Collection<InteractorXref> intRef = new ArrayList(prot.getXrefs());
+        for (InteractorXref ref : intRef){
+            if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
+                if (ref.getCvXrefQualifier() != null){
+                    if (ref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.ISOFORM_PARENT_MI_REF) || ref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.CHAIN_PARENT_MI_REF)){
+                        ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
+                    }
+                }
+            }
         }
     }
 

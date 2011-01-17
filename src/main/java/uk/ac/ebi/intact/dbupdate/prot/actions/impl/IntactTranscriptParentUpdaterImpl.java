@@ -121,7 +121,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                         // the protein ac cannot be remapped, an error is logged in 'process_errors.csv'
                         // the protein cannot be updated
                         if (remappedParents.size() == 0){
-                            canBeUpdated = false;
                             if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +

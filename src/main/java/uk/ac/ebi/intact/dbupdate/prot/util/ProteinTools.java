@@ -10,13 +10,17 @@ import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 
 import java.util.*;
 
@@ -515,5 +519,110 @@ public class ProteinTools {
             }
         }
         return false;
+    }
+
+    public static void processProteinMappingResults(UpdateCaseEvent caseEvent, Collection<Protein> proteinsToDelete, Protein protein, boolean isPrimary) {
+        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protein);
+
+        if (uniprotIdentity != null){
+            if (ProteinUtils.isSpliceVariant(protein)){
+                 proteinsToDelete.add(protein);
+
+                for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
+                     if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
+                         break;
+                     }
+                    else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
+                         break;
+                     }
+                }
+            }
+            else if (ProteinUtils.isFeatureChain(protein)){
+                proteinsToDelete.add(protein);
+
+                for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
+                     if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
+                         break;
+                     }
+                }
+            }
+            else{
+                if (!caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
+                    proteinsToDelete.add(protein);
+
+                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                }
+                else if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId()) && isPrimary){
+                    proteinsToDelete.add(protein);
+
+                    caseEvent.getSecondaryProteins().add(protein);
+                }
+                else if (caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !isPrimary){
+                    proteinsToDelete.add(protein);
+
+                    caseEvent.getPrimaryProteins().add(protein);
+                }
+            }
+        }
+    }
+
+    public static void processProteinMappingResultsForTranscripts(UpdateCaseEvent caseEvent, Collection<ProteinTranscript> proteinsToDelete, ProteinTranscript proteinTranscript, boolean isSpliceVariant) {
+        Protein protein = proteinTranscript.getProtein();
+
+        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protein);
+
+        if (uniprotIdentity != null){
+            if (ProteinUtils.isSpliceVariant(protein)){
+
+                boolean hasFoundSpliceVariant = false;
+
+                for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
+                     if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
+                         hasFoundSpliceVariant = true;
+                         break;
+                     }
+                    else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
+                         hasFoundSpliceVariant = true;
+                         break;
+                     }
+                }
+
+                if (!hasFoundSpliceVariant || !isSpliceVariant){
+                    proteinsToDelete.add(proteinTranscript);
+                }
+            }
+            else if (ProteinUtils.isFeatureChain(protein)){
+                boolean hasFoundChain = false;
+
+                for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
+                     if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                         caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
+                         hasFoundChain = true;
+                         break;
+                     }
+                }
+
+                if (!hasFoundChain || isSpliceVariant){
+                    proteinsToDelete.add(proteinTranscript);
+                }
+            }
+            else{
+                proteinsToDelete.add(proteinTranscript);
+
+                if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
+
+                    caseEvent.getSecondaryProteins().add(protein);
+                }
+                else if (caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+
+                    caseEvent.getPrimaryProteins().add(protein);
+                }
+            }
+        }
     }
 }

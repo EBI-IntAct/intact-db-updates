@@ -13,7 +13,10 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -111,7 +114,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param proteins : the proteins to filter
      * @param caseEvent : the event containing all the intact proteins for a single uniprot entry
      */
-    private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent){
+    private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent, boolean isPrimary){
+        Collection<Protein> proteinsToDelete = new ArrayList<Protein>();
+
         for (Iterator<? extends Protein> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             Protein protein = proteinIterator.next();
 
@@ -128,6 +133,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     proteinIterator.remove();
                     continue;
                 }
+                else {
+                    ProteinTools.processProteinMappingResults(caseEvent, proteinsToDelete, protein, isPrimary);
+                }
             }
 
             Set<InteractorXref> uniprotIdentities = ProteinTools.getDistinctUniprotIdentities(protein);
@@ -145,15 +153,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     proteinIterator.remove();
                 }
                 else {
-                    InteractorXref identityAfterRemapping = ProteinUtils.getUniprotXref(protein);
-
-                    if (identityAfterRemapping == null){
-                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireNonUniprotProteinFound(evt);
-                        }
-                        proteinIterator.remove();
-                    }
+                    ProteinTools.processProteinMappingResults(caseEvent, proteinsToDelete, protein, isPrimary);
                 }
             }
             else if (uniprotIdentities.size() > 1){
@@ -165,6 +165,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
         }
+
+        proteins.removeAll(proteinsToDelete);
     }
 
     /**
@@ -172,7 +174,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param proteins : the isoforms/feature chains to look at
      * @param caseEvent
      */
-    private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent){
+    private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent, boolean isSpliceVariant){
+        Collection<ProteinTranscript> transcriptsToDelete = new ArrayList<ProteinTranscript>();
+
         for (Iterator<ProteinTranscript> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             ProteinTranscript t = proteinIterator.next();
             Protein protein = t.getProtein();
@@ -189,6 +193,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     proteinIterator.remove();
                     continue;
                 }
+                else{
+                    ProteinTools.processProteinMappingResultsForTranscripts(caseEvent, transcriptsToDelete, t, isSpliceVariant);
+                }
             }
 
             Set<InteractorXref> uniprotIdentities = ProteinTools.getDistinctUniprotIdentities(protein);
@@ -206,15 +213,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     proteinIterator.remove();
                 }
                 else {
-                    InteractorXref identityAfterRemapping = ProteinUtils.getUniprotXref(protein);
-
-                    if (identityAfterRemapping == null){
-                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireNonUniprotProteinFound(evt);
-                        }
-                        proteinIterator.remove();
-                    }
+                    ProteinTools.processProteinMappingResultsForTranscripts(caseEvent, transcriptsToDelete, t, isSpliceVariant);
                 }
             }
             else if (uniprotIdentities.size() > 1){
@@ -226,6 +225,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
         }
+
+        proteins.removeAll(transcriptsToDelete);
     }
 
     /**
@@ -246,11 +247,11 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         // process all the proteins for this uniprot entry
-        processListOfProteins(primaryProteins, evt);
-        processListOfProteins(secondaryProteins, evt);
-        processListOfProteinsTranscript(primaryIsoforms, evt);
-        processListOfProteinsTranscript(secondaryIsoforms, evt);
-        processListOfProteinsTranscript(primaryChains, evt);
+        processListOfProteins(primaryProteins, evt, true);
+        processListOfProteins(secondaryProteins, evt, false);
+        processListOfProteinsTranscript(primaryIsoforms, evt, true);
+        processListOfProteinsTranscript(secondaryIsoforms, evt, true);
+        processListOfProteinsTranscript(primaryChains, evt, false);
     }
 
     private String xRefToString(Collection<InteractorXref> refs){

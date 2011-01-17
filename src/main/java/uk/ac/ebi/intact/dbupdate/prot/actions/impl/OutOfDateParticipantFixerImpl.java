@@ -86,8 +86,16 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         if (!(proteinTranscripts.size() == 1 && proteinTranscripts.contains(uniprotProteinTranscript)) && !proteinTranscripts.isEmpty()){
 
             for (UniprotProteinTranscript pt : proteinTranscripts){
-                if (sequence.equalsIgnoreCase(pt.getSequence()) && !sequence.equalsIgnoreCase(uniprotProteinTranscript.getSequence())){
-                    return pt;
+                if (sequence.equalsIgnoreCase(pt.getSequence()) ){
+
+                    if (uniprotProteinTranscript != null){
+                        if (!sequence.equalsIgnoreCase(uniprotProteinTranscript.getSequence())){
+                            return pt;
+                        }
+                    }
+                    else {
+                        return pt;
+                    }
                 }
             }
         }

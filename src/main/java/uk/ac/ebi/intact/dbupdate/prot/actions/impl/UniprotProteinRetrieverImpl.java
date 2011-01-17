@@ -11,6 +11,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -284,17 +285,17 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
         // filter primary isoforms
         if (evt.getPrimaryIsoforms().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryIsoforms(), evt);
+            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryIsoforms(), evt, true);
         }
 
         // filter secondary isoforms
         if (evt.getSecondaryIsoforms().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getSecondaryIsoforms(), evt);
+            filterProteinTranscriptsPossibleToUpdate(evt.getSecondaryIsoforms(), evt, true);
         }
 
         // filter primary chains
         if (evt.getPrimaryFeatureChains().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryFeatureChains(), evt);
+            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryFeatureChains(), evt, false);
         }
 
         // filter secondary proteins only!
@@ -331,8 +332,11 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     processProteinNotFoundInUniprot(protEvent);
                     if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
                         log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
+                        secondaryAcToRemove.add(prot);
                     }
-                    secondaryAcToRemove.add(prot);
+                    else {
+                        ProteinTools.processProteinMappingResults(evt, secondaryAcToRemove, prot, false);
+                    }
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -386,7 +390,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * @param evt
      * @throws ProcessorException
      */
-    private void filterProteinTranscriptsPossibleToUpdate(Collection<ProteinTranscript> transcripts, UpdateCaseEvent evt)  throws ProcessorException {
+    private void filterProteinTranscriptsPossibleToUpdate(Collection<ProteinTranscript> transcripts, UpdateCaseEvent evt, boolean isSpliceVariant)  throws ProcessorException {
 
         Collection<ProteinTranscript> secondaryAcToRemove = new ArrayList<ProteinTranscript>();
 
@@ -405,6 +409,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
                         log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
                         secondaryAcToRemove.add(protTrans);
+                    }
+                    else {
+                        ProteinTools.processProteinMappingResultsForTranscripts(evt, secondaryAcToRemove, protTrans, isSpliceVariant);
                     }
                 }
             }

@@ -137,7 +137,7 @@ public abstract class ProteinProcessor {
 
                 dataContext.commitTransaction(transactionStatus);
             } catch (Exception e) {
-                log.fatal("We failed to update the protein " + protAc);
+                log.fatal("We failed to update the protein " + protAc, e);
                 if (!transactionStatus.isCompleted()){
                     dataContext.rollbackTransaction(transactionStatus);
                 }
