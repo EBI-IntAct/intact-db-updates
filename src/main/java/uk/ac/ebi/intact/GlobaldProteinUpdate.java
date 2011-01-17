@@ -26,12 +26,12 @@ public class GlobaldProteinUpdate {
     public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 2 ) {
-            System.err.println( "Usage: GlobalUpdate <database> <folder>" );
-            System.exit( 1 );
-        }
-        final String database = args[0];
-        final String filename = args[1];
+        //if( args.length != 2 ) {
+            //System.err.println( "Usage: GlobalUpdate <database> <folder>" );
+            //System.exit( 1 );
+        //}
+        final String database = "enzpro";
+        final String filename = "/home/marine/test";
 
         System.out.println( "folder where are the log files = " + filename );
         System.out.println( "database = " + database );
@@ -50,11 +50,11 @@ public class GlobaldProteinUpdate {
 
             ProteinUpdateProcessor updateProcessor = new ProteinUpdateProcessor();
             System.out.println("Starting the global update");
-            updateProcessor.updateAll();
+            //updateProcessor.updateAll();
             //List<Protein> proteins = updateProcessor.retrieveAndUpdateProteinFromUniprot("Q9XYZ4");
-            //List<String> acs = new ArrayList<String>();
-            //acs.add("EBI-682479");
-            //updateProcessor.updateByACs(acs);
+            List<String> acs = new ArrayList<String>();
+            acs.add("EBI-3044019");
+            updateProcessor.updateByACs(acs);
 
         } catch (IOException e) {
             System.err.println("The repository " + filename + " cannot be found. We cannot write log files and so we cannot run a global protein update.");

@@ -248,26 +248,23 @@ public class ProteinTools {
             original.addXref(xref);
         }
 
-        Collection<InteractorXref> refsToRemove = new ArrayList<InteractorXref>();
-        for (InteractorXref ref : duplicate.getXrefs()){
+        Collection<InteractorXref> refsToRemove = new ArrayList(duplicate.getXrefs());
+        for (InteractorXref ref : refsToRemove){
             if (ref.getCvDatabase() != null){
                 if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
                     if (ref.getCvXrefQualifier() != null){
                         if (ref.getCvXrefQualifier().getShortLabel().equals(intactSecondaryLabel)){
                             if (!existingSecondaryAcs.contains(ref.getPrimaryId())){
+                                duplicate.removeXref(ref);
+                                ref.setAc(null);
                                 original.addXref(ref);
-                                ref.setParentAc(original.getAc());
-                                refsToRemove.add(ref);
-
-                                factory.getXrefDao(InteractorXref.class).update(ref);
+                                factory.getXrefDao(InteractorXref.class).persist(ref);
                             }
                         }
                     }
                 }
             }
         }
-
-        duplicate.getXrefs().removeAll(refsToRemove);
 
         factory.getProteinDao().update((ProteinImpl) duplicate);
         factory.getProteinDao().update((ProteinImpl) original);
