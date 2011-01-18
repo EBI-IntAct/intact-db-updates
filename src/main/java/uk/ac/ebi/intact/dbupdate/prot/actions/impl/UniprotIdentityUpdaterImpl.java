@@ -161,7 +161,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         for (ProteinImpl p : proteinsInIntact){
             // if it is not a splice variant, it means that the protein doesn't have parent which should be added later
             // add it to the list of primary isoforms
-            if (!ProteinUtils.isSpliceVariant(p) && !ProteinTools.isFeatureChain(p)){
+            if (!ProteinUtils.isSpliceVariant(p) && !ProteinUtils.isFeatureChain(p)){
                 primary.add(new ProteinTranscript(p, uniprotTranscript));
             }
         }

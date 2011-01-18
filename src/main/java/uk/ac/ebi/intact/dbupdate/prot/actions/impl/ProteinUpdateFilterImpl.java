@@ -65,6 +65,11 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 }
                 return null;
             }
+            else{
+                InteractorXref identityAfterRemapping = ProteinUtils.getUniprotXref(protein);
+
+                return identityAfterRemapping.getPrimaryId().trim();
+            }
 
         }
 
@@ -82,15 +87,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
             else {
                 InteractorXref identityAfterRemapping = ProteinUtils.getUniprotXref(protein);
 
-                if (identityAfterRemapping == null){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireNonUniprotProteinFound(evt);
-                    }
-                }
-                else {
-                    return identityAfterRemapping.getPrimaryId().trim();
-                }
+                return identityAfterRemapping.getPrimaryId().trim();
             }
         }
         else if (uniprotIdentities.size() > 1){

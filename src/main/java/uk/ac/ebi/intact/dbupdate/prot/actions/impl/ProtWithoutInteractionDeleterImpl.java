@@ -265,7 +265,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
      */
     private boolean isProteinTranscript(Protein protein){
         final boolean isSpliceVariant = ProteinUtils.isSpliceVariant(protein);
-        final boolean isFeatureChain = ProteinTools.isFeatureChain(protein);
+        final boolean isFeatureChain = ProteinUtils.isFeatureChain(protein);
 
         if (isSpliceVariant || isFeatureChain){
             return true;

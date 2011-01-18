@@ -160,6 +160,11 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                 if (!proteinMappingManager.processProteinRemappingFor(evt)){
                     log.info("The dead entry " + evt.getProtein().getAc() + " cannot be remapped to any uni-prot entries");
                 }
+                else {
+                    InteractorXref identityAfterRemapping = ProteinUtils.getUniprotXref(evt.getProtein());
+
+                    return retrieveUniprotEntry(identityAfterRemapping.getPrimaryId().trim());
+                }
             }
             else if ( uniprotProteins.size() > 1 ) {
                 if ( 1 == getSpeciesCount( uniprotProteins ) ) {

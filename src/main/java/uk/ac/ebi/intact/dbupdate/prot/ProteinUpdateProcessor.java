@@ -359,7 +359,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             boolean canBeUpdated = true;
 
-            if (ProteinTools.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
+            if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
                 canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent);
             }
 

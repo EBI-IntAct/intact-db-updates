@@ -56,8 +56,8 @@ public class ProteinTools {
                 Interaction interaction = component.getInteraction();
 
                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
-                                "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
-                                        " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, sourceProtein));
+                        "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
+                                " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, sourceProtein));
 
                 if (interaction != null){
                     ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
@@ -523,27 +523,40 @@ public class ProteinTools {
 
         if (uniprotIdentity != null){
             if (ProteinUtils.isSpliceVariant(protein)){
-                 proteinsToDelete.add(protein);
+                proteinsToDelete.add(protein);
 
+                boolean hasFoundSpliceVariant = false;
                 for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
-                     if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
-                         break;
-                     }
+                    if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                        caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
+                        hasFoundSpliceVariant = true;
+                        break;
+                    }
                     else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
-                         break;
-                     }
+                        caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
+                        hasFoundSpliceVariant = true;
+                        break;
+                    }
+                }
+
+                if (!hasFoundSpliceVariant){
+                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
                 }
             }
             else if (ProteinUtils.isFeatureChain(protein)){
                 proteinsToDelete.add(protein);
 
+                boolean hasFoundChain = false;
                 for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
-                     if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
-                         break;
-                     }
+                    if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                        caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
+                        hasFoundChain = true;
+                        break;
+                    }
+                }
+
+                if (!hasFoundChain){
+                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
                 }
             }
             else{
@@ -564,6 +577,7 @@ public class ProteinTools {
                 }
             }
         }
+
     }
 
     public static void processProteinMappingResultsForTranscripts(UpdateCaseEvent caseEvent, Collection<ProteinTranscript> proteinsToDelete, ProteinTranscript proteinTranscript, boolean isSpliceVariant) {
@@ -577,35 +591,42 @@ public class ProteinTools {
                 boolean hasFoundSpliceVariant = false;
 
                 for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
-                     if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
-                         hasFoundSpliceVariant = true;
-                         break;
-                     }
+                    if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                        caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
+                        hasFoundSpliceVariant = true;
+                        break;
+                    }
                     else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
-                         hasFoundSpliceVariant = true;
-                         break;
-                     }
+                        caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
+                        hasFoundSpliceVariant = true;
+                        break;
+                    }
                 }
 
                 if (!hasFoundSpliceVariant || !isSpliceVariant){
                     proteinsToDelete.add(proteinTranscript);
+
+                    if (!hasFoundSpliceVariant){
+                        caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    }
                 }
             }
             else if (ProteinUtils.isFeatureChain(protein)){
                 boolean hasFoundChain = false;
 
                 for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
-                     if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                         caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
-                         hasFoundChain = true;
-                         break;
-                     }
+                    if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
+                        caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
+                        hasFoundChain = true;
+                        break;
+                    }
                 }
 
                 if (!hasFoundChain || isSpliceVariant){
                     proteinsToDelete.add(proteinTranscript);
+                    if (!hasFoundChain){
+                        caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    }
                 }
             }
             else{
@@ -618,6 +639,9 @@ public class ProteinTools {
                 else if (caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
 
                     caseEvent.getPrimaryProteins().add(protein);
+                }
+                else {
+                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
                 }
             }
         }
