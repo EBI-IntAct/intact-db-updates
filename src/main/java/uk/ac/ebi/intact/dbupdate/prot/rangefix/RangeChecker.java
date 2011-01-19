@@ -149,6 +149,8 @@ public class RangeChecker {
 
         if (!FeatureUtils.isABadRange(range, null)){
             if (!FeatureUtils.isABadRange(range, newSequence)){
+                String previousFeatureSequence = range.getFullSequence();
+
                 Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
                 oldRange.setFullSequence(range.getFullSequence());
 
@@ -158,7 +160,15 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                updatedRange = new UpdatedRange(oldRange, range);
+                if (previousFeatureSequence == null && range.getFullSequence() == null){
+                     return null;
+                }
+                else if ((previousFeatureSequence == null && range.getFullSequence() != null) || (previousFeatureSequence != null && range.getFullSequence() == null)){
+                     updatedRange = new UpdatedRange(oldRange, range);
+                }
+                else if (previousFeatureSequence.equals(range.getFullSequence())){
+                     updatedRange = new UpdatedRange(oldRange, range);
+                }
             }
         }
 

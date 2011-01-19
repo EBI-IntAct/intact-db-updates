@@ -751,7 +751,7 @@ public class RangeFixerImpl implements RangeFixer{
                     // try to get the sequence version of this range
                     int sequenceVersion = -1;
                     try {
-                        sequenceVersion = unisave.getSequenceVersion(uniprotAc, false, protein.getSequence());
+                        sequenceVersion = unisave.getSequenceVersion(uniprotAc, false, oldSequence);
                     } catch (UnisaveServiceException e) {
                         log.error("The version of the sequence for the protein " + protein.getAc() + "could not be found in unisave.");
                     }
