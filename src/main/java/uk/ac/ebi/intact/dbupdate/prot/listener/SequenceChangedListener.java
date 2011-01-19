@@ -40,7 +40,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
     private static final Log log = LogFactory.getLog( SequenceChangedListener.class );
 
     private static final String SEQCHANGED_CAUTION = "Protein [uniprotkb] has undergone a significant sequence change since this"  +
-            "entry was originally annotated which may effect the results shown. For " +
+            " entry was originally annotated which may effect the results shown. For " +
             "further information, please access the IntAct curation manual and for " +
             "details of the sequence change go to [unisave]";
 
