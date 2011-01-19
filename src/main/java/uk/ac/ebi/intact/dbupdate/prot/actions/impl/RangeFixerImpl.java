@@ -934,6 +934,8 @@ public class RangeFixerImpl implements RangeFixer{
 
                                     // not possible, fix the range
                                     if (invalid != null){
+                                        invalid.setValidSequenceVersion(entry.getValue().getSequenceVersion());
+                                        invalid.setUniprotAc(entry.getValue().getUniprotAc());
                                         InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
                                         processor.fireOnOutOfDateRange(invalidEvent);
                                         fixInvalidRanges(invalidEvent);
