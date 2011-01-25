@@ -367,7 +367,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @return a new Protein having same biosource, xrefs, sequence, aliases as the protein to clone
      */
     private Protein cloneDeprecatedProtein(DaoFactory factory, Protein protein) {
-        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel() +"-deprecated", protein.getCvInteractorType());
+        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel() +"_deprecated", protein.getCvInteractorType());
 
         factory.getProteinDao().persist((ProteinImpl) created);
 
@@ -401,7 +401,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @return a new Protein transcript having same biosource and sequence as the protein to clone
      */
     private Protein cloneProteinForTranscript(DaoFactory factory, Protein protein, String primaryAc) {
-        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel()+"-clone", protein.getCvInteractorType());
+        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel()+"_clone", protein.getCvInteractorType());
 
         factory.getProteinDao().persist((ProteinImpl) created);
 
