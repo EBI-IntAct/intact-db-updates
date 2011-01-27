@@ -13,7 +13,7 @@
 
     <name>IntAct Database Update :: Proteins Update</name>
     <properties>
-        <folder>..</folder>
+        <folder>/ebi/sp/pro6/intact/local/data/protein-update-report/</folder>
         <bridges.version>2.1.4-SNAPSHOT</bridges.version>
     </properties>
 
@@ -57,7 +57,7 @@
                                 <classpath/>
                                 <argument>uk.ac.ebi.intact.GlobaldProteinUpdate</argument>
                                 <!-- database to update -->
-                                <argument>${db}</argument>
+                                <argument>${database}</argument>
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
                             </arguments>
