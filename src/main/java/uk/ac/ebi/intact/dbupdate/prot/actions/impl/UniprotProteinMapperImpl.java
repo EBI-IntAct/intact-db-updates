@@ -215,7 +215,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 log.info("Protein AC = " + accession + " shortLabel = " + shortLabel);
 
                 Collection<InteractorXref> refs = protein.getXrefs();
-                Collection<Annotation> annotations = protein.getAnnotations();
                 String sequence = protein.getSequence();
                 BioSource organism = protein.getBioSource();
 
