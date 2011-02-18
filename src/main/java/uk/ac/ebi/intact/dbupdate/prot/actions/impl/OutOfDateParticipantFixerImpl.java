@@ -353,8 +353,10 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         // log in created.csv
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            ProteinEvent protEvt = new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate, "The protein is a deprecated protein which needed to be created possibly because of range conflicts.");
 
-            processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), noUniprotUpdate, "The protein is a deprecated protein which needed to be created possibly because of range conflicts."));
+            processor.fireOnProteinCreated(protEvt);
+            processor.fireNonUniprotProteinFound(protEvt);
         }
 
         return new ProteinTranscript(noUniprotUpdate, null);

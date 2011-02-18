@@ -30,20 +30,28 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.*;
+import uk.ac.ebi.intact.uniprot.model.Organism;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
-import uk.ac.ebi.intact.util.protein.utils.*;
+import uk.ac.ebi.intact.util.protein.utils.AliasUpdaterUtils;
+import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdaterUtils;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Updates the current protein in the database, using information from uniprot.
@@ -443,6 +451,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
+                // no unisave sequence for splice variants and feature chains so if we have conflicts, it is better to create a no-uniprot protein with the sequence of the moment
                 else if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
                     fixedProtein = participantFixer.createDeprecatedProtein(participantEvent, true);
                     rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, false);

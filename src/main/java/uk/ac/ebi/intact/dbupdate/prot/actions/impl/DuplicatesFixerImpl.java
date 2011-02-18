@@ -28,7 +28,6 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 
 import java.util.*;
@@ -658,23 +657,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
-
-                    if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
-                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), fixedProtein.getProtein()));
-                        }
-                    }
                 }
                 else {
                     rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
-                }
-
-                if (!ProteinUtils.isFromUniprot(entry.getKey())){
-                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                        processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
-                    }
                 }
             }
         }
@@ -779,23 +764,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
-
-                    if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
-                        if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), fixedProtein.getProtein()));
-                        }
-                    }
                 }
                 else {
                     rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
-                }
-
-                if (!ProteinUtils.isFromUniprot(entry.getKey())){
-                    if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                        processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
-                    }
                 }
             }
         }
