@@ -18,7 +18,6 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
@@ -98,30 +97,32 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
      * @param cautionMessage
      */
     protected void addCaution(AnnotatedObject<?, ?> ao, String cautionMessage, DataContext context) {
-        // check if the annotated object already contains a caution for the sequence change
-        for (Annotation annot : ao.getAnnotations()) {
-            if (CvTopic.CAUTION_MI_REF.equals(annot.getCvTopic().getIdentifier()) &&
-                    annot.getAnnotationText().equals(cautionMessage)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Annotated object already contains a caution. Not adding another one: "+ao);
+        if (ao != null){
+            // check if the annotated object already contains a caution for the sequence change
+            for (Annotation annot : ao.getAnnotations()) {
+                if (CvTopic.CAUTION_MI_REF.equals(annot.getCvTopic().getIdentifier()) &&
+                        annot.getAnnotationText().equals(cautionMessage)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Annotated object already contains a caution. Not adding another one: "+ao);
+                    }
+                    return;
                 }
-                return;
             }
+
+            // get the caution from the DB or create it and persist it
+            final DaoFactory daoFactory = context.getDaoFactory();
+            CvTopic caution = daoFactory
+                    .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
+
+            if (caution == null) {
+                caution = CvObjectUtils.createCvObject(ao.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+                daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
+            }
+
+            // add the caution to the annotated object
+            Annotation annotation = new Annotation(ao.getOwner(), caution, cautionMessage);
+            daoFactory.getAnnotationDao().persist(annotation);
+            ao.addAnnotation(annotation);
         }
-
-        // get the caution from the DB or create it and persist it
-        final DaoFactory daoFactory = context.getDaoFactory();
-        CvTopic caution = daoFactory
-                .getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
-
-        if (caution == null) {
-            caution = CvObjectUtils.createCvObject(ao.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            daoFactory.getCvObjectDao(CvTopic.class).persist(caution);
-        }
-
-        // add the caution to the annotated object
-        Annotation annotation = new Annotation(ao.getOwner(), caution, cautionMessage);
-        daoFactory.getAnnotationDao().persist(annotation);
-        ao.addAnnotation(annotation);
     }
 }
