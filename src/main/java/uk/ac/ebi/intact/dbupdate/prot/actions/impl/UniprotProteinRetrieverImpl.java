@@ -9,9 +9,7 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinRetriever;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -332,16 +330,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
                 // no uniprot protein matches this uniprot ac
                 if(uniprotProteins.size() == 0){
-                    ProteinEvent protEvent = new ProteinEvent(evt.getSource(), evt.getDataContext(), prot);
-                    protEvent.setMessage("The protein " + prot.getAc() + " cannot match any uniprot entries.");
-                    processProteinNotFoundInUniprot(protEvent);
-                    if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
-                        log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
-                        secondaryAcToRemove.add(prot);
-                    }
-                    else {
-                        ProteinTools.processProteinMappingResults(evt, secondaryAcToRemove, prot, false);
-                    }
+                    secondaryAcToRemove.add(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -408,16 +397,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                         updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the protein transcript  " + prot.getAc(), UpdateError.dead_uniprot_ac, prot, evt.getUniprotServiceResult().getQuerySentToService()));
                     }
-                    ProteinEvent protEvent = new ProteinEvent(evt.getSource(), evt.getDataContext(), prot);
-                    protEvent.setMessage("The protein transcript" + prot.getAc() + " cannot match any uniprot entries.");
-                    processProteinNotFoundInUniprot(protEvent);
-                    if (!proteinMappingManager.processProteinRemappingFor(protEvent)){
-                        log.info("The dead entry " + prot.getAc() + " cannot be remapped to any uni-prot entries");
-                        secondaryAcToRemove.add(protTrans);
-                    }
-                    else {
-                        ProteinTools.processProteinMappingResultsForTranscripts(evt, secondaryAcToRemove, protTrans, isSpliceVariant);
-                    }
+                    secondaryAcToRemove.add(protTrans);
                 }
             }
         }
