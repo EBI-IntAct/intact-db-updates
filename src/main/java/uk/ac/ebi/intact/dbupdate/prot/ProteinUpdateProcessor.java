@@ -24,15 +24,16 @@ import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.*;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
+import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.meta.DbInfo;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
-import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
 
@@ -418,9 +419,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // - all intact proteins with uniprot identity = uniprot primary ac => primary proteins
             // - all intact proteins with uniprot identity = one of the uniprot secondary acs => secondary proteins
             // - For each primary and secondary proteins, collect all splice variants and feature chains attached to it
-            //     - primary isoforms : each primary isoform match a primary ac of a uniprot splice variant or doesn't match any splice variants
-            //     - secondary isoforms : each secondary isoform match a secondary ac of a uniprot splice variant
-            //     - primary feature chains : each primary feature chain match a primary ac of a uniprot feature chain or doesn't match any feature chains           
+            //     - primary isoforms : each primary isoform matches a primary ac of a uniprot splice variant
+            //     - secondary isoforms : each secondary isoform matches a secondary ac of a uniprot splice variant
+            //     - primary feature chains : each primary feature chain matches a primary ac of a uniprot feature chain
             UpdateCaseEvent caseEvent = uniprotIdentityUpdater.collectPrimaryAndSecondaryProteins(processEvent);
 
             // if we can delete proteins without interactions, delete all of the proteins attached to this uniprot entry without interactions
