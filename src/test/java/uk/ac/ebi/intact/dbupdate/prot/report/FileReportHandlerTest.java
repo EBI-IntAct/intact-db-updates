@@ -33,9 +33,11 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
-import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -331,7 +333,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, countLinesInFile(invalidRangeFile)); // TODO can be changed later
         Assert.assertEquals(3, countLinesInFile(deadProteinFile));
         Assert.assertEquals(2, countLinesInFile(outOfDateProteinFile));
-        Assert.assertEquals(7, countLinesInFile(erroFile));
+        Assert.assertEquals(6, countLinesInFile(erroFile));
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
 
         getDataContext().commitTransaction(status2);

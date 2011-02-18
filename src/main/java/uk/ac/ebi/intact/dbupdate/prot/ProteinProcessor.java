@@ -54,8 +54,8 @@ public abstract class ProteinProcessor {
     protected Protein currentProtein;
 
     public ProteinProcessor() {
-        
-        previousBatchACs = new ArrayList<String>();        
+
+        previousBatchACs = new ArrayList<String>();
     }
 
     /**
@@ -94,52 +94,51 @@ public abstract class ProteinProcessor {
 
         for (String protAc : protACsToUpdate) {
             DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-            TransactionStatus transactionStatus = dataContext.beginTransaction();
+            if (!processedIntactProteins.contains(protAc)){
+                TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-            try {
-                ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
+                try {
+                    ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
 
-                if (prot == null) {
-                    if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
-                    try {
-                        dataContext.commitTransaction(transactionStatus);
-                    } catch (IntactTransactionException e) {
-                        throw new ProcessorException(e);
+                    if (prot == null) {
+                        if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
+                        try {
+                            dataContext.commitTransaction(transactionStatus);
+                        } catch (IntactTransactionException e) {
+                            throw new ProcessorException(e);
+                        }
+                        continue;
                     }
-                    continue;
-                }
 
-                // load annotations (to avoid lazyinitializationexceptions later)
-                Hibernate.initialize(prot.getXrefs());
-                Hibernate.initialize(prot.getAnnotations());
-                Hibernate.initialize(prot.getAliases());
-                for (Component c : prot.getActiveInstances()){
-                    Hibernate.initialize(c.getXrefs());
-                    Hibernate.initialize(c.getAnnotations());
+                    // load annotations (to avoid lazyinitializationexceptions later)
+                    Hibernate.initialize(prot.getXrefs());
+                    Hibernate.initialize(prot.getAnnotations());
+                    Hibernate.initialize(prot.getAliases());
+                    for (Component c : prot.getActiveInstances()){
+                        Hibernate.initialize(c.getXrefs());
+                        Hibernate.initialize(c.getAnnotations());
 
-                    for (Feature f : c.getBindingDomains()){
-                        Hibernate.initialize(f.getAnnotations());
-                        Hibernate.initialize(f.getRanges());
-                        Hibernate.initialize(f.getAliases());
-                        Hibernate.initialize(f.getXrefs());
+                        for (Feature f : c.getBindingDomains()){
+                            Hibernate.initialize(f.getAnnotations());
+                            Hibernate.initialize(f.getRanges());
+                            Hibernate.initialize(f.getAliases());
+                            Hibernate.initialize(f.getXrefs());
+                        }
+                        Hibernate.initialize(c.getExperimentalRoles());
+                        Hibernate.initialize(c.getAliases());
+                        Hibernate.initialize(c.getExperimentalPreparations());
+                        Hibernate.initialize(c.getParameters());
+                        Hibernate.initialize(c.getParticipantDetectionMethods());
                     }
-                    Hibernate.initialize(c.getExperimentalRoles());
-                    Hibernate.initialize(c.getAliases());
-                    Hibernate.initialize(c.getExperimentalPreparations());
-                    Hibernate.initialize(c.getParameters());
-                    Hibernate.initialize(c.getParticipantDetectionMethods());
-                }
 
-                if (!processedIntactProteins.contains(prot.getAc())){
                     processedIntactProteins.addAll(update(prot, dataContext));
-                }
 
-
-                dataContext.commitTransaction(transactionStatus);
-            } catch (Exception e) {
-                log.fatal("We failed to update the protein " + protAc, e);
-                if (!transactionStatus.isCompleted()){
-                    dataContext.rollbackTransaction(transactionStatus);
+                    dataContext.commitTransaction(transactionStatus);
+                } catch (Exception e) {
+                    log.fatal("We failed to update the protein " + protAc, e);
+                    if (!transactionStatus.isCompleted()){
+                        dataContext.rollbackTransaction(transactionStatus);
+                    }
                 }
             }
         }
@@ -170,7 +169,7 @@ public abstract class ProteinProcessor {
     public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
         // the proteins processed during this update
         Set<String> processedProteins = new HashSet<String>();
-       
+
         return processedProteins;
     }
 

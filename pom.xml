@@ -137,6 +137,13 @@
             <version>1.8.0.10</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- uniprot interfaces -->
+        <dependency>
+            <groupId>uk.ac.ebi.uniprot.kraken</groupId>
+            <artifactId>uniprotjapi</artifactId>
+            <version>2011.02</version>
+        </dependency>
     </dependencies>
 
     <repositories>
