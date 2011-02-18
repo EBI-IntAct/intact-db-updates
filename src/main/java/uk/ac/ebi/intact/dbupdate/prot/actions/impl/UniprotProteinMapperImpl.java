@@ -15,7 +15,6 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.XrefUtils;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
 import uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException;
@@ -154,6 +153,11 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 try {
                     result = this.strategy.identifyProtein(context);
 
+                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
+                    }
+
                     DaoFactory factory = evt.getDataContext().getDaoFactory();
                     // update
                     if (result != null && result.getFinalUniprotId() != null){
@@ -180,7 +184,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                             protein.removeAnnotation(a3);
                             factory.getAnnotationDao().delete(a3);
                         }
-                        
+
                         addUniprotCrossReferenceTo((ProteinImpl) protein, result.getFinalUniprotId(), factory);
 
                         if (!IdentifierChecker.isSpliceVariantId(result.getFinalUniprotId()) && !IdentifierChecker.isFeatureChainId(result.getFinalUniprotId())){
@@ -198,11 +202,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping, protein));
                     }
-                }
-
-                if (evt.getSource() instanceof ProteinUpdateProcessor){
-                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
                 }
             }
             else if (isProteinMappingPossibleButNotAllowed(protein)){
@@ -230,6 +229,11 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 try {
                     result = this.strategy.identifyProtein(context);
 
+                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
+                    }
+
                 } catch (StrategyException e) {
                     log.error("Impossible to remap the protein " + accession, e);
 
@@ -237,11 +241,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping, protein));
                     }
-                }
-
-                if (evt.getSource() instanceof ProteinUpdateProcessor){
-                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
                 }
             }
             else {
