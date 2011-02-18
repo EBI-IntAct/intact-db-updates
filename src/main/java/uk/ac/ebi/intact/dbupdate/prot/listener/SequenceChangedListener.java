@@ -62,33 +62,33 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
         if (oldSeq != null){
             relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
+
+            // if the sequences are considerably different, create a caution for the protein and the interactions
+            if ( relativeConservation <= conservationThreshold) {
+                final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
+                String uniprotAc = null;
+
+                if (xref != null) {
+                    uniprotAc = xref.getPrimaryId();
+                }
+
+                String message = SEQCHANGED_CAUTION.replaceAll("\\[uniprotkb\\]", "[uniprotkb:"+ uniprotAc+"]");
+
+                if (log.isWarnEnabled()) log.warn("Sequence has changed considerably during update for protein: "+protInfo(evt.getProtein()));
+
+                addCaution(evt.getProtein(), message, evt.getDataContext());
+
+                for (Component comp : evt.getProtein().getActiveInstances()) {
+                    addCaution(comp.getInteraction(), message, evt.getDataContext());
+                    //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
+                }
+            }
+            evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
         }
 
         if (log.isDebugEnabled()) {
             log.debug("After sequence update, the relative sequence conservation is "+relativeConservation);
         }
-
-        // if the sequences are considerably different, create a caution for the protein and the interactions
-        if ( relativeConservation <= conservationThreshold) {
-            final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
-            String uniprotAc = null;
-
-            if (xref != null) {
-                uniprotAc = xref.getPrimaryId();
-            }
-
-            String message = SEQCHANGED_CAUTION.replaceAll("\\[uniprotkb\\]", "[uniprotkb:"+ uniprotAc+"]");
-
-            if (log.isWarnEnabled()) log.warn("Sequence has changed considerably during update for protein: "+protInfo(evt.getProtein()));
-
-            addCaution(evt.getProtein(), message, evt.getDataContext());
-
-            for (Component comp : evt.getProtein().getActiveInstances()) {
-                addCaution(comp.getInteraction(), message, evt.getDataContext());
-                //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
-            }
-        }
-        evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
     }
 
     /**
