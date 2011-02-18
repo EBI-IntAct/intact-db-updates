@@ -27,7 +27,6 @@ import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.ComponentUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
@@ -663,7 +662,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     if (!ProteinUtils.isFromUniprot(fixedProtein.getProtein())){
                         if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
-                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), entry.getKey()));
+                            processor.fireNonUniprotProteinFound(new ProteinEvent(processor, caseEvent.getDataContext(), fixedProtein.getProtein()));
                         }
                     }
                 }
