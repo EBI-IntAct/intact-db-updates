@@ -16,6 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,6 +45,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is not different : no caution should be added
      */
@@ -72,6 +74,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is very different : a caution should be added
      */
@@ -101,6 +104,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is very different : a caution should be added
      */
@@ -129,6 +133,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is very different : a caution should be added at the level of the interaction as well
      */
@@ -161,6 +166,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is very different : a caution should be added
      */
@@ -189,6 +195,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
+    @Ignore
     /**
      * The sequence is very similar : no caution should be added
      */

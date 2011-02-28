@@ -259,6 +259,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireOnProteinSequenceCaution(ProteinSequenceCautionEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProteinSequenceCaution(evt);
+        }
+    }
+
     @Override
     public List<Protein> retrieveAndUpdateProteinFromUniprot(String uniprotAc) throws ProcessorException{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();

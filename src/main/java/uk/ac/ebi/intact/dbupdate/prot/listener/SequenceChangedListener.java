@@ -20,11 +20,12 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceCautionEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.ProteinUtils;
 
 /**
  * Checks the protein sequence updates in order to assess the change and add additional
@@ -65,7 +66,14 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
 
             // if the sequences are considerably different, create a caution for the protein and the interactions
             if ( relativeConservation <= conservationThreshold) {
-                final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
+
+                if (evt.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                    ProteinSequenceCautionEvent cautionEvent = new ProteinSequenceCautionEvent(evt.getSource(), evt.getDataContext(), evt.getProtein(), evt.getOldSequence(), evt.getNewSequence(), relativeConservation);
+                    processor.fireOnProteinSequenceCaution(cautionEvent);
+                }
+                /*final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
                 String uniprotAc = null;
 
                 if (xref != null) {
@@ -81,7 +89,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
                 for (Component comp : evt.getProtein().getActiveInstances()) {
                     addCaution(comp.getInteraction(), message, evt.getDataContext());
                     //IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().update((InteractionImpl) comp.getInteraction());
-                }
+                }*/
             }
             evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
         }

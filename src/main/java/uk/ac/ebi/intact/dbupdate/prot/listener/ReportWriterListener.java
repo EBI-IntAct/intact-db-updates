@@ -568,6 +568,29 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
+    @Override
+    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException {
+        ReportWriter writer = null;
+        try {
+            writer = reportHandler.getSequenceChangedCautionWriter();
+            writer.writeHeaderIfNecessary("Protein Ac",
+                    "Relative conservation",
+                    "Old sequence",
+                    "New sequence");
+
+            if (evt.getProtein() != null){
+                writer.writeColumnValues(dashIfNull(evt.getProtein().getAc()),
+                        Double.toString(evt.getRelativeConservation()),
+                        dashIfNull(evt.getOldSequence()),
+                        dashIfNull(evt.getNewSequence()));
+                writer.flush();
+            }
+
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing sequence changed cautions to stream", e);
+        }
+    }
+
     private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
         StringBuilder sb = new StringBuilder(oldSequence);
 

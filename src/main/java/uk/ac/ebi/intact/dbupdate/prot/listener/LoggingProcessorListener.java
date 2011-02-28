@@ -100,4 +100,9 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("The protein " + evt.getContext().getIntactAccession() + " needs to be remapped to a uniprot entry.");
     }
 
+    @Override
+    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("The protein " + evt.getProtein().getAc() + " has a sequence which has been dramatically changed (sequence conservation = " + evt.getRelativeConservation() +").");
+    }
+
 }
