@@ -43,6 +43,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter transcriptWithSameSequenceWriter;
     private ReportWriter invalidIntactParentWriter;
     private ReportWriter proteinMappingWriter;
+    private ReportWriter sequenceChangedCautionWriter;
 
     public FileReportHandler(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -68,6 +69,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.transcriptWithSameSequenceWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "transcript_same_sequence.csv")));
         this.invalidIntactParentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_intact_parents.csv")));
         this.proteinMappingWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "protein_mapping.csv")));
+        this.sequenceChangedCautionWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed_caution.csv")));
     }
 
     public ReportWriter getDuplicatedWriter() throws IOException {
@@ -137,6 +139,11 @@ public class FileReportHandler implements UpdateReportHandler{
         return this.outOfDateRangeWriter;
     }
 
+    @Override
+    public ReportWriter getSequenceChangedCautionWriter() throws IOException {
+        return this.sequenceChangedCautionWriter;
+    }
+
     public void close() throws IOException {
         this.duplicatesWriter.close();
         this.deletedWriter.close();
@@ -154,5 +161,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.transcriptWithSameSequenceWriter.close();
         this.invalidIntactParentWriter.close();
         this.proteinMappingWriter.close();
+        this.sequenceChangedCautionWriter.close();
     }
 }

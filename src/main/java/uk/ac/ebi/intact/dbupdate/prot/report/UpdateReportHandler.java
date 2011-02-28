@@ -42,4 +42,5 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getTranscriptWithSameSequenceWriter() throws IOException;
     ReportWriter getIntactParentWriter() throws IOException;
     ReportWriter getProteinMappingWriter() throws IOException;
+    ReportWriter getSequenceChangedCautionWriter() throws IOException;
 }

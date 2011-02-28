@@ -764,5 +764,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         return primaryId;
     }
 
-
+    public UpdateReportHandler getReportHandler() {
+        return reportHandler;
+    }
 }

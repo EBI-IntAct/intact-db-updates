@@ -28,6 +28,7 @@ import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
+import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.meta.DbInfo;
@@ -37,6 +38,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -115,6 +117,20 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         saveOrUpdateDbInfo("last_protein_update", lastProtUpdate);
         saveOrUpdateDbInfo("uniprotkb.version", UniProtJAPI.factory.getVersion());
+
+        List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
+
+        for (ReportWriterListener listener : writers){
+             UpdateReportHandler handler = listener.getReportHandler();
+
+            if (handler != null){
+                try {
+                    handler.close();
+                } catch (IOException e) {
+                    throw new ProcessorException("Impossible to close one of the log files." ,e);
+                }
+            }
+        }
     }
 
     private void saveOrUpdateDbInfo(String key, String value) {
@@ -245,6 +261,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     @Override
     public List<Protein> retrieveAndUpdateProteinFromUniprot(String uniprotAc) throws ProcessorException{
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setBlastEnabled(false);
+
         List<Protein> intactProteins = super.retrieveAndUpdateProteinFromUniprot(uniprotAc);
 
         // register the listeners
@@ -313,6 +332,20 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 log.fatal("We failed to update the protein " + uniprotAc);
                 if (!status.isCompleted()){
                     context.rollbackTransaction(status);
+                }
+            }
+        }
+
+        List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
+
+        for (ReportWriterListener listener : writers){
+            UpdateReportHandler handler = listener.getReportHandler();
+
+            if (handler != null){
+                try {
+                    handler.close();
+                } catch (IOException e) {
+                    throw new ProcessorException("Impossible to close one of the log files." ,e);
                 }
             }
         }
@@ -495,7 +528,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             // update master proteins first
             try{
-               updater.createOrUpdateProtein(caseEvent);
+                updater.createOrUpdateProtein(caseEvent);
             }
             catch (ProteinServiceException e){
                 fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when createing a new protein", UpdateError.impossible_update_master, caseEvent.getProtein().getPrimaryAc()));

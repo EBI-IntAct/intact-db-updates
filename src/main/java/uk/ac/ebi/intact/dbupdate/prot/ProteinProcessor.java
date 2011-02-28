@@ -26,12 +26,15 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
+import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 
 import javax.swing.event.EventListenerList;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -139,6 +142,20 @@ public abstract class ProteinProcessor {
                     if (!transactionStatus.isCompleted()){
                         dataContext.rollbackTransaction(transactionStatus);
                     }
+                }
+            }
+        }
+
+        List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
+
+        for (ReportWriterListener listener : writers){
+            UpdateReportHandler handler = listener.getReportHandler();
+
+            if (handler != null){
+                try {
+                    handler.close();
+                } catch (IOException e) {
+                    throw new ProcessorException("Impossible to close one of the log files." ,e);
                 }
             }
         }
