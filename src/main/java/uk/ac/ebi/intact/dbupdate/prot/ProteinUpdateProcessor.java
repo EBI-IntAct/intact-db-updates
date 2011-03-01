@@ -265,6 +265,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
+    public void fireOnDeletedComponent(DeletedComponentEvent evt){
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onDeletedComponent(evt);
+        }
+    }
+
     @Override
     public List<Protein> retrieveAndUpdateProteinFromUniprot(String uniprotAc) throws ProcessorException{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();

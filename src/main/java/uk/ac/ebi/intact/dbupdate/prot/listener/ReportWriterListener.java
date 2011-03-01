@@ -591,6 +591,30 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
     }
 
+    @Override
+    public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
+        ReportWriter writer = null;
+        try {
+            writer = reportHandler.getDeletedComponentWriter();
+            writer.writeHeaderIfNecessary("Protein Ac",
+                    "Uniprot Ac",
+                    "Component AC",
+                    "Interaction Ac");
+
+            if (evt.getProtein() != null && evt.getComponent() != null){
+                String interactionAc = evt.getComponent().getInteraction() != null ? evt.getComponent().getInteraction().getAc() : "-";
+                writer.writeColumnValues(dashIfNull(evt.getProtein().getAc()),
+                        dashIfNull(evt.getUniprotIdentity()),
+                        dashIfNull(evt.getComponent().getAc()),
+                        dashIfNull(interactionAc));
+                writer.flush();
+            }
+
+        } catch (IOException e) {
+            throw new ProcessorException("Problem writing deleted components to stream", e);
+        }
+    }
+
     private static String insertNewLinesIfNecessary(String oldSequence, int maxLineLength) {
         StringBuilder sb = new StringBuilder(oldSequence);
 

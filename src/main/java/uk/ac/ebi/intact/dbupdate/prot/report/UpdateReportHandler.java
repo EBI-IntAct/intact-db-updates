@@ -43,4 +43,5 @@ public interface UpdateReportHandler extends Closeable {
     ReportWriter getIntactParentWriter() throws IOException;
     ReportWriter getProteinMappingWriter() throws IOException;
     ReportWriter getSequenceChangedCautionWriter() throws IOException;
+    ReportWriter getDeletedComponentWriter() throws IOException;
 }

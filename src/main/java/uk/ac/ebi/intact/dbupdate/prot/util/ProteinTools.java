@@ -12,6 +12,7 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.*;
@@ -62,6 +63,9 @@ public class ProteinTools {
 
                         ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
                         factory.getComponentDao().delete(component);
+
+                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, context, sourceProtein, component));
+
                     }
                     else {
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,

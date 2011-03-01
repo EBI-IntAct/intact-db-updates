@@ -10,6 +10,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -200,6 +201,8 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
                         ComponentTools.addCautionDuplicatedComponent(transcriptIntact, proteinWithConflicts, interaction, evt.getDataContext());
                         factory.getComponentDao().delete(c);
+
+                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, evt.getDataContext(), proteinWithConflicts, c));
                     }
                     else {
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),

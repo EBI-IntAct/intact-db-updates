@@ -422,6 +422,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                                 "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
                                                         " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + component.getAc() + " will be deleted.", UpdateError.duplicated_components, duplicate));
 
+                                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, evt.getDataContext(), duplicate, component));
+
                                         ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
                                         factory.getComponentDao().delete(component);
                                     }

@@ -61,4 +61,6 @@ public interface ProteinUpdateProcessorListener extends EventListener {
     void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException;
 
     void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException;
+
+    void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException;
 }

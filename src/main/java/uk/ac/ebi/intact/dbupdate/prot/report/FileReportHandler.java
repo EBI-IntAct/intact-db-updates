@@ -44,6 +44,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter invalidIntactParentWriter;
     private ReportWriter proteinMappingWriter;
     private ReportWriter sequenceChangedCautionWriter;
+    private ReportWriter deletedComponentWriter;
 
     public FileReportHandler(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -70,6 +71,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.invalidIntactParentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_intact_parents.csv")));
         this.proteinMappingWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "protein_mapping.csv")));
         this.sequenceChangedCautionWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed_caution.csv")));
+        this.deletedComponentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted_component.csv")));
     }
 
     public ReportWriter getDuplicatedWriter() throws IOException {
@@ -144,6 +146,12 @@ public class FileReportHandler implements UpdateReportHandler{
         return this.sequenceChangedCautionWriter;
     }
 
+    @Override
+    public ReportWriter getDeletedComponentWriter() throws IOException {
+        return this.deletedComponentWriter;
+    }
+
+
     public void close() throws IOException {
         this.duplicatesWriter.close();
         this.deletedWriter.close();
@@ -162,5 +170,6 @@ public class FileReportHandler implements UpdateReportHandler{
         this.invalidIntactParentWriter.close();
         this.proteinMappingWriter.close();
         this.sequenceChangedCautionWriter.close();
+        this.deletedComponentWriter.close();
     }
 }

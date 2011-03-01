@@ -105,4 +105,9 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("The protein " + evt.getProtein().getAc() + " has a sequence which has been dramatically changed (sequence conservation = " + evt.getRelativeConservation() +").");
     }
 
+    @Override
+    public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
+        if (log.isDebugEnabled()) log.debug("Deleted the component " + evt.getComponent().getAc() + " involving duplicated protein " + evt.getProtein().getAc() + " for the interaction " + evt.getComponent().getInteraction().getAc());
+    }
+
 }
