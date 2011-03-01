@@ -95,6 +95,10 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinU
         // nothing
     }
 
+    public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException{
+        // nothing
+    }
+
     protected String protInfo(Protein protein) {
         return protein.getShortLabel()+" ("+protein.getAc()+")";
     }
