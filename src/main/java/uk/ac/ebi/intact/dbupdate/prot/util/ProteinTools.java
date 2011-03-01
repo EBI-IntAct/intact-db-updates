@@ -5,7 +5,6 @@ import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -55,14 +54,30 @@ public class ProteinTools {
             if (ComponentTools.containsParticipant(destinationProtein, component)){
                 Interaction interaction = component.getInteraction();
 
-                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
-                        "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
-                                " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, sourceProtein));
-
                 if (interaction != null){
-                    ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
+                    if (interaction.getComponents().size() > 2){
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
+                                "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
+                                        " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + component.getAc() + " will be deleted.", UpdateError.duplicated_components, sourceProtein));
+
+                        ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
+                        factory.getComponentDao().delete(component);
+                    }
+                    else {
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
+                                "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
+                                        " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction is only composed of these two interactors.", UpdateError.duplicated_components, sourceProtein));
+                        destinationProtein.addActiveInstance(component);
+                        factory.getComponentDao().update(component);
+                    }
                 }
-                factory.getComponentDao().delete(component);
+                else {
+                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context,
+                            "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
+                                    " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction ac is null.", UpdateError.duplicated_components, sourceProtein));
+                    destinationProtein.addActiveInstance(component);
+                    factory.getComponentDao().update(component);
+                }
             }
             else {
                 destinationProtein.addActiveInstance(component);

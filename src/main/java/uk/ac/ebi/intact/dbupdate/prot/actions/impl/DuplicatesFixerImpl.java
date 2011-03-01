@@ -416,14 +416,30 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                             if (ComponentTools.containsParticipant(originalProt, component)){
                                 Interaction interaction = component.getInteraction();
 
-                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                        "The protein " + duplicate.getAc() + " has been merged with " + originalProt.getAc() +
-                                                " which is already an interactor of the interaction " + interaction != null ? interaction.getAc() : "null", UpdateError.duplicated_components, duplicate));
-
                                 if (interaction != null){
-                                    ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
+                                    if (interaction.getComponents().size() > 2){
+                                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                                "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
+                                                        " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + component.getAc() + " will be deleted.", UpdateError.duplicated_components, duplicate));
+
+                                        ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
+                                        factory.getComponentDao().delete(component);
+                                    }
+                                    else {
+                                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                                "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
+                                                        " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction is only composed of these two interactors.", UpdateError.duplicated_components, duplicate));
+                                        originalProt.addActiveInstance(component);
+                                        factory.getComponentDao().update(component);
+                                    }
                                 }
-                                factory.getComponentDao().delete(component);
+                                else {
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                            "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
+                                                    " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction ac is null.", UpdateError.duplicated_components, duplicate));
+                                    originalProt.addActiveInstance(component);
+                                    factory.getComponentDao().update(component);
+                                }
                             }
                             else {
                                 originalProt.addActiveInstance(component);

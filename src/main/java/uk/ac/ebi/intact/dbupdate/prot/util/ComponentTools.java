@@ -5,8 +5,6 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.InteractionDao;
-import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.core.persister.IntactCore;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
@@ -37,10 +35,20 @@ public class ComponentTools {
         }
         else if (c1 != null && c2 != null){
             // check cvs and interactor first, and then check the interaction
+            if (c1.getStoichiometry() != c2.getStoichiometry()){
+                return false;
+            }
             if ( !CollectionUtils.isEqualCollection(c1.getExperimentalRoles(), c2.getExperimentalRoles()) ) {
                 return false;
             }
-            if ( c1.getCvBiologicalRole() != null && !c1.getCvBiologicalRole().equals( c2.getCvBiologicalRole() ) ) {
+
+            if ( c1.getCvBiologicalRole() != null) {
+
+                if (!c1.getCvBiologicalRole().equals( c2.getCvBiologicalRole() ) ){
+                    return false;
+                }
+            }
+            else if (c2.getCvBiologicalRole() != null){
                 return false;
             }
 
@@ -60,10 +68,10 @@ public class ComponentTools {
             if (!areCollectionEqual(c1.getAliases(), c2.getAliases())){
                 return false;
             }
-            if (areCollectionEqual(c1.getAnnotations(), c2.getAnnotations())){
+            if (!areCollectionEqual(c1.getAnnotations(), c2.getAnnotations())){
                 return false;
             }
-            if (areCollectionEqual(c1.getXrefs(), c2.getXrefs())){
+            if (!areCollectionEqual(c1.getXrefs(), c2.getXrefs())){
                 return false;
             }
 
@@ -75,11 +83,11 @@ public class ComponentTools {
     }
 
     public static boolean containsParticipant(Protein p, Component c){
-         for (Component comp : p.getActiveInstances()){
-              if (areEqualParticipants(comp, c)){
-                   return true;
-              }
-         }
+        for (Component comp : p.getActiveInstances()){
+            if (areEqualParticipants(comp, c)){
+                return true;
+            }
+        }
 
         return false;
     }
@@ -191,7 +199,7 @@ public class ComponentTools {
         return io.toString();
     }
 
-        /**
+    /**
      * Two new annotations will be added : a 'no-uniprot-update' and a 'caution' explaining that this protein is now obsolete in uniprot
      * @param protein :the dead protein in IntAct
      */

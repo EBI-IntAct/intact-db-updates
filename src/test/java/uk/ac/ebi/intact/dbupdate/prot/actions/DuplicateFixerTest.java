@@ -137,6 +137,166 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    public void merge_duplicate_same_sequence_duplicated_component_only_2_participants(){
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
+
+        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
+
+        Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.setSequence(sequence);
+        Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.setSequence(sequence);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(primary);
+        primaryProteins.add(prot);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
+
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
+
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
+
+        Protein random1 = getMockBuilder().createProteinRandom();
+        Protein random2 = getMockBuilder().createProteinRandom();
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random1, random2);
+
+        Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
+
+        for (Component c : interactionPrimary.getComponents()){
+            c.getFeatures().clear();
+        }
+
+        Interaction interactionToMove = getMockBuilder().createInteraction(prot, primary);
+        for (Component c : interactionToMove.getComponents()){
+            c.getFeatures().clear();
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionPrimary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionToMove);
+
+        Assert.assertEquals(8, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(2, IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(2, primary.getActiveInstances().size());
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
+        // fix duplicates
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+
+        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+
+        Assert.assertNotNull(report.getOriginalProtein());
+        Assert.assertNull(report.getTranscript());
+        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+
+        Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
+        Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
+        Assert.assertEquals(3, report.getOriginalProtein().getActiveInstances().size());
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void merge_duplicate_same_sequence_duplicated_component(){
+        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
+        uniprot.getFeatureChains().add(new UniprotFeatureChain("PRO-1", uniprot.getOrganism(), "AAACCTA"));
+
+        TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
+        String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
+
+        Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.setSequence(sequence);
+        Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.setSequence(sequence);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
+
+        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        primaryProteins.add(primary);
+        primaryProteins.add(prot);
+
+        Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
+
+        InteractorXref ref = ProteinUtils.getUniprotXref(isoform2);
+        ref.setPrimaryId("P60953-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref);
+
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+
+        Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
+
+        InteractorXref ref2 = ProteinUtils.getUniprotXref(chain2);
+        ref2.setPrimaryId("PRO-1");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(ref2);
+
+        Protein random1 = getMockBuilder().createProteinRandom();
+        Protein random2 = getMockBuilder().createProteinRandom();
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(random1, random2);
+
+        Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
+
+        for (Component c : interactionPrimary.getComponents()){
+            c.getFeatures().clear();
+        }
+
+        Interaction interactionToMove = getMockBuilder().createInteraction(prot, primary, random2);
+        for (Component c : interactionToMove.getComponents()){
+            c.getFeatures().clear();
+        }
+
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionPrimary);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interactionToMove);
+
+        Assert.assertEquals(8, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(2, IntactContext.getCurrentInstance().getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(2, primary.getActiveInstances().size());
+        Assert.assertEquals(5, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
+        // fix duplicates
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+
+        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+
+        Assert.assertNotNull(report.getOriginalProtein());
+        Assert.assertNull(report.getTranscript());
+        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+
+        Assert.assertEquals(primary.getAc(), report.getOriginalProtein().getAc());
+        Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
+        Assert.assertEquals(2, report.getOriginalProtein().getActiveInstances().size());
+        Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
+
+        IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * Create two duplicates with the same sequence. Each of the duplicates has a splice variant and a feature chain.
      * The duplicate contains another intact-secondary cross reference which should be added to the original protein at the end

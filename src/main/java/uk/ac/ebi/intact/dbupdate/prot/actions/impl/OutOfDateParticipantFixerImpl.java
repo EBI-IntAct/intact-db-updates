@@ -8,9 +8,12 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -184,8 +187,40 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         for (Component c : componentsToFix){
             proteinWithConflicts.removeActiveInstance(c);
 
-            transcriptIntact.addActiveInstance(c);
-            factory.getComponentDao().update(c);
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+            if (ComponentTools.containsParticipant(transcriptIntact, c)){
+                Interaction interaction = c.getInteraction();
+
+                if (interaction != null){
+                    if (interaction.getComponents().size() > 2){
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
+                                        " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + c.getAc() + " will be deleted.", UpdateError.duplicated_components, proteinWithConflicts));
+
+                        ComponentTools.addCautionDuplicatedComponent(transcriptIntact, proteinWithConflicts, interaction, evt.getDataContext());
+                        factory.getComponentDao().delete(c);
+                    }
+                    else {
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                                "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
+                                        " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + c.getAc() + " will not be deleted because the interaction is only composed of these two interactors.", UpdateError.duplicated_components, proteinWithConflicts));
+                        transcriptIntact.addActiveInstance(c);
+                        factory.getComponentDao().update(c);
+                    }
+                }
+                else {
+                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                            "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
+                                    " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + c.getAc() + " will not be deleted because the interaction ac is null.", UpdateError.duplicated_components, proteinWithConflicts));
+                    transcriptIntact.addActiveInstance(c);
+                    factory.getComponentDao().update(c);
+                }
+            }
+            else {
+                transcriptIntact.addActiveInstance(c);
+                factory.getComponentDao().update(c);
+            }
         }
 
         // update proteins
@@ -312,7 +347,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
     }
 
     /**
-     * 
+     *
      * @param evt : evt containing proteins having feature conflicts and components with the feature conflicts
      * @param fireEventListeners
      * @return  a deprecated protein (associated with no transcript)

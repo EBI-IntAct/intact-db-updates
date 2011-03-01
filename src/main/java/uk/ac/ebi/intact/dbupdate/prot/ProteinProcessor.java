@@ -127,6 +127,7 @@ public abstract class ProteinProcessor {
                             Hibernate.initialize(f.getAliases());
                             Hibernate.initialize(f.getXrefs());
                         }
+
                         Hibernate.initialize(c.getExperimentalRoles());
                         Hibernate.initialize(c.getAliases());
                         Hibernate.initialize(c.getExperimentalPreparations());
