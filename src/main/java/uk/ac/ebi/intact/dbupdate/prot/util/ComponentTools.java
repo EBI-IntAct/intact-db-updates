@@ -35,7 +35,7 @@ public class ComponentTools {
         }
         else if (c1 != null && c2 != null){
             // check cvs and interactor first, and then check the interaction
-            if (c1.getStoichiometry() != c2.getStoichiometry()){
+            if (c1.getStoichiometry() != c2.getStoichiometry() || c1.getStoichiometry() > 0 || c2.getStoichiometry() > 0){
                 return false;
             }
             if ( !CollectionUtils.isEqualCollection(c1.getExperimentalRoles(), c2.getExperimentalRoles()) ) {
