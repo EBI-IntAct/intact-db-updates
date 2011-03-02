@@ -75,7 +75,7 @@ public class ComponentTools {
                 return false;
             }
 
-            if (!areCollectionEqual(c1.getParticipantDetectionMethods(), c2.getParticipantDetectionMethods())){
+            if (!CollectionUtils.isEqualCollection(c1.getParticipantDetectionMethods(), c2.getParticipantDetectionMethods())){
                 return false;
             }
 
@@ -83,7 +83,7 @@ public class ComponentTools {
                 return false;
             }
 
-            if (!areCollectionEqual(c1.getExperimentalPreparations(), c2.getExperimentalPreparations())){
+            if (!CollectionUtils.isEqualCollection(c1.getExperimentalPreparations(), c2.getExperimentalPreparations())){
                 return false;
             }
 
@@ -225,6 +225,20 @@ public class ComponentTools {
                     "_" + r.getToIntervalStart() + "-" + r.getToIntervalEnd() + "_" + (r.getFullSequence() != null ? r.getFullSequence() : "");
 
             return rtype;
+        }
+        else if (io instanceof ComponentConfidence){
+            ComponentConfidence c = (ComponentConfidence) io;
+
+            String ctype = (c.getCvConfidenceType() != null ? c.getCvConfidenceType().getIdentifier() : "") + (c.getValue() != null ? c.getValue() : "");
+            return ctype;
+        }
+        else if (io instanceof ComponentParameter){
+            ComponentParameter c = (ComponentParameter) io;
+
+            String ctype = (c.getCvParameterType() != null ? c.getCvParameterType().getIdentifier() : "") + (c.getCvParameterUnit() != null ? c.getCvParameterUnit().getIdentifier() : "")
+                    + (c.getBase() != null ? Integer.toString(c.getBase()) : "") + (c.getExponent() != null ? Integer.toString(c.getExponent()) : "") + (c.getFactor() != null ? Double.toString(c.getFactor()) : "")
+                    + (c.getUncertainty() != null ? Double.toString(c.getUncertainty()) : "");
+            return ctype;
         }
         return io.toString();
     }
