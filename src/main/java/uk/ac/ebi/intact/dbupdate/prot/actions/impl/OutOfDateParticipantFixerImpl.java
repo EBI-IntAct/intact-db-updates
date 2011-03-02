@@ -5,15 +5,11 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
-import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -185,52 +181,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         transcriptIntact.addXref(parent);
 
         // move the components having range conflicts
-        for (Component c : componentsToFix){
-            proteinWithConflicts.removeActiveInstance(c);
-
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-            if (ComponentTools.containsParticipant(transcriptIntact, c)){
-                Interaction interaction = c.getInteraction();
-
-                if (interaction != null){
-                    if (interaction.getComponents().size() > 2){
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
-                                        " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + c.getAc() + " will be deleted.", UpdateError.duplicated_components, proteinWithConflicts));
-
-                        ComponentTools.addCautionDuplicatedComponent(transcriptIntact, proteinWithConflicts, interaction, evt.getDataContext());
-                        factory.getComponentDao().delete(c);
-
-                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, evt.getDataContext(), proteinWithConflicts, c));
-                    }
-                    else {
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
-                                        " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + c.getAc() + " will not be deleted because the interaction is only composed of these two interactors.", UpdateError.duplicated_components, proteinWithConflicts));
-                        transcriptIntact.addActiveInstance(c);
-                        factory.getComponentDao().update(c);
-                    }
-                }
-                else {
-                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                            "Interactions involving the protein " + proteinWithConflicts.getAc() + " has been moved to " + transcriptIntact.getAc() +
-                                    " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + c.getAc() + " will not be deleted because the interaction ac is null.", UpdateError.duplicated_components, proteinWithConflicts));
-                    transcriptIntact.addActiveInstance(c);
-                    factory.getComponentDao().update(c);
-                }
-            }
-            else {
-                transcriptIntact.addActiveInstance(c);
-                factory.getComponentDao().update(c);
-            }
-        }
-
-        // update proteins
-        ProteinDao proteinDao = factory.getProteinDao();
-
-        proteinDao.update((ProteinImpl)transcriptIntact);
-        proteinDao.update((ProteinImpl)proteinWithConflicts);
+        ComponentTools.moveComponents(transcriptIntact, proteinWithConflicts, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), componentsToFix);
 
         // log in 'created.csv'
         if (evt.getSource() instanceof ProteinUpdateProcessor){

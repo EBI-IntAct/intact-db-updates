@@ -409,48 +409,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         Collection<Component> componentToMove = CollectionUtils.subtract(duplicate.getActiveInstances(), componentToFix);
 
                         // move components without conflicts
-                        for (Component component : componentToMove) {
-
-                            duplicate.removeActiveInstance(component);
-
-                            if (ComponentTools.containsParticipant(originalProt, component)){
-                                Interaction interaction = component.getInteraction();
-
-                                if (interaction != null){
-                                    if (interaction.getComponents().size() > 2){
-                                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                                "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
-                                                        " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + component.getAc() + " will be deleted.", UpdateError.duplicated_components, duplicate));
-
-                                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, evt.getDataContext(), duplicate, component));
-
-                                        ComponentTools.addCautionDuplicatedComponent(originalProt, duplicate, interaction, evt.getDataContext());
-                                        factory.getComponentDao().delete(component);
-                                    }
-                                    else {
-                                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                                "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
-                                                        " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction is only composed of these two interactors.", UpdateError.duplicated_components, duplicate));
-                                        originalProt.addActiveInstance(component);
-                                        factory.getComponentDao().update(component);
-                                    }
-                                }
-                                else {
-                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                            "Interactions involving the protein " + duplicate.getAc() + " has been moved to " + originalProt.getAc() +
-                                                    " which is already an interactor of the interaction " + interaction.getAc()+ ". The duplicated component " + component.getAc() + " will not be deleted because the interaction ac is null.", UpdateError.duplicated_components, duplicate));
-                                    originalProt.addActiveInstance(component);
-                                    factory.getComponentDao().update(component);
-                                }
-                            }
-                            else {
-                                originalProt.addActiveInstance(component);
-                                factory.getComponentDao().update(component);
-                            }
-                        }
-
-                        // update protein
-                        factory.getProteinDao().update((ProteinImpl) duplicate);
+                        ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
