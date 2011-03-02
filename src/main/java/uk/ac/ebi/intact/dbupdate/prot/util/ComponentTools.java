@@ -65,13 +65,19 @@ public class ComponentTools {
                 }
             }
 
-            if ( c1.getExpressedIn() != null) {
-
-                if (!c1.getExpressedIn().equals( c2.getExpressedIn() ) ){
-                    return false;
-                }
+            if (!areCollectionEqual(c1.getParticipantDetectionMethods(), c2.getParticipantDetectionMethods())){
+                return false;
             }
-            else if (c2.getExpressedIn() != null){
+
+            if (!areCollectionEqual(c1.getConfidences(), c2.getConfidences())){
+                return false;
+            }
+
+            if (!areCollectionEqual(c1.getExperimentalPreparations(), c2.getExperimentalPreparations())){
+                return false;
+            }
+
+            if (!areCollectionEqual(c1.getParameters(), c2.getParameters())){
                 return false;
             }
 
