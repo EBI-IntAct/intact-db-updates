@@ -22,10 +22,11 @@ public interface IntactTranscriptParentUpdater {
     /**
      *
      * @param evt : contains the protein transcript to check
+     * @param transcripts : list of transcripts which need to be reviewed because doesn't have valid parent xref
      * @return true if the protein transcript has a single parent xref (or no parent xrefs because can be updated later),
      * false if the protein transcript has several parent xrefs or has a parent xref which is not pointing to any proteins in the database
      */
-    public boolean checkConsistencyProteinTranscript(ProteinEvent evt);
+    public boolean checkConsistencyProteinTranscript(ProteinEvent evt, List<Protein> transcripts);
 
     /**
      *
@@ -36,7 +37,7 @@ public interface IntactTranscriptParentUpdater {
     public List<Protein> checkConsistencyOfAllTranscripts(UpdateCaseEvent evt);
 
     /**
-     * Create an intact parent xref for a list of protein transcripts matching a single uniprot entry
+     * Create an intact parent xref for a list of protein transcripts matching a single uniprot entry. Remove all out of date parent xRef
      * @param transcripts
      * @param masterProtein
      * @param context

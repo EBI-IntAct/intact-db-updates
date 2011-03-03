@@ -121,7 +121,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
 
         for (ReportWriterListener listener : writers){
-             UpdateReportHandler handler = listener.getReportHandler();
+            UpdateReportHandler handler = listener.getReportHandler();
 
             if (handler != null){
                 try {
@@ -300,7 +300,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 ProteinEvent processEvent = new ProteinEvent(this, context, null);
                 processEvent.setUniprotIdentity(uniprotAc);
 
-                UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent);
+                UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent, null);
 
                 if (caseEvent != null){
                     intactProteins.addAll(caseEvent.getPrimaryProteins());
@@ -405,15 +405,24 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             boolean canBeUpdated = true;
 
+            // get the list of protein isoforms or feature chains in intact matching this uniprot entry but without any parents attached to it
+            // remove from the list of transcripts to update :
+            // - transcripts with dead parent impossible to remap
+            // - transcript with several parents
+            // - transcripts with both feature chain and isoform parents
+            List<Protein> transcriptsWithoutParents = new ArrayList<Protein>();
+
+            // case of splice variant or feature chain, check if the parent cross references are consistent, otherwise don't update
+            // - cannot be updated if is attached to several parents
             if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
-                canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent);
+                canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent, transcriptsWithoutParents);
             }
 
             if (canBeUpdated){
                 // get the uniprot identity of this protein
                 String uniprotIdentity = updateFilter.filterOnUniprotIdentity(processEvent);
 
-                // if the protein has a uniprot identity
+                // if the protein has a uniprot identity and is not 'no-uniprot-update'
                 if (uniprotIdentity != null){
                     if (log.isTraceEnabled()) log.trace("Retrieving uniprot entry matching the protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+"), "+uniprotIdentity+"");
                     processEvent.setUniprotIdentity(uniprotIdentity);
@@ -426,7 +435,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                         if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotIdentity);
 
-                        UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent);
+                        UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent, transcriptsWithoutParents);
 
                         if (caseEvent != null){
                             // add each protein to the list of processed proteins
@@ -442,7 +451,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         return processedProteins;
     }
 
-    private UpdateCaseEvent runProteinUpdate(UniprotProtein uniprotProtein, ProteinEvent processEvent){
+    private UpdateCaseEvent runProteinUpdate(UniprotProtein uniprotProtein, ProteinEvent processEvent, List<Protein> transcriptToReview){
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
@@ -488,7 +497,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // - transcripts with dead parent impossible to remap
             // - transcript with several parents
             // - transcripts with both feature chain and isoform parents
-            List<Protein> transcriptsWithoutParents = parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+            if (transcriptToReview != null){
+                transcriptToReview.addAll(parentUpdater.checkConsistencyOfAllTranscripts(caseEvent));
+            }
+            else {
+                transcriptToReview = parentUpdater.checkConsistencyOfAllTranscripts(caseEvent);
+            }
 
             if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
@@ -570,8 +584,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // if a single master protein has been found
             if (canUpdateProteinTranscript){
                 // add first a parent xref for all the protein transcripts without parent xref if it is necessary
-                if (!transcriptsWithoutParents.isEmpty()){
-                    parentUpdater.createParentXRefs(transcriptsWithoutParents, masterProtein, caseEvent.getDataContext(), this);
+                if (!transcriptToReview.isEmpty()){
+                    parentUpdater.createParentXRefs(transcriptToReview, masterProtein, caseEvent.getDataContext(), this);
                 }
 
                 //protein transcript duplicates to merge

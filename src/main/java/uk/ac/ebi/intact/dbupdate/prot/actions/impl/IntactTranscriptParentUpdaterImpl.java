@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.InvalidIntactParentFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -45,7 +46,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
      * and if this parent ac still exists in the database. If not, will try to update it by looking for intact proteins
      * having the parent ac as secondary ac.
      */
-    public boolean checkConsistencyProteinTranscript(ProteinEvent evt){
+    public boolean checkConsistencyProteinTranscript(ProteinEvent evt, List<Protein> transcriptsToReview){
         // get the protein
         Protein protein = evt.getProtein();
 
@@ -130,6 +131,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                 processor.fireOnInvalidIntactParentFound(invalidEvent);
                             }
+                            transcriptsToReview.add(protein);
                         }
                         // only one protein in intact has the parent ac as intact-secondary.
                         // update the parent xref and log in 'invalid_parent.csv'
@@ -174,6 +176,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " doesn't have any parents."
                         , UpdateError.transcript_without_parent, protein));
             }
+            transcriptsToReview.add(protein);
         }
 
         return canBeUpdated;
@@ -276,6 +279,9 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
 
                             if (!transcriptToDelete.contains(p)){
                                 transcriptToDelete.add(p);
+                            }
+                            if (!proteinWithoutParents.contains(protein)){
+                                proteinWithoutParents.add(protein);
                             }
                         }
                         else if (remappedParents.size() == 1){
@@ -390,6 +396,21 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                         t.addXref(parent);
 
                         factory.getProteinDao().update((ProteinImpl) t);
+                    }
+
+                    // now delete other parent xrefs which are out of date
+                    Collection<InteractorXref> refs = new ArrayList(t.getXrefs());
+
+                    for (InteractorXref ref : refs){
+                        if (CvDatabase.INTACT_MI_REF.equals(ref.getCvDatabase().getIdentifier())){
+                            if (ref.getCvXrefQualifier() != null){
+                                if (CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier()) || CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier())){
+                                     if (!ref.getPrimaryId().equals(masterAc)){
+                                         ProteinTools.deleteInteractorXRef(t, context, ref, processor);
+                                     }
+                                }
+                            }
+                        }
                     }
                 }
             }
