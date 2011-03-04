@@ -627,6 +627,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
                 }
             }
+            else {
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "No master protein or several master proteins exist and it is impossible to update the protein transcripts", UpdateError.impossible_transcript_update, uniprotProtein.getPrimaryAc()));
+            }
 
             // log in updated.csv
             fireOnUpdateCase(caseEvent);
