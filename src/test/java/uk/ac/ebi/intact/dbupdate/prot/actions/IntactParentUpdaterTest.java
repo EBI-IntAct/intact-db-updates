@@ -25,6 +25,7 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * TODO comment this
@@ -79,7 +80,8 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
         Assert.assertTrue(hasXRef(parentToFind, oldParent, CvDatabase.INTACT, "intact-secondary"));
         Assert.assertEquals(0, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());
 
-        intactUpdater.checkConsistencyProteinTranscript(new ProteinEvent(new ProteinUpdateProcessor(), context, isoform));
+        List<Protein> transcriptsToReview = new ArrayList<Protein>();
+        intactUpdater.checkConsistencyProteinTranscript(new ProteinEvent(new ProteinUpdateProcessor(), context, isoform), transcriptsToReview);
 
         Assert.assertTrue(hasXRef(isoform, parentToFind.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertEquals(1, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());
