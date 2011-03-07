@@ -581,54 +581,58 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 canUpdateProteinTranscript = true;
             }
 
-            // if a single master protein has been found
-            if (canUpdateProteinTranscript){
-                // add first a parent xref for all the protein transcripts without parent xref if it is necessary
-                if (!transcriptToReview.isEmpty()){
-                    parentUpdater.createParentXRefs(transcriptToReview, masterProtein, caseEvent.getDataContext(), this);
-                }
+            boolean needTranscriptUpdate = (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getSecondaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1) || (!config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions());
 
-                //protein transcript duplicates to merge
-                if (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1){
+            // if a single master protein has been found and transcript update is needed
+            if (needTranscriptUpdate){
+                if (canUpdateProteinTranscript){
+                    // add first a parent xref for all the protein transcripts without parent xref if it is necessary
+                    if (!transcriptToReview.isEmpty()){
+                        parentUpdater.createParentXRefs(transcriptToReview, masterProtein, caseEvent.getDataContext(), this);
+                    }
 
-                    Collection<ProteinTranscript> proteinTranscript = new ArrayList(caseEvent.getPrimaryIsoforms());
-                    proteinTranscript.addAll(caseEvent.getPrimaryFeatureChains());
+                    //protein transcript duplicates to merge
+                    if (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1){
 
-                    // for each primary transcript, if one uniprot transcript has the exact same sequence and is not the uniprot transcript it has been remapped to, log it because
-                    // can be useful in case of merge problems
-                    for (ProteinTranscript trans : proteinTranscript){
-                        Protein prot = trans.getProtein();
+                        Collection<ProteinTranscript> proteinTranscript = new ArrayList(caseEvent.getPrimaryIsoforms());
+                        proteinTranscript.addAll(caseEvent.getPrimaryFeatureChains());
 
-                        if (prot.getSequence() != null){
-                            UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+                        // for each primary transcript, if one uniprot transcript has the exact same sequence and is not the uniprot transcript it has been remapped to, log it because
+                        // can be useful in case of merge problems
+                        for (ProteinTranscript trans : proteinTranscript){
+                            Protein prot = trans.getProtein();
 
-                            // if the uniprot transcript exists, log it
-                            if (transcriptsWithSameSequence != null){
-                                fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(this, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                            if (prot.getSequence() != null){
+                                UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
+
+                                // if the uniprot transcript exists, log it
+                                if (transcriptsWithSameSequence != null){
+                                    fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(this, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
+                                }
                             }
+                        }
+
+                        // fixing duplicates is enabled
+                        if (config.isFixDuplicates()){
+                            if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
+
+                            duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent);
                         }
                     }
 
-                    // fixing duplicates is enabled
-                    if (config.isFixDuplicates()){
-                        if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
+                    // update isoforms if necessary
+                    if (!caseEvent.getPrimaryIsoforms().isEmpty() || (caseEvent.getPrimaryIsoforms().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
+                        updater.createOrUpdateIsoform(caseEvent, masterProtein);
+                    }
 
-                        duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent);
+                    // update chains if necessary
+                    if (!caseEvent.getPrimaryFeatureChains().isEmpty() || (caseEvent.getPrimaryFeatureChains().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
+                        updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
                     }
                 }
-
-                // update isoforms if necessary
-                if (!caseEvent.getPrimaryIsoforms().isEmpty() || (caseEvent.getPrimaryIsoforms().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
-                    updater.createOrUpdateIsoform(caseEvent, masterProtein);
+                else {
+                    fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "No master protein or several master proteins exist and it is impossible to update the protein transcripts", UpdateError.impossible_transcript_update, uniprotProtein.getPrimaryAc()));
                 }
-
-                // update chains if necessary
-                if (!caseEvent.getPrimaryFeatureChains().isEmpty() || (caseEvent.getPrimaryFeatureChains().size() == 0 && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions())){
-                    updater.createOrUpdateFeatureChain(caseEvent, masterProtein);
-                }
-            }
-            else {
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "No master protein or several master proteins exist and it is impossible to update the protein transcripts", UpdateError.impossible_transcript_update, uniprotProtein.getPrimaryAc()));
             }
 
             // log in updated.csv
