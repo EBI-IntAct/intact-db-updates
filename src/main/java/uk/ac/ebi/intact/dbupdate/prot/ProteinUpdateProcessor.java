@@ -581,7 +581,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 canUpdateProteinTranscript = true;
             }
 
-            boolean needTranscriptUpdate = (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getSecondaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1) || (!config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions());
+            boolean needTranscriptUpdate = (caseEvent.getPrimaryIsoforms().size() >= 1 ||
+                    caseEvent.getSecondaryIsoforms().size() >= 1 || caseEvent.getPrimaryFeatureChains().size() >= 1) ||
+                    (caseEvent.getPrimaryIsoforms().isEmpty() && caseEvent.getSecondaryIsoforms().isEmpty() &&
+                            caseEvent.getPrimaryFeatureChains().isEmpty() && !config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions());
 
             // if a single master protein has been found and transcript update is needed
             if (needTranscriptUpdate){
