@@ -393,10 +393,6 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
             if (protTrans.getUniprotVariant() == null){
                 if (ProteinUtils.isFromUniprot(prot)){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the protein transcript  " + prot.getAc(), UpdateError.dead_uniprot_ac, prot, evt.getUniprotServiceResult().getQuerySentToService()));
-                    }
                     secondaryAcToRemove.add(protTrans);
                 }
             }
