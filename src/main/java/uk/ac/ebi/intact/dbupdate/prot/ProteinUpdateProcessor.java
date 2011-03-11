@@ -557,7 +557,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 updater.createOrUpdateProtein(caseEvent);
             }
             catch (ProteinServiceException e){
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when createing a new protein", UpdateError.impossible_update_master, caseEvent.getProtein().getPrimaryAc()));
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when creating a new protein", UpdateError.impossible_update_master, caseEvent.getProtein().getPrimaryAc()));
             }
 
 
