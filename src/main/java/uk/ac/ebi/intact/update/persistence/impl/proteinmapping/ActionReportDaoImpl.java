@@ -4,11 +4,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.ActionReportDao;
 

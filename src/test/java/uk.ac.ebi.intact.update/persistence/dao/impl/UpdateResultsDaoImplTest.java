@@ -2,11 +2,11 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.UpdateResultsDao;
 

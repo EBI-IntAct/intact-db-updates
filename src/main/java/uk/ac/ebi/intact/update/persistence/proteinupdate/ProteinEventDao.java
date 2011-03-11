@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
-import uk.ac.ebi.intact.update.model.proteinupdate.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEvent;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.io.Serializable;

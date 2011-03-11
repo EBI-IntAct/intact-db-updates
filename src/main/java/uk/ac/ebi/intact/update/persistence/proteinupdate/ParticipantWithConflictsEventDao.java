@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.proteinupdate.ParticipantWithConflictsEvent;
+import uk.ac.ebi.intact.update.model.protein.update.ParticipantWithConflictsEvent;
 
 /**
  * TODO comment this

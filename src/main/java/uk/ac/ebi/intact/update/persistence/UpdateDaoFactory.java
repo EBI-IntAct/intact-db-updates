@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.persistence.impl.proteinmapping.ActionReportDaoImpl;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.*;
 

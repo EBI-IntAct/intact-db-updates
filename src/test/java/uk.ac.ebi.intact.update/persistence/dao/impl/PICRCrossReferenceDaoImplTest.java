@@ -2,9 +2,9 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.PICRCrossReferencesDao;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.PICRReportDao;

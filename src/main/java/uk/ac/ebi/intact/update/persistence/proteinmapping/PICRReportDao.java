@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.proteinmapping;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 
 import java.util.List;
 

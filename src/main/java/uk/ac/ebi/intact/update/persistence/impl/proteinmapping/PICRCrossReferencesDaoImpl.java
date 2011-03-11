@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
 import uk.ac.ebi.intact.update.persistence.proteinmapping.PICRCrossReferencesDao;
 

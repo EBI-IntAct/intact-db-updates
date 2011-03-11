@@ -1,9 +1,9 @@
 package uk.ac.ebi.intact.update.persistence.proteinmapping;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.proteinmapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.util.List;
