@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
-import uk.ac.ebi.intact.update.model.proteinmapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
 
 import java.util.EventObject;
 
