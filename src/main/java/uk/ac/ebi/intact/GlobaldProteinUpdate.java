@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * TODO comment this
+ * Main class for global protein update
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -22,15 +22,22 @@ public class GlobaldProteinUpdate {
     public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 2 ) {
-            System.err.println( "Usage: GlobalUpdate <database> <folder>" );
+        if( args.length != 2 || args.length != 3 ) {
+            System.err.println( "Usage: GlobalUpdate <database> <folder> <blast>" );
             System.exit( 1 );
         }
         final String database = args[0];
         final String filename = args[1];
 
+        boolean isBlastEnabled = false;
+
+        if (args.length == 3){
+            isBlastEnabled = Boolean.parseBoolean(args[2]);
+        }
+
         System.out.println( "folder where are the log files = " + filename );
         System.out.println( "database = " + database );
+        System.out.println( "Blast enabled = " + isBlastEnabled );
 
         IntactContext.initContext(new String[] {"/META-INF/"+database+".spring.xml"});
 
@@ -40,7 +47,7 @@ public class GlobaldProteinUpdate {
         config.setGlobalProteinUpdate(true);
         config.setFixDuplicates(true);
         config.setProcessProteinNotFoundInUniprot(true);
-        config.setBlastEnabled(true);
+        config.setBlastEnabled(isBlastEnabled);
         try {
             config.setReportHandler(new FileReportHandler(new File(filename)));
 
