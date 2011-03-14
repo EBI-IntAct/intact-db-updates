@@ -161,6 +161,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                     DaoFactory factory = evt.getDataContext().getDaoFactory();
                     // update
                     if (result != null && result.getFinalUniprotId() != null){
+                        // remove 'no-uniprot-update'
                         Annotation a = collectNo_Uniprot_UpdateAnnotation(annotations);
 
                         if (a != null){
@@ -169,20 +170,31 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                             factory.getAnnotationDao().delete(a);
                         }
 
+                        // remove obsolete caution because of dead protein
                         Annotation a2 = collectObsoleteAnnotation(annotations);
 
                         if (a2 != null){
-                            log.info("caution removed from the annotations of " + accession);
+                            log.info("obsolete caution removed from the annotations of " + accession);
                             protein.removeAnnotation(a2);
                             factory.getAnnotationDao().delete(a2);
                         }
 
+                        // remove caution for out of date feature ranges
                         Annotation a3 = collectFeatureObsoleteAnnotation(annotations);
 
                         if (a3 != null){
-                            log.info("caution removed from the annotations of " + accession);
+                            log.info("obsolete feature caution removed from the annotations of " + accession);
                             protein.removeAnnotation(a3);
                             factory.getAnnotationDao().delete(a3);
+                        }
+
+                        // remove caution for impossible merge
+                        Annotation a4 = collectImpossibleMergeAnnotation(annotations);
+
+                        if (a4 != null){
+                            log.info("impossible merge caution removed from the annotations of " + accession);
+                            protein.removeAnnotation(a4);
+                            factory.getAnnotationDao().delete(a4);
                         }
 
                         addUniprotCrossReferenceTo((ProteinImpl) protein, result.getFinalUniprotId(), factory);
@@ -447,6 +459,30 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
                 if (a.getAnnotationText() != null){
                     if (a.getAnnotationText().equalsIgnoreCase(OutOfDateParticipantFixerImpl.FEATURE_OBSOLETE)){
+                        if (topic.getIdentifier() != null){
+                            if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
+                                return a;
+                            }
+                        }
+                        else if (topic.getShortLabel() != null){
+                            if (topic.getShortLabel().equals(CvTopic.CAUTION)){
+                                return a;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private Annotation collectImpossibleMergeAnnotation(Collection<Annotation> annotations){
+        for (Annotation a : annotations){
+            if (a.getCvTopic() != null){
+                CvTopic topic = a.getCvTopic();
+
+                if (a.getAnnotationText() != null){
+                    if (a.getAnnotationText().startsWith(DuplicatesFixerImpl.CAUTION_PREFIX)){
                         if (topic.getIdentifier() != null){
                             if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
                                 return a;

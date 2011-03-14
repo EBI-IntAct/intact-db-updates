@@ -25,19 +25,16 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
-import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Tester of ProteinProcessor
@@ -551,7 +548,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
 
         Set<String> updatedProteins = processor.update(protein, context);
 
-        Assert.assertEquals(4, updatedProteins.size());
+        Assert.assertEquals(3, updatedProteins.size()); // the no-uniprot protein is considered as not processed excepted if we specifically choose to update it
         Assert.assertEquals(5, getDaoFactory().getProteinDao().countAll());
         Assert.assertTrue(hasAnnotation(secondary, null, CvTopic.NON_UNIPROT));
 

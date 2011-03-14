@@ -16,7 +16,6 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -111,8 +110,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param proteins : the proteins to filter
      * @param caseEvent : the event containing all the intact proteins for a single uniprot entry
      */
-    private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent, boolean isPrimary){
-        Collection<Protein> proteinsToDelete = new ArrayList<Protein>();
+    private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent){
 
         for (Iterator<? extends Protein> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             Protein protein = proteinIterator.next();
@@ -126,7 +124,11 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+
                 proteinIterator.remove();
+
                 continue;
             }
 
@@ -141,6 +143,10 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
+
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+
                 proteinIterator.remove();
             }
             else if (uniprotIdentities.size() > 1){
@@ -153,8 +159,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
         }
-
-        proteins.removeAll(proteinsToDelete);
     }
 
     /**
@@ -163,7 +167,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param caseEvent
      */
     private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent, boolean isSpliceVariant){
-        Collection<ProteinTranscript> transcriptsToDelete = new ArrayList<ProteinTranscript>();
 
         for (Iterator<ProteinTranscript> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             ProteinTranscript t = proteinIterator.next();
@@ -178,6 +181,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
                 proteinIterator.remove();
+
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
                 continue;
             }
 
@@ -193,6 +199,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
                 proteinIterator.remove();
+
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
             }
             else if (uniprotIdentities.size() > 1){
                 ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
@@ -205,8 +214,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
         }
-
-        proteins.removeAll(transcriptsToDelete);
     }
 
     /**
@@ -227,8 +234,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         // process all the proteins for this uniprot entry
-        processListOfProteins(primaryProteins, evt, true);
-        processListOfProteins(secondaryProteins, evt, false);
+         processListOfProteins(primaryProteins, evt);
+        processListOfProteins(secondaryProteins, evt);
         processListOfProteinsTranscript(primaryIsoforms, evt, true);
         processListOfProteinsTranscript(secondaryIsoforms, evt, true);
         processListOfProteinsTranscript(primaryChains, evt, false);

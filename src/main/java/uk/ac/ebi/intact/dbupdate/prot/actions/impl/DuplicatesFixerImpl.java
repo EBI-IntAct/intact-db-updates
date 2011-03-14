@@ -57,6 +57,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
     private DuplicatesFinder duplicatesFinder;
 
+    public static String CAUTION_PREFIX = "The protein could not be merged with ";
+
     /**
      * The range updater
      */
@@ -304,7 +306,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         boolean has_no_uniprot_update = false;
         boolean has_caution = false;
-        String cautionMessage = "The protein could not be merged with " + previousAc + " because of some conflicts with the protein sequence (features which cannot be shifted).";
+        String cautionMessage = CAUTION_PREFIX + previousAc + " because of some conflicts with the protein sequence (features which cannot be shifted).";
 
         for (Annotation annotation : protein.getAnnotations()){
             if (no_uniprot_update.equals(annotation.getCvTopic())){

@@ -331,6 +331,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                 // no uniprot protein matches this uniprot ac
                 if(uniprotProteins.size() == 0){
                     secondaryAcToRemove.add(prot);
+
+                    // remove the protein from the proteins whcih can be updated. Will be updated later
+                    evt.getUniprotServiceResult().getProteins().remove(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -392,9 +395,10 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             Protein prot = protTrans.getProtein();
 
             if (protTrans.getUniprotVariant() == null){
-                if (ProteinUtils.isFromUniprot(prot)){
-                    secondaryAcToRemove.add(protTrans);
-                }
+                secondaryAcToRemove.add(protTrans);
+
+                // remove the protein from the proteins whcih can be updated. Will be updated later
+                evt.getUniprotServiceResult().getProteins().remove(prot);
             }
         }
         transcripts.removeAll(secondaryAcToRemove);

@@ -11,14 +11,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.model.CvFuzzyType;
+import uk.ac.ebi.intact.model.Feature;
+import uk.ac.ebi.intact.model.Range;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Second tester of RangeChecker
@@ -94,7 +92,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.N_TERMINAL_REGION);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_REGION_MI_REF, CvFuzzyType.N_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -124,7 +122,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.N_TERMINAL_REGION);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.N_TERMINAL_REGION_MI_REF, CvFuzzyType.N_TERMINAL_REGION);
         CvFuzzyType fuzzyType2 = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
 
         Feature feature = getMockBuilder().createFeatureRandom();
@@ -156,7 +154,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String newSequence = "CDEF";
 
         CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
-        CvFuzzyType fuzzyType2 = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.C_TERMINAL_REGION);
+        CvFuzzyType fuzzyType2 = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_REGION_MI_REF, CvFuzzyType.C_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -187,7 +185,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         String oldSequence = "ABCDEF";
         String newSequence = "CDEF";
 
-        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, null, CvFuzzyType.C_TERMINAL_REGION);
+        CvFuzzyType fuzzyType = getMockBuilder().createCvObject(CvFuzzyType.class, CvFuzzyType.C_TERMINAL_REGION_MI_REF, CvFuzzyType.C_TERMINAL_REGION);
 
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
