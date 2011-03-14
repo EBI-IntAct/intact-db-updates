@@ -22,7 +22,7 @@ public class GlobaldProteinUpdate {
     public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 2 || args.length != 3 ) {
+        if( args.length != 2 && args.length != 3 ) {
             System.err.println( "Usage: GlobalUpdate <database> <folder> <blast>" );
             System.exit( 1 );
         }
