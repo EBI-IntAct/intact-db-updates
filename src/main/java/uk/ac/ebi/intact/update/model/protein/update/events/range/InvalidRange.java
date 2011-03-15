@@ -1,12 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
-import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 
 /**
  * TODO comment this
@@ -21,32 +19,31 @@ public class InvalidRange extends UpdatedRange {
 
     private String fromStatus;
     private String toStatus;
-    private String currentSequence;
-    private String updatedSequence;
     private String errorMessage;
+    private int sequenceVersion;
 
     public InvalidRange(){
         super();
         fromStatus = null;
         toStatus = null;
-        currentSequence = null;
-        updatedSequence = null;
         errorMessage = null;
+        this.sequenceVersion = -1;
     }
 
-    public InvalidRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd, String currentSequence, String updatedSequence, String errorMessage){
-        super(updateProcess, parent, rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, newFromStart, newFromEnd, newToStart, newToEnd);
-        this.currentSequence = currentSequence;
-        this.updatedSequence = updatedSequence;
-        this.errorMessage = errorMessage;
+    public InvalidRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String startStatus, String endStatus, RangePositions oldPositions, String error, int sequenceVersion){
+        super(updateProcess, componentAc, rangeAc, oldSequence, null, oldPositions, null);
+        this.errorMessage = error;
+        this.sequenceVersion = sequenceVersion;
+        this.fromStatus = startStatus;
+        this.toStatus = endStatus;
     }
 
-    public InvalidRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, String currentSequence, String errorMessage){
-        super(updateProcess, parent, rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, 0, 0, 0, 0);
-        setNewPositions(null);
-        this.currentSequence = currentSequence;
-        this.updatedSequence = null;
-        this.errorMessage = errorMessage;
+    public InvalidRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, RangePositions oldPositions, RangePositions newPositions, String error, int sequenceVersion){
+        super(updateProcess, componentAc, rangeAc, oldSequence, newSequence, oldPositions, newPositions);
+        this.errorMessage = error;
+        this.sequenceVersion = sequenceVersion;
+        this.fromStatus = startStatus;
+        this.toStatus = endStatus;
     }
 
     @Column(name = "from_range_status", nullable = true)
@@ -67,26 +64,6 @@ public class InvalidRange extends UpdatedRange {
         this.toStatus = toStatus;
     }
 
-    @Lob
-    @Column(name = "current_sequence", nullable = true)
-    public String getCurrentSequence() {
-        return currentSequence;
-    }
-
-    public void setCurrentSequence(String currentSequence) {
-        this.currentSequence = currentSequence;
-    }
-
-    @Lob
-    @Column(name = "updated_sequence", nullable = true)
-    public String getUpdatedSequence() {
-        return updatedSequence;
-    }
-
-    public void setUpdatedSequence(String updatedSequence) {
-        this.updatedSequence = updatedSequence;
-    }
-
     @Column(name = "error_message", nullable = false)
     public String getErrorMessage() {
         return errorMessage;
@@ -94,5 +71,14 @@ public class InvalidRange extends UpdatedRange {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    @Column(name = "sequence_version")
+    public int getSequenceVersion() {
+        return sequenceVersion;
+    }
+
+    public void setSequenceVersion(int sequenceVersion) {
+        this.sequenceVersion = sequenceVersion;
     }
 }

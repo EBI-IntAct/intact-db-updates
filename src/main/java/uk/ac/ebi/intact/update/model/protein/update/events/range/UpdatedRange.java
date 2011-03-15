@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
-import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -21,9 +20,12 @@ import javax.persistence.*;
 public class UpdatedRange extends HibernatePersistentImpl {
     private RangePositions oldPositions;
     private RangePositions newPositions;
+    private String oldSequence;
+    private String newSequence;
+
     private String rangeAc;
 
-    private String protein;
+    private String component;
     UpdateProcess updateProcess;
 
     public UpdatedRange (){
@@ -31,25 +33,29 @@ public class UpdatedRange extends HibernatePersistentImpl {
         oldPositions = null;
         newPositions = null;
         rangeAc = null;
-        this.protein = null;
+        this.component = null;
+        this.oldSequence = null;
+        this.newSequence = null;
     }
 
-    public UpdatedRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd){
+    public UpdatedRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, RangePositions oldRangePositions, RangePositions newRangePositions){
         super();
-        this.protein = parent != null ? parent.getAc() : null;
+        this.component = componentAc;
         this.rangeAc = rangeAc;
-        this.oldPositions = new RangePositions(oldFromStart, oldFromEnd, oldToStart, oldToEnd);
-        this.newPositions = new RangePositions(newFromStart, newFromEnd, newToStart, newToEnd);
+        this.oldPositions = oldRangePositions;
+        this.newPositions = newRangePositions;
         this.updateProcess = updateProcess;
+        this.oldSequence = oldSequence;
+        this.newSequence = newSequence;
     }
 
-    @Column(name="protein_ac", nullable=false)
-    public String getProtein() {
-        return protein;
+    @Column(name="component_ac", nullable=false)
+    public String getComponent() {
+        return component;
     }
 
-    public void setProtein(String protein) {
-        this.protein = protein;
+    public void setComponent(String component) {
+        this.component = component;
     }
 
     @ManyToOne
@@ -90,4 +96,25 @@ public class UpdatedRange extends HibernatePersistentImpl {
     public void setRangeAc(String rangeAc) {
         this.rangeAc = rangeAc;
     }
+
+    @Lob
+    @Column(name = "old_sequence", nullable = true)
+    public String getOldSequence() {
+        return oldSequence;
+    }
+
+    public void setOldSequence(String currentSequence) {
+        this.oldSequence = currentSequence;
+    }
+
+    @Lob
+    @Column(name = "new_sequence", nullable = true)
+    public String getNewSequence() {
+        return newSequence;
+    }
+
+    public void setNewSequence(String updatedSequence) {
+        this.newSequence = updatedSequence;
+    }
+
 }

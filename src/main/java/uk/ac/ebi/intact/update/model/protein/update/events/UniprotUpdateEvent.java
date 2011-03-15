@@ -27,8 +27,10 @@ public class UniprotUpdateEvent extends ProteinEvent{
         this.fullName = null;
     }
 
-    public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, int index){
+    public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String shortlabel, String fullname, int index){
         super(updateProcess, EventName.uniprot_update, protein, index);
+        this.shortLabel = shortlabel;
+        this.fullName = fullname;
     }
 
     @Column(name = "shortlabel", nullable = false)
