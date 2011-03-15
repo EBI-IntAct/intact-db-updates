@@ -11,8 +11,6 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 
-import java.util.Date;
-
 /**
  * This class contains a set of methods to create objects for testing
  *
@@ -38,7 +36,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         results.setStartMatch(1);
         results.setEndQuery(335);
         results.setIdentity(99);
-        results.setCreated(new Date(1));
 
         return results;
     }
@@ -57,7 +54,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         results.setStartMatch(1);
         results.setEndQuery(335);
         results.setIdentity(99);
-        results.setCreated(new Date(1));
 
         return results;
     }
@@ -84,7 +80,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         results.setStartMatch(startMatch);
         results.setEndQuery(endMatch);
         results.setIdentity(identity);
-        results.setCreated(new Date(1));
 
         return results;
     }
@@ -99,7 +94,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         report.setASwissprotEntry(true);
         report.setStatus(new Status(StatusLabel.COMPLETED, "mapping successful"));
         report.setQuerySequence("GCAGGT");
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -112,7 +106,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         pc.setDatabase("Ensembl");
         pc.addAccession("ENSG0007777");
-        pc.setCreated(new Date(1));
 
         return pc;
     }
@@ -126,7 +119,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.COMPLETED, null));
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -142,7 +134,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         report.addWarning("To be reviewed by a curator");
         report.addPossibleAccession("P02134");
         report.addPossibleAccession("P12345");
-        report.setCreated(new Date(1));
 
         return report;
     }
@@ -158,7 +149,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         report.setASwissprotEntry(false);
         report.addPossibleAccession("P02134");
         report.addPossibleAccession("P12345");
-        report.setCreated(new Date(1));
 
         return report;
     }
@@ -173,7 +163,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
         report.setASwissprotEntry(false);
         report.addWarning("To be reviewed by a curator");
-        report.setCreated(new Date(1));
 
         return report;
     }
@@ -186,9 +175,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
          BlastReport report = new BlastReport(ActionName.BLAST_uniprot);
 
         report.setASwissprotEntry(true);
-        report.setQuerySequence("GCAGGT");        
+        report.setQuerySequence("GCAGGT");
         report.setStatus(new Status(StatusLabel.COMPLETED, "mapping successful"));
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -201,7 +189,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         results.setIntactAccession("EBI-0001001");
         results.setFinalUniprotId("P01234");
-        results.setCreated(new Date(1));
         return results;
     }
 
@@ -213,7 +200,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
          UpdateResults results = new UpdateResults();
 
         results.setIntactAccession("EBI-0001002");
-        results.setCreated(new Date(1));
         return results;
     }
 
@@ -226,7 +212,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is neither a sequence nor an identity xref"));
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -239,7 +224,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, "There is a conflict"));
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -252,7 +236,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is a conflict"));
-        report.setCreated(new Date(1));
         return report;
     }
 
@@ -265,7 +248,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "PICR couldn't match the accession to any Uniprot entries"));
-        report.setCreated(new Date(1));
         return report;
     }
 }

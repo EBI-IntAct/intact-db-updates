@@ -1,10 +1,9 @@
 package uk.ac.ebi.intact.update.model;
 
 import javax.persistence.*;
-import java.util.Date;
 
 /**
- * TODO comment this
+ * An abstract super class for persistence
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -14,10 +13,8 @@ import java.util.Date;
 public abstract class HibernatePersistentImpl {
 
     private long id;
-    private Date created;
 
     public HibernatePersistentImpl(){
-        created = null;
     }
     /**
      *
@@ -37,15 +34,5 @@ public abstract class HibernatePersistentImpl {
     public void setId(Long id) {
         this.id = id;
     }
-
-    @Temporal( value = TemporalType.TIMESTAMP )
-    @Column(name = "created", nullable = false)
-    public Date getCreated() {
-        return created;
-    }
-
-    public void setCreated(Date created) {
-        this.created = created;
-    }    
 
 }

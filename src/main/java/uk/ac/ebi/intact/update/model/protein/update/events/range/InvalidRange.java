@@ -1,7 +1,12 @@
-package uk.ac.ebi.intact.update.model.protein.update.range;
+package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
-import javax.persistence.*;
-import java.util.Date;
+import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 /**
  * TODO comment this
@@ -11,7 +16,6 @@ import java.util.Date;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_invalid_range")
 @DiscriminatorValue("InvalidRange")
 public class InvalidRange extends UpdatedRange {
 
@@ -30,18 +34,16 @@ public class InvalidRange extends UpdatedRange {
         errorMessage = null;
     }
 
-    public InvalidRange(String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd, String currentSequence, String updatedSequence, String errorMessage){
-        super(rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, newFromStart, newFromEnd, newToStart, newToEnd);
-        setCreated(new Date(System.currentTimeMillis()));
+    public InvalidRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd, String currentSequence, String updatedSequence, String errorMessage){
+        super(updateProcess, parent, rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, newFromStart, newFromEnd, newToStart, newToEnd);
         this.currentSequence = currentSequence;
         this.updatedSequence = updatedSequence;
         this.errorMessage = errorMessage;
     }
 
-    public InvalidRange(String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, String currentSequence, String errorMessage){
-        super(rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, 0, 0, 0, 0);
+    public InvalidRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, String currentSequence, String errorMessage){
+        super(updateProcess, parent, rangeAc, oldFromStart, oldFromEnd, oldToStart, oldToEnd, 0, 0, 0, 0);
         setNewPositions(null);
-        setCreated(new Date(System.currentTimeMillis()));
         this.currentSequence = currentSequence;
         this.updatedSequence = null;
         this.errorMessage = errorMessage;

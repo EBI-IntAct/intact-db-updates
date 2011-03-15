@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.protein.update.protein.Annotation;
+import uk.ac.ebi.intact.update.model.protein.update.updatedAnnotation;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.io.Serializable;
@@ -14,11 +14,11 @@ import java.util.List;
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface AnnotationDao<T extends Annotation> extends UpdateBaseDao<T>, Serializable {
+public interface AnnotationDao<T extends updatedAnnotation> extends UpdateBaseDao<T>, Serializable {
 
-    List<Annotation> getAnnotationsByIntactAnnotationAc(String intactAnnotationAc);
-    List<Annotation> getAnnotationsByAnnotationTextLike(String annotationText);
-    List<Annotation> getAnnotationsByAnnotationText(String annotationText);
-    List<Annotation> getAnnotationsByCvTopicAc(String cvTopicAc);
-    List<Annotation> getAnnotationsByProteinId(long proteinId);
+    List<updatedAnnotation> getAnnotationsByIntactAnnotationAc(String intactAnnotationAc);
+    List<updatedAnnotation> getAnnotationsByAnnotationTextLike(String annotationText);
+    List<updatedAnnotation> getAnnotationsByAnnotationText(String annotationText);
+    List<updatedAnnotation> getAnnotationsByCvTopicAc(String cvTopicAc);
+    List<updatedAnnotation> getAnnotationsByProteinId(long proteinId);
 }

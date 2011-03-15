@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.protein.update.DuplicatedProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
 
 /**
  * TODO comment this

@@ -1,12 +1,13 @@
-package uk.ac.ebi.intact.update.model.protein.update.range;
+package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.*;
-import java.util.Date;
 
 /**
- * TODO comment this
+ * Represents an update of feature ranges
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -15,26 +16,50 @@ import java.util.Date;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objClass", discriminatorType=DiscriminatorType.STRING)
-@DiscriminatorValue("UpdateRange")
+@DiscriminatorValue("UpdatedRange")
 @Table(name = "ia_updated_range")
 public class UpdatedRange extends HibernatePersistentImpl {
     private RangePositions oldPositions;
     private RangePositions newPositions;
     private String rangeAc;
 
+    private String protein;
+    UpdateProcess updateProcess;
+
     public UpdatedRange (){
         super();
         oldPositions = null;
         newPositions = null;
         rangeAc = null;
+        this.protein = null;
     }
 
-    public UpdatedRange(String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd){
+    public UpdatedRange(UpdateProcess updateProcess, Protein parent, String rangeAc, int oldFromStart, int oldFromEnd, int oldToStart, int oldToEnd, int newFromStart, int newFromEnd, int newToStart, int newToEnd){
         super();
+        this.protein = parent != null ? parent.getAc() : null;
         this.rangeAc = rangeAc;
         this.oldPositions = new RangePositions(oldFromStart, oldFromEnd, oldToStart, oldToEnd);
         this.newPositions = new RangePositions(newFromStart, newFromEnd, newToStart, newToEnd);
-        setCreated(new Date(System.currentTimeMillis()));
+        this.updateProcess = updateProcess;
+    }
+
+    @Column(name="protein_ac", nullable=false)
+    public String getProtein() {
+        return protein;
+    }
+
+    public void setProtein(String protein) {
+        this.protein = protein;
+    }
+
+    @ManyToOne
+    @JoinColumn(name="parent_id", nullable=false)
+    public UpdateProcess getParent() {
+        return this.updateProcess;
+    }
+
+    public void setParent(UpdateProcess updateProcess) {
+        this.updateProcess = updateProcess;
     }
 
     @OneToOne

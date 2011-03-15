@@ -1,12 +1,14 @@
-package uk.ac.ebi.intact.update.model.protein.update;
+package uk.ac.ebi.intact.update.model.protein.update.events;
+
+import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import java.util.Date;
 
 /**
- * TODO comment this
+ * Event for secondary proteins
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -26,8 +28,8 @@ public class SecondaryProteinEvent extends ProteinEvent{
 
     }
 
-    public SecondaryProteinEvent(Date created, String secondaryAc, String primaryAc, int index){
-        super(EventName.secondary_protein, created, index);
+    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc, int index){
+        super(updateProcess, EventName.secondary_protein, protein, index);
         this.primaryAc = primaryAc;
         this.secondaryAc = secondaryAc;
     }

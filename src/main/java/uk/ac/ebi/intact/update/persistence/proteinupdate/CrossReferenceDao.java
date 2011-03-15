@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.protein.update.protein.CrossReference;
+import uk.ac.ebi.intact.update.model.protein.update.UpdatedCrossReference;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.io.Serializable;
@@ -14,11 +14,11 @@ import java.util.List;
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface CrossReferenceDao<T extends CrossReference> extends UpdateBaseDao<T>, Serializable {
+public interface CrossReferenceDao<T extends UpdatedCrossReference> extends UpdateBaseDao<T>, Serializable {
 
-    public List<CrossReference> getCrossReferencesByIntactXrefAc(String intactXRefAc);
-    public List<CrossReference> getCrossReferencesByDatabaseAc(String databaseAc);
-    public List<CrossReference> getCrossReferencesByQualifierAc(String qualifierAc);
-    public List<CrossReference> getCrossReferencesByIdentifier(String primaryAc);
-    public List<CrossReference> getCrossReferencesByProteinId(long proteinId);
+    public List<UpdatedCrossReference> getCrossReferencesByIntactXrefAc(String intactXRefAc);
+    public List<UpdatedCrossReference> getCrossReferencesByDatabaseAc(String databaseAc);
+    public List<UpdatedCrossReference> getCrossReferencesByQualifierAc(String qualifierAc);
+    public List<UpdatedCrossReference> getCrossReferencesByIdentifier(String primaryAc);
+    public List<UpdatedCrossReference> getCrossReferencesByProteinId(long proteinId);
 }

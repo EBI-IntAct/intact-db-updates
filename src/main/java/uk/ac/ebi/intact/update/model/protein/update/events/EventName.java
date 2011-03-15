@@ -1,7 +1,7 @@
-package uk.ac.ebi.intact.update.model.protein.update;
+package uk.ac.ebi.intact.update.model.protein.update.events;
 
 /**
- * TODO comment this
+ * Name of a protein update event
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -11,6 +11,6 @@ package uk.ac.ebi.intact.update.model.protein.update;
 public enum EventName {
 
     dead_protein, uniprot_update, delete_protein, non_uniprot_protein, update_error, secondary_protein, protein_duplicate,
-    participant_with_feature_conflicts
+    participant_with_feature_conflicts, transcript_parent_update
 
 }

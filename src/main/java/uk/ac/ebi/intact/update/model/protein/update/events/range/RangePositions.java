@@ -1,11 +1,11 @@
-package uk.ac.ebi.intact.update.model.protein.update.range;
+package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 
 import javax.persistence.*;
 
 /**
- * TODO comment this
+ * Positions for a range
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

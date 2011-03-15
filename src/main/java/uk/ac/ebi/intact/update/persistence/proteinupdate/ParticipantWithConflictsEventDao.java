@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.proteinupdate;
 
-import uk.ac.ebi.intact.update.model.protein.update.ParticipantWithConflictsEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
 
 /**
  * TODO comment this
@@ -10,5 +10,5 @@ import uk.ac.ebi.intact.update.model.protein.update.ParticipantWithConflictsEven
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface ParticipantWithConflictsEventDao extends ProteinEventDao<ParticipantWithConflictsEvent>{
+public interface ParticipantWithConflictsEventDao extends ProteinEventDao<OutOfDateParticipantEvent>{
 }
