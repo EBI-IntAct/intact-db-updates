@@ -9,8 +9,8 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
-import uk.ac.ebi.intact.update.persistence.proteinmapping.ActionReportDao;
-import uk.ac.ebi.intact.update.persistence.proteinmapping.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.ActionReportDao;
+import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
 
 import java.util.List;
 

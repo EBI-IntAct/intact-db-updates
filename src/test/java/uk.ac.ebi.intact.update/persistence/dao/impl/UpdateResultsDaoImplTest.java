@@ -8,7 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
-import uk.ac.ebi.intact.update.persistence.proteinmapping.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
 
 import java.util.List;
 

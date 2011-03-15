@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.persistence.proteinmapping;
+package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;

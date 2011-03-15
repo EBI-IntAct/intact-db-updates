@@ -1,11 +1,11 @@
-package uk.ac.ebi.intact.update.persistence.impl.proteinmapping;
+package uk.ac.ebi.intact.update.persistence.impl;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
-import uk.ac.ebi.intact.update.persistence.proteinmapping.BlastResultsDao;
+import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
 
 import javax.persistence.Query;
 import java.util.List;

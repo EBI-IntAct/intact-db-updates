@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.persistence.proteinupdate;
+package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 
