@@ -114,8 +114,19 @@ public class ComponentTools {
 
     public static boolean containsParticipant(Protein p, Component c){
         for (Component comp : p.getActiveInstances()){
-            if (areEqualParticipants(comp, c)){
-                return true;
+            Interaction interaction = c.getInteraction();
+
+            if (interaction != null){
+                if (interaction.getComponents().size() > 2){
+                    if (areEqualParticipants(comp, c)){
+                        return true;
+                    }
+                }
+            }
+            else {
+                if (areEqualParticipants(comp, c)){
+                    return true;
+                }
             }
         }
 
