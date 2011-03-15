@@ -13,7 +13,7 @@ import javax.persistence.*;
  * @since <pre>11-May-2010</pre>
  */
 @Entity
-@Table( name = "ia_update_result" )
+@Table( name = "ia_mapping_result" )
 public class UpdateResults extends IdentificationResults {
 
     /**

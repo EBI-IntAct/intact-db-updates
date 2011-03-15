@@ -31,7 +31,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
     UpdateProcess updateProcess;
 
     private Collection<UpdatedCrossReference> updatedReferences;
-    private Collection<updatedAnnotation> updatedAnnotations;
+    private Collection<UpdatedAnnotation> updatedAnnotations;
     private Collection<UpdatedAlias> updatedAliases;
 
     public ProteinEvent(){
@@ -42,7 +42,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         this.protein = null;
 
         updatedReferences = new ArrayList<UpdatedCrossReference>();
-        updatedAnnotations = new ArrayList<updatedAnnotation>();
+        updatedAnnotations = new ArrayList<UpdatedAnnotation>();
         updatedAliases = new ArrayList<UpdatedAlias>();
     }
 
@@ -53,7 +53,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         this.protein = protein != null ? protein.getAc() : null;
         this.updateProcess = process;
         updatedReferences = new ArrayList<UpdatedCrossReference>();
-        updatedAnnotations = new ArrayList<updatedAnnotation>();
+        updatedAnnotations = new ArrayList<UpdatedAnnotation>();
         updatedAliases = new ArrayList<UpdatedAlias>();
     }
 
@@ -107,11 +107,11 @@ public class ProteinEvent extends HibernatePersistentImpl {
             joinColumns = {@JoinColumn( name = "protein_event_id" )},
             inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
     )
-    public Collection<updatedAnnotation> getUpdatedAnnotations() {
+    public Collection<UpdatedAnnotation> getUpdatedAnnotations() {
         return updatedAnnotations;
     }
 
-    public void setUpdatedAnnotations(Collection<updatedAnnotation> updatedAnnotations) {
+    public void setUpdatedAnnotations(Collection<UpdatedAnnotation> updatedAnnotations) {
         if (updatedAnnotations != null){
             this.updatedAnnotations = updatedAnnotations;
         }
@@ -120,7 +120,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
     public void addUpdatedAnnotationFromInteractor(Collection<uk.ac.ebi.intact.model.Annotation> updatedAnn, UpdateStatus status){
         for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
 
-            updatedAnnotation annotation = new updatedAnnotation(a, status);
+            UpdatedAnnotation annotation = new UpdatedAnnotation(a, status);
             this.updatedAnnotations.add(annotation);
         }
     }

@@ -5,7 +5,7 @@ import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import javax.persistence.*;
 
 /**
- * updatedAnnotation of a protein
+ * UpdatedAnnotation of a protein
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -13,28 +13,28 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "ia_updated_annotation")
-public class updatedAnnotation extends HibernatePersistentImpl {
+public class UpdatedAnnotation extends HibernatePersistentImpl {
 
     private String topic;
     private String text;
 
     private UpdateStatus status;
 
-    public updatedAnnotation(){
+    public UpdatedAnnotation(){
         super();
         this.topic = null;
         this.text = null;
         this.status = UpdateStatus.none;
     }
 
-    public updatedAnnotation(String topic, String text, UpdateStatus status){
+    public UpdatedAnnotation(String topic, String text, UpdateStatus status){
         super();
         this.topic = topic;
         this.text = text;
         this.status = status != null ? status : UpdateStatus.none;
     }
 
-    public updatedAnnotation(uk.ac.ebi.intact.model.Annotation annotation, UpdateStatus status){
+    public UpdatedAnnotation(uk.ac.ebi.intact.model.Annotation annotation, UpdateStatus status){
         super();
         if (annotation != null){
 

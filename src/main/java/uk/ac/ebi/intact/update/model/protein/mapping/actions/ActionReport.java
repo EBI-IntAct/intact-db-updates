@@ -22,7 +22,7 @@ import java.util.Set;
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objclass", discriminatorType= DiscriminatorType.STRING, length = 100)
 @DiscriminatorValue("ActionReport")
-@Table( name = "ia_protein_action" )
+@Table( name = "ia_mapping_report" )
 public class ActionReport extends HibernatePersistentImpl {
 
     /**

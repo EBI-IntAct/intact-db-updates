@@ -1,8 +1,5 @@
 package uk.ac.ebi.intact.update.persistence;
 
-import uk.ac.ebi.intact.update.model.protein.update.events.range.RangePositions;
-import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
-
 import java.io.Serializable;
 
 /**

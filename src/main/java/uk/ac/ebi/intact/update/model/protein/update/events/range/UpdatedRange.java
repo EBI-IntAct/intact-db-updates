@@ -2,8 +2,12 @@ package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.update.UpdatedAnnotation;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Represents an update of feature ranges
@@ -18,8 +22,8 @@ import javax.persistence.*;
 @DiscriminatorValue("UpdatedRange")
 @Table(name = "ia_updated_range")
 public class UpdatedRange extends HibernatePersistentImpl {
-    private RangePositions oldPositions;
-    private RangePositions newPositions;
+    private String oldPositions;
+    private String newPositions;
     private String oldSequence;
     private String newSequence;
 
@@ -27,6 +31,8 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     private String component;
     UpdateProcess updateProcess;
+
+    Collection<UpdatedAnnotation> featureAnnotations;
 
     public UpdatedRange (){
         super();
@@ -36,9 +42,11 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.component = null;
         this.oldSequence = null;
         this.newSequence = null;
+
+        this.featureAnnotations = new ArrayList<UpdatedAnnotation>();
     }
 
-    public UpdatedRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, RangePositions oldRangePositions, RangePositions newRangePositions){
+    public UpdatedRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
         super();
         this.component = componentAc;
         this.rangeAc = rangeAc;
@@ -47,6 +55,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.updateProcess = updateProcess;
         this.oldSequence = oldSequence;
         this.newSequence = newSequence;
+        this.featureAnnotations = new ArrayList<UpdatedAnnotation>();
     }
 
     @Column(name="component_ac", nullable=false)
@@ -69,22 +78,22 @@ public class UpdatedRange extends HibernatePersistentImpl {
     }
 
     @OneToOne
-    @JoinColumn( name = "old_positions_ac", nullable = false)
-    public RangePositions getOldPositions() {
+    @JoinColumn( name = "old_positions", nullable = false)
+    public String getOldPositions() {
         return oldPositions;
     }
 
-    public void setOldPositions(RangePositions oldPositions) {
+    public void setOldPositions(String oldPositions) {
         this.oldPositions = oldPositions;
     }
 
     @OneToOne
-    @JoinColumn( name = "new_positions_ac", nullable = true)
-    public RangePositions getNewPositions() {
+    @JoinColumn( name = "new_positions", nullable = true)
+    public String getNewPositions() {
         return newPositions;
     }
 
-    public void setNewPositions(RangePositions newPositions) {
+    public void setNewPositions(String newPositions) {
         this.newPositions = newPositions;
     }
 
@@ -117,4 +126,27 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.newSequence = updatedSequence;
     }
 
+    @ManyToMany
+    @JoinTable(
+            name = "ia_event2updated_annotations",
+            joinColumns = {@JoinColumn( name = "protein_event_id" )},
+            inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
+    )
+    public Collection<UpdatedAnnotation> getFeatureAnnotations() {
+        return featureAnnotations;
+    }
+
+    public void setFeatureAnnotations(Collection<UpdatedAnnotation> updatedAnnotations) {
+        if (updatedAnnotations != null){
+            this.featureAnnotations = updatedAnnotations;
+        }
+    }
+
+    public void addUpdatedAnnotationFromFeature(Collection<uk.ac.ebi.intact.model.Annotation> updatedAnn, UpdateStatus status){
+        for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
+
+            UpdatedAnnotation annotation = new UpdatedAnnotation(a, status);
+            this.featureAnnotations.add(annotation);
+        }
+    }
 }
