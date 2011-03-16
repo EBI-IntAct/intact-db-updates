@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
@@ -257,7 +257,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults update = getMockBuilder().createUpdateResult();
+        UpdateMappingResults update = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createBlastReport();
         BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         report.addBlastMatchingProtein(blastResults);
@@ -278,7 +278,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults update = getMockBuilder().createUpdateResult();
+        UpdateMappingResults update = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createBlastReport();
         BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         report.addBlastMatchingProtein(blastResults);

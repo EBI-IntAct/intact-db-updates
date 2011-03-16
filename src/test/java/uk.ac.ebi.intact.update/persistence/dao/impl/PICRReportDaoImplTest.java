@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
 import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
@@ -40,7 +40,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         PICRReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -63,7 +63,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -83,7 +83,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -102,7 +102,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 

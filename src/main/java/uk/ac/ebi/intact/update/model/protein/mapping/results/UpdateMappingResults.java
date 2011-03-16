@@ -14,7 +14,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table( name = "ia_mapping_result" )
-public class UpdateResults extends IdentificationResults {
+public class UpdateMappingResults extends IdentificationResults {
 
     /**
      * The intact accession of the protein to update
@@ -24,7 +24,7 @@ public class UpdateResults extends IdentificationResults {
     /**
      * Create a new UpdateResult instance
      */
-    public UpdateResults(){
+    public UpdateMappingResults(){
         super();
         this.intactAccession = null;
     }

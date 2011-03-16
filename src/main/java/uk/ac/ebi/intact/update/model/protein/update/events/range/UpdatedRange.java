@@ -77,8 +77,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.updateProcess = updateProcess;
     }
 
-    @OneToOne
-    @JoinColumn( name = "old_positions", nullable = false)
+    @Column( name = "old_positions", nullable = false)
     public String getOldPositions() {
         return oldPositions;
     }
@@ -87,8 +86,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.oldPositions = oldPositions;
     }
 
-    @OneToOne
-    @JoinColumn( name = "new_positions", nullable = true)
+    @Column( name = "new_positions", nullable = true)
     public String getNewPositions() {
         return newPositions;
     }

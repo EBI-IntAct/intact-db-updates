@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
@@ -151,7 +151,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );
 
-        UpdateResults update = getMockBuilder().createUpdateResult();
+        UpdateMappingResults update = getMockBuilder().createUpdateResult();
         PICRReport report = getMockBuilder().createPICRReport();
         PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
         report.addPICRCrossReference(picrRefs);
@@ -172,7 +172,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );
 
-        UpdateResults update = getMockBuilder().createUpdateResult();
+        UpdateMappingResults update = getMockBuilder().createUpdateResult();
         PICRReport report = getMockBuilder().createPICRReport();
         PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
         report.addPICRCrossReference(picrRefs);

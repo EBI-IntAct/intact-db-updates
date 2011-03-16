@@ -6,7 +6,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
 
@@ -27,7 +27,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
@@ -39,14 +39,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
         long id = results.getId();
 
-        UpdateResults r = updateResultDao.getUpdateResultsWithId(id);
+        UpdateMappingResults r = updateResultDao.getUpdateResultsWithId(id);
 
         Assert.assertNotNull(r);
         Assert.assertTrue(r.getId() == id);
@@ -57,12 +57,12 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        UpdateResults r = updateResultDao.getUpdateResultsWithId(1);
+        UpdateMappingResults r = updateResultDao.getUpdateResultsWithId(1);
 
         Assert.assertNull(r);
     }
@@ -72,14 +72,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
         long id = results.getId();
 
-        UpdateResults r = updateResultDao.getUpdateResultsForProteinAc("EBI-0001001");
+        UpdateMappingResults r = updateResultDao.getUpdateResultsForProteinAc("EBI-0001001");
 
         Assert.assertNotNull(r);
         Assert.assertTrue(r.getId() == id);
@@ -90,12 +90,12 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        UpdateResults r = updateResultDao.getUpdateResultsForProteinAc("ebi_268");
+        UpdateMappingResults r = updateResultDao.getUpdateResultsForProteinAc("ebi_268");
 
         Assert.assertNull(r);
     }
@@ -105,14 +105,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_uniprot);
+        List<UpdateMappingResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_uniprot);
 
         Assert.assertTrue(!list.isEmpty());
         Assert.assertEquals(list.get(0).getActionsByName(ActionName.BLAST_uniprot).size(), 1);
@@ -123,14 +123,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_Swissprot_Total_Identity);
+        List<UpdateMappingResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_Swissprot_Total_Identity);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -140,14 +140,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.TO_BE_REVIEWED);
+        List<UpdateMappingResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.TO_BE_REVIEWED);
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -157,14 +157,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.COMPLETED);
+        List<UpdateMappingResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.COMPLETED);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -174,7 +174,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
@@ -184,7 +184,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -194,14 +194,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -211,7 +211,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
 
         results.addActionReport(report);
@@ -219,7 +219,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getSuccessfulUpdateResults();
+        List<UpdateMappingResults> list = updateResultDao.getSuccessfulUpdateResults();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -229,14 +229,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUnsuccessfulUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getSuccessfulUpdateResults();
+        List<UpdateMappingResults> list = updateResultDao.getSuccessfulUpdateResults();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -246,7 +246,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
@@ -258,7 +258,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -268,14 +268,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -285,7 +285,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         ActionReport report = getMockBuilder().createUpdateReportWithNoSequenceNoIdentityXRef();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
@@ -297,7 +297,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
+        List<UpdateMappingResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -307,14 +307,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<UpdateResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
+        List<UpdateMappingResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -324,7 +324,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUnsuccessfulUpdateResult();
         ActionReport report = getMockBuilder().createReportWithStatusFailed();
 
         results.addActionReport(report);
@@ -332,7 +332,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUnsuccessfulUpdateResults();
+        List<UpdateMappingResults> list = updateResultDao.getUnsuccessfulUpdateResults();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -342,14 +342,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<UpdateResults> list = updateResultDao.getUnsuccessfulUpdateResults();
+        List<UpdateMappingResults> list = updateResultDao.getUnsuccessfulUpdateResults();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -360,7 +360,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUnsuccessfulUpdateResult();
         ActionReport report = getMockBuilder().createUpdateReportWithConflict();
 
         results.addActionReport(report);
@@ -368,7 +368,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -378,14 +378,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -395,7 +395,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUnsuccessfulUpdateResult();
         ActionReport report = getMockBuilder().createFeatureRangeCheckingReportWithConflict();
 
         results.addActionReport(report);
@@ -403,7 +403,7 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -413,14 +413,14 @@ public class UpdateResultsDaoImplTest extends UpdateBasicTestCase{
         final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport picr = getMockBuilder().createPICRReport();
         BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<UpdateResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
+        List<UpdateMappingResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 
         Assert.assertTrue(list.isEmpty());
     }

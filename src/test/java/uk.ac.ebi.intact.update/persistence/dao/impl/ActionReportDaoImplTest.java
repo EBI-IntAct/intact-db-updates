@@ -7,7 +7,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.ActionReportDao;
 import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
@@ -290,7 +290,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -313,7 +313,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -334,7 +334,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -357,7 +357,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -378,7 +378,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -401,7 +401,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -422,7 +422,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -442,7 +442,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -461,7 +461,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -484,7 +484,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -503,7 +503,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -523,7 +523,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -542,7 +542,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -565,7 +565,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final UpdateResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
@@ -583,7 +583,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final ActionReportDao<ActionReport> actionReportDao = getDaoFactory().getActionReportDao(ActionReport.class);
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
@@ -602,7 +602,7 @@ public class ActionReportDaoImplTest extends UpdateBasicTestCase {
         final ActionReportDao<ActionReport> actionReportDao = getDaoFactory().getActionReportDao(ActionReport.class);
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createActionReportWithoutWarning();
         results.addActionReport(report);
 

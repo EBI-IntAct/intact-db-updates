@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
@@ -40,7 +40,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
@@ -63,7 +63,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         ActionReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
@@ -83,7 +83,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
@@ -104,7 +104,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
@@ -123,7 +123,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 
@@ -143,7 +143,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 
@@ -162,7 +162,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 
@@ -184,7 +184,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        UpdateResults results = getMockBuilder().createUpdateResult();
+        UpdateMappingResults results = getMockBuilder().createUpdateResult();
         BlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 

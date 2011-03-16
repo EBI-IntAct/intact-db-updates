@@ -8,8 +8,8 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
 
 /**
  * This class contains a set of methods to create objects for testing
@@ -184,8 +184,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated updateResult
      */
-    public UpdateResults createUpdateResult(){
-         UpdateResults results = new UpdateResults();
+    public UpdateMappingResults createUpdateResult(){
+         UpdateMappingResults results = new UpdateMappingResults();
 
         results.setIntactAccession("EBI-0001001");
         results.setFinalUniprotId("P01234");
@@ -196,8 +196,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated update result without a final uniprot ac
      */
-    public UpdateResults createUnsuccessfulUpdateResult(){
-         UpdateResults results = new UpdateResults();
+    public UpdateMappingResults createUnsuccessfulUpdateResult(){
+         UpdateMappingResults results = new UpdateMappingResults();
 
         results.setIntactAccession("EBI-0001002");
         return results;

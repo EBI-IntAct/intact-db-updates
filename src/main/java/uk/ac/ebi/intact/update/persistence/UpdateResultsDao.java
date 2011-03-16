@@ -3,88 +3,87 @@ package uk.ac.ebi.intact.update.persistence;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
-import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 
 import java.util.List;
 
 /**
- * This interface contains methods to query the database and get specific UpdateResults
+ * This interface contains methods to query the database and get specific UpdateMappingResults
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>19-May-2010</pre>
  */
 @Mockable
-public interface UpdateResultsDao extends UpdateBaseDao<UpdateResults> {
+public interface UpdateResultsDao extends UpdateBaseDao<UpdateMappingResults> {
 
     /**
      *
      * @param id
      * @return The updateResults with this unique identifier in the database
      */
-    public UpdateResults getUpdateResultsWithId(long id);
+    public UpdateMappingResults getUpdateResultsWithId(long id);
 
     /**
      *
      * @param proteinAc
      * @return The updateResults for a specific protein
      */
-    public UpdateResults getUpdateResultsForProteinAc(String proteinAc);
+    public UpdateMappingResults getUpdateResultsForProteinAc(String proteinAc);
 
     /**
      *
      * @param name
      * @return The list of update results containing an action with a specific name
      */
-    public List<UpdateResults> getResultsContainingAction(ActionName name);
+    public List<UpdateMappingResults> getResultsContainingAction(ActionName name);
 
     /**
      *
      * @param label
      * @return The list of update results containing an action with a specific status
      */
-    public List<UpdateResults> getResultsContainingActionWithLabel(StatusLabel label);
+    public List<UpdateMappingResults> getResultsContainingActionWithLabel(StatusLabel label);
 
     /**
      *
-     * @return the list of UpdateResults containing swissprot remapping reports
+     * @return the list of UpdateMappingResults containing swissprot remapping reports
      */
-    public List<UpdateResults> getUpdateResultsWithSwissprotRemapping();
+    public List<UpdateMappingResults> getUpdateResultsWithSwissprotRemapping();
 
     /**
      *
-     * @return the list of UpdateResults containing a final uniprot accession not null
+     * @return the list of UpdateMappingResults containing a final uniprot accession not null
      */
-    public List<UpdateResults> getSuccessfulUpdateResults();
+    public List<UpdateMappingResults> getSuccessfulUpdateResults();
 
     /**
      *
-     * @return the list of UpdateResults to be reviewed by a curator
+     * @return the list of UpdateMappingResults to be reviewed by a curator
      */
-    public List<UpdateResults> getUpdateResultsToBeReviewedByACurator();
+    public List<UpdateMappingResults> getUpdateResultsToBeReviewedByACurator();
 
     /**
      *
-     * @return the list of UpdateResults which failed because the protein had no sequence and no identity XRefs
+     * @return the list of UpdateMappingResults which failed because the protein had no sequence and no identity XRefs
      */
-    public List<UpdateResults> getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
+    public List<UpdateMappingResults> getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
     /**
      *
-     * @return  the list of UpdateResults with a final uniprot id which is null and all the actions have a status FAILED
+     * @return  the list of UpdateMappingResults with a final uniprot id which is null and all the actions have a status FAILED
      */
-    public List<UpdateResults> getUnsuccessfulUpdateResults();
+    public List<UpdateMappingResults> getUnsuccessfulUpdateResults();
 
     /**
      *
-     * @return the list of UpdateResults with a conflict between the results of the strategy with sequence and those of the strategy with identifier
+     * @return the list of UpdateMappingResults with a conflict between the results of the strategy with sequence and those of the strategy with identifier
      */
-    public List<UpdateResults> getUpdateResultsWithConflictsBetweenActions();
+    public List<UpdateMappingResults> getUpdateResultsWithConflictsBetweenActions();
 
     /**
      *
-     * @return the list of UpdateResults with a confluct between the new Swissprot sequence and several feature ranges
+     * @return the list of UpdateMappingResults with a confluct between the new Swissprot sequence and several feature ranges
      */
-    public List<UpdateResults> getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
+    public List<UpdateMappingResults> getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 }

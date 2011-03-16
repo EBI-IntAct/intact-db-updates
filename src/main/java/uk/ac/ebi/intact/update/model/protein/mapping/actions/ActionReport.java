@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -51,9 +51,9 @@ public class ActionReport extends HibernatePersistentImpl {
     private boolean isASwissprotEntry = false;
 
     /**
-     * The parent object of this report. We store the parent of this object only if it is an instance of UpdateResults
+     * The parent object of this report. We store the parent of this object only if it is an instance of UpdateMappingResults
      */
-    protected UpdateResults updateResult;
+    protected UpdateMappingResults updateResult;
 
     /**
      * Create a new report for an action with a specific name
@@ -279,19 +279,19 @@ public class ActionReport extends HibernatePersistentImpl {
 
     /**
      *
-     * @return  the parent object of this action. If the parent is not an instance of UpdateResults, the parent returned is null
+     * @return  the parent object of this action. If the parent is not an instance of UpdateMappingResults, the parent returned is null
      */
     @ManyToOne
     @JoinColumn(name="result_id")
-    public UpdateResults getUpdateResult() {
+    public UpdateMappingResults getUpdateResult() {
         return updateResult;
     }
 
     /**
-     * Set the parent of this object only if it is an instance of UpdateResults
+     * Set the parent of this object only if it is an instance of UpdateMappingResults
      * @param result
      */
-    public void setUpdateResult(UpdateResults result) {
+    public void setUpdateResult(UpdateMappingResults result) {
         this.updateResult = result;
     }
 }

@@ -5,8 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateResults;
-import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
 
 import javax.persistence.Query;
@@ -22,12 +21,12 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> implements UpdateResultsDao {
+public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateMappingResults> implements UpdateResultsDao {
     /**
      * Create a new UpdateResultsDaoImpl
      */
     public UpdateResultsDaoImpl() {
-        super(UpdateResults.class);
+        super(UpdateMappingResults.class);
     }
 
     /**
@@ -35,14 +34,14 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      * @param id
      * @return
      */
-    public UpdateResults getUpdateResultsWithId(long id) {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u where u.id = :id" );
+    public UpdateMappingResults getUpdateResultsWithId(long id) {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u where u.id = :id" );
         query.setParameter( "id", id);
 
         if (query.getResultList().isEmpty()){
             return null;
         }
-        return (UpdateResults) query.getResultList().iterator().next();
+        return (UpdateMappingResults) query.getResultList().iterator().next();
     }
 
     /**
@@ -50,14 +49,14 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      * @param proteinAc
      * @return
      */
-    public UpdateResults getUpdateResultsForProteinAc(String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u where u.intactAccession = :proteinAc" );
+    public UpdateMappingResults getUpdateResultsForProteinAc(String proteinAc) {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u where u.intactAccession = :proteinAc" );
         query.setParameter( "proteinAc", proteinAc);
 
         if (query.getResultList().isEmpty()){
             return null;
         }
-        return (UpdateResults) query.getResultList().iterator().next();
+        return (UpdateMappingResults) query.getResultList().iterator().next();
     }
 
     /**
@@ -65,8 +64,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      * @param name
      * @return
      */
-    public List<UpdateResults> getResultsContainingAction(ActionName name) {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.name = :name" );
+    public List<UpdateMappingResults> getResultsContainingAction(ActionName name) {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.name = :name" );
         query.setParameter( "name", name);
 
         return query.getResultList();
@@ -77,8 +76,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      * @param label
      * @return
      */
-    public List<UpdateResults> getResultsContainingActionWithLabel(StatusLabel label) {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.statusLabel = :status" );
+    public List<UpdateMappingResults> getResultsContainingActionWithLabel(StatusLabel label) {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.statusLabel = :status" );
         query.setParameter( "status", label);
 
         return query.getResultList();
@@ -88,8 +87,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getUpdateResultsWithSwissprotRemapping() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.name = :name" );
+    public List<UpdateMappingResults> getUpdateResultsWithSwissprotRemapping() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.name = :name" );
         query.setParameter( "name", ActionName.BLAST_Swissprot_Remapping);
 
         return query.getResultList();
@@ -99,8 +98,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getSuccessfulUpdateResults() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u where u.finalUniprotId <> null" );
+    public List<UpdateMappingResults> getSuccessfulUpdateResults() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u where u.finalUniprotId <> null" );
 
         return query.getResultList();
     }
@@ -109,8 +108,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getUpdateResultsToBeReviewedByACurator() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.statusLabel = :status or" +
+    public List<UpdateMappingResults> getUpdateResultsToBeReviewedByACurator() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.statusLabel = :status or" +
                 " (a.statusLabel = :status2 and u.finalUniprotId = null and a.name <> :name)" );
         query.setParameter( "status", StatusLabel.TO_BE_REVIEWED);
         query.setParameter( "status2", StatusLabel.COMPLETED);
@@ -123,8 +122,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
+    public List<UpdateMappingResults> getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
         query.setParameter( "status", StatusLabel.FAILED);
         query.setParameter( "name", ActionName.update_checking);
 
@@ -135,9 +134,9 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getUnsuccessfulUpdateResults() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where u.finalUniprotId = null and " +
-                "u not in ( select u2 from UpdateResults as u2 join u2.listOfActions as a2 where a2.statusLabel <> :status and a2.name <> :name) " +
+    public List<UpdateMappingResults> getUnsuccessfulUpdateResults() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where u.finalUniprotId = null and " +
+                "u not in ( select u2 from UpdateMappingResults as u2 join u2.listOfActions as a2 where a2.statusLabel <> :status and a2.name <> :name) " +
                 "and a.name <> :name" );
         query.setParameter( "status", StatusLabel.FAILED);
         query.setParameter( "name", ActionName.update_checking);
@@ -149,8 +148,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      *
      * @return
      */
-    public List<UpdateResults> getUpdateResultsWithConflictsBetweenActions() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
+    public List<UpdateMappingResults> getUpdateResultsWithConflictsBetweenActions() {
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
         query.setParameter( "status", StatusLabel.TO_BE_REVIEWED);
         query.setParameter( "name", ActionName.update_checking);
 
@@ -161,8 +160,8 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateResults> imple
      * 
      * @return
      */
-    public List<UpdateResults> getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges() {
-        final Query query = getEntityManager().createQuery( "select u from UpdateResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
+    public List<UpdateMappingResults> getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges() {
+        final Query query = getEntityManager().createQuery( "select u from IdentificationUpdateResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
         query.setParameter( "status", StatusLabel.FAILED);
         query.setParameter( "name", ActionName.feature_range_checking);
 
