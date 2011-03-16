@@ -19,17 +19,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
-import uk.ac.ebi.intact.core.IntactException;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.clone.IntactClonerException;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
-import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdaterUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -767,6 +761,32 @@ public class RangeChecker {
                 if (isABadRange2 != null){
                     invalidRange = new InvalidRange(range, newSequence, isABadRange2);
                 }
+            }
+        }
+
+        return invalidRange;
+    }
+
+    public InvalidRange collectRangeInvalidWithCurrentSequence(Range range, String oldSequence){
+        if (range == null){
+            throw new IllegalArgumentException("The range should not be null");
+        }
+
+
+        InvalidRange invalidRange = null;
+
+        if (oldSequence != null){
+            String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+            if (isABadRange != null){
+                InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                invalidRange = invalid;
+            }
+        }
+        else {
+            String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+
+            if (isABadRange != null){
+                invalidRange = new InvalidRange(range, oldSequence, isABadRange);
             }
         }
 

@@ -999,7 +999,7 @@ public class RangeFixerImpl implements RangeFixer{
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){
                     // collect a non null invalid range if the range cannot be shifted, null if it can be shifted successfully
-                    InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequence, oldSequence );
+                    InvalidRange invalid = checker.collectRangeInvalidWithCurrentSequence(r, oldSequence);
 
                     // the range cannot be shifted, add it to the list of bad ranges
                     if (invalid != null){
