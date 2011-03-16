@@ -28,7 +28,7 @@ public class SecondaryProteinEvent extends ProteinEvent{
 
     }
 
-    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc, int index){
+    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, int index, String secondaryAc, String primaryAc){
         super(updateProcess, EventName.secondary_protein, protein, index);
         this.primaryAc = primaryAc;
         this.secondaryAc = secondaryAc;

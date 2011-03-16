@@ -28,7 +28,7 @@ public class OutOfDateParticipantEvent extends ProteinEvent{
 
     }
 
-    public OutOfDateParticipantEvent(UpdateProcess updateProcess, Protein protein, Protein fixedProtein, int index){
+    public OutOfDateParticipantEvent(UpdateProcess updateProcess, Protein protein, int index, Protein fixedProtein){
         super(updateProcess, EventName.participant_with_feature_conflicts, protein, index);
         this.componentsWithFeatureConflicts = new ArrayList<String>();
         this.remapped_protein = fixedProtein != null ? fixedProtein.getAc() : null;

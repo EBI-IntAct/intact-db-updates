@@ -24,7 +24,7 @@ public class ProteinEventWithMessage extends ProteinEvent {
 
     }
 
-    public ProteinEventWithMessage(UpdateProcess updateProcess, EventName name, Protein protein, String message, int index){
+    public ProteinEventWithMessage(UpdateProcess updateProcess, EventName name, Protein protein, int index, String message ){
         super(updateProcess, name, protein, index);
         this.message = message;
     }
