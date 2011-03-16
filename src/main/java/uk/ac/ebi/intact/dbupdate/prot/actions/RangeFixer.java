@@ -54,6 +54,8 @@ public interface RangeFixer {
      */
     public RangeUpdateReport updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor, DataContext datacontext);
 
+    public RangeUpdateReport updateOnlyInvalidRanges(Protein protein, ProteinUpdateProcessor processor, DataContext datacontext);
+
     public RangeChecker getChecker();
 
     public void setChecker(RangeChecker checker);

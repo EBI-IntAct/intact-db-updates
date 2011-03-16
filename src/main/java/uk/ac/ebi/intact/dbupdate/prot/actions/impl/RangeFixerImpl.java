@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
 import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.FeatureDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -28,7 +27,9 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
-import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidFeatureReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
@@ -38,7 +39,10 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * updates the ranges of the features whenever it is possible. If impossible to update, the ranges become undetermined
@@ -952,6 +956,55 @@ public class RangeFixerImpl implements RangeFixer{
 
                     // clean annotations features if necessary
                     checkConsistencyFeatureAfterRangeShifting(feature, datacontext, processor);
+                }
+
+                if (!totalInvalidRanges.isEmpty()){
+                    report.getInvalidComponents().put(component, totalInvalidRanges);
+                }
+            }
+        }
+
+        return report;
+    }
+
+    /**
+     * Update invalid ranges
+     * @param protein
+     * @param processor
+     * @param datacontext
+     * @return
+     */
+    public RangeUpdateReport updateOnlyInvalidRanges(Protein protein, ProteinUpdateProcessor processor, DataContext datacontext){
+
+        // create a range update report
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        // oldsequence = protein sequence
+        String oldSequence = protein.getSequence();
+
+        // get the components of a protein
+        Collection<Component> components = protein.getActiveInstances();
+
+        for (Component component : components){
+
+            // get the features
+            Collection<Feature> features = component.getBindingDomains();
+            // the list of invalid ranges attached to this feature
+            Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
+
+            for (Feature feature : features){
+                // collect previous reports about previous range conflicts
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor);
+
+                // shift ranges without conflicts first
+                for (Range r : feature.getRanges()){
+                    // collect a non null invalid range if the range cannot be shifted, null if it can be shifted successfully
+                    InvalidRange invalid = checker.collectRangeImpossibleToShift(r,oldSequence, oldSequence );
+
+                    // the range cannot be shifted, add it to the list of bad ranges
+                    if (invalid != null){
+                        totalInvalidRanges.add(invalid);
+                    }
                 }
 
                 if (!totalInvalidRanges.isEmpty()){

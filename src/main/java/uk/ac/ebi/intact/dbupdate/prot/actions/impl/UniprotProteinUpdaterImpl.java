@@ -472,6 +472,23 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             sequenceChanged(protein, sequence, oldSequence, uniprotCrC64, evt.getDataContext());
         }
+        else{
+
+            RangeUpdateReport report =  rangeFixer.updateOnlyInvalidRanges(protein, processor, evt.getDataContext());
+            Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
+
+            if (!componentsWithRangeConflicts.isEmpty()){
+
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
+                        "The protein " + protein.getAc() + " contains " +
+                                componentsWithRangeConflicts.size() + " components with invalid ranges.", UpdateError.feature_conflicts, protein, uniprotAc));
+
+                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
+                processor.fireOnOutOfDateParticipantFound(participantEvent);
+
+                rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, null, processor, true);
+            }
+        }
     }
 
     /**
