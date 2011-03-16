@@ -161,7 +161,7 @@ public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateMappingResults
      * @return
      */
     public List<UpdateMappingResults> getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges() {
-        final Query query = getEntityManager().createQuery( "select u from IdentificationUpdateResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
+        final Query query = getEntityManager().createQuery( "select u from UpdateMappingResults as u join u.listOfActions as a where a.statusLabel = :status and a.name = :name" );
         query.setParameter( "status", StatusLabel.FAILED);
         query.setParameter( "name", ActionName.feature_range_checking);
 
