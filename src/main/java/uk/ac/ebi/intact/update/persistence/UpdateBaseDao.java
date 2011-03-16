@@ -29,6 +29,12 @@ public interface UpdateBaseDao<T> {
     public List<T> getAll();
 
     /**
+     *
+     * @return the entries in the database having this id
+     */
+    public T getById(long id);
+
+    /**
      * Persist an object in the database
      * @param entity
      */

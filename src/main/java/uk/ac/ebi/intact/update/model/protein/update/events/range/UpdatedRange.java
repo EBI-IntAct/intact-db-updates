@@ -29,7 +29,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     private String rangeAc;
 
-    private String component;
+    private String componentAc;
     UpdateProcess updateProcess;
 
     Collection<UpdatedAnnotation> featureAnnotations;
@@ -39,7 +39,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
         oldPositions = null;
         newPositions = null;
         rangeAc = null;
-        this.component = null;
+        this.componentAc = null;
         this.oldSequence = null;
         this.newSequence = null;
 
@@ -48,7 +48,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     public UpdatedRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
         super();
-        this.component = componentAc;
+        this.componentAc = componentAc;
         this.rangeAc = rangeAc;
         this.oldPositions = oldRangePositions;
         this.newPositions = newRangePositions;
@@ -59,12 +59,12 @@ public class UpdatedRange extends HibernatePersistentImpl {
     }
 
     @Column(name="component_ac", nullable=false)
-    public String getComponent() {
-        return component;
+    public String getComponentAc() {
+        return componentAc;
     }
 
-    public void setComponent(String component) {
-        this.component = component;
+    public void setComponentAc(String componentAc) {
+        this.componentAc = componentAc;
     }
 
     @ManyToOne

@@ -6,7 +6,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
 import uk.ac.ebi.intact.update.persistence.impl.ActionReportDaoImpl;
+import uk.ac.ebi.intact.update.persistence.impl.UpdatedRangeDaoImpl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -65,6 +67,12 @@ public class UpdateDaoFactory implements Serializable{
     private UpdateResultsDao updateResultsDao;
 
     /**
+     * The ivalidRangeDao instance
+     */
+    @Autowired
+    private InvalidRangeDao invalidRangeDao;
+
+    /**
      * Creates a UpdateDaoFactory
      */
     public UpdateDaoFactory() {
@@ -88,6 +96,18 @@ public class UpdateDaoFactory implements Serializable{
         ActionReportDao actionReportDao = getBean(ActionReportDaoImpl.class);
         actionReportDao.setEntityClass(entityType);
         return actionReportDao;
+    }
+
+    /**
+     *
+     * @param entityType
+     * @param <T>
+     * @return the UpdatedRangeDao instance
+     */
+    public <T extends UpdatedRange> UpdatedRangeDao<T> getUpdatedRangeDao( Class<T> entityType) {
+        UpdatedRangeDao updatedRangeDao = getBean(UpdatedRangeDaoImpl.class);
+        updatedRangeDao.setEntityClass(entityType);
+        return updatedRangeDao;
     }
 
     /**
@@ -128,6 +148,14 @@ public class UpdateDaoFactory implements Serializable{
      */
     public PICRReportDao getPICRReportDao() {
         return picrReportDao;
+    }
+
+    /**
+     *
+     * @return the invalidRangeDao
+     */
+    public InvalidRangeDao getInvalidRangeDao() {
+        return invalidRangeDao;
     }
 
     /**

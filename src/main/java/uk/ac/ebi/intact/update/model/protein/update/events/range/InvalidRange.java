@@ -7,7 +7,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * TODO comment this
+ * Class for invalid ranges found during the protein update
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
