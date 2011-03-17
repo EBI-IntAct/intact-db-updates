@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * The super class which represents an event of a protein update
+ * The super class which represents an event of a proteinAc update
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -27,8 +27,8 @@ public class ProteinEvent extends HibernatePersistentImpl {
     EventName name;
     int index;
 
-    String protein;
-    UpdateProcess updateProcess;
+    String proteinAc;
+    UpdateProcess parent;
 
     private Collection<UpdatedCrossReference> updatedReferences;
     private Collection<UpdatedAnnotation> updatedAnnotations;
@@ -39,7 +39,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         this.name = EventName.uniprot_update;
         this.index = 0;
 
-        this.protein = null;
+        this.proteinAc = null;
 
         updatedReferences = new ArrayList<UpdatedCrossReference>();
         updatedAnnotations = new ArrayList<UpdatedAnnotation>();
@@ -50,8 +50,8 @@ public class ProteinEvent extends HibernatePersistentImpl {
         super();
         this.name = name;
         this.index = index;
-        this.protein = protein != null ? protein.getAc() : null;
-        this.updateProcess = process;
+        this.proteinAc = protein != null ? protein.getAc() : null;
+        this.parent = process;
         updatedReferences = new ArrayList<UpdatedCrossReference>();
         updatedAnnotations = new ArrayList<UpdatedAnnotation>();
         updatedAliases = new ArrayList<UpdatedAlias>();
@@ -60,20 +60,20 @@ public class ProteinEvent extends HibernatePersistentImpl {
     @ManyToOne
     @JoinColumn(name="parent_id", nullable=false)
     public UpdateProcess getParent() {
-        return this.updateProcess;
+        return this.parent;
     }
 
     public void setParent(UpdateProcess updateProcess) {
-        this.updateProcess = updateProcess;
+        this.parent = updateProcess;
     }
 
     @Column(name="protein_ac", nullable = false)
-    public String getProtein() {
-        return protein;
+    public String getProteinAc() {
+        return proteinAc;
     }
 
-    public void setProtein(String protein) {
-        this.protein = protein;
+    public void setProteinAc(String proteinAc) {
+        this.proteinAc = proteinAc;
     }
 
     @ManyToMany

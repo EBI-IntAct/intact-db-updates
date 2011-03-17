@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Event for participants having feature conflicts when trying to update the protein sequence
+ * Event for participants having feature conflicts when trying to update the proteinAc sequence
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

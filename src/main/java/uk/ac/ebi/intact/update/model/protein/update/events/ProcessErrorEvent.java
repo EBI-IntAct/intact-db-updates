@@ -8,7 +8,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * Event for errors during protein update process
+ * Event for errors during proteinAc update process
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

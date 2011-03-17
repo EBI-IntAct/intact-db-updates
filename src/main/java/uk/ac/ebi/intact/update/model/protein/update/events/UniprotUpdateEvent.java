@@ -8,7 +8,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * Event for the basic update of a uniprot protein
+ * Event for the basic update of a uniprot proteinAc
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

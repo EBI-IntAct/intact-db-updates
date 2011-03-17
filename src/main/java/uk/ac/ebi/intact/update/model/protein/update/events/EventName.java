@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
 /**
- * Name of a protein update event
+ * Name of a proteinAc update event
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
