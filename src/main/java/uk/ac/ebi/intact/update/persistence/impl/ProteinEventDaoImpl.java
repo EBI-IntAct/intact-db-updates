@@ -1,5 +1,8 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.persistence.ProteinEventDao;
@@ -16,7 +19,9 @@ import java.util.List;
  * @version $Id$
  * @since <pre>16/03/11</pre>
  */
-
+@Repository
+@Transactional(readOnly = true)
+@Lazy
 public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoImpl<T> implements ProteinEventDao<T> {
     public ProteinEventDaoImpl(Class<ProteinEvent> entityClass) {
         super((Class<T>) entityClass);

@@ -75,6 +75,12 @@ public class UpdateDaoFactory implements Serializable{
     private InvalidRangeDao invalidRangeDao;
 
     /**
+     * The ivalidRangeDao instance
+     */
+    @Autowired
+    private UpdateProcessDao updateProcessDao;
+
+    /**
      * Creates a UpdateDaoFactory
      */
     public UpdateDaoFactory() {
@@ -170,6 +176,10 @@ public class UpdateDaoFactory implements Serializable{
      */
     public InvalidRangeDao getInvalidRangeDao() {
         return invalidRangeDao;
+    }
+
+    public UpdateProcessDao getUpdateProcessDao() {
+        return updateProcessDao;
     }
 
     /**
