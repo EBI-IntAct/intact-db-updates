@@ -29,7 +29,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
@@ -505,9 +505,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             StringBuffer actions = new StringBuffer(1064);
             if (evt.getResult() != null){
                 uniprotId = dashIfNull(evt.getResult().getFinalUniprotId());
-                List<ActionReport> reports = evt.getResult().getListOfActions();
+                List<MappingReport> reports = evt.getResult().getListOfActions();
 
-                for (ActionReport report : reports){
+                for (MappingReport report : reports){
                     actions.append("[");
                     actions.append(report.getName().toString() + " : " + report.getStatus().getLabel() + " : " + report.getStatus().getDescription());
 
