@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
-import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 
 import javax.persistence.CascadeType;
@@ -38,8 +37,7 @@ public class PICRReport extends MappingReport{
      *
      * @return the cross references
      */
-    @OneToMany(mappedBy = "picrReport", cascade = CascadeType.ALL)
-    @Cascade( value = org.hibernate.annotations.CascadeType.SAVE_UPDATE )
+    @OneToMany(mappedBy = "picr_report", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Set<PICRCrossReferences> getCrossReferences(){
         return this.crossReferences;
     }

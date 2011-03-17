@@ -88,7 +88,6 @@ public class MappingReport extends HibernatePersistentImpl {
     @ElementCollection
     @JoinTable(name = "ia_action2warning", joinColumns = @JoinColumn(name="action_id"))
     @Column(name = "warnings", nullable = false)
-    // TODO change the annotation with @elementCollection when we will change the version of hibernate
     public List<String> getWarnings(){
         return this.warnings;
     }

@@ -39,7 +39,7 @@ public class UpdateProcess extends HibernatePersistentImpl{
         this.rangeUpdates = new ArrayList<UpdatedRange>();
     }
 
-    @OneToMany(mappedBy="parent")
+    @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<ProteinEvent> getEvents() {
         return events;
     }
@@ -48,7 +48,7 @@ public class UpdateProcess extends HibernatePersistentImpl{
         this.events = events;
     }
 
-    @OneToMany(mappedBy="parent")
+    @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<UpdatedRange> getRangeUpdates() {
         return rangeUpdates;
     }

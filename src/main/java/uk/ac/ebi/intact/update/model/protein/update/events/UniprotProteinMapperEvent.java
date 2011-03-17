@@ -4,6 +4,7 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
+import javax.persistence.CascadeType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
@@ -29,7 +30,8 @@ public class UniprotProteinMapperEvent extends ProteinEvent{
         this.identificationResults = identificationResults;
     }
 
-    @OneToOne
+    @OneToOne(orphanRemoval = true, cascade = {
+        CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     @JoinColumn(name = "identification_id")
     public UpdateMappingResults getIdentificationResults() {
         return identificationResults;

@@ -33,7 +33,7 @@ public class UpdateMappingResults extends IdentificationResults {
      *
      * @return  the intact accession
      */
-    @Column(name = "intact_ac", nullable = false, length = 30)
+    @Column(name = "protein_ac", nullable = false, length = 30)
     public String getIntactAccession() {
         return intactAccession;
     }

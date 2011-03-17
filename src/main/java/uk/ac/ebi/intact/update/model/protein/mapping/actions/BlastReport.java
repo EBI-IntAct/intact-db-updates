@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
 
@@ -43,8 +42,7 @@ public class BlastReport extends MappingReport{
      *
      * @return the list of Blast results
      */
-    @OneToMany(mappedBy = "blastReport", cascade = CascadeType.ALL)
-    @Cascade( value = org.hibernate.annotations.CascadeType.SAVE_UPDATE )
+    @OneToMany(mappedBy = "blast_report", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Set<BlastResults> getBlastMatchingProteins(){
         return this.listOfProteins;
     }

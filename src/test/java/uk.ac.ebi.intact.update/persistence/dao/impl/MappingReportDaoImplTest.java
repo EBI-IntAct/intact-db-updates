@@ -22,7 +22,7 @@ import java.util.List;
  * @since <pre>21-May-2010</pre>
  */
 
-public class ActionReportDaoImplTest extends UpdateBasicTestCase {
+public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all() throws Exception {

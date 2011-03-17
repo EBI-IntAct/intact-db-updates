@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
-import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
@@ -70,8 +69,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      *
      * @return the list of actions done to identify the protein
      */
-    @OneToMany(mappedBy = "updateResult", cascade = CascadeType.ALL)
-    @Cascade( value = org.hibernate.annotations.CascadeType.SAVE_UPDATE )
+    @OneToMany(mappedBy = "updateResult", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public List<MappingReport> getListOfActions(){
         return this.listOfActions;
     }
