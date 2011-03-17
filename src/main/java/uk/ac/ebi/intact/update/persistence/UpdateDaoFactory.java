@@ -5,10 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
-import uk.ac.ebi.intact.update.persistence.impl.ActionReportDaoImpl;
+import uk.ac.ebi.intact.update.persistence.impl.MappingReportDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.ProteinEventDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.UpdatedRangeDaoImpl;
 
@@ -66,7 +66,7 @@ public class UpdateDaoFactory implements Serializable{
      * The updateResultsDao instance
      */
     @Autowired
-    private UpdateResultsDao updateResultsDao;
+    private UpdateMappingDao updateResultsDao;
 
     /**
      * The ivalidRangeDao instance
@@ -98,10 +98,10 @@ public class UpdateDaoFactory implements Serializable{
      *
      * @param entityType
      * @param <T>
-     * @return the ActionReportDao instance
+     * @return the MappingReportDao instance
      */
-    public <T extends ActionReport> ActionReportDao<T> getActionReportDao( Class<T> entityType) {
-        ActionReportDao actionReportDao = getBean(ActionReportDaoImpl.class);
+    public <T extends MappingReport> MappingReportDao<T> getMappingReportDao(Class<T> entityType) {
+        MappingReportDao actionReportDao = getBean(MappingReportDaoImpl.class);
         actionReportDao.setEntityClass(entityType);
         return actionReportDao;
     }
@@ -148,9 +148,9 @@ public class UpdateDaoFactory implements Serializable{
 
     /**
      *
-     * @return the UpdateResultsDao
+     * @return the UpdateMappingDao
      */
-    public UpdateResultsDao getUpdateResultsDao() {
+    public UpdateMappingDao getUpdateResultsDao() {
         return updateResultsDao;
     }
 

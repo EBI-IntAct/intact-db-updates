@@ -21,7 +21,7 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class BlastReportDaoImpl extends ActionReportDaoImpl<BlastReport> implements BlastReportDao {
+public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implements BlastReportDao {
 
     /**
      * create a new BlastReportDaoImpl

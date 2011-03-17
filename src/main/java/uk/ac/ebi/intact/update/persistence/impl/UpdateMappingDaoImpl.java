@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
-import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import javax.persistence.Query;
 import java.util.List;
 
 /**
- * The basic implementation of UpdateResultsDao
+ * The basic implementation of UpdateMappingDao
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -21,11 +21,11 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdateResultsDaoImpl extends UpdateBaseDaoImpl<UpdateMappingResults> implements UpdateResultsDao {
+public class UpdateMappingDaoImpl extends UpdateBaseDaoImpl<UpdateMappingResults> implements UpdateMappingDao {
     /**
-     * Create a new UpdateResultsDaoImpl
+     * Create a new UpdateMappingDaoImpl
      */
-    public UpdateResultsDaoImpl() {
+    public UpdateMappingDaoImpl() {
         super(UpdateMappingResults.class);
     }
 

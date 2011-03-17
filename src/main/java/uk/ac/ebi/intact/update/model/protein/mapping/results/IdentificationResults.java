@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 import org.hibernate.annotations.Cascade;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
     /**
      * the list of actions done to identify the protein
      */
-    private List<ActionReport> listOfActions = new ArrayList<ActionReport>();
+    private List<MappingReport> listOfActions = new ArrayList<MappingReport>();
 
     /**
      * Create a new Identificationresult
@@ -37,7 +37,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
         this.finalUniprotId = null;
     }
 
-    public void setListOfActions(List<ActionReport> listOfActions) {
+    public void setListOfActions(List<MappingReport> listOfActions) {
         this.listOfActions = listOfActions;
     }
 
@@ -72,7 +72,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      */
     @OneToMany(mappedBy = "updateResult", cascade = CascadeType.ALL)
     @Cascade( value = org.hibernate.annotations.CascadeType.SAVE_UPDATE )
-    public List<ActionReport> getListOfActions(){
+    public List<MappingReport> getListOfActions(){
         return this.listOfActions;
     }
 
@@ -80,7 +80,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * add a new action report to the list of reports
      * @param report : action report
      */
-    public void addActionReport(ActionReport report){
+    public void addActionReport(MappingReport report){
         this.listOfActions.add(report);
     }
 
@@ -89,7 +89,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * @return the last action report added to this result
      */
     @Transient
-    public ActionReport getLastAction(){
+    public MappingReport getLastAction(){
         if (listOfActions.isEmpty()){
             return null;
         }
@@ -102,10 +102,10 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * @return the list of actions with this specific name which have been done to identify the protein
      */
     @Transient
-    public List<ActionReport> getActionsByName(ActionName name){
-        ArrayList<ActionReport> reports = new ArrayList<ActionReport>();
+    public List<MappingReport> getActionsByName(ActionName name){
+        ArrayList<MappingReport> reports = new ArrayList<MappingReport>();
 
-        for (ActionReport action : this.listOfActions){
+        for (MappingReport action : this.listOfActions){
             if (action.getName() != null && action.getName().equals(name)){
                 reports.add(action);
             }

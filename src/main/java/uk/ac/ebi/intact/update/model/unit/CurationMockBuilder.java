@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.unit;
 
 import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
@@ -124,10 +124,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated ActionReport containing warnings
+     * @return auto-generated MappingReport containing warnings
      */
-    public ActionReport createActionReportWithWarning(){
-        ActionReport report = new ActionReport(ActionName.BLAST_uniprot);
+    public MappingReport createActionReportWithWarning(){
+        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
         report.setASwissprotEntry(false);
@@ -140,10 +140,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated ActionReport without any warnings
+     * @return auto-generated MappingReport without any warnings
      */
-    public ActionReport createActionReportWithoutWarning(){
-        ActionReport report = new ActionReport(ActionName.BLAST_uniprot);
+    public MappingReport createActionReportWithoutWarning(){
+        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
         report.setASwissprotEntry(false);
@@ -155,10 +155,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated ActionReport without any possible uniprot ac
+     * @return auto-generated MappingReport without any possible uniprot ac
      */
-    public ActionReport createActionReportWithoutPossibleUniprot(){
-        ActionReport report = new ActionReport(ActionName.BLAST_uniprot);
+    public MappingReport createActionReportWithoutPossibleUniprot(){
+        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
         report.setASwissprotEntry(false);
@@ -207,8 +207,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated action report for a protein without any sequences and without any identity cross references
      */
-    public ActionReport createUpdateReportWithNoSequenceNoIdentityXRef(){
-         ActionReport report = new ActionReport(ActionName.update_checking);
+    public MappingReport createUpdateReportWithNoSequenceNoIdentityXRef(){
+         MappingReport report = new MappingReport(ActionName.update_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is neither a sequence nor an identity xref"));
@@ -219,8 +219,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated action report with a conflict during the update
      */
-    public ActionReport createUpdateReportWithConflict(){
-         ActionReport report = new ActionReport(ActionName.update_checking);
+    public MappingReport createUpdateReportWithConflict(){
+         MappingReport report = new MappingReport(ActionName.update_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, "There is a conflict"));
@@ -229,10 +229,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated ActionReport containing feature range conflicts
+     * @return auto-generated MappingReport containing feature range conflicts
      */
-    public ActionReport createFeatureRangeCheckingReportWithConflict(){
-         ActionReport report = new ActionReport(ActionName.feature_range_checking);
+    public MappingReport createFeatureRangeCheckingReportWithConflict(){
+         MappingReport report = new MappingReport(ActionName.feature_range_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is a conflict"));
@@ -241,10 +241,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated ActionReport with a status FAILED
+     * @return auto-generated MappingReport with a status FAILED
      */
-    public ActionReport createReportWithStatusFailed(){
-         ActionReport report = new ActionReport(ActionName.PICR_accession);
+    public MappingReport createReportWithStatusFailed(){
+         MappingReport report = new MappingReport(ActionName.PICR_accession);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "PICR couldn't match the accession to any Uniprot entries"));

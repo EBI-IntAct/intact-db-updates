@@ -5,19 +5,18 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.persistence.ActionReportDao;
-import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.MappingReportDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.List;
 
 /**
- * The basic implementation of ActionReportDao
+ * The basic implementation of MappingReportDao
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -27,21 +26,21 @@ import java.util.List;
 @Scope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE)
 @Transactional(readOnly = true)
 @Lazy
-public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoImpl<T> implements ActionReportDao<T> {
+public class MappingReportDaoImpl<T extends MappingReport> extends UpdateBaseDaoImpl<T> implements MappingReportDao<T> {
 
     /**
-     * Create an ActionReportDaoImpl
+     * Create an MappingReportDaoImpl
      */
-    public ActionReportDaoImpl() {
-        super((Class<T>) ActionReport.class);
+    public MappingReportDaoImpl() {
+        super((Class<T>) MappingReport.class);
     }
 
     /**
-     * Create an ActionReportDaoImpl with entityClass en entity manager
+     * Create an MappingReportDaoImpl with entityClass en entity manager
      * @param entityClass
      * @param entityManager
      */
-    public ActionReportDaoImpl( Class<T> entityClass, EntityManager entityManager ) {
+    public MappingReportDaoImpl(Class<T> entityClass, EntityManager entityManager) {
         super( entityClass, entityManager);
     }
 
@@ -50,15 +49,15 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param id
      * @return
      */
-    public ActionReport getByReportId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar where ar.id = :id" );
+    public MappingReport getByReportId(long id) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar where ar.id = :id" );
         query.setParameter( "id", id);
 
         if (query.getResultList().isEmpty()){
             return null;
         }
 
-        return (ActionReport) query.getResultList().iterator().next();
+        return (MappingReport) query.getResultList().iterator().next();
     }
 
     /**
@@ -66,8 +65,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param name
      * @return
      */
-    public List<ActionReport> getByActionName(ActionName name) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar where ar.name = :name" );
+    public List<MappingReport> getByActionName(ActionName name) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar where ar.name = :name" );
         query.setParameter( "name", name);
 
         return query.getResultList();
@@ -78,8 +77,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param status
      * @return
      */
-    public List<ActionReport> getByReportStatus(StatusLabel status) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar where ar.statusLabel = :label" );
+    public List<MappingReport> getByReportStatus(StatusLabel status) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar where ar.statusLabel = :label" );
         query.setParameter( "label", status);
 
         return query.getResultList();
@@ -89,8 +88,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      *
      * @return
      */
-    public List<ActionReport> getAllReportsWithWarnings() {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar join ar.warnings as warn" );
+    public List<MappingReport> getAllReportsWithWarnings() {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar join ar.warnings as warn" );
 
         return query.getResultList();
     }
@@ -99,8 +98,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      *
      * @return
      */
-    public List<ActionReport> getAllReportsWithSeveralPossibleUniprot() {
-         final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar where ar.listOfPossibleAccessions <> null" );
+    public List<MappingReport> getAllReportsWithSeveralPossibleUniprot() {
+         final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar where ar.listOfPossibleAccessions <> null" );
 
         return query.getResultList();
     }
@@ -141,8 +140,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param id
      * @return
      */
-    public List<ActionReport> getReportsWithWarningsByResultsId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar join ar.updateResult as res join ar.warnings as warn where res.id = :id" );
+    public List<MappingReport> getReportsWithWarningsByResultsId(long id) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar join ar.updateResult as res join ar.warnings as warn where res.id = :id" );
         query.setParameter( "id", id);
 
         return query.getResultList();
@@ -153,8 +152,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param id
      * @return
      */
-    public List<ActionReport> getAllReportsByResultsId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar join ar.updateResult as res where res.id = :id" );
+    public List<MappingReport> getAllReportsByResultsId(long id) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar join ar.updateResult as res where res.id = :id" );
         query.setParameter( "id", id);
 
         return query.getResultList();
@@ -165,8 +164,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param id
      * @return
      */
-    public List<ActionReport> getReportsWithSeveralPossibleUniprotByResultId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from ActionReport as ar join ar.updateResult as res where ar.listOfPossibleAccessions <> null and res.id = :id" );
+    public List<MappingReport> getReportsWithSeveralPossibleUniprotByResultId(long id) {
+        final Query query = getEntityManager().createQuery( "select ar from MappingReport as ar join ar.updateResult as res where ar.listOfPossibleAccessions <> null and res.id = :id" );
         query.setParameter("id", id);
 
         return query.getResultList();
@@ -178,8 +177,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param proteinAc
      * @return
      */
-    public List<ActionReport> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select a from ActionReport as a join a.updateResult as u where u.intactAccession = :proteinAc and a.name = :name" );
+    public List<MappingReport> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc) {
+        final Query query = getEntityManager().createQuery( "select a from MappingReport as a join a.updateResult as u where u.intactAccession = :proteinAc and a.name = :name" );
         query.setParameter( "proteinAc", proteinAc);
         query.setParameter( "name", name);
 
@@ -192,8 +191,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param resultId
      * @return
      */
-    public List<ActionReport> getActionReportsByNameAndResultId(ActionName name, long resultId) {
-        final Query query = getEntityManager().createQuery( "select a from ActionReport as a join a.updateResult as u where u.id = :id and a.name = :name" );
+    public List<MappingReport> getActionReportsByNameAndResultId(ActionName name, long resultId) {
+        final Query query = getEntityManager().createQuery( "select a from MappingReport as a join a.updateResult as u where u.id = :id and a.name = :name" );
         query.setParameter( "id", resultId);
         query.setParameter( "name", name);
 
@@ -206,8 +205,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param proteinAc
      * @return
      */
-    public List<ActionReport> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select a from ActionReport as a join a.updateResult as u where u.intactAccession = :proteinAc and a.statusLabel = :status" );
+    public List<MappingReport> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc) {
+        final Query query = getEntityManager().createQuery( "select a from MappingReport as a join a.updateResult as u where u.intactAccession = :proteinAc and a.statusLabel = :status" );
         query.setParameter( "proteinAc", proteinAc);
         query.setParameter( "status", status);
 
@@ -220,8 +219,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param resultId
      * @return
      */
-    public List<ActionReport> getActionReportsByStatusAndResultId(StatusLabel label, long resultId) {
-        final Query query = getEntityManager().createQuery( "select a from ActionReport as a join a.updateResult as u where u.id = :id and a.statusLabel = :label" );
+    public List<MappingReport> getActionReportsByStatusAndResultId(StatusLabel label, long resultId) {
+        final Query query = getEntityManager().createQuery( "select a from MappingReport as a join a.updateResult as u where u.id = :id and a.statusLabel = :label" );
         query.setParameter( "id", resultId);
         query.setParameter( "label", label );
 
@@ -233,8 +232,8 @@ public class ActionReportDaoImpl<T extends ActionReport> extends UpdateBaseDaoIm
      * @param proteinAc
      * @return
      */
-    public List<ActionReport> getActionReportsWithWarningsByProteinAc(String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select a from ActionReport as a join a.updateResult as u join a.warnings as warn where u.intactAccession = :protac" );
+    public List<MappingReport> getActionReportsWithWarningsByProteinAc(String proteinAc) {
+        final Query query = getEntityManager().createQuery( "select a from MappingReport as a join a.updateResult as u join a.warnings as warn where u.intactAccession = :protac" );
         query.setParameter( "protac", proteinAc);
 
         return query.getResultList();

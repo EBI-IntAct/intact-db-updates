@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("BlastReport")
-public class BlastReport extends ActionReport{
+public class BlastReport extends MappingReport{
 
     /**
      * The list of BLASTProteins

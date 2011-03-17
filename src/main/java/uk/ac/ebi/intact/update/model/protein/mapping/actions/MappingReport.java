@@ -21,9 +21,9 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objclass", discriminatorType= DiscriminatorType.STRING, length = 100)
-@DiscriminatorValue("ActionReport")
+@DiscriminatorValue("MappingReport")
 @Table( name = "ia_mapping_report" )
-public class ActionReport extends HibernatePersistentImpl {
+public class MappingReport extends HibernatePersistentImpl {
 
     /**
      * the name of the action
@@ -59,7 +59,7 @@ public class ActionReport extends HibernatePersistentImpl {
      * Create a new report for an action with a specific name
      * @param name the naem of the action
      */
-    public ActionReport(ActionName name){
+    public MappingReport(ActionName name){
         this.name = name;
     }
 

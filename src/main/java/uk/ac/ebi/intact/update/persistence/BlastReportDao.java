@@ -13,7 +13,7 @@ import java.util.List;
  * @since <pre>20-May-2010</pre>
  */
 @Mockable
-public interface BlastReportDao extends ActionReportDao<BlastReport>{
+public interface BlastReportDao extends MappingReportDao<BlastReport> {
 
     /**
      *

@@ -19,7 +19,7 @@ import java.util.Set;
  */
 @Entity
 @DiscriminatorValue("PICRReport")
-public class PICRReport extends ActionReport{
+public class PICRReport extends MappingReport{
 
     /**
      * the list of cross references that PICR could collect

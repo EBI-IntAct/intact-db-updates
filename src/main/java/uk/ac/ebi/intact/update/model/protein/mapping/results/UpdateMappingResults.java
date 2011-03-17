@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 
 import javax.persistence.*;
 
@@ -50,7 +50,7 @@ public class UpdateMappingResults extends IdentificationResults {
      * Add an actionReport and set this object as parent
      * @param report : action report
      */
-     public void addActionReport(ActionReport report){
+     public void addActionReport(MappingReport report){
          report.setUpdateResult(this);
         super.addActionReport(report);
     }

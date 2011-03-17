@@ -15,7 +15,7 @@ import java.util.List;
  * @since <pre>19-May-2010</pre>
  */
 @Mockable
-public interface UpdateResultsDao extends UpdateBaseDao<UpdateMappingResults> {
+public interface UpdateMappingDao extends UpdateBaseDao<UpdateMappingResults> {
 
     /**
      *

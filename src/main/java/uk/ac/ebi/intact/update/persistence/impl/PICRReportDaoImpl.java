@@ -20,7 +20,7 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class PICRReportDaoImpl extends ActionReportDaoImpl<PICRReport> implements PICRReportDao {
+public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implements PICRReportDao {
 
     /**
      * create a new PICRReportDaoImpl
