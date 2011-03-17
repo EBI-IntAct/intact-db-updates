@@ -2,12 +2,12 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
-import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     @Test
     public void search_BlastReport_ByResultId_successful() throws Exception {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -59,12 +59,12 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     @Test
     public void search_BlastReport_ByResultId_Unsuccessful() throws Exception {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
         UpdateMappingResults results = getMockBuilder().createUpdateResult();
-        ActionReport report = getMockBuilder().createBlastReport();
+        MappingReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -77,7 +77,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetBlastReportByProteinAc_successful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
@@ -98,7 +98,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetBlastReportByProteinAc_unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
@@ -118,7 +118,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByProteinAc_successful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
@@ -138,7 +138,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByProteinAc_unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
@@ -157,7 +157,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByResultId_successful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
@@ -179,7 +179,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByResultId_unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );

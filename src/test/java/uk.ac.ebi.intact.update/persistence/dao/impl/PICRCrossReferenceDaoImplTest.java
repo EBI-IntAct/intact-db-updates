@@ -8,7 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResult
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
-import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -146,7 +146,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_Picr_references_By_ProteinAc_successful() throws Exception {
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
         final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );
@@ -167,7 +167,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_Picr_references_By_ProteinAc_Unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
         final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );

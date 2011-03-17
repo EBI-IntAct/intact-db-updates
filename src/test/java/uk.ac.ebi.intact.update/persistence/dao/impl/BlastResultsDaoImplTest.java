@@ -8,7 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResult
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
-import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -252,7 +252,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_blast_results_By_ProteinAc_successful() throws Exception {
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
         final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
@@ -273,7 +273,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_blast_results_By_ProteinAc_Unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );
         final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, updateResultsDao.countAll() );

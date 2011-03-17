@@ -2,12 +2,12 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
-import uk.ac.ebi.intact.update.persistence.UpdateResultsDao;
+import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
     @Test
     public void search_PICRReport_ByResultId_successful() throws Exception {
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -59,12 +59,12 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
     @Test
     public void search_PICRReport_ByResultId_Unsuccessful() throws Exception {
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
-        final UpdateResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
         UpdateMappingResults results = getMockBuilder().createUpdateResult();
-        ActionReport report = getMockBuilder().createPICRReport();
+        MappingReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -79,12 +79,12 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetPICRReportByProteinAc_successful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
 
         UpdateMappingResults results = getMockBuilder().createUpdateResult();
-        ActionReport report = getMockBuilder().createPICRReport();
+        MappingReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
@@ -98,12 +98,12 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetPICRReportByProteinAc_unsuccessful() throws Exception {
-        final UpdateResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final UpdateMappingDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
 
         UpdateMappingResults results = getMockBuilder().createUpdateResult();
-        ActionReport report = getMockBuilder().createPICRReport();
+        MappingReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
