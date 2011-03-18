@@ -272,6 +272,16 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return feature;
     }
 
+    public UpdatedAnnotation createOutOfDateRangeAnnotation(){
+        UpdatedAnnotation feature = new UpdatedAnnotation();
+
+        feature.setTopic(outOfDateRangeAc);
+        feature.setText("2-8");
+        feature.setStatus(UpdateStatus.added);
+
+        return feature;
+    }
+
     public UpdateProcess createUpdateProcess(){
         UpdateProcess process = new UpdateProcess();
 
@@ -299,10 +309,31 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         invalid.addUpdatedAnnotation(createInvalidRangeAnnotation());
 
-        invalid.setParent(createUpdateProcess());
+        return invalid;
+    }
+
+    public InvalidRange createOutOfDateRange(){
+
+        InvalidRange invalid = new InvalidRange();
+
+        invalid.setRangeAc("EBI-xxxxx1");
+        invalid.setComponentAc("EBI-xxxxx2");
+        invalid.setFromStatus("EBI-xxxxxx3");
+        invalid.setToStatus("EBI-xxxxxx4");
+
+        invalid.setOldSequence("MAAM");
+        invalid.setNewSequence("SSPP");
+        invalid.setOldPositions("2-8");
+        invalid.setNewSequence("0-0");
+        invalid.setSequenceVersion(-1);
+
+        invalid.setErrorMessage("Out of date range");
+
+        invalid.addUpdatedAnnotation(createOutOfDateRangeAnnotation());
 
         return invalid;
     }
+
 
     public ProteinEvent createDefaultProteinEvent(){
         ProteinEvent event = new ProteinEvent();

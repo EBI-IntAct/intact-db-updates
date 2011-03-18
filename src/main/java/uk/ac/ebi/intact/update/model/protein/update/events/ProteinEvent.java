@@ -59,7 +59,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
     }
 
     @ManyToOne
-    @JoinColumn(name="parent_id", nullable=false)
+    @JoinColumn(name="parent_id")
     public UpdateProcess getParent() {
         return this.parent;
     }

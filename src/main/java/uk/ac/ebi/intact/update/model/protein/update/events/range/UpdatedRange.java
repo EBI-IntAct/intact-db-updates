@@ -69,7 +69,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
     }
 
     @ManyToOne
-    @JoinColumn(name="parent_id", nullable=false)
+    @JoinColumn(name="parent_id")
     public UpdateProcess getParent() {
         return this.updateProcess;
     }
