@@ -101,7 +101,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getInvalidRanges(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date = :date" );
         query.setParameter( "topic", invalidRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -110,7 +110,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRanges(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date = :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -119,7 +119,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersion(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and p.date = :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);
@@ -130,7 +130,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithSequenceVersion(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and p.date = :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);
@@ -141,7 +141,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getInvalidRangesBefore(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date <= :date" );
         query.setParameter( "topic", invalidRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -150,7 +150,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesBefore(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date <= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -159,7 +159,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersionBefore(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and p.date <= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);
@@ -170,7 +170,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithSequenceVersionBefore(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and p.date <= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);
@@ -181,7 +181,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getInvalidRangesAfter(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date >= :date" );
         query.setParameter( "topic", invalidRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -190,7 +190,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateAfter(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date >= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "date", updateddate);
 
@@ -199,7 +199,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersionAfter(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion = :version and p.date >= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);
@@ -210,7 +210,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
 
     @Override
     public List<InvalidRange> getOutOfDateRangesWithSequenceVersionAfter(Date updateddate) {
-        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and ir.sequenceVersion <> :version and p.date >= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "version", -1);
         query.setParameter( "date", updateddate);

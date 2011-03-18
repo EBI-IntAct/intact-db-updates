@@ -1,10 +1,12 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 
 /**
  * Super class for events having messages
@@ -13,7 +15,9 @@ import javax.persistence.MappedSuperclass;
  * @version $Id$
  * @since <pre>14/03/11</pre>
  */
-@MappedSuperclass
+@Entity
+@DiscriminatorFormula("objclass")
+@DiscriminatorValue("ProteinEventWithMessage")
 public class ProteinEventWithMessage extends ProteinEvent {
 
     String message;
@@ -29,7 +33,7 @@ public class ProteinEventWithMessage extends ProteinEvent {
         this.message = message;
     }
 
-    @Column(name = "message", nullable = false)
+    @Column(name = "message")
     public String getMessage() {
         return message;
     }

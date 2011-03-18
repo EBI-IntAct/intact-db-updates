@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -15,6 +16,7 @@ import javax.persistence.Entity;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProcessErrorEvent")
 public class ProcessErrorEvent extends ProteinEventWithMessage{
 
@@ -35,7 +37,7 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
         this.uniprotAc = uniprotAc;
     }
 
-    @Column(name = "error_type", nullable = false)
+    @Column(name = "error_type")
     public String getType() {
         return type;
     }
@@ -44,7 +46,7 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
         this.type = type;
     }
 
-    @Column(name = "uniprot_ac", nullable = true)
+    @Column(name = "uniprot_ac")
     public String getUniprotAc() {
         return uniprotAc;
     }

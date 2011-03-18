@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -16,6 +17,7 @@ import java.util.Collection;
  * @since <pre>11/03/11</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("IntactTranscriptUpdateEvent")
 public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
 
@@ -35,7 +37,7 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
 
     @ElementCollection
     @JoinTable(name = "ia_event2old_parent", joinColumns = @JoinColumn(name="event_id"))
-    @Column(name = "old_parent", nullable = true)
+    @Column(name = "old_parent")
     public Collection<String> getOldParentAcs() {
         return oldParentAcs;
     }
@@ -44,7 +46,7 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
         this.oldParentAcs = oldParentAcs;
     }
 
-    @Column(name = "new_parent", nullable = true)
+    @Column(name = "new_parent")
     public String getNewParentAc() {
         return newParentAc;
     }

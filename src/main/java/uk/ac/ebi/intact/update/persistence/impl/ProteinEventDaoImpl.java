@@ -23,8 +23,8 @@ import java.util.List;
 @Transactional(readOnly = true)
 @Lazy
 public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoImpl<T> implements ProteinEventDao<T> {
-    public ProteinEventDaoImpl(Class<ProteinEvent> entityClass) {
-        super((Class<T>) entityClass);
+    public ProteinEventDaoImpl() {
+        super((Class<T>) ProteinEvent.class);
     }
 
     public ProteinEventDaoImpl(Class<ProteinEvent> entityClass, EntityManager entityManager) {
@@ -57,7 +57,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByDate(Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.date = :date" );
         query.setParameter( "date", updatedDate);
 
         return query.getResultList();
@@ -102,7 +102,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByNameAndDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date = :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "date", updatedDate);
 
@@ -111,7 +111,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByProteinAcAndDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and p.date = :date" );
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", updatedDate);
 
@@ -120,7 +120,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAc(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and p.date = :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", date);
@@ -130,7 +130,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByNameBeforeDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date <= :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "date", updatedDate);
 
@@ -139,7 +139,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByProteinAcBeforeDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and p.date <= :date" );
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", updatedDate);
 
@@ -148,7 +148,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAcBefore(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and p.date <= :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", date);
@@ -158,7 +158,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByNameAfterDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date >= :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "date", updatedDate);
 
@@ -167,7 +167,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByProteinAcAfterDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.proteinAc = :ac and p.date >= :date" );
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", updatedDate);
 
@@ -176,7 +176,7 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAcAfter(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.proteinAc = :ac and p.date >= :date" );
         query.setParameter( "name", name.toString());
         query.setParameter( "ac", proteinAc);
         query.setParameter( "date", date);

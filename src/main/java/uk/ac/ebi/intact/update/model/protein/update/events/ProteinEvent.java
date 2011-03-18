@@ -20,7 +20,7 @@ import java.util.Collection;
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="objClass", discriminatorType=DiscriminatorType.STRING)
+@DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
 @DiscriminatorValue("ProteinEvent")
 @Table(name = "ia_update_event")
 public class ProteinEvent extends HibernatePersistentImpl {
@@ -90,14 +90,14 @@ public class ProteinEvent extends HibernatePersistentImpl {
 
     public void addUpdatedReferencesFromInteractor(Collection<InteractorXref> updatedRef, UpdateStatus status){
         for (InteractorXref ref : updatedRef){
-            String refAc = ref.getAc();
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
+            reference.setParent(this);
             this.updatedReferences.add(reference);
         }
     }
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinTable(
             name = "ia_event2updated_annotations",
             joinColumns = {@JoinColumn( name = "protein_event_id" )},
@@ -136,6 +136,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         for (InteractorAlias a : updatedAlias){
 
             UpdatedAlias alias = new UpdatedAlias(a, status);
+            alias.setParent(this);
             this.updatedAliases.add(alias);
         }
     }

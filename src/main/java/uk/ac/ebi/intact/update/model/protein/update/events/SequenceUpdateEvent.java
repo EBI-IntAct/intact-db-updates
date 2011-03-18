@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -16,6 +17,7 @@ import javax.persistence.Lob;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("SequenceUpdateEvent")
 public class SequenceUpdateEvent extends ProteinEvent {
 
@@ -39,7 +41,7 @@ public class SequenceUpdateEvent extends ProteinEvent {
     }
 
     @Lob
-    @Column(name = "new_sequence", nullable = false)
+    @Column(name = "new_sequence")
     public String getNewSequence() {
         return newSequence;
     }
@@ -49,7 +51,7 @@ public class SequenceUpdateEvent extends ProteinEvent {
     }
 
     @Lob
-    @Column(name = "old_sequence", nullable = true)
+    @Column(name = "old_sequence")
     public String getOldSequence() {
         return oldSequence;
     }

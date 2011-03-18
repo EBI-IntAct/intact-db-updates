@@ -2,14 +2,22 @@ package uk.ac.ebi.intact.update.model.unit;
 
 import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.update.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
+
+import java.util.Date;
 
 /**
  * This class contains a set of methods to create objects for testing
@@ -19,6 +27,9 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences
  * @since <pre>20-May-2010</pre>
  */
 public class CurationMockBuilder extends IntactMockBuilder {
+
+    private final static String invalidRangeAc = "EBI-2907496";
+    private final static String outOfDateRangeAc = "EBI-3058809";
 
     /**
      *
@@ -172,7 +183,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated BlastReport
      */
     public BlastReport createBlastReport(){
-         BlastReport report = new BlastReport(ActionName.BLAST_uniprot);
+        BlastReport report = new BlastReport(ActionName.BLAST_uniprot);
 
         report.setASwissprotEntry(true);
         report.setQuerySequence("GCAGGT");
@@ -185,7 +196,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated updateResult
      */
     public UpdateMappingResults createUpdateResult(){
-         UpdateMappingResults results = new UpdateMappingResults();
+        UpdateMappingResults results = new UpdateMappingResults();
 
         results.setIntactAccession("EBI-0001001");
         results.setFinalUniprotId("P01234");
@@ -197,7 +208,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated update result without a final uniprot ac
      */
     public UpdateMappingResults createUnsuccessfulUpdateResult(){
-         UpdateMappingResults results = new UpdateMappingResults();
+        UpdateMappingResults results = new UpdateMappingResults();
 
         results.setIntactAccession("EBI-0001002");
         return results;
@@ -208,7 +219,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated action report for a protein without any sequences and without any identity cross references
      */
     public MappingReport createUpdateReportWithNoSequenceNoIdentityXRef(){
-         MappingReport report = new MappingReport(ActionName.update_checking);
+        MappingReport report = new MappingReport(ActionName.update_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is neither a sequence nor an identity xref"));
@@ -220,7 +231,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated action report with a conflict during the update
      */
     public MappingReport createUpdateReportWithConflict(){
-         MappingReport report = new MappingReport(ActionName.update_checking);
+        MappingReport report = new MappingReport(ActionName.update_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, "There is a conflict"));
@@ -232,7 +243,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated MappingReport containing feature range conflicts
      */
     public MappingReport createFeatureRangeCheckingReportWithConflict(){
-         MappingReport report = new MappingReport(ActionName.feature_range_checking);
+        MappingReport report = new MappingReport(ActionName.feature_range_checking);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is a conflict"));
@@ -244,10 +255,62 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated MappingReport with a status FAILED
      */
     public MappingReport createReportWithStatusFailed(){
-         MappingReport report = new MappingReport(ActionName.PICR_accession);
+        MappingReport report = new MappingReport(ActionName.PICR_accession);
 
         report.setASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "PICR couldn't match the accession to any Uniprot entries"));
         return report;
+    }
+
+    public UpdatedAnnotation createInvalidRangeAnnotation(){
+        UpdatedAnnotation feature = new UpdatedAnnotation();
+
+        feature.setTopic(invalidRangeAc);
+        feature.setText("2..3-7..8");
+        feature.setStatus(UpdateStatus.added);
+
+        return feature;
+    }
+
+    public UpdateProcess createUpdateProcess(){
+        UpdateProcess process = new UpdateProcess();
+
+        process.setDate(new Date(System.currentTimeMillis()));
+
+        return process;
+    }
+
+    public InvalidRange createInvalidRange(){
+
+        InvalidRange invalid = new InvalidRange();
+
+        invalid.setRangeAc("EBI-xxxxx1");
+        invalid.setComponentAc("EBI-xxxxx2");
+        invalid.setFromStatus("EBI-xxxxxx3");
+        invalid.setToStatus("EBI-xxxxxx4");
+
+        invalid.setOldSequence("MAAM");
+        invalid.setNewSequence("SSPP");
+        invalid.setOldPositions("2..3-7..8");
+        invalid.setNewSequence("0-0");
+        invalid.setSequenceVersion(-1);
+
+        invalid.setErrorMessage("certain position cannot be a range");
+
+        invalid.addUpdatedAnnotation(createInvalidRangeAnnotation());
+
+        invalid.setParent(createUpdateProcess());
+
+        return invalid;
+    }
+
+    public ProteinEvent createDefaultProteinEvent(){
+        ProteinEvent event = new ProteinEvent();
+
+        event.setName(EventName.uniprot_update);
+        event.setIndex(1);
+        event.setProteinAc("EBI-xx10xx10xx");
+
+        return event;
     }
 }

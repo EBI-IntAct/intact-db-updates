@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
@@ -16,6 +17,7 @@ import javax.persistence.Entity;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("DeadProteinEvent")
 public class DeadProteinEvent extends ProteinEvent{
 
@@ -32,7 +34,7 @@ public class DeadProteinEvent extends ProteinEvent{
         setUniprotReference(uniprotRef);
     }
 
-    @Column(name = "dead_uniprot", nullable = false)
+    @Column(name = "dead_uniprot")
     public String getUniprotReference() {
         return uniprotReference;
     }

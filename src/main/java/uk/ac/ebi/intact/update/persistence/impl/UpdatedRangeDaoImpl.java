@@ -61,7 +61,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByUpdateDate(Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where p.date = :date" );
         query.setParameter( "date", updateDate);
 
         return query.getResultList();
@@ -84,7 +84,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesHavingUpdatedFeatureAnnotations(Date date) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where p.date = :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();
@@ -92,7 +92,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndDate(String rangeAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.rangeAc = :ac and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.rangeAc = :ac and p.date = :date" );
         query.setParameter( "ac", rangeAc);
         query.setParameter( "date", updateDate);
 
@@ -101,7 +101,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndDate(String componentAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and p.date = :date" );
         query.setParameter( "ac", componentAc);
         query.setParameter( "date", updateDate);
 
@@ -110,7 +110,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesBeforeUpdateDate(Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where p.date <= :date" );
         query.setParameter( "date", updateDate);
 
         return query.getResultList();
@@ -118,7 +118,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesHavingUpdatedFeatureAnnotationsBefore(Date date) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where p.date <= :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();
@@ -126,7 +126,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndBeforeDate(String rangeAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where p.date <= :date" );
         query.setParameter( "date", updateDate);
 
         return query.getResultList();
@@ -134,7 +134,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndBeforeDate(String componentAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and p.date <= :date" );
         query.setParameter( "ac", componentAc);
         query.setParameter( "date", updateDate);
 
@@ -143,7 +143,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesAfterUpdateDate(Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where p.date >= :date" );
         query.setParameter( "date", updateDate);
 
         return query.getResultList();
@@ -151,7 +151,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesHavingUpdatedFeatureAnnotationsAfter(Date date) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.featureAnnotations as fa join ur.parent as p where p.date >= :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();
@@ -159,7 +159,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndAfterDate(String rangeAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where p.date >= :date" );
         query.setParameter( "date", updateDate);
 
         return query.getResultList();
@@ -167,7 +167,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndAfterDate(String componentAc, Date updateDate) {
-        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select ur from UpdatedRange ur join ur.parent as p where ur.componentAc = :ac and p.date >= :date" );
         query.setParameter( "ac", componentAc);
         query.setParameter( "date", updateDate);
 

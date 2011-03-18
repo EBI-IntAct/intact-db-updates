@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -15,6 +16,7 @@ import javax.persistence.Entity;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("UniprotUpdateEvent")
 public class UniprotUpdateEvent extends ProteinEvent{
 
@@ -33,7 +35,7 @@ public class UniprotUpdateEvent extends ProteinEvent{
         this.fullName = fullname;
     }
 
-    @Column(name = "shortlabel", nullable = false)
+    @Column(name = "shortlabel")
     public String getShortLabel() {
         return shortLabel;
     }
@@ -42,7 +44,7 @@ public class UniprotUpdateEvent extends ProteinEvent{
         this.shortLabel = shortLabel;
     }
 
-    @Column(name = "fullname", nullable = true)
+    @Column(name = "fullname")
     public String getFullName() {
         return fullName;
     }

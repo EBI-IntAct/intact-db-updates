@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -15,6 +16,7 @@ import javax.persistence.Entity;
  * @since <pre>25-Nov-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("SecondaryProteinEvent")
 public class SecondaryProteinEvent extends ProteinEvent{
 
@@ -34,7 +36,7 @@ public class SecondaryProteinEvent extends ProteinEvent{
         this.secondaryAc = secondaryAc;
     }
 
-    @Column(name = "secondary_ac", nullable = false)
+    @Column(name = "secondary_ac")
     public String getSecondaryAc() {
         return secondaryAc;
     }
@@ -43,7 +45,7 @@ public class SecondaryProteinEvent extends ProteinEvent{
         this.secondaryAc = secondaryAc;
     }
 
-    @Column(name = "primary_ac", nullable = false)
+    @Column(name = "primary_ac")
     public String getPrimaryAc() {
         return primaryAc;
     }

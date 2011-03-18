@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.Column;
@@ -14,6 +15,7 @@ import javax.persistence.Entity;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
+@DiscriminatorFormula("objclass")
 @DiscriminatorValue("InvalidRange")
 public class InvalidRange extends UpdatedRange {
 
@@ -46,7 +48,7 @@ public class InvalidRange extends UpdatedRange {
         this.toStatus = endStatus;
     }
 
-    @Column(name = "from_range_status", nullable = true)
+    @Column(name = "from_range_status")
     public String getFromStatus() {
         return fromStatus;
     }
@@ -55,7 +57,7 @@ public class InvalidRange extends UpdatedRange {
         this.fromStatus = fromStatus;
     }
 
-    @Column(name = "to_range_status", nullable = true)
+    @Column(name = "to_range_status")
     public String getToStatus() {
         return toStatus;
     }
@@ -64,7 +66,7 @@ public class InvalidRange extends UpdatedRange {
         this.toStatus = toStatus;
     }
 
-    @Column(name = "error_message", nullable = false)
+    @Column(name = "error_message")
     public String getErrorMessage() {
         return errorMessage;
     }

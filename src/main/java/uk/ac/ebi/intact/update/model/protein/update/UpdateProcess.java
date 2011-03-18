@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
@@ -28,13 +27,14 @@ public class UpdateProcess extends HibernatePersistentImpl{
     private Collection<UpdatedRange> rangeUpdates;
 
     public UpdateProcess(){
+        setDate(new Date(System.currentTimeMillis()));
 
         this.events = new ArrayList<ProteinEvent>();
         this.rangeUpdates = new ArrayList<UpdatedRange>();
     }
 
-    public UpdateProcess(Protein protein){
-        setDate(new Date(System.currentTimeMillis()));
+    public UpdateProcess(Date date){
+        setDate(date);
 
         this.events = new ArrayList<ProteinEvent>();
         this.rangeUpdates = new ArrayList<UpdatedRange>();
@@ -49,6 +49,11 @@ public class UpdateProcess extends HibernatePersistentImpl{
         this.events = events;
     }
 
+    public void addEvent(ProteinEvent event){
+        event.setParent(this);
+        events.add(event);
+    }
+
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<UpdatedRange> getRangeUpdates() {
         return rangeUpdates;
@@ -56,6 +61,11 @@ public class UpdateProcess extends HibernatePersistentImpl{
 
     public void setRangeUpdates(Collection<UpdatedRange> rangeUpdates) {
         this.rangeUpdates = rangeUpdates;
+    }
+
+    public void addRangeUpdate(UpdatedRange up){
+        up.setParent(this);
+        rangeUpdates.add(up);
     }
 
     @Temporal( value = TemporalType.TIMESTAMP )

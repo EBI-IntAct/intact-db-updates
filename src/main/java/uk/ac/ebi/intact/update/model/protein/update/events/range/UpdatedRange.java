@@ -19,7 +19,7 @@ import java.util.Collection;
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="objClass", discriminatorType=DiscriminatorType.STRING)
+@DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
 @DiscriminatorValue("UpdatedRange")
 @Table(name = "ia_updated_range")
 public class UpdatedRange extends HibernatePersistentImpl {
@@ -125,7 +125,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.newSequence = updatedSequence;
     }
 
-    @ManyToMany
+    @ManyToMany (cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinTable(
             name = "ia_range_update2updated_annotations",
             joinColumns = {@JoinColumn( name = "protein_event_id" )},
@@ -147,6 +147,10 @@ public class UpdatedRange extends HibernatePersistentImpl {
             UpdatedAnnotation annotation = new UpdatedAnnotation(a, status);
             this.featureAnnotations.add(annotation);
         }
+    }
+
+    public void addUpdatedAnnotation(UpdatedAnnotation ann){
+        this.featureAnnotations.add(ann);
     }
 
     @Override

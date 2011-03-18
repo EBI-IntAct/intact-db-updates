@@ -32,7 +32,7 @@ public class UpdateProcessDaoImpl extends UpdateBaseDaoImpl<UpdateProcess> imple
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesByDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where trunc(p.date) = trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date = :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();
@@ -40,7 +40,7 @@ public class UpdateProcessDaoImpl extends UpdateBaseDaoImpl<UpdateProcess> imple
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesBeforeDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where trunc(p.date) <= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date <= :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();
@@ -48,7 +48,7 @@ public class UpdateProcessDaoImpl extends UpdateBaseDaoImpl<UpdateProcess> imple
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesAfterDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where trunc(p.date) >= trunc(:date)" );
+        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date >= :date" );
         query.setParameter( "date", date);
 
         return query.getResultList();

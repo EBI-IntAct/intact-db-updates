@@ -1,12 +1,11 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
-import javax.persistence.CascadeType;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * Event for remapping of non uniprot proteins
@@ -15,7 +14,9 @@ import javax.persistence.OneToOne;
  * @version $Id$
  * @since <pre>16/03/11</pre>
  */
-
+@Entity
+@DiscriminatorFormula("objclass")
+@DiscriminatorValue("UniprotProteinMapperEvent")
 public class UniprotProteinMapperEvent extends ProteinEvent{
 
     UpdateMappingResults identificationResults;

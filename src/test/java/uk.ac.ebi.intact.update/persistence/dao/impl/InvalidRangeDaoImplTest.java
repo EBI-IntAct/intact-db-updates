@@ -14,7 +14,12 @@ import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
-    public void search_all(){
+    public void search_all_invalids(){
+        /*InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
 
+        InvalidRange invalid = getMockBuilder().createInvalidRange();
+
+        invalidRangeDao.persist(invalid);
+        Assert.assertEquals(1, invalidRangeDao.countAll()); */
     }
 }
