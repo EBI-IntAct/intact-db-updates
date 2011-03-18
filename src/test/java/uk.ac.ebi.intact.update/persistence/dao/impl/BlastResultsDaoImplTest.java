@@ -229,7 +229,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         long id = blastResults.getId();
 
-        BlastResults results = blastResultDao.getResultsById(id);
+        BlastResults results = blastResultDao.getById(id);
 
         Assert.assertNotNull(results);
         Assert.assertTrue(results.getId() == id);
@@ -245,7 +245,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        BlastResults results = blastResultDao.getResultsById(1);
+        BlastResults results = blastResultDao.getById(1);
 
         Assert.assertNull(results);
     }

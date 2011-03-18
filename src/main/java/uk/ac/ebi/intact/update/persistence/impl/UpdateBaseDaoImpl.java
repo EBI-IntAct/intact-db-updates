@@ -73,7 +73,7 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
      * @return
      */
     public T getById(long id) {
-        Query query = entityManager.createQuery( "select e from " + entityClass.getSimpleName() + " e where e.id = :id" );
+        Query query = entityManager.createQuery( "select e from " + entityClass.getSimpleName()+ " e where e.id = :id" );
         query.setParameter("id", id);
 
         List<T> results = query.getResultList();

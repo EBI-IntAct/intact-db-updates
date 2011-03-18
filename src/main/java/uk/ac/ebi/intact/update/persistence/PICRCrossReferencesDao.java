@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.util.List;
 
@@ -37,11 +36,4 @@ public interface PICRCrossReferencesDao extends UpdateBaseDao<PICRCrossReference
      * @return the list of PICRCrossReferences for a protein
      */
     public List<PICRCrossReferences> getCrossReferencesByProteinAc(String protAc);
-
-    /**
-     *
-     * @param id
-     * @return the PICRCrossReferences with this unique identifier in the database
-     */
-    public PICRCrossReferences getCrossReferenceWithId(long id);
 }

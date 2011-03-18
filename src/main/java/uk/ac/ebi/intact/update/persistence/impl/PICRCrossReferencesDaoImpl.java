@@ -66,20 +66,4 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
         return query.getResultList();
     }
 
-    /**
-     *
-     * @param id
-     * @return
-     */
-    public PICRCrossReferences getCrossReferenceWithId(long id) {
-        final Query query = getEntityManager().createQuery( "select pcr from PICRCrossReferences as pcr where pcr.id = :id" );
-        query.setParameter( "id", id);
-
-        if (query.getResultList().isEmpty()){
-             return null;
-        }
-
-        return (PICRCrossReferences) query.getResultList().iterator().next();
-    }
-
 }

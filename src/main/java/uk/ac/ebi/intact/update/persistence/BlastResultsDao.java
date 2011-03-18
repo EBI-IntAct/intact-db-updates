@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.util.List;
 
@@ -57,11 +56,4 @@ public interface BlastResultsDao extends UpdateBaseDao<BlastResults> {
      * @return The list of BlastResults for a specific protein
      */
     public List<BlastResults> getBlastResultsByProteinAc(String proteinAc);
-
-    /**
-     *
-     * @param id
-     * @return the blast results with this unique identifier in the database
-     */
-    public BlastResults getResultsById(long id);
 }

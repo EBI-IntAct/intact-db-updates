@@ -100,20 +100,4 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
 
         return query.getResultList();
     }
-
-    /**
-     * 
-     * @param id
-     * @return
-     */
-    public BlastResults getResultsById(long id) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br where br.id = :id" );
-        query.setParameter( "id", id);
-
-        if (query.getResultList().isEmpty()){
-             return null;
-        }
-
-        return (BlastResults) query.getResultList().iterator().next();
-    }
 }

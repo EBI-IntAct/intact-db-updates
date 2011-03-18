@@ -42,7 +42,7 @@ public class BlastReport extends MappingReport{
      *
      * @return the list of Blast results
      */
-    @OneToMany(mappedBy = "blast_report", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    @OneToMany(mappedBy = "blastReport", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Set<BlastResults> getBlastMatchingProteins(){
         return this.listOfProteins;
     }

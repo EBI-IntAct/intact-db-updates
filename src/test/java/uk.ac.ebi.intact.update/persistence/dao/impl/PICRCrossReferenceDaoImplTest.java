@@ -123,7 +123,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
 
         long id = picrRefs.getId();
 
-        PICRCrossReferences picrResults = picrCrossReferenceDoa.getCrossReferenceWithId(id);
+        PICRCrossReferences picrResults = picrCrossReferenceDoa.getById(id);
 
         Assert.assertNotNull(picrResults);
         Assert.assertTrue(picrResults.getId() == id);
@@ -139,7 +139,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
 
-        PICRCrossReferences picrResults = picrCrossReferenceDoa.getCrossReferenceWithId(1);
+        PICRCrossReferences picrResults = picrCrossReferenceDoa.getById(1);
 
         Assert.assertNull(picrResults);
     }

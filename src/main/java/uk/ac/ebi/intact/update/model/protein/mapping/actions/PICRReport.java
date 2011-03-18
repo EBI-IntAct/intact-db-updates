@@ -37,7 +37,7 @@ public class PICRReport extends MappingReport{
      *
      * @return the cross references
      */
-    @OneToMany(mappedBy = "picr_report", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    @OneToMany(mappedBy = "picrReport", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Set<PICRCrossReferences> getCrossReferences(){
         return this.crossReferences;
     }
