@@ -14,5 +14,7 @@ import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
-    public void search
+    public void search_all(){
+
+    }
 }
