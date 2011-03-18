@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
@@ -126,7 +127,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     @ManyToMany
     @JoinTable(
-            name = "ia_event2updated_annotations",
+            name = "ia_range_update2updated_annotations",
             joinColumns = {@JoinColumn( name = "protein_event_id" )},
             inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
     )
@@ -146,5 +147,217 @@ public class UpdatedRange extends HibernatePersistentImpl {
             UpdatedAnnotation annotation = new UpdatedAnnotation(a, status);
             this.featureAnnotations.add(annotation);
         }
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final UpdatedRange range = ( UpdatedRange ) o;
+
+        if ( rangeAc != null ) {
+            if (!rangeAc.equals( range.getRangeAc() )){
+                return false;
+            }
+        }
+        else if (range.getRangeAc()!= null){
+            return false;
+        }
+
+        if ( componentAc != null ) {
+            if (!componentAc.equals( range.getComponentAc() )){
+                return false;
+            }
+        }
+        else if (range.getComponentAc()!= null){
+            return false;
+        }
+
+        if ( oldPositions != null ) {
+            if (!oldPositions.equals( range.getOldPositions()) ){
+                return false;
+            }
+        }
+        else if (range.getOldPositions()!= null){
+            return false;
+        }
+
+        if ( newPositions != null ) {
+            if (!newPositions.equals( range.getNewPositions() )){
+                return false;
+            }
+        }
+        else if (range.getNewPositions()!= null){
+            return false;
+        }
+
+        if ( oldSequence != null ) {
+            if (!oldSequence.equals( range.getOldSequence() )){
+                return false;
+            }
+        }
+        else if (range.getOldSequence()!= null){
+            return false;
+        }
+
+        if ( newSequence != null ) {
+            if (!newSequence.equals( range.getNewSequence() )){
+                return false;
+            }
+        }
+        else if (range.getNewSequence()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( rangeAc != null ) {
+            code = 29 * code + rangeAc.hashCode();
+        }
+
+        if ( componentAc != null ) {
+            code = 29 * code + componentAc.hashCode();
+        }
+
+        if ( oldPositions != null ) {
+            code = 29 * code + oldPositions.hashCode();
+        }
+
+        if ( newPositions != null ) {
+            code = 29 * code + newPositions.hashCode();
+        }
+
+        if ( oldSequence != null ) {
+            code = 29 * code + oldSequence.hashCode();
+        }
+
+        if ( newSequence != null ) {
+            code = 29 * code + newSequence.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final UpdatedRange range = ( UpdatedRange ) o;
+
+        if ( rangeAc != null ) {
+            if (!rangeAc.equals( range.getRangeAc() )){
+                return false;
+            }
+        }
+        else if (range.getRangeAc()!= null){
+            return false;
+        }
+
+        if ( componentAc != null ) {
+            if (!componentAc.equals( range.getComponentAc() )){
+                return false;
+            }
+        }
+        else if (range.getComponentAc()!= null){
+            return false;
+        }
+
+        if ( oldPositions != null ) {
+            if (!oldPositions.equals( range.getOldPositions()) ){
+                return false;
+            }
+        }
+        else if (range.getOldPositions()!= null){
+            return false;
+        }
+
+        if ( newPositions != null ) {
+            if (!newPositions.equals(range.getNewPositions())){
+                return false;
+            }
+        }
+        else if (range.getNewPositions()!= null){
+            return false;
+        }
+
+        if ( oldSequence != null ) {
+            if (!oldSequence.equals( range.getOldSequence() )){
+                return false;
+            }
+        }
+        else if (range.getOldSequence()!= null){
+            return false;
+        }
+
+        if ( newSequence != null ) {
+            if (!newSequence.equals( range.getNewSequence() )){
+                return false;
+            }
+        }
+        else if (range.getNewSequence()!= null){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(featureAnnotations, range.getFeatureAnnotations());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Range : [" + rangeAc != null ? rangeAc : "");
+        buffer.append("] \n");
+
+        buffer.append("Component : [" + componentAc != null ? componentAc : "");
+        buffer.append("] \n");
+
+        if (oldPositions != null){
+            buffer.append("Old positions : " + oldPositions);
+            buffer.append("\n");
+        }
+
+        if (oldSequence != null){
+            buffer.append("Old feature sequence : " + oldSequence);
+            buffer.append("\n");
+        }
+
+        if (newPositions != null){
+            buffer.append("New positions : " + newPositions);
+            buffer.append("\n");
+        }
+
+        if (newSequence != null){
+            buffer.append("New feature sequence : " + newSequence);
+            buffer.append("\n");
+        }
+
+        if (!featureAnnotations.isEmpty()){
+            buffer.append("Feature annotations : ");
+
+            for (UpdatedAnnotation a : featureAnnotations){
+                buffer.append(a.toString() + "\n");
+            }
+        }
+
+        return buffer.toString();
     }
 }

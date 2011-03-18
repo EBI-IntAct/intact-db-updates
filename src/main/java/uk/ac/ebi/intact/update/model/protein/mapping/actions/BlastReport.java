@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
 
@@ -34,7 +35,7 @@ public class BlastReport extends MappingReport{
      * @param name : the name of the action
      */
     public BlastReport(ActionName name){
-         super(name);
+        super(name);
         this.querySequence = null;
     }
 
@@ -76,5 +77,87 @@ public class BlastReport extends MappingReport{
      */
     public void setQuerySequence(String querySequence) {
         this.querySequence = querySequence;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final BlastReport report = ( BlastReport ) o;
+
+        if ( querySequence != null ) {
+            if (!querySequence.equals( report.getQuerySequence() )){
+                return false;
+            }
+        }
+        else if (report.getQuerySequence() != null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( querySequence != null ) {
+            code = 29 * code + querySequence.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final BlastReport report = ( BlastReport ) o;
+
+        if ( querySequence != null ) {
+            if (!querySequence.equals( report.getQuerySequence() )){
+                return false;
+            }
+        }
+        else if (report.getQuerySequence() != null){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(listOfProteins, report.getBlastMatchingProteins());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Blast : " + querySequence != null ? querySequence : "");
+
+        if (!listOfProteins.isEmpty()){
+            buffer.append(" [ ");
+
+            for (BlastResults prot : listOfProteins) {
+                buffer.append(prot.toString() + " ; ");
+            }
+        }
+
+        buffer.append(" ]");
+
+        return buffer.toString();
     }
 }

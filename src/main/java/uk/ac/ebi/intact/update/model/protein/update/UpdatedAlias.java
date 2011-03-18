@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update;
 
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 
 import javax.persistence.*;
 
@@ -19,6 +20,8 @@ public class UpdatedAlias extends HibernatePersistentImpl {
     private String type;
     private String name;
 
+    private ProteinEvent parent;
+
     private UpdateStatus status;
 
     public UpdatedAlias(){
@@ -26,6 +29,7 @@ public class UpdatedAlias extends HibernatePersistentImpl {
         this.name = null;
         this.type = null;
         this.status = UpdateStatus.none;
+        this.parent = null;
     }
 
     public UpdatedAlias(String type, String name, UpdateStatus status){
@@ -33,6 +37,7 @@ public class UpdatedAlias extends HibernatePersistentImpl {
         this.name = name;
         this.type = type;
         this.status = status != null ? status : UpdateStatus.none;
+        this.parent = null;
     }
 
     public UpdatedAlias(InteractorAlias alias, UpdateStatus status){
@@ -47,6 +52,7 @@ public class UpdatedAlias extends HibernatePersistentImpl {
             this.name = null;
         }
         this.status = status != null ? status : UpdateStatus.none;
+        this.parent = null;
     }
 
     @Column(name="type_ac", nullable = false)
@@ -75,5 +81,131 @@ public class UpdatedAlias extends HibernatePersistentImpl {
 
     public void setStatus(UpdateStatus status) {
         this.status = status;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "event_id")
+    public ProteinEvent getParent() {
+        return parent;
+    }
+
+    public void setParent(ProteinEvent parent) {
+        this.parent = parent;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final UpdatedAlias updated = ( UpdatedAlias ) o;
+
+        if ( type != null ) {
+            if (!type.equals( updated.getType())){
+                return false;
+            }
+        }
+        else if (updated.getType()!= null){
+            return false;
+        }
+
+        if ( name != null ) {
+            if (!name.equals( updated.getName())){
+                return false;
+            }
+        }
+        else if (updated.getName()!= null){
+            return false;
+        }
+
+        if ( status != null ) {
+            if (!status.equals( updated.getStatus())){
+                return false;
+            }
+        }
+        else if (updated.getStatus()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( type != null ) {
+            code = 29 * code + type.hashCode();
+        }
+
+        if ( name != null ) {
+            code = 29 * code + name.hashCode();
+        }
+
+        if ( status != null ) {
+            code = 29 * code + status.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final UpdatedAlias updated = ( UpdatedAlias ) o;
+
+        if ( type != null ) {
+            if (!type.equals( updated.getType())){
+                return false;
+            }
+        }
+        else if (updated.getType()!= null){
+            return false;
+        }
+
+        if ( name != null ) {
+            if (!name.equals( updated.getName())){
+                return false;
+            }
+        }
+        else if (updated.getName()!= null){
+            return false;
+        }
+
+        if ( status != null ) {
+            if (!status.equals( updated.getStatus())){
+                return false;
+            }
+        }
+        else if (updated.getStatus()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Alias : [ type = " + type != null ? type : "none" + ", name = " + name != null ? name : "none" + ", status = " + status != null ? status.toString() : "none");
+
+        return buffer.toString();
     }
 }

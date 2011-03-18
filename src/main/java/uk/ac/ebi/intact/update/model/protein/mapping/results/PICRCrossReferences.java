@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 
@@ -143,4 +144,83 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
     public void setPicrReport(PICRReport picrReport) {
         this.picrReport = picrReport;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final PICRCrossReferences refs = ( PICRCrossReferences ) o;
+
+        if ( database != null ) {
+            if (!database.equals( refs.getDatabase() )){
+                return false;
+            }
+        }
+        else if (refs.getDatabase()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( database != null ) {
+            code = 29 * code + database.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final PICRCrossReferences refs = ( PICRCrossReferences ) o;
+
+        if ( database != null ) {
+            if (!database.equals( refs.getDatabase() )){
+                return false;
+            }
+        }
+        else if (refs.getDatabase()!= null){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(this.accessions, refs.getAccessions());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("PICR cross reference : [" + database != null ? database : "");
+
+        if (!accessions.isEmpty()){
+            buffer.append(" Accessions : ");
+
+            for (String acc : accessions) {
+                buffer.append(acc + " ; ");
+            }
+        }
+
+        return buffer.toString();
+    }
 }
+

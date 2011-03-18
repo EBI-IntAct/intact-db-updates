@@ -81,4 +81,139 @@ public class InvalidRange extends UpdatedRange {
     public void setSequenceVersion(int sequenceVersion) {
         this.sequenceVersion = sequenceVersion;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final InvalidRange range = ( InvalidRange ) o;
+
+        if ( fromStatus != null ) {
+            if (!fromStatus.equals( range.getFromStatus() )){
+                return false;
+            }
+        }
+        else if (range.getFromStatus()!= null){
+            return false;
+        }
+
+        if ( toStatus != null ) {
+            if (!toStatus.equals( range.getToStatus() )){
+                return false;
+            }
+        }
+        else if (range.getToStatus()!= null){
+            return false;
+        }
+
+        if (sequenceVersion != range.getSequenceVersion()){
+            return false;
+        }
+
+        if ( errorMessage != null ) {
+            if (!errorMessage.equals( range.getErrorMessage() )){
+                return false;
+            }
+        }
+        else if (range.getErrorMessage()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( fromStatus != null ) {
+            code = 29 * code + fromStatus.hashCode();
+        }
+
+        if ( toStatus != null ) {
+            code = 29 * code + toStatus.hashCode();
+        }
+
+        code = 29 * code + Integer.toString(sequenceVersion).hashCode();
+
+        if ( errorMessage != null ) {
+            code = 29 * code + errorMessage.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final InvalidRange range = ( InvalidRange ) o;
+
+        if ( fromStatus != null ) {
+            if (!fromStatus.equals( range.getFromStatus() )){
+                return false;
+            }
+        }
+        else if (range.getFromStatus()!= null){
+            return false;
+        }
+
+        if ( toStatus != null ) {
+            if (!toStatus.equals( range.getToStatus() )){
+                return false;
+            }
+        }
+        else if (range.getToStatus()!= null){
+            return false;
+        }
+
+        if (sequenceVersion != range.getSequenceVersion()){
+            return false;
+        }
+
+        if ( errorMessage != null ) {
+            if (!errorMessage.equals( range.getErrorMessage() )){
+                return false;
+            }
+        }
+        else if (range.getErrorMessage()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Invalid range : \n");
+
+        buffer.append(fromStatus != null ? fromStatus : "none" + "-" + toStatus != null ? toStatus : "none");
+
+        buffer.append(super.toString());
+
+        buffer.append(" \n");
+
+        if (errorMessage != null){
+           buffer.append("Error message : " + errorMessage);
+        }
+
+        return buffer.toString();
+    }
+
 }

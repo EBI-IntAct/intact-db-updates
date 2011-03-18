@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
@@ -20,8 +21,6 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
 
     Collection<String> oldParentAcs;
     String newParentAc;
-
-    String message;
 
     public IntactTranscriptUpdateEvent(){
         super();
@@ -52,5 +51,86 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
 
     public void setNewParentAc(String newParentAc) {
         this.newParentAc = newParentAc;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final IntactTranscriptUpdateEvent event = ( IntactTranscriptUpdateEvent ) o;
+
+        if ( newParentAc != null ) {
+            if (!newParentAc.equals( event.getNewParentAc() )){
+                return false;
+            }
+        }
+        else if (event.getNewParentAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( newParentAc != null ) {
+            code = 29 * code + newParentAc.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final IntactTranscriptUpdateEvent event = ( IntactTranscriptUpdateEvent ) o;
+
+        if ( newParentAc != null ) {
+            if (!newParentAc.equals( event.getNewParentAc() )){
+                return false;
+            }
+        }
+        else if (event.getNewParentAc()!= null){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(oldParentAcs, event.getOldParentAcs());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Intact transcript update event : [New parent ac = " + newParentAc != null ? newParentAc : "none");
+        buffer.append("] \n");
+
+        if (!oldParentAcs.isEmpty()){
+            buffer.append("Old parent acs : ");
+
+            for (String p : oldParentAcs){
+                buffer.append(p + ", ");
+            }
+        }
+
+        return buffer.toString();
     }
 }

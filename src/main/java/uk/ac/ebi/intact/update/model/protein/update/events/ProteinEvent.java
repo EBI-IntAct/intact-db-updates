@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -76,12 +77,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         this.proteinAc = proteinAc;
     }
 
-    @ManyToMany
-    @JoinTable(
-            name = "ia_event2updated_xref",
-            joinColumns = {@JoinColumn( name = "protein_event_id" )},
-            inverseJoinColumns = {@JoinColumn( name = "updated_xref_id" )}
-    )
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<UpdatedCrossReference> getUpdatedReferences() {
         return updatedReferences;
     }
@@ -125,12 +121,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         }
     }
 
-    @ManyToMany
-    @JoinTable(
-            name = "ia_event2updated_aliases",
-            joinColumns = {@JoinColumn( name = "protein_event_id" )},
-            inverseJoinColumns = {@JoinColumn( name = "updated_alias_id" )}
-    )
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<UpdatedAlias> getUpdatedAliases() {
         return updatedAliases;
     }
@@ -166,5 +157,155 @@ public class ProteinEvent extends HibernatePersistentImpl {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final ProteinEvent event = ( ProteinEvent ) o;
+
+        if ( name != null ) {
+            if (!name.equals( event.getName())){
+                return false;
+            }
+        }
+        else if (event.getName()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        if (index != event.getIndex()){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( name != null ) {
+            code = 29 * code + name.hashCode();
+        }
+
+        if ( proteinAc != null ) {
+            code = 29 * code + proteinAc.hashCode();
+        }
+
+        code = 29 * code + Integer.toString(index).hashCode();
+
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final ProteinEvent event = ( ProteinEvent ) o;
+
+        if ( name != null ) {
+            if (!name.equals( event.getName())){
+                return false;
+            }
+        }
+        else if (event.getName()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        if (index != event.getIndex()){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(updatedAliases, event.getUpdatedAliases())){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(updatedAnnotations, event.getUpdatedAnnotations())){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(updatedReferences, event.getUpdatedReferences());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Protein : " + proteinAc != null ? proteinAc : "none");
+        buffer.append(" \n");
+
+        buffer.append("Event : " + name != null ? name.toString() : "none");
+        buffer.append(" \n");
+
+        buffer.append("Index : " + index);
+        buffer.append(" \n");
+
+        if (!updatedAliases.isEmpty()){
+            buffer.append("Updated aliases : ");
+
+            for (UpdatedAlias p : updatedAliases){
+                buffer.append(p.toString() + ", ");
+            }
+
+            buffer.append("\n");
+        }
+
+        if (!updatedAnnotations.isEmpty()){
+            buffer.append("Updated annotations : ");
+
+            for (UpdatedAnnotation p : updatedAnnotations){
+                buffer.append(p.toString() + ", ");
+            }
+
+            buffer.append("\n");
+        }
+
+        if (!updatedReferences.isEmpty()){
+            buffer.append("Updated references : ");
+
+            for (UpdatedCrossReference p : updatedReferences){
+                buffer.append(p.toString() + ", ");
+            }
+
+            buffer.append("\n");
+        }
+
+        return buffer.toString();
     }
 }

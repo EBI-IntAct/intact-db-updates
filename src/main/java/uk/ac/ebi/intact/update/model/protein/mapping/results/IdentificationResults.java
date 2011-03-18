@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
@@ -110,4 +111,85 @@ public class IdentificationResults extends HibernatePersistentImpl{
         }
         return reports;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final IdentificationResults results = ( IdentificationResults ) o;
+
+        if ( finalUniprotId != null ) {
+            if (!finalUniprotId.equals( results.getFinalUniprotId() )){
+                return false;
+            }
+        }
+        else if (results.getFinalUniprotId()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( finalUniprotId != null ) {
+            code = 29 * code + finalUniprotId.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final IdentificationResults results = ( IdentificationResults ) o;
+
+        if ( finalUniprotId != null ) {
+            if (!finalUniprotId.equals( results.getFinalUniprotId() )){
+                return false;
+            }
+        }
+        else if (results.getFinalUniprotId()!= null){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(this.listOfActions, results.getListOfActions());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Identification result : [" + finalUniprotId != null ? finalUniprotId : "none");
+
+        buffer.append("] \n");
+
+        if (!listOfActions.isEmpty()){
+            buffer.append(" List of Mapping Actions : ");
+
+            for (MappingReport rep : listOfActions) {
+                buffer.append(rep.toString() + " \n");
+            }
+        }
+
+        return buffer.toString();
+    }
 }
+

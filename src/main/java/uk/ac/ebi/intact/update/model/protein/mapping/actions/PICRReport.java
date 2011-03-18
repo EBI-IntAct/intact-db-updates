@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 
 import javax.persistence.CascadeType;
@@ -84,5 +85,53 @@ public class PICRReport extends MappingReport{
      */
     public void setCrossReferences(Set<PICRCrossReferences> crossReferences) {
         this.crossReferences = crossReferences;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        return super.equals(o);
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final PICRReport report = ( PICRReport ) o;
+
+        return CollectionUtils.isEqualCollection(this.crossReferences, report.getCrossReferences());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        if (!crossReferences.isEmpty()){
+            buffer.append("PICR references : [");
+
+            for (PICRCrossReferences ref : crossReferences) {
+                buffer.append(ref.toString() + " ; ");
+            }
+
+            buffer.append("\n");
+        }
+
+        return buffer.toString();
     }
 }

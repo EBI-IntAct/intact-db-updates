@@ -374,4 +374,283 @@ public class BlastResults extends HibernatePersistentImpl {
     public void setBlastReport(BlastReport blastReport) {
         this.blastReport = blastReport;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final BlastResults results = ( BlastResults ) o;
+
+        if ( tremblAccession != null ) {
+            if (!tremblAccession.equals( results.getTremblAccession() )){
+                return false;
+            }
+        }
+        else if (results.getTremblAccession()!= null){
+            return false;
+        }
+
+        if (taxId != results.getTaxId()){
+            return false;
+        }
+
+        if ( getAccession() != null ) {
+            if (!getAccession().equals(results.getAccession())){
+                return false;
+            }
+        }
+        else if (results.getAccession()!= null){
+            return false;
+        }
+
+        if (getStartQuery() != results.getStartQuery()){
+            return false;
+        }
+
+        if (getEndQuery() != results.getEndQuery()){
+            return false;
+        }
+
+        if (getStartMatch() != results.getStartMatch()){
+            return false;
+        }
+
+        if (getEndMatch() != results.getEndMatch()){
+            return false;
+        }
+
+        if ( getSequence() != null ) {
+            if (!getSequence().equals(results.getSequence())){
+                return false;
+            }
+        }
+        else if (results.getSequence()!= null){
+            return false;
+        }
+
+        if ( getDatabase() != null ) {
+            if (!getDatabase().equals(results.getDatabase())){
+                return false;
+            }
+        }
+        else if (results.getDatabase()!= null){
+            return false;
+        }
+
+        if (getIdentity() != results.getIdentity()){
+            return false;
+        }
+
+        if ( getDescription() != null ) {
+            if (!getDescription().equals(results.getDescription())){
+                return false;
+            }
+        }
+        else if (results.getDescription()!= null){
+            return false;
+        }
+
+        if ( getAlignment() != null ) {
+            if (!getAlignment().equals(results.getAlignment())){
+                return false;
+            }
+        }
+        else if (results.getAlignment()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( tremblAccession != null ) {
+            code = 29 * code + tremblAccession.hashCode();
+        }
+
+        code = 29 * code + Integer.toString(taxId).hashCode();
+
+        if ( getAccession() != null ) {
+            code = 29 * code + getAccession().hashCode();
+        }
+
+        code = 29 * code + Integer.toString(getStartQuery()).hashCode();
+
+        code = 29 * code + Integer.toString(getEndQuery()).hashCode();
+
+        code = 29 * code + Integer.toString(getStartMatch()).hashCode();
+
+        code = 29 * code + Integer.toString(getEndMatch()).hashCode();
+
+        if ( getSequence() != null ) {
+            code = 29 * code + getSequence().hashCode();
+        }
+
+        if ( getDatabase() != null ) {
+            code = 29 * code + getDatabase().hashCode();
+        }
+
+        code = 29 * code + Float.toString(getIdentity()).hashCode();
+
+        if ( getDescription() != null ) {
+            code = 29 * code + getDescription().hashCode();
+        }
+
+        if ( getAlignment() != null ) {
+            code = 29 * code + getAlignment().hashCode();
+
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final BlastResults results = ( BlastResults ) o;
+
+        if ( tremblAccession != null ) {
+            if (!tremblAccession.equals( results.getTremblAccession() )){
+                return false;
+            }
+        }
+        else if (results.getTremblAccession()!= null){
+            return false;
+        }
+
+        if (taxId != results.getTaxId()){
+            return false;
+        }
+
+        if ( getAccession() != null ) {
+            if (!getAccession().equals(results.getAccession())){
+                return false;
+            }
+        }
+        else if (results.getAccession()!= null){
+            return false;
+        }
+
+        if (getStartQuery() != results.getStartQuery()){
+            return false;
+        }
+
+        if (getEndQuery() != results.getEndQuery()){
+            return false;
+        }
+
+        if (getStartMatch() != results.getStartMatch()){
+            return false;
+        }
+
+        if (getEndMatch() != results.getEndMatch()){
+            return false;
+        }
+
+        if ( getSequence() != null ) {
+            if (!getSequence().equals(results.getSequence())){
+                return false;
+            }
+        }
+        else if (results.getSequence()!= null){
+            return false;
+        }
+
+        if ( getDatabase() != null ) {
+            if (!getDatabase().equals(results.getDatabase())){
+                return false;
+            }
+        }
+        else if (results.getDatabase()!= null){
+            return false;
+        }
+
+        if (getIdentity() != results.getIdentity()){
+            return false;
+        }
+
+        if ( getDescription() != null ) {
+            if (!getDescription().equals(results.getDescription())){
+                return false;
+            }
+        }
+        else if (results.getDescription()!= null){
+            return false;
+        }
+
+        if ( getAlignment() != null ) {
+            if (!getAlignment().equals(results.getAlignment())){
+                return false;
+            }
+        }
+        else if (results.getAlignment()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Blast Results : \n");
+
+        if (tremblAccession != null){
+            buffer.append("Trembl accession : " + tremblAccession);
+            buffer.append("\n");
+        }
+
+        if (getDatabase() != null){
+            buffer.append("Database : " + getDatabase());
+            buffer.append("\n");
+        }
+
+        if (getAccession() != null){
+            buffer.append("Accession : " + getAccession());
+            buffer.append("\n");
+        }
+
+        buffer.append("TaxId : " + taxId);
+        buffer.append("\n");
+
+        buffer.append("Identity : " + getIdentity());
+        buffer.append("\n");
+
+        buffer.append("Query : " + getStartQuery() + " - " + getEndQuery());
+        buffer.append("\n");
+
+        buffer.append("Match : " + getStartMatch() + " - " + getEndMatch());
+        buffer.append("\n");
+
+        if (getAlignment() != null){
+            buffer.append("Alignment : " + getAlignment());
+            buffer.append("\n");
+        }
+
+        if (getSequence() != null){
+            buffer.append("Match Sequence : " + getSequence());
+            buffer.append("\n");
+        }
+
+        return buffer.toString();
+    }
 }
+

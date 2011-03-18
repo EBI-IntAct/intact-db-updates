@@ -21,4 +21,6 @@ public interface HibernatePersistent {
      * @param id
      */
     public void setId(Long id);
+
+    public boolean isIdenticalTo(Object o);
 }

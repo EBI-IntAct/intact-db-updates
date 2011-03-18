@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
@@ -292,5 +293,137 @@ public class MappingReport extends HibernatePersistentImpl {
      */
     public void setUpdateResult(UpdateMappingResults result) {
         this.updateResult = result;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final MappingReport report = ( MappingReport ) o;
+
+        if ( name != null ) {
+            if (!name.equals( report.getName() )){
+                return false;
+            }
+        }
+        else if (report.getName()!= null){
+            return false;
+        }
+
+        if ( status != null ) {
+            if (!status.equals( report.getStatus() )){
+                return false;
+            }
+        }
+        else if (report.getStatus()!= null){
+            return false;
+        }
+
+        if (isASwissprotEntry != report.isASwissprotEntry()){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( name != null ) {
+            code = 29 * code + name.hashCode();
+        }
+
+        if ( status != null ) {
+            code = 29 * code + status.hashCode();
+        }
+
+        code = 29 * code + Boolean.toString(isASwissprotEntry).hashCode();
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final MappingReport report = ( MappingReport ) o;
+
+        if ( name != null ) {
+            if (!name.equals( report.getName() )){
+                return false;
+            }
+        }
+        else if (report.getName()!= null){
+            return false;
+        }
+
+        if ( status != null ) {
+            if (!status.equals( report.getStatus() )){
+                return false;
+            }
+        }
+        else if (report.getStatus()!= null){
+            return false;
+        }
+
+        if (isASwissprotEntry != report.isASwissprotEntry()){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(this.warnings, report.getWarnings())){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(this.possibleAccessions, report.getPossibleAccessions());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Mapping report : [" + name != null ? name.toString() : "");
+
+        buffer.append(", " + status != null ? status.toString() : "");
+
+        buffer.append("] \n");
+
+        if (!warnings.isEmpty()){
+            buffer.append(" WARNINGS : ");
+
+            for (String warn : warnings) {
+                buffer.append(warn + " ; ");
+            }
+
+            buffer.append("\n");
+        }
+
+        buffer.append(" Is A Swissprot entry : " + isASwissprotEntry + "\n");
+
+        if (!possibleAccessions.isEmpty()){
+            buffer.append(" POSSIBLE ACCESSIONS : ");
+
+            for (String acc : possibleAccessions) {
+                buffer.append(acc + " ; ");
+            }
+
+            buffer.append("\n");
+        }
+
+        return buffer.toString();
     }
 }

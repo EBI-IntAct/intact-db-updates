@@ -3,7 +3,9 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * An UpdateResult contains all the results and ActionReports of the update process of a protein
@@ -54,4 +56,79 @@ public class UpdateMappingResults extends IdentificationResults {
          report.setUpdateResult(this);
         super.addActionReport(report);
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final UpdateMappingResults results = ( UpdateMappingResults ) o;
+
+        if ( intactAccession != null ) {
+            if (!intactAccession.equals( results.getIntactAccession() )){
+                return false;
+            }
+        }
+        else if (results.getIntactAccession()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( intactAccession != null ) {
+            code = 29 * code + intactAccession.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final UpdateMappingResults results = ( UpdateMappingResults ) o;
+
+        if ( intactAccession != null ) {
+            if (!intactAccession.equals( results.getIntactAccession() )){
+                return false;
+            }
+        }
+        else if (results.getIntactAccession()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Intact Ac : [" + intactAccession != null ? intactAccession : "none");
+
+        buffer.append("] \n");
+
+        buffer.append(super.toString());
+
+        return buffer.toString();
+    }
+
 }

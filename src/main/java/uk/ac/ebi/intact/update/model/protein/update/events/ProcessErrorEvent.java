@@ -16,10 +16,9 @@ import javax.persistence.Entity;
  */
 @Entity
 @DiscriminatorValue("ProcessErrorEvent")
-public class ProcessErrorEvent extends ProteinEvent{
+public class ProcessErrorEvent extends ProteinEventWithMessage{
 
     private String type;
-    private String message;
 
     private String uniprotAc;
 
@@ -31,19 +30,9 @@ public class ProcessErrorEvent extends ProteinEvent{
     }
 
     public ProcessErrorEvent(UpdateProcess updateProcess, Protein protein, int index, String type, String message, String uniprotAc ){
-        super(updateProcess, EventName.update_error, protein, index);
+        super(updateProcess, EventName.update_error, protein, index, message);
         this.type = type;
-        this.message = message;
         this.uniprotAc = uniprotAc;
-    }
-
-    @Column(name = "message")
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     @Column(name = "error_type", nullable = false)
@@ -62,5 +51,100 @@ public class ProcessErrorEvent extends ProteinEvent{
 
     public void setUniprotAc(String uniprotAc) {
         this.uniprotAc = uniprotAc;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final ProcessErrorEvent event = ( ProcessErrorEvent ) o;
+
+        if ( type != null ) {
+            if (!type.equals( event.getType())){
+                return false;
+            }
+        }
+        else if (event.getType()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( type != null ) {
+            code = 29 * code + type.hashCode();
+        }
+
+        if ( uniprotAc != null ) {
+            code = 29 * code + uniprotAc.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final ProcessErrorEvent event = ( ProcessErrorEvent ) o;
+
+        if ( type != null ) {
+            if (!type.equals( event.getType())){
+                return false;
+            }
+        }
+        else if (event.getType()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Process error event : [uniprot ac = " + uniprotAc != null ? uniprotAc : "none");
+        buffer.append("error type = "+type != null ? type : "none"+"] \n");
+
+        return buffer.toString();
     }
 }

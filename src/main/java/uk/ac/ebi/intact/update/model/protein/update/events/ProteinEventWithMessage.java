@@ -37,4 +37,77 @@ public class ProteinEventWithMessage extends ProteinEvent {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final ProteinEventWithMessage event = ( ProteinEventWithMessage ) o;
+
+        if ( message != null ) {
+            if (!message.equals( event.getMessage())){
+                return false;
+            }
+        }
+        else if (event.getMessage()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( message != null ) {
+            code = 29 * code + message.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final ProteinEventWithMessage event = ( ProteinEventWithMessage ) o;
+
+        if ( message != null ) {
+            if (!message.equals( event.getMessage())){
+                return false;
+            }
+        }
+        else if (event.getMessage()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Message : " + message != null ? message : "none");
+        buffer.append(" \n");
+
+        return buffer.toString();
+    }
 }

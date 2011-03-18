@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
@@ -65,5 +66,95 @@ public class UpdateProcess extends HibernatePersistentImpl{
 
     public void setDate(Date updateDate) {
         this.date = updateDate;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final UpdateProcess process = ( UpdateProcess ) o;
+
+        if ( date != null ) {
+            if (!date.equals( process.getDate())){
+                return false;
+            }
+        }
+        else if (process.getDate()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( date != null ) {
+            code = 29 * code + date.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final UpdateProcess process = ( UpdateProcess ) o;
+
+        if ( date != null ) {
+            if (!date.equals( process.getDate())){
+                return false;
+            }
+        }
+        else if (process.getDate()!= null){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(events, process.getEvents())){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(rangeUpdates, process.getRangeUpdates());
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append("Update process : [ date = " + date != null ? date.toString() : "none" + "] \n");
+
+        if (events.isEmpty()){
+            buffer.append("Events : \n");
+
+            for (ProteinEvent ev : events){
+                buffer.append(ev.toString() + "\n");
+            }
+        }
+
+        if (rangeUpdates.isEmpty()){
+            buffer.append("Range updates : \n");
+
+            for (UpdatedRange ev : rangeUpdates){
+                buffer.append(ev.toString() + "\n");
+            }
+        }
+
+        return buffer.toString();
     }
 }
