@@ -189,7 +189,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<InvalidRange> imple
     }
 
     @Override
-    public List<InvalidRange> getOutOfDateAfter(Date updateddate) {
+    public List<InvalidRange> getOutOfDateRangesAfter(Date updateddate) {
         final Query query = getEntityManager().createQuery( "select ir from InvalidRange ir join ir.featureAnnotations as fa join ir.parent as p where fa.topic =:topic and p.date >= :date" );
         query.setParameter( "topic", outOfDateRangeAc);
         query.setParameter( "date", updateddate);

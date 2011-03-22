@@ -36,7 +36,7 @@ public interface InvalidRangeDao extends UpdatedRangeDao<InvalidRange>{
     public List<InvalidRange> getOutOfDateRangesWithSequenceVersionBefore(Date updateddate);
 
     public List<InvalidRange> getInvalidRangesAfter(Date updateddate );
-    public List<InvalidRange> getOutOfDateAfter(Date updateddate);
+    public List<InvalidRange> getOutOfDateRangesAfter(Date updateddate);
     public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersionAfter(Date updateddate);
     public List<InvalidRange> getOutOfDateRangesWithSequenceVersionAfter(Date updateddate);
 }
