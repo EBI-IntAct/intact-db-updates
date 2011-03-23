@@ -149,8 +149,12 @@ public class UpdatedRange extends HibernatePersistentImpl {
         }
     }
 
-    public void addUpdatedAnnotation(UpdatedAnnotation ann){
-        this.featureAnnotations.add(ann);
+    public boolean addUpdatedAnnotation(UpdatedAnnotation ann){
+        return this.featureAnnotations.add(ann);
+    }
+
+    public boolean removeUpdatedAnnotation(UpdatedAnnotation ann){
+        return this.featureAnnotations.remove(ann);
     }
 
     @Override

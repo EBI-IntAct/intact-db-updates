@@ -49,9 +49,20 @@ public class UpdateProcess extends HibernatePersistentImpl{
         this.events = events;
     }
 
-    public void addEvent(ProteinEvent event){
-        event.setParent(this);
-        events.add(event);
+    public boolean addEvent(ProteinEvent event){
+        if (events.add(event)){
+            event.setParent(this);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeEvent(ProteinEvent event){
+        if (events.remove(event)){
+            event.setParent(null);
+            return true;
+        }
+        return false;
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
@@ -63,9 +74,22 @@ public class UpdateProcess extends HibernatePersistentImpl{
         this.rangeUpdates = rangeUpdates;
     }
 
-    public void addRangeUpdate(UpdatedRange up){
-        up.setParent(this);
-        rangeUpdates.add(up);
+    public boolean addRangeUpdate(UpdatedRange up){
+        if (rangeUpdates.add(up)){
+            up.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeRangeUpdate(UpdatedRange up){
+        if (rangeUpdates.remove(up)){
+            up.setParent(null);
+            return true;
+        }
+
+        return false;
     }
 
     @Temporal( value = TemporalType.TIMESTAMP )

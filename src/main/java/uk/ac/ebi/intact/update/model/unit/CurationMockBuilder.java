@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.update.model.protein.update.UpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
 
 import java.util.Date;
 
@@ -310,6 +311,21 @@ public class CurationMockBuilder extends IntactMockBuilder {
         invalid.addUpdatedAnnotation(createInvalidRangeAnnotation());
 
         return invalid;
+    }
+
+    public UpdatedRange createUpdatedRange(){
+
+        UpdatedRange updated = new UpdatedRange();
+
+        updated.setRangeAc("EBI-xxxxx1");
+        updated.setComponentAc("EBI-xxxxx2");
+
+        updated.setOldSequence("MAAM");
+        updated.setNewSequence("MAAM");
+        updated.setOldPositions("2-8");
+        updated.setNewSequence("4-10");
+
+        return updated;
     }
 
     public InvalidRange createOutOfDateRangeWithoutSequenceVersion(){

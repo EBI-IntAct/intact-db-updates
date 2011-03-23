@@ -92,9 +92,28 @@ public class ProteinEvent extends HibernatePersistentImpl {
         for (InteractorXref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
-            reference.setParent(this);
-            this.updatedReferences.add(reference);
+            if (this.updatedReferences.add(reference)){
+                reference.setParent(this);
+            }
         }
+    }
+
+    public boolean addUpdatedXRef(UpdatedCrossReference xref){
+        if (this.updatedReferences.add(xref)){
+            xref.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeUpdatedXRef(UpdatedCrossReference xref){
+        if (this.updatedReferences.remove(xref)){
+            xref.setParent(null);
+            return true;
+        }
+
+        return false;
     }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH})
@@ -121,6 +140,14 @@ public class ProteinEvent extends HibernatePersistentImpl {
         }
     }
 
+    public boolean addUpdatedAnnotation(UpdatedAnnotation ann){
+        return this.updatedAnnotations.add(ann);
+    }
+
+    public boolean removeUpdatedAnnotation(UpdatedAnnotation ann){
+        return this.updatedAnnotations.remove(ann);
+    }
+
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<UpdatedAlias> getUpdatedAliases() {
         return updatedAliases;
@@ -136,9 +163,29 @@ public class ProteinEvent extends HibernatePersistentImpl {
         for (InteractorAlias a : updatedAlias){
 
             UpdatedAlias alias = new UpdatedAlias(a, status);
-            alias.setParent(this);
-            this.updatedAliases.add(alias);
+
+            if (this.updatedAliases.add(alias)){
+                alias.setParent(this);
+            }
         }
+    }
+
+    public boolean addUpdatedAlias(UpdatedAlias alias){
+        if (this.updatedAliases.add(alias)){
+            alias.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeAlias(UpdatedAlias alias){
+        if (this.updatedAliases.remove(alias)){
+            alias.setParent(null);
+            return true;
+        }
+
+        return false;
     }
 
     @Column(name = "name", nullable = false)
