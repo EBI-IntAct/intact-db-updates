@@ -10,9 +10,8 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.update.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.update.*;
+import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
@@ -372,6 +371,36 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return invalid;
     }
 
+    public UpdatedAnnotation createDefaultUpdatedAnnotation(){
+        UpdatedAnnotation ann = new UpdatedAnnotation();
+
+        ann.setStatus(UpdateStatus.added);
+        ann.setTopic("EBI-xxxxx6");
+        ann.setText("bla");
+
+        return ann;
+    }
+
+    public UpdatedCrossReference createDefaultUpdatedCrossReference(){
+        UpdatedCrossReference ref = new UpdatedCrossReference();
+
+        ref.setStatus(UpdateStatus.added);
+        ref.setDatabase("EBI-xxxxx7");
+        ref.setIdentifier("blax");
+        ref.setQualifier("EBI-xxxxx8");
+
+        return ref;
+    }
+
+    public UpdatedAlias createDefaultUpdatedAlias(){
+        UpdatedAlias al = new UpdatedAlias();
+
+        al.setStatus(UpdateStatus.added);
+        al.setName("GP2");
+        al.setType("EBI-xxxxx9");
+
+        return al;
+    }
 
     public ProteinEvent createDefaultProteinEvent(){
         ProteinEvent event = new ProteinEvent();
@@ -382,4 +411,26 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         return event;
     }
+
+    public ProteinEvent createDefaultProteinEventWithCollection(){
+        ProteinEvent event = createDefaultProteinEvent();
+
+        event.addUpdatedAnnotation(createDefaultUpdatedAnnotation());
+        event.addUpdatedAlias(createDefaultUpdatedAlias());
+        event.addUpdatedXRef(createDefaultUpdatedCrossReference());
+
+        return event;
+    }
+
+    public DeadProteinEvent createDefaultDeadProteinEvent(){
+        DeadProteinEvent proteinEvent = new DeadProteinEvent();
+
+        proteinEvent.setIndex(1);
+        proteinEvent.setName(EventName.dead_protein);
+        proteinEvent.setProteinAc("EBI-xxxxx10");
+        proteinEvent.setUniprotReference("P12345");
+
+        return proteinEvent;
+    }
+
 }
