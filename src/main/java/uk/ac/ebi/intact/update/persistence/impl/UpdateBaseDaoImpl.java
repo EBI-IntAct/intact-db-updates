@@ -1,6 +1,8 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
 import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.ejb.HibernateEntityManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,7 +11,6 @@ import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -47,7 +48,7 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
      * @param entityClass
      * @param entityManager
      */
-     public UpdateBaseDaoImpl( Class<T> entityClass, EntityManager entityManager ) {
+    public UpdateBaseDaoImpl( Class<T> entityClass, EntityManager entityManager ) {
         this.entityClass = entityClass;
     }
 
@@ -56,8 +57,10 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
      * @return
      */
     public int countAll() {
-        final Query query = entityManager.createQuery( "select count(*) from " + entityClass.getSimpleName() + " e" );
-        return ((Long) query.getSingleResult()).intValue();
+        final Long count = (Long) getSession().createCriteria(entityClass)
+                .setProjection(Projections.rowCount())
+                .uniqueResult();
+        return count.intValue();
     }
 
     /**
@@ -65,7 +68,7 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
      * @return
      */
     public List<T> getAll() {
-        return entityManager.createQuery( "select e from " + entityClass.getSimpleName() + " e" ).getResultList();
+        return getSession().createCriteria(entityClass).list();
     }
 
     /**
@@ -73,16 +76,9 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
      * @return
      */
     public T getById(long id) {
-        Query query = entityManager.createQuery( "select e from " + entityClass.getSimpleName()+ " e where e.id = :id" );
-        query.setParameter("id", id);
+        T res = (T) getSession().createCriteria(entityClass).add(Restrictions.eq("id", id)).uniqueResult();
 
-        List<T> results = query.getResultList();
-
-        if (results.isEmpty()){
-           return null;
-        }
-
-        return (T) query.getResultList().iterator().next();
+        return res;
     }
 
     /**
@@ -149,7 +145,7 @@ public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> imple
     }
 
     /**
-     * 
+     *
      * @return
      */
     public Class<T> getEntityClass() {
