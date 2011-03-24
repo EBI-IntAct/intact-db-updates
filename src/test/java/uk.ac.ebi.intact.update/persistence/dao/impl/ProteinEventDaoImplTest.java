@@ -131,11 +131,43 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         Date date = process.getDate();
         Date oldDate = new Date(1);
 
-        Assert.assertEquals(1, eventDao.getAllProteinEventsByProteinAcAndProcessId(proteinAc, id).size());
-        Assert.assertEquals(1, eventDao.getAllProteinEventsByNameAndProcessId(name, id).size());
-        Assert.assertEquals(1, eventDao.getAllProteinEventsByProteinAcAndDate(proteinAc, date).size());
-        Assert.assertEquals(0, eventDao.getAllProteinEventsByProteinAcAndDate(proteinAc, oldDate).size());
-        Assert.assertEquals(1, eventDao.getAllProteinEventsByNameAndDate(name, date).size());
-        Assert.assertEquals(0, eventDao.getAllProteinEventsByNameAndDate(name, oldDate).size());
+        Assert.assertTrue(oldDate.before(date));
+
+        Assert.assertEquals(1, eventDao.getProteinEventsByProteinAcAndProcessId(proteinAc, id).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAndProcessId(name, id).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAndProteinAc(name, proteinAc, id).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByProteinAcAndDate(proteinAc, date).size());
+        Assert.assertEquals(0, eventDao.getProteinEventsByProteinAcAndDate(proteinAc, oldDate).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAndDate(name, date).size());
+        Assert.assertEquals(0, eventDao.getProteinEventsByNameAndDate(name, oldDate).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAndProteinAc(name, proteinAc, date).size());
+    }
+
+    @Test
+    public void search_protein_event_by_update_event_and_event_name_before_after_date(){
+        ProteinEventDao<ProteinEvent> eventDao = getDaoFactory().getProteinEventDao(ProteinEvent.class);
+
+        ProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
+        eventDao.persist(evt);
+
+        EventName name = evt.getName();
+        String proteinAc = evt.getProteinAc();
+
+        UpdateProcess process = getMockBuilder().createUpdateProcess();
+        process.addEvent(evt);
+
+        getDaoFactory().getUpdateProcessDao().persist(process);
+
+        Date date = process.getDate();
+        Date oldDate = new Date(1);
+
+        Assert.assertTrue(oldDate.before(date));
+
+        Assert.assertEquals(0, eventDao.getProteinEventsByProteinAcBeforeDate(proteinAc, oldDate).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByProteinAcAfterDate(proteinAc, oldDate).size());
+        Assert.assertEquals(0, eventDao.getProteinEventsByNameBeforeDate(name, oldDate).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAfterDate(name, oldDate).size());
+        Assert.assertEquals(0, eventDao.getProteinEventsByNameAndProteinAcBefore(name, proteinAc, oldDate).size());
+        Assert.assertEquals(1, eventDao.getProteinEventsByNameAndProteinAcAfter(name, proteinAc, oldDate).size());
     }
 }

@@ -23,19 +23,19 @@ public interface ProteinEventDao<T extends ProteinEvent> extends UpdateBaseDao<T
     List<T> getAllProteinEventsByDate(Date updatedDate);
     List<T> getAllProteinEventsByNameAndProteinAc(EventName name, String proteinAc);
 
-    List<T> getAllProteinEventsByNameAndProcessId(EventName name, long processId);
-    List<T> getAllProteinEventsByProteinAcAndProcessId(String proteinAc, long processId);
+    List<T> getProteinEventsByNameAndProcessId(EventName name, long processId);
+    List<T> getProteinEventsByProteinAcAndProcessId(String proteinAc, long processId);
     List<T> getProteinEventsByNameAndProteinAc(EventName name, String proteinAc, long processId);
 
-    List<T> getAllProteinEventsByNameAndDate(EventName name, Date updatedDate);
-    List<T> getAllProteinEventsByProteinAcAndDate(String proteinAc, Date updatedDate);
+    List<T> getProteinEventsByNameAndDate(EventName name, Date updatedDate);
+    List<T> getProteinEventsByProteinAcAndDate(String proteinAc, Date updatedDate);
     List<T> getProteinEventsByNameAndProteinAc(EventName name, String proteinAc, Date date);
 
-    List<T> getAllProteinEventsByNameBeforeDate(EventName name, Date updatedDate);
-    List<T> getAllProteinEventsByProteinAcBeforeDate(String proteinAc, Date updatedDate);
+    List<T> getProteinEventsByNameBeforeDate(EventName name, Date updatedDate);
+    List<T> getProteinEventsByProteinAcBeforeDate(String proteinAc, Date updatedDate);
     List<T> getProteinEventsByNameAndProteinAcBefore(EventName name, String proteinAc, Date date);
 
-    List<T> getAllProteinEventsByNameAfterDate(EventName name, Date updatedDate);
-    List<T> getAllProteinEventsByProteinAcAfterDate(String proteinAc, Date updatedDate);
+    List<T> getProteinEventsByNameAfterDate(EventName name, Date updatedDate);
+    List<T> getProteinEventsByProteinAcAfterDate(String proteinAc, Date updatedDate);
     List<T> getProteinEventsByNameAndProteinAcAfter(EventName name, String proteinAc, Date date);
 }
