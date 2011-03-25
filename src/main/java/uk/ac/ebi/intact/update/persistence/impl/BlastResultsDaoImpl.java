@@ -1,13 +1,12 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
 
-import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -35,10 +34,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getResultsByIdentitySuperior(float identity) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults as br where br.identity >= :identity" );
-        query.setParameter( "identity", identity);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastResults.class).add(Restrictions.ge("identity", identity)).list();
     }
 
     /**
@@ -48,11 +44,9 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getResultsByActionIdAndIdentitySuperior(float identity, long actionId) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br join br.blastReport as res where br.identity >= :identity and res.id = :id" );
-        query.setParameter( "identity", identity);
-        query.setParameter( "id", actionId);
+        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
+                .add(Restrictions.ge("identity", identity)).add(Restrictions.eq("b.id", actionId)).list();
 
-        return query.getResultList();
     }
 
     /**
@@ -60,9 +54,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getAllSwissprotRemappingResults() {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br where br.tremblAccession <> null" );
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastResults.class).add(Restrictions.isNotNull("tremblAccession")).list();
     }
 
     /**
@@ -71,10 +63,8 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getAllSwissprotRemappingResultsFor(long actionId) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br join br.blastReport as res where br.tremblAccession <> null and res.id = :id" );
-        query.setParameter( "id", actionId);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
+                .add(Restrictions.isNotNull("tremblAccession")).add(Restrictions.eq("b.id", actionId)).list();
     }
 
     /**
@@ -83,10 +73,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getSwissprotRemappingResultsByTremblAc(String tremblAc) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br where br.tremblAccession = :tremblAc" );
-        query.setParameter( "tremblAc", tremblAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastResults.class).add(Restrictions.eq("tremblAccession", tremblAc)).list();
     }
 
     /**
@@ -95,9 +82,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @return
      */
     public List<BlastResults> getBlastResultsByProteinAc(String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select br from BlastResults br join br.blastReport as blast join blast.updateResult as ur where ur.intactAccession = :ac" );
-        query.setParameter( "ac", proteinAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
+                .createAlias("b.updateResult", "u").add(Restrictions.eq("u.intactAccession", proteinAc)).list();
     }
 }
