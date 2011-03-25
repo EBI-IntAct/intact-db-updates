@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,7 +9,6 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -44,10 +44,8 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @return
      */
     public List<BlastReport> getBlastReportsByResultsId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from BlastReport as ar join ar.updateResult as res where res.id = :id" );
-        query.setParameter( "id", id);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastReport.class)
+                .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id)).list();
     }
 
     /**
@@ -56,10 +54,8 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @return
      */
     public List<BlastReport> getActionReportsWithBlastResultsByProteinAc(String protAc) {
-        final Query query = getEntityManager().createQuery( "select a from BlastReport as a join a.updateResult as res where res.intactAccession = :protAc" );
-        query.setParameter( "protAc", protAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastReport.class)
+                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", protAc)).list();
     }
 
     /**
@@ -68,11 +64,9 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @return
      */
     public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByProteinAc(String protAc) {
-        final Query query = getEntityManager().createQuery( "select a from BlastReport as a join a.updateResult as res where res.intactAccession = :protAc and a.name = :name" );
-        query.setParameter( "protAc", protAc);
-        query.setParameter("name", ActionName.BLAST_Swissprot_Remapping);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastReport.class)
+                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", protAc))
+                .add(Restrictions.eq("name", ActionName.BLAST_Swissprot_Remapping)).list();
     }
 
     /**
@@ -81,10 +75,8 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @return
      */
     public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id) {
-        final Query query = getEntityManager().createQuery( "select a from BlastReport as a join a.updateResult as res where res.id = :id and a.name = :name" );
-        query.setParameter( "id", id);
-        query.setParameter("name", ActionName.BLAST_Swissprot_Remapping);
-
-        return query.getResultList();
+        return getSession().createCriteria(BlastReport.class)
+                .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id))
+                .add(Restrictions.eq("name", ActionName.BLAST_Swissprot_Remapping)).list();
     }
 }
