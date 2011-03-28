@@ -45,7 +45,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         picrCrossReferenceDoa.flush();
 
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseName("Ensembl");
+        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Ensembl");
 
         Assert.assertTrue(!picrResults.isEmpty());
         Assert.assertEquals("Ensembl", picrResults.iterator().next().getDatabase());
@@ -62,7 +62,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         picrCrossReferenceDoa.flush();
 
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseName("Uniprot");
+        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Uniprot");
 
         Assert.assertTrue(picrResults.isEmpty());
     }

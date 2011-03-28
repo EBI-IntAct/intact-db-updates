@@ -1,12 +1,12 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 
-import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -33,11 +33,8 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
      * @param databaseName
      * @return
      */
-    public List<PICRCrossReferences> getCrossReferencesByDatabaseName(String databaseName) {
-        final Query query = getEntityManager().createQuery( "select pcr from PICRCrossReferences as pcr where pcr.database = :database" );
-        query.setParameter( "database", databaseName);
-
-        return query.getResultList();
+    public List<PICRCrossReferences> getAllCrossReferencesByDatabaseName(String databaseName) {
+        return getSession().createCriteria(PICRCrossReferences.class).add(Restrictions.eq("database", databaseName)).list();
     }
 
     /**
@@ -47,11 +44,9 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
      * @return
      */
     public List<PICRCrossReferences> getCrossReferencesByDatabaseNameAndActionId(String databaseName, long actionId) {
-        final Query query = getEntityManager().createQuery( "select pcr from PICRCrossReferences as pcr join pcr.picrReport as pr where pcr.database = :database and pr.id = :id" );
-        query.setParameter( "database", databaseName);
-        query.setParameter("id", actionId);
-
-        return query.getResultList();
+        return getSession().createCriteria(PICRCrossReferences.class).
+                createAlias("picrReport", "p").add(Restrictions.eq("database", databaseName))
+                .add(Restrictions.eq("p.id", actionId)).list();
     }
 
     /**
@@ -60,10 +55,10 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
      * @return
      */
     public List<PICRCrossReferences> getCrossReferencesByProteinAc(String protAc) {
-        final Query query = getEntityManager().createQuery( "select pcr from PICRCrossReferences pcr join pcr.picrReport as picr join picr.updateResult as ur where ur.intactAccession = :ac" );
-        query.setParameter( "ac", protAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(PICRCrossReferences.class)
+                .createAlias("picrReport", "p")
+                .createAlias("p.updateResult", "u")
+                .add(Restrictions.eq("u.intactAccession", protAc)).list();
     }
 
 }

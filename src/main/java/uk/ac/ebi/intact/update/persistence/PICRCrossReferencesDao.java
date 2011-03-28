@@ -20,7 +20,7 @@ public interface PICRCrossReferencesDao extends UpdateBaseDao<PICRCrossReference
      * @param databaseName
      * @return the list of PICRCrossReferences with a specific database name
      */
-    public List<PICRCrossReferences> getCrossReferencesByDatabaseName(String databaseName);
+    public List<PICRCrossReferences> getAllCrossReferencesByDatabaseName(String databaseName);
 
     /**
      *
