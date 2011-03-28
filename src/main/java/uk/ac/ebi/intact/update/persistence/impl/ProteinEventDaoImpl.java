@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,7 +10,6 @@ import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.persistence.ProteinEventDao;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.Date;
 import java.util.List;
 
@@ -33,154 +34,132 @@ public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoIm
 
     @Override
     public List<T> getAllProteinEventsByName(EventName name) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe where pe.name = :name" );
-        query.setParameter( "name", name);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name)).list();
     }
 
     @Override
     public List<T> getAllProteinEventsByProteinAc(String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe where pe.proteinAc = :ac" );
-        query.setParameter( "ac", proteinAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getAllProteinEventsByProcessId(long processId) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.id = :id" );
-        query.setParameter( "id", processId);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
     public List<T> getAllProteinEventsByDate(Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.date = :date" );
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1))).list();
     }
 
     @Override
     public List<T> getAllProteinEventsByNameAndProteinAc(EventName name, String proteinAc) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe where pe.proteinAc = :ac and pe.name = :name" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "name", name);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndProcessId(EventName name, long processId) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where p.id = :id and pe.name = :name" );
-        query.setParameter( "id", processId);
-        query.setParameter( "name", name);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.eq("name", name)).add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
     public List<T> getProteinEventsByProteinAcAndProcessId(String proteinAc, long processId) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.proteinAc = :ac and p.id = :id" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "id", processId);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.eq("proteinAc", proteinAc)).add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAc(EventName name, String proteinAc, long processId) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.proteinAc = :ac and pe.name = :name and p.id = :id" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "name", name);
-        query.setParameter( "id", processId);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", proteinAc))
+                .add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date = :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
+                .add(Restrictions.eq("name", name)).list();
     }
 
     @Override
     public List<T> getProteinEventsByProteinAcAndDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.proteinAc = :ac and p.date = :date" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAc(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and pe.proteinAc = :ac and p.date = :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(date, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(date, -1)))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameBeforeDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date <= :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.le("p.date", updatedDate))
+                .add(Restrictions.eq("name", name)).list();
     }
 
     @Override
     public List<T> getProteinEventsByProteinAcBeforeDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.proteinAc = :ac and p.date <= :date" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.le("p.date", updatedDate))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAcBefore(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and pe.proteinAc = :ac and p.date <= :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.le("p.date", date))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAfterDate(EventName name, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and p.date >= :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.ge("p.date", updatedDate))
+                .add(Restrictions.eq("name", name)).list();
     }
 
     @Override
     public List<T> getProteinEventsByProteinAcAfterDate(String proteinAc, Date updatedDate) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.proteinAc = :ac and p.date >= :date" );
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", updatedDate);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.ge("p.date", updatedDate))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 
     @Override
     public List<T> getProteinEventsByNameAndProteinAcAfter(EventName name, String proteinAc, Date date) {
-        final Query query = getEntityManager().createQuery( "select pe from "+ this.getEntityClass().getSimpleName() +" pe join pe.parent as p where pe.name = :name and pe.proteinAc = :ac and p.date >= :date" );
-        query.setParameter( "name", name);
-        query.setParameter( "ac", proteinAc);
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.ge("p.date", date))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
     }
 }
