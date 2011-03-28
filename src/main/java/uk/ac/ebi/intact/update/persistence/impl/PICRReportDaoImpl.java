@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,7 +8,6 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -43,10 +43,8 @@ public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implemen
      * @return
      */
     public List<PICRReport> getPICRReportsByResultsId(long id) {
-        final Query query = getEntityManager().createQuery( "select ar from PICRReport as ar join ar.updateResult as res where res.id = :id" );
-        query.setParameter( "id", id);
-
-        return query.getResultList();
+        return getSession().createCriteria(PICRReport.class).createAlias("updateResult", "u")
+                .add(Restrictions.eq("u.id", id)).list();
     }
 
     /**
@@ -55,9 +53,7 @@ public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implemen
      * @return
      */
     public List<PICRReport> getActionReportsWithPICRCrossReferencesByProteinAc(String protAc) {
-        final Query query = getEntityManager().createQuery( "select a from PICRReport as a join a.updateResult as u where u.intactAccession = :protAc" );
-        query.setParameter( "protAc", protAc);
-
-        return query.getResultList();
+        return getSession().createCriteria(PICRReport.class).createAlias("updateResult", "u")
+                .add(Restrictions.eq("u.intactAccession", protAc)).list();
     }
 }
