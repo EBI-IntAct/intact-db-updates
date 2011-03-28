@@ -48,7 +48,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = report.getId();
 
-        MappingReport r = actionReportDao.getByReportId(id);
+        MappingReport r = actionReportDao.getById(id);
 
         Assert.assertNotNull(r);
         Assert.assertTrue(r.getId() == id);
@@ -64,7 +64,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        MappingReport r = actionReportDao.getByReportId(1);
+        MappingReport r = actionReportDao.getById(1);
 
         Assert.assertNull(r);
     }
@@ -195,92 +195,76 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_PICRReport_successful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
+        final MappingReportDao<PICRReport> actionReportDao = getDaoFactory().getMappingReportDao(PICRReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
-        MappingReport report = getMockBuilder().createPICRReport();
+        PICRReport report = getMockBuilder().createPICRReport();
 
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        List<PICRReport> r = actionReportDao.getAllPICRReports();
+        List<PICRReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(!r.isEmpty());
     }
 
     @Test
     public void search_PICRReport_Unsuccessful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
+        final MappingReportDao<PICRReport> actionReportDao = getDaoFactory().getMappingReportDao(PICRReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         MappingReport report = getMockBuilder().createActionReportWithWarning();
 
-        actionReportDao.persist( report );
-        actionReportDao.flush();
+        getDaoFactory().getMappingReportDao(MappingReport.class).persist( report );
 
-        List<PICRReport> r = actionReportDao.getAllPICRReports();
+        List<PICRReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(r.isEmpty());
     }
 
     @Test
     public void search_BlastReport_successful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
+        final MappingReportDao<BlastReport> actionReportDao = getDaoFactory().getMappingReportDao(BlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
-        MappingReport report = getMockBuilder().createSwissprotRemappingReport();
+        BlastReport report = getMockBuilder().createSwissprotRemappingReport();
 
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        List<BlastReport> r = actionReportDao.getAllBlastReports();
+        List<BlastReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(!r.isEmpty());
     }
 
     @Test
     public void search_BlastReport_Unsuccessful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
+        final MappingReportDao<BlastReport> actionReportDao = getDaoFactory().getMappingReportDao(BlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         MappingReport report = getMockBuilder().createActionReportWithWarning();
 
-        actionReportDao.persist( report );
+        getDaoFactory().getMappingReportDao(MappingReport.class).persist( report );
         actionReportDao.flush();
 
-        List<BlastReport> r = actionReportDao.getAllBlastReports();
+        List<BlastReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(r.isEmpty());
     }
 
     @Test
     public void search_SwissprotRemappingReport_successful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
+        final MappingReportDao<BlastReport> actionReportDao = getDaoFactory().getMappingReportDao(BlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
-        MappingReport report = getMockBuilder().createSwissprotRemappingReport();
+        BlastReport report = getMockBuilder().createSwissprotRemappingReport();
 
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        List<BlastReport> r = actionReportDao.getAllSwissprotRemappingReports();
+        List<BlastReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(!r.isEmpty());
-    }
-
-    @Test
-    public void search_SwissprotRemappingReport_Unsuccessful() throws Exception {
-        final MappingReportDao<MappingReport> actionReportDao = getDaoFactory().getMappingReportDao(MappingReport.class);
-        Assert.assertEquals( 0, actionReportDao.countAll() );
-
-        MappingReport report = getMockBuilder().createBlastReport();
-
-        actionReportDao.persist( report );
-        actionReportDao.flush();
-
-        List<BlastReport> r = actionReportDao.getAllSwissprotRemappingReports();
-
-        Assert.assertTrue(r.isEmpty());
     }
 
     @Test

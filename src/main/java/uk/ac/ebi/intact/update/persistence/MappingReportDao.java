@@ -2,9 +2,7 @@ package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 
 import java.io.Serializable;
@@ -22,75 +20,50 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
 
     /**
      *
-     * @param id
-     * @return the actionReport with this unique identifier in the database, null if it doesn't exist
-     */
-    public MappingReport getByReportId(long id);
-
-    /**
-     *
      * @param name
      * @return the list of MappingReport with a specific name
      */
-    public List<MappingReport> getByActionName(ActionName name);
+    public List<T> getByActionName(ActionName name);
 
     /**
      *
      * @param status
      * @return the list of MappingReport with a specific status
      */
-    public List<MappingReport> getByReportStatus(StatusLabel status);
+    public List<T> getByReportStatus(StatusLabel status);
 
     /**
      *
      * @return the list of MappingReport containing warnings
      */
-    public List<MappingReport> getAllReportsWithWarnings();
+    public List<T> getAllReportsWithWarnings();
 
     /**
      *
      * @return the list of MappingReport containing several possible uniprot accessions
      */
-    public List<MappingReport> getAllReportsWithSeveralPossibleUniprot();
-
-    /**
-     *
-     * @return all the PICRReports
-     */
-    public List<PICRReport> getAllPICRReports();
-
-    /**
-     *
-     * @return all the BlastReports
-     */
-    public List<BlastReport> getAllBlastReports();
-
-    /**
-     *
-     * @return all the swissprot remapping reports
-     */
-    public List<BlastReport> getAllSwissprotRemappingReports();
+    public List<T> getAllReportsWithSeveralPossibleUniprot();
 
     /**
      *
      * @param id
      * @return the list of ActionReports containing warnings and attached to a specific UpdateResult
      */
-    public List<MappingReport> getReportsWithWarningsByResultsId(long id);
+    public List<T> getReportsWithWarningsByResultsId(long id);
 
     /**
      *
      * @param id
      * @return all the ActionReports attached to a specific UpdateResult
      */
-    public List<MappingReport> getAllReportsByResultsId(long id);
+    public List<T> getAllReportsByResultsId(long id);
 
     /**
      *
      * @param id
      * @return the list of ActionReports containing several uniprot accessions and attached to a specific UpdateResult
      */
-    public List<MappingReport> getReportsWithSeveralPossibleUniprotByResultId(long id);
+    public List<T> getReportsWithSeveralPossibleUniprotByResultId(long id);
 
     /**
      * 
@@ -98,7 +71,7 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
      * @param proteinAc
      * @return the list of ActionReports existing for a protein with a specific name
      */
-    public List<MappingReport> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc);
+    public List<T> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc);
 
     /**
      *
@@ -106,7 +79,7 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
      * @param resultId
      * @return the list of ActionReports attached to a result and with a specific name
      */
-    public List<MappingReport> getActionReportsByNameAndResultId(ActionName name, long resultId);
+    public List<T> getActionReportsByNameAndResultId(ActionName name, long resultId);
 
     /**
      *
@@ -114,7 +87,7 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
      * @param proteinAc
      * @return the list of ActionReports existing for a protein and with a specific status
      */
-    public List<MappingReport> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc);
+    public List<T> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc);
 
     /**
      *
@@ -122,13 +95,13 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
      * @param resultId
      * @return the list of ActionReports attached to a result and with a specific status
      */
-    public List<MappingReport> getActionReportsByStatusAndResultId(StatusLabel label, long resultId);
+    public List<T> getActionReportsByStatusAndResultId(StatusLabel label, long resultId);
 
     /**
      *
      * @param proteinAc
      * @return the list of ActionReports containing warnings for this protein
      */
-    public List<MappingReport> getActionReportsWithWarningsByProteinAc(String proteinAc);
+    public List<T> getActionReportsWithWarningsByProteinAc(String proteinAc);
 
 }

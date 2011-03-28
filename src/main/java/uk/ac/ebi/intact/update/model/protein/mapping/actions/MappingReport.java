@@ -105,53 +105,11 @@ public class MappingReport extends HibernatePersistentImpl {
      *
      * @return the list of possible uniprot accessions
      */
-    @Transient
+    @ElementCollection
+    @JoinTable(name = "ia_action2uniprot", joinColumns = @JoinColumn(name="action_id"))
+    @Column(name = "uniprot_ac", nullable = false)
     public Set<String> getPossibleAccessions(){
         return this.possibleAccessions;
-    }
-
-    /**
-     *
-     * @return  the list of possible Uniprot accession separated by a semi-colon in a String.
-     */
-    @Column(name = "possible_uniprot", nullable = true, length = 500)
-    public String getListOfPossibleAccessions(){
-
-        if (this.possibleAccessions.isEmpty()){
-            return null;
-        }
-        StringBuffer concatenedList = new StringBuffer( 1064 );
-
-        for (String prot : this.possibleAccessions){
-            concatenedList.append(prot+";");
-        }
-
-        if (concatenedList.length() > 0){
-            concatenedList.deleteCharAt(concatenedList.length() - 1);
-        }
-
-        return concatenedList.toString();
-    }
-
-    /**
-     * Set the list of possible Uniprot accessions
-     * @param possibleAccessions : the list of possible accessions separated by a semi-colon
-     */
-    public void setListOfPossibleAccessions(String possibleAccessions){
-        this.possibleAccessions.clear();
-
-        if (possibleAccessions != null){
-            if (possibleAccessions.contains(";")){
-                String [] list = possibleAccessions.split(";");
-
-                for (String s : list){
-                    this.possibleAccessions.add(s);
-                }
-            }
-            else {
-                this.possibleAccessions.add(possibleAccessions);
-            }
-        }
     }
 
     /**
