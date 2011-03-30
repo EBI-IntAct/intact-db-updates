@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
+import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,7 +9,6 @@ import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 import uk.ac.ebi.intact.update.persistence.UpdateProcessDao;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.util.Date;
 import java.util.List;
 
@@ -32,25 +33,20 @@ public class UpdateProcessDaoImpl extends UpdateBaseDaoImpl<UpdateProcess> imple
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesByDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date = :date" );
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(UpdateProcess.class)
+                .add(Restrictions.lt("date", DateUtils.addDays(date, 1)))
+                .add(Restrictions.gt("date", DateUtils.addDays(date, -1))).list();
     }
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesBeforeDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date <= :date" );
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(UpdateProcess.class)
+                .add(Restrictions.le("date", date)).list();
     }
 
     @Override
     public List<UpdateProcess> getAllUpdateProcessesAfterDate(Date date) {
-        final Query query = getEntityManager().createQuery( "select p from UpdateProcess p where p.date >= :date" );
-        query.setParameter( "date", date);
-
-        return query.getResultList();
+        return getSession().createCriteria(UpdateProcess.class)
+                .add(Restrictions.ge("date", date)).list();
     }
 }

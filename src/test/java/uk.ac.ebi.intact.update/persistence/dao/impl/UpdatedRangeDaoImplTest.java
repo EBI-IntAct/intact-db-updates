@@ -18,7 +18,7 @@ import java.util.Date;
  * @since <pre>22/03/11</pre>
  */
 
-public class UpdateRangeDaoImplTest extends UpdateBasicTestCase{
+public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void create_updated_range(){
