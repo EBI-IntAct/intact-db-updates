@@ -8,8 +8,8 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
@@ -195,10 +195,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated updateResult
      */
-    public UpdateMappingResults createUpdateResult(){
-        UpdateMappingResults results = new UpdateMappingResults();
+    public IdentificationResults createUpdateResult(){
+        IdentificationResults results = new IdentificationResults();
 
-        results.setIntactAccession("EBI-0001001");
         results.setFinalUniprotId("P01234");
         return results;
     }
@@ -207,10 +206,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated update result without a final uniprot ac
      */
-    public UpdateMappingResults createUnsuccessfulUpdateResult(){
-        UpdateMappingResults results = new UpdateMappingResults();
+    public IdentificationResults createUnsuccessfulUpdateResult(){
+        IdentificationResults results = new IdentificationResults();
 
-        results.setIntactAccession("EBI-0001002");
         return results;
     }
 

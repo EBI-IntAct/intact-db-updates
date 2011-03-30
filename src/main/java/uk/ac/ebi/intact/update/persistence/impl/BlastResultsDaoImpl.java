@@ -75,14 +75,4 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
     public List<BlastResults> getSwissprotRemappingResultsByTremblAc(String tremblAc) {
         return getSession().createCriteria(BlastResults.class).add(Restrictions.eq("tremblAccession", tremblAc)).list();
     }
-
-    /**
-     *
-     * @param proteinAc
-     * @return
-     */
-    public List<BlastResults> getBlastResultsByProteinAc(String proteinAc) {
-        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
-                .createAlias("b.updateResult", "u").add(Restrictions.eq("u.intactAccession", proteinAc)).list();
-    }
 }

@@ -50,27 +50,6 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
 
     /**
      *
-     * @param protAc
-     * @return
-     */
-    public List<BlastReport> getActionReportsWithBlastResultsByProteinAc(String protAc) {
-        return getSession().createCriteria(BlastReport.class)
-                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", protAc)).list();
-    }
-
-    /**
-     *
-     * @param protAc
-     * @return
-     */
-    public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByProteinAc(String protAc) {
-        return getSession().createCriteria(BlastReport.class)
-                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", protAc))
-                .add(Restrictions.eq("name", ActionName.BLAST_Swissprot_Remapping)).list();
-    }
-
-    /**
-     *
      * @param id
      * @return
      */

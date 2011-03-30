@@ -110,18 +110,6 @@ public class MappingReportDaoImpl<T extends MappingReport> extends UpdateBaseDao
     /**
      *
      * @param name
-     * @param proteinAc
-     * @return
-     */
-    public List<T> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", proteinAc))
-                .add(Restrictions.eq("name", name)).list();
-    }
-
-    /**
-     *
-     * @param name
      * @param resultId
      * @return
      */
@@ -129,18 +117,6 @@ public class MappingReportDaoImpl<T extends MappingReport> extends UpdateBaseDao
         return getSession().createCriteria(getEntityClass())
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", resultId))
                 .add(Restrictions.eq("name", name)).list();
-    }
-
-    /**
-     *
-     * @param status
-     * @param proteinAc
-     * @return
-     */
-    public List<T> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("updateResult", "u").add(Restrictions.eq("u.intactAccession", proteinAc))
-                .add(Restrictions.eq("statusLabel", status)).list();
     }
 
     /**
@@ -153,16 +129,5 @@ public class MappingReportDaoImpl<T extends MappingReport> extends UpdateBaseDao
         return getSession().createCriteria(getEntityClass())
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", resultId))
                 .add(Restrictions.eq("statusLabel", label)).list();
-    }
-
-    /**
-     * 
-     * @param proteinAc
-     * @return
-     */
-    public List<T> getActionReportsWithWarningsByProteinAc(String proteinAc) {
-        return getSession().createCriteria(getEntityClass()).createAlias("updateResult", "u")
-                .add(Restrictions.isNotEmpty("warnings"))
-                .add(Restrictions.eq("u.intactAccession", proteinAc)).list();
     }
 }

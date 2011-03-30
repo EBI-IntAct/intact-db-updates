@@ -22,10 +22,4 @@ public interface PICRReportDao extends MappingReportDao<PICRReport> {
      */
     public List<PICRReport> getPICRReportsByResultsId(long actionId);
 
-    /**
-     *
-     * @param protAc
-     * @return the list of PICRReports for a protein
-     */
-    public List<PICRReport> getActionReportsWithPICRCrossReferencesByProteinAc(String protAc);
 }

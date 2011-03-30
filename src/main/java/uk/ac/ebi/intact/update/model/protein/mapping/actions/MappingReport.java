@@ -4,7 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class MappingReport extends HibernatePersistentImpl {
     /**
      * The parent object of this report. We store the parent of this object only if it is an instance of UpdateMappingResults
      */
-    protected UpdateMappingResults updateResult;
+    protected IdentificationResults updateResult;
 
     /**
      * Create a new report for an action with a specific name
@@ -241,7 +241,7 @@ public class MappingReport extends HibernatePersistentImpl {
      */
     @ManyToOne
     @JoinColumn(name="result_id")
-    public UpdateMappingResults getUpdateResult() {
+    public IdentificationResults getUpdateResult() {
         return updateResult;
     }
 
@@ -249,7 +249,7 @@ public class MappingReport extends HibernatePersistentImpl {
      * Set the parent of this object only if it is an instance of UpdateMappingResults
      * @param result
      */
-    public void setUpdateResult(UpdateMappingResults result) {
+    public void setUpdateResult(IdentificationResults result) {
         this.updateResult = result;
     }
 

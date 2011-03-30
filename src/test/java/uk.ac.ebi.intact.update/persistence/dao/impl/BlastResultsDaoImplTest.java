@@ -4,11 +4,9 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
-import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -248,47 +246,5 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         BlastResults results = blastResultDao.getById(1);
 
         Assert.assertNull(results);
-    }
-
-    @Test
-    public void search_blast_results_By_ProteinAc_successful() throws Exception {
-        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-        final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-
-        UpdateMappingResults update = getMockBuilder().createUpdateResult();
-        BlastReport report = getMockBuilder().createBlastReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
-        report.addBlastMatchingProtein(blastResults);
-        update.addActionReport(report);
-
-        updateResultsDao.persist( update );
-        updateResultsDao.flush();
-
-        List<BlastResults> results = blastResultsDao.getBlastResultsByProteinAc("EBI-0001001");
-
-        Assert.assertTrue(!results.isEmpty());
-    }
-
-    @Test
-    public void search_blast_results_By_ProteinAc_Unsuccessful() throws Exception {
-        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-        final BlastResultsDao blastResultsDao = getDaoFactory().getBlastResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-
-        UpdateMappingResults update = getMockBuilder().createUpdateResult();
-        BlastReport report = getMockBuilder().createBlastReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
-        report.addBlastMatchingProtein(blastResults);
-        update.addActionReport(report);
-
-        updateResultsDao.persist( update );
-        updateResultsDao.flush();
-
-        List<BlastResults> results = blastResultsDao.getBlastResultsByProteinAc("EBI-000123");
-
-        Assert.assertTrue(results.isEmpty());
     }
 }

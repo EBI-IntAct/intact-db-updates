@@ -49,16 +49,4 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
                 .add(Restrictions.eq("p.id", actionId)).list();
     }
 
-    /**
-     *
-     * @param protAc
-     * @return
-     */
-    public List<PICRCrossReferences> getCrossReferencesByProteinAc(String protAc) {
-        return getSession().createCriteria(PICRCrossReferences.class)
-                .createAlias("picrReport", "p")
-                .createAlias("p.updateResult", "u")
-                .add(Restrictions.eq("u.intactAccession", protAc)).list();
-    }
-
 }

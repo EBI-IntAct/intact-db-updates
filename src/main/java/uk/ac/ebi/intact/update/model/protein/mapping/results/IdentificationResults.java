@@ -17,7 +17,8 @@ import java.util.List;
  * @version $Id$
  * @since <pre>24-Mar-2010</pre>
  */
-@MappedSuperclass
+@Entity
+@Table( name = "ia_mapping_result" )
 public class IdentificationResults extends HibernatePersistentImpl{
 
     /**
@@ -79,8 +80,20 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * add a new action report to the list of reports
      * @param report : action report
      */
-    public void addActionReport(MappingReport report){
-        this.listOfActions.add(report);
+    public boolean addActionReport(MappingReport report){
+        if (this.listOfActions.add(report)){
+            report.setUpdateResult(this);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeActionReport(MappingReport report){
+        if (this.listOfActions.remove(report)){
+            report.setUpdateResult(null);
+            return true;
+        }
+        return false;
     }
 
     /**

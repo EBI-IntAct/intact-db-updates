@@ -66,7 +66,7 @@ public class UpdateDaoFactory implements Serializable{
      * The updateResultsDao instance
      */
     @Autowired
-    private UpdateMappingDao updateResultsDao;
+    private IdentificationResultsDao updateResultsDao;
 
     /**
      * The ivalidRangeDao instance
@@ -148,9 +148,9 @@ public class UpdateDaoFactory implements Serializable{
 
     /**
      *
-     * @return the UpdateMappingDao
+     * @return the IdentificationResultsDao
      */
-    public UpdateMappingDao getUpdateResultsDao() {
+    public IdentificationResultsDao getUpdateResultsDao() {
         return updateResultsDao;
     }
 

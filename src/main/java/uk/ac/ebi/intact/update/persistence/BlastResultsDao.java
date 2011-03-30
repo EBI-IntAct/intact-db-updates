@@ -49,11 +49,4 @@ public interface BlastResultsDao extends UpdateBaseDao<BlastResults> {
      * @return The list of BlastResults obtained from a Swissprot remapping process and with a specific trembl Ac
      */
     public List<BlastResults> getSwissprotRemappingResultsByTremblAc(String tremblAc);
-
-    /**
-     *
-     * @param proteinAc
-     * @return The list of BlastResults for a specific protein
-     */
-    public List<BlastResults> getBlastResultsByProteinAc(String proteinAc);
 }

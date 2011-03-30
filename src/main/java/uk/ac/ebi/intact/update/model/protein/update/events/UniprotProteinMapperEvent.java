@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 
 import javax.persistence.*;
@@ -19,13 +19,13 @@ import javax.persistence.*;
 @DiscriminatorValue("UniprotProteinMapperEvent")
 public class UniprotProteinMapperEvent extends ProteinEvent{
 
-    UpdateMappingResults identificationResults;
+    IdentificationResults identificationResults;
 
     public UniprotProteinMapperEvent(){
         super();
     }
 
-    public UniprotProteinMapperEvent(UpdateProcess process, EventName name, Protein protein, int index, UpdateMappingResults identificationResults){
+    public UniprotProteinMapperEvent(UpdateProcess process, EventName name, Protein protein, int index, IdentificationResults identificationResults){
         super(process, name, protein, index);
 
         this.identificationResults = identificationResults;
@@ -34,11 +34,11 @@ public class UniprotProteinMapperEvent extends ProteinEvent{
     @OneToOne(orphanRemoval = true, cascade = {
             CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     @JoinColumn(name = "identification_id")
-    public UpdateMappingResults getIdentificationResults() {
+    public IdentificationResults getIdentificationResults() {
         return identificationResults;
     }
 
-    public void setIdentificationResults(UpdateMappingResults identificationResults) {
+    public void setIdentificationResults(IdentificationResults identificationResults) {
         this.identificationResults = identificationResults;
     }
 

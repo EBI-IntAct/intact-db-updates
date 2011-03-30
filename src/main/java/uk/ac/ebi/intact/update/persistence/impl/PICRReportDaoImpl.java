@@ -46,14 +46,4 @@ public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implemen
         return getSession().createCriteria(PICRReport.class).createAlias("updateResult", "u")
                 .add(Restrictions.eq("u.id", id)).list();
     }
-
-    /**
-     * 
-     * @param protAc
-     * @return
-     */
-    public List<PICRReport> getActionReportsWithPICRCrossReferencesByProteinAc(String protAc) {
-        return getSession().createCriteria(PICRReport.class).createAlias("updateResult", "u")
-                .add(Restrictions.eq("u.intactAccession", protAc)).list();
-    }
 }

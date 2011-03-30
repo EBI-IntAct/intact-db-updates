@@ -4,11 +4,9 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.UpdateMappingResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
-import uk.ac.ebi.intact.update.persistence.UpdateMappingDao;
 
 import java.util.List;
 
@@ -142,47 +140,5 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         PICRCrossReferences picrResults = picrCrossReferenceDoa.getById(1);
 
         Assert.assertNull(picrResults);
-    }
-
-    @Test
-    public void search_Picr_references_By_ProteinAc_successful() throws Exception {
-        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-        final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
-        Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );
-
-        UpdateMappingResults update = getMockBuilder().createUpdateResult();
-        PICRReport report = getMockBuilder().createPICRReport();
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
-        report.addPICRCrossReference(picrRefs);
-        update.addActionReport(report);
-
-        updateResultsDao.persist( update );
-        updateResultsDao.flush();
-
-        List<PICRCrossReferences> results = picrCrossReferencesDao.getCrossReferencesByProteinAc("EBI-0001001");
-
-        Assert.assertTrue(!results.isEmpty());
-    }
-
-    @Test
-    public void search_Picr_references_By_ProteinAc_Unsuccessful() throws Exception {
-        final UpdateMappingDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, updateResultsDao.countAll() );
-        final PICRCrossReferencesDao picrCrossReferencesDao = getDaoFactory().getPicrCrossReferencesDao();
-        Assert.assertEquals( 0, picrCrossReferencesDao.countAll() );
-
-        UpdateMappingResults update = getMockBuilder().createUpdateResult();
-        PICRReport report = getMockBuilder().createPICRReport();
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
-        report.addPICRCrossReference(picrRefs);
-        update.addActionReport(report);
-
-        updateResultsDao.persist( update );
-        updateResultsDao.flush();
-
-        List<PICRCrossReferences> results = picrCrossReferencesDao.getCrossReferencesByProteinAc("EBI-01234");
-
-        Assert.assertTrue(results.isEmpty());
     }
 }

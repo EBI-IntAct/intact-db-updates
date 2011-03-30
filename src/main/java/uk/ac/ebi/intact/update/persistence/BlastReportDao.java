@@ -24,20 +24,6 @@ public interface BlastReportDao extends MappingReportDao<BlastReport> {
 
     /**
      *
-     * @param protAc
-     * @return the list of BlastReports for a specific protein
-     */
-    public List<BlastReport> getActionReportsWithBlastResultsByProteinAc(String protAc);
-
-    /**
-     *
-     * @param protAc
-     * @return the list of blastReports containing swissprot remapping information for a specific protein
-     */
-    public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByProteinAc(String protAc);
-
-    /**
-     *
      * @param id
      * @return the list of BlastReports containing swissprot remapping information for a specific update result
      */

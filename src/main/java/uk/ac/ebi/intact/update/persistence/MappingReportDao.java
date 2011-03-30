@@ -66,14 +66,6 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
     public List<T> getReportsWithSeveralPossibleUniprotByResultId(long id);
 
     /**
-     * 
-     * @param name
-     * @param proteinAc
-     * @return the list of ActionReports existing for a protein with a specific name
-     */
-    public List<T> getActionReportsByNameAndProteinAc(ActionName name, String proteinAc);
-
-    /**
      *
      * @param name
      * @param resultId
@@ -83,25 +75,9 @@ public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao
 
     /**
      *
-     * @param status
-     * @param proteinAc
-     * @return the list of ActionReports existing for a protein and with a specific status
-     */
-    public List<T> getActionReportsByStatusAndProteinAc(StatusLabel status, String proteinAc);
-
-    /**
-     *
      * @param label
      * @param resultId
      * @return the list of ActionReports attached to a result and with a specific status
      */
     public List<T> getActionReportsByStatusAndResultId(StatusLabel label, long resultId);
-
-    /**
-     *
-     * @param proteinAc
-     * @return the list of ActionReports containing warnings for this protein
-     */
-    public List<T> getActionReportsWithWarningsByProteinAc(String proteinAc);
-
 }
