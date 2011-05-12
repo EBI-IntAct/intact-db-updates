@@ -93,76 +93,106 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
 
                 // for each parent, we check that the parent ac is still valid in the database. If not, try to remap the parent ac
                 for (InteractorXref parent : parents){
-                    // the protein parent
-                    Protein par = proteinDao.getByAc(parent.getPrimaryId());
 
-                    if (par == null){
+                    if (parent.getPrimaryId().equals(protein.getAc())){
+                        if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                    ") which refers to itself. It is not valid and will be remapped."
+                                    , UpdateError.invalid_parent_xref, protein));
 
-                        DaoFactory factory = evt.getDataContext().getDaoFactory();
-
-                        // get the intact database
-                        CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
-
-                        if (intact == null){
-                            intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
-                            factory.getCvObjectDao(CvDatabase.class).persist(intact);
+                            InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                            processor.fireOnInvalidIntactParentFound(invalidEvent);
                         }
+                        transcriptsToReview.add(protein);
+                    }
+                    else {
+                        // the protein parent
+                        Protein par = proteinDao.getByAc(parent.getPrimaryId());
 
-                        // get the intact-secondary xref qualifier
-                        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+                        if (par == null){
 
-                        if (intactSecondary == null){
-                            intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
-                            factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
-                        }
+                            DaoFactory factory = evt.getDataContext().getDaoFactory();
 
-                        // collect all proteins in intact having the parent ac as intact-secondary
-                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
+                            // get the intact database
+                            CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
-                        // the protein ac cannot be remapped, an error is logged in 'process_errors.csv'
-                        // the protein cannot be updated
-                        if (remappedParents.size() == 0){
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
-                                        ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
-                                        , UpdateError.dead_parent_xref, protein));
-
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                            if (intact == null){
+                                intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+                                factory.getCvObjectDao(CvDatabase.class).persist(intact);
                             }
-                            transcriptsToReview.add(protein);
-                        }
-                        // only one protein in intact has the parent ac as intact-secondary.
-                        // update the parent xref and log in 'invalid_parent.csv'
-                        else if (remappedParents.size() == 1){
-                            parentAc.add(remappedParents.iterator().next().getAc());
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                            // get the intact-secondary xref qualifier
+                            CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+
+                            if (intactSecondary == null){
+                                intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
+                                factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
                             }
-                            parent.setPrimaryId(remappedParents.iterator().next().getAc());
-                            xRefDao.update(parent);
+
+                            // collect all proteins in intact having the parent ac as intact-secondary
+                            List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
+
+                            // the protein ac cannot be remapped, an error is logged in 'process_errors.csv'
+                            // the protein cannot be updated
+                            if (remappedParents.size() == 0){
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
+                                            , UpdateError.dead_parent_xref, protein));
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                                transcriptsToReview.add(protein);
+                            }
+                            // only one protein in intact has the parent ac as intact-secondary.
+                            // update the parent xref and log in 'invalid_parent.csv'
+                            else if (remappedParents.size() == 1){
+
+                                parentAc.add(remappedParents.iterator().next().getAc());
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                                parent.setPrimaryId(remappedParents.iterator().next().getAc());
+                                xRefDao.update(parent);
+                            }
+                            // we have more than one protein having the parent ac as intact-secondary.
+                            // we cannot choose, we log in 'process_errors.csv' and we cannot update the protein
+                            else {
+                                canBeUpdated = false;
+
+                                for (Protein p : remappedParents){
+                                    parentAc.add(p.getAc());
+                                }
+
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
+                                            , UpdateError.several_intact_parents, protein));
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                            }
                         }
-                        // we have more than one protein having the parent ac as intact-secondary.
-                        // we cannot choose, we log in 'process_errors.csv' and we cannot update the protein
                         else {
-                            canBeUpdated = false;
+                            if (ProteinUtils.isFeatureChain(par) || ProteinUtils.isSpliceVariant(par)){
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which refers to another protein transcript. It is not valid and will be remapped."
+                                            , UpdateError.invalid_parent_xref, protein));
 
-                            for (Protein p : remappedParents){
-                                parentAc.add(p.getAc());
-                            }
-
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
-                                        ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
-                                        , UpdateError.several_intact_parents, protein));
-
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                                transcriptsToReview.add(protein);
                             }
                         }
                     }
@@ -246,74 +276,104 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
 
                 // check the consistencye of each parent xref
                 for (InteractorXref parent : parents){
-                    Protein par = proteinDao.getByAc(parent.getPrimaryId());
+                    if (parent.getPrimaryId().equals(protein.getAc())){
+                        if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                    ") which refers to itself. It is not valid and will be remapped."
+                                    , UpdateError.invalid_parent_xref, protein));
 
-                    if (par == null){
-                        DaoFactory factory = evt.getDataContext().getDaoFactory();
-                        CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
-
-                        if (intact == null){
-                            intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
-                            factory.getCvObjectDao(CvDatabase.class).persist(intact);
+                            InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                            processor.fireOnInvalidIntactParentFound(invalidEvent);
                         }
 
-                        CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
-
-                        if (intactSecondary == null){
-                            intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
-                            factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
+                        if (!proteinWithoutParents.contains(protein)){
+                            proteinWithoutParents.add(protein);
                         }
+                    }
+                    else{
+                        Protein par = proteinDao.getByAc(parent.getPrimaryId());
 
-                        List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
+                        if (par == null){
+                            DaoFactory factory = evt.getDataContext().getDaoFactory();
+                            CvDatabase intact = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
 
-                        if (remappedParents.size() == 0){
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
-                                        ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
-                                        , UpdateError.dead_parent_xref, protein, evt.getUniprotServiceResult().getQuerySentToService()));
-
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                            if (intact == null){
+                                intact = CvObjectUtils.createCvObject(parent.getOwner(), CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+                                factory.getCvObjectDao(CvDatabase.class).persist(intact);
                             }
 
-                            if (!transcriptToDelete.contains(p)){
-                                transcriptToDelete.add(p);
+                            CvXrefQualifier intactSecondary = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+
+                            if (intactSecondary == null){
+                                intactSecondary = CvObjectUtils.createCvObject(parent.getOwner(), CvXrefQualifier.class, null, "intact-secondary");
+                                factory.getCvObjectDao(CvXrefQualifier.class).persist(intactSecondary);
                             }
-                            if (!proteinWithoutParents.contains(protein)){
-                                proteinWithoutParents.add(protein);
+
+                            List<ProteinImpl> remappedParents = proteinDao.getByXrefLike(intact, intactSecondary, parent.getPrimaryId());
+
+                            if (remappedParents.size() == 0){
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
+                                            , UpdateError.dead_parent_xref, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+
+                                if (!proteinWithoutParents.contains(protein)){
+                                    proteinWithoutParents.add(protein);
+                                }
                             }
-                        }
-                        else if (remappedParents.size() == 1){
-                            parentAc.add(remappedParents.iterator().next().getAc());
+                            else if (remappedParents.size() == 1){
+                                parentAc.add(remappedParents.iterator().next().getAc());
 
-                            parent.setPrimaryId(remappedParents.iterator().next().getAc());
-                            xRefDao.update(parent);
+                                parent.setPrimaryId(remappedParents.iterator().next().getAc());
+                                xRefDao.update(parent);
 
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                            }
+                            else {
+                                for (Protein p2 : remappedParents){
+                                    parentAc.add(p2.getAc());
+                                }
+
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
+                                            , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+
+                                if (!transcriptToDelete.contains(p)){
+                                    transcriptToDelete.add(p);
+                                }
                             }
                         }
                         else {
-                            for (Protein p2 : remappedParents){
-                                parentAc.add(p2.getAc());
-                            }
+                            if (ProteinUtils.isFeatureChain(par) || ProteinUtils.isSpliceVariant(par)){
+                                if (evt.getSource() instanceof ProteinUpdateProcessor ){
+                                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
+                                            ") which refers to another protein transcript. It is not valid and will be remapped."
+                                            , UpdateError.invalid_parent_xref, protein));
 
-                            if (evt.getSource() instanceof ProteinUpdateProcessor ){
-                                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
-                                        ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
-                                        , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
-
-                                InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                processor.fireOnInvalidIntactParentFound(invalidEvent);
-                            }
-
-                            if (!transcriptToDelete.contains(p)){
-                                transcriptToDelete.add(p);
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
+                                }
+                                if (!proteinWithoutParents.contains(protein)){
+                                    proteinWithoutParents.add(protein);
+                                }
                             }
                         }
                     }
@@ -404,10 +464,10 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                     for (InteractorXref ref : refs){
                         if (CvDatabase.INTACT_MI_REF.equals(ref.getCvDatabase().getIdentifier())){
                             if (ref.getCvXrefQualifier() != null){
-                                if (CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier()) || CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier())){
-                                     if (!ref.getPrimaryId().equals(masterAc)){
-                                         ProteinTools.deleteInteractorXRef(t, context, ref, processor);
-                                     }
+                                if (CvXrefQualifier.ISOFORM_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier()) || CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier())){
+                                    if (!ref.getPrimaryId().equals(masterAc)){
+                                        ProteinTools.deleteInteractorXRef(t, context, ref, processor);
+                                    }
                                 }
                             }
                         }

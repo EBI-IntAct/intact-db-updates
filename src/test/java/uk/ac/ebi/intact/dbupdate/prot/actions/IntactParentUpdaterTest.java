@@ -72,7 +72,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(parentToFind);
 
         Protein isoform = getMockBuilder().createProtein("P12345-1", "isoform");
-        isoform.addXref(getMockBuilder().createXref(parentToFind, oldParent, isoformParent, intact));
+        isoform.addXref(getMockBuilder().createXref(isoform, oldParent, isoformParent, intact));
 
         getCorePersister().saveOrUpdate(isoform);
 
@@ -85,6 +85,36 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
         Assert.assertTrue(hasXRef(isoform, parentToFind.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertEquals(1, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());
+
+        context.commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void remap_parent_invalid_parent(){
+        DataContext context = getDataContext();
+        TransactionStatus status = context.beginTransaction();
+
+        CvDatabase intact = context.getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
+        CvXrefQualifier intactSecondary = context.getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
+        CvXrefQualifier isoformParent = context.getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
+
+        Protein isoform = getMockBuilder().createProtein("P12345-1", "isoform");
+        getCorePersister().saveOrUpdate(isoform);
+
+        String oldParent = isoform.getAc();
+
+        isoform.addXref(getMockBuilder().createXref(isoform, oldParent, isoformParent, intact));
+        getCorePersister().saveOrUpdate(isoform);
+
+        Assert.assertTrue(hasXRef(isoform, oldParent, CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
+
+        List<Protein> transcriptsToReview = new ArrayList<Protein>();
+        boolean canUpdate = intactUpdater.checkConsistencyProteinTranscript(new ProteinEvent(new ProteinUpdateProcessor(), context, isoform), transcriptsToReview);
+
+        Assert.assertTrue(canUpdate);
+        Assert.assertEquals(1, transcriptsToReview.size());
 
         context.commitTransaction(status);
     }
