@@ -17,7 +17,7 @@ import java.io.IOException;
  * @since <pre>03-Dec-2010</pre>
  */
 
-public class GlobaldProteinUpdate {
+public class GlobalProteinUpdate {
 
     public static void main(String [] args){
 

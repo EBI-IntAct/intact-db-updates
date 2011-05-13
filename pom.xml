@@ -56,13 +56,52 @@
                                 <!-- automatically creates the classpath using all project dependencies,
                           also adding the project build directory -->
                                 <classpath/>
-                                <argument>uk.ac.ebi.intact.GlobaldProteinUpdate</argument>
+                                <argument>uk.ac.ebi.intact.GlobalProteinUpdate</argument>
                                 <!-- database to update -->
                                 <argument>${database}</argument>
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
                                 <!-- boolean value to enable or not blast process when remapping proteins -->
                                 <argument>${blast}</argument>
+                            </arguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>selection-update</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-Xmx2096m</argument>
+                                <argument>-classpath</argument>
+                                <!-- automatically creates the classpath using all project dependencies,
+                          also adding the project build directory -->
+                                <classpath/>
+                                <argument>uk.ac.ebi.intact.SelectionProteinUpdate</argument>
+                                <!-- database to update -->
+                                <argument>${database}</argument>
+                                <!-- repository where to find the log files -->
+                                <argument>${folder}</argument>
+                                <!-- boolean value to enable or not blast process when remapping proteins -->
+                                <argument>${blast}</argument>
+                                <!-- file containing intact acs of proteins, one per line -->
+                                <argument>${inputFile}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
