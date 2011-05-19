@@ -268,12 +268,12 @@ public class BioSourceServiceImpl implements BioSourceService {
                 }
 
                 //Sometimes the common name is null in Newt, therefore we choose as shortlabel the taxid.
-                String shortlabel = taxTerm.getCommonName();
+                String shortlabel = taxTerm.getMnemonic() != null ? taxTerm.getMnemonic() : taxTerm.getCommonName();
                 if(shortlabel == null || (shortlabel != null && shortlabel.trim().length() == 0)){
                     shortlabel = taxTerm.getTaxid() + "";
                 }
 
-                bs = createAndPersistBioSource( shortlabel,
+                bs = createAndPersistBioSource( shortlabel.toLowerCase(),
                                                 taxTerm.getScientificName(),
                                                 String.valueOf( taxTerm.getTaxid() ) );
             }
