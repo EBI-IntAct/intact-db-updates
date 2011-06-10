@@ -62,7 +62,7 @@ import java.util.Map;
 public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
     private static final Log log = LogFactory.getLog( UniprotProteinUpdaterImpl.class );
-    private static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
+    public static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
 
     private final int MAX_RETRY_ATTEMPTS = 100;
     private int retryAttempt = 0;
@@ -737,7 +737,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
     }
 
-    private String generateProteinShortlabel( UniprotProtein uniprotProtein ) {
+    public static String generateProteinShortlabel( UniprotProtein uniprotProtein ) {
 
         String name = null;
 
