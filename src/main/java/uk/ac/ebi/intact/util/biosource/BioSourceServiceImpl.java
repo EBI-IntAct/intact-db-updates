@@ -112,6 +112,49 @@ public class BioSourceServiceImpl implements BioSourceService {
         return biosource;
     }
 
+        /**
+     * Create a BioSource
+     *
+     * @param shortlabel shortlabel of the Biosource.
+     * @param fullname   fullname of the Biosource.
+     * @param taxid      taxid of the Biosource.
+     *
+     * @return a persistent BioSource.
+     */
+    private BioSource createBioSource( String shortlabel, String fullname, String taxid ) throws BioSourceServiceException {
+
+        if( log.isDebugEnabled() ) {
+            log.debug( "Persisting BioSource(" + taxid + ", " + shortlabel + ", " + fullname + ")" );
+        }
+
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+        DaoFactory daoFactory = dataContext.getDaoFactory();
+
+        // Instanciate it
+        BioSource bioSource = new BioSource( institution, shortlabel, taxid );
+        bioSource.setFullName( fullname );
+
+        // Add Newt Xref
+
+        // get source database
+        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
+        final String miRef = taxonomyService.getSourceDatabaseMiRef();
+        CvDatabase db = dbDao.getByPsiMiRef( miRef );
+        if ( db == null ) {
+            final String name = taxonomyService.getClass().getSimpleName();
+            throw new IllegalStateException( "Could not find a CvDatabase based on the MI reference given by the " +
+                    "TaxonomyService[" + name + "]: " + miRef );
+        }
+
+        // retrieve identity qualifier
+        CvObjectDao<CvXrefQualifier> qDao = daoFactory.getCvObjectDao( CvXrefQualifier.class );
+        CvXrefQualifier identity = qDao.getByPsiMiRef( CvXrefQualifier.IDENTITY_MI_REF );
+
+        BioSourceXref xref = new BioSourceXref( institution, db, taxid, identity );
+        bioSource.addXref( xref );
+
+        return bioSource;
+    }
 
     /**
      * Create a BioSource and save it in the database.
@@ -146,7 +189,7 @@ public class BioSourceServiceImpl implements BioSourceService {
         if ( db == null ) {
             final String name = taxonomyService.getClass().getSimpleName();
             throw new IllegalStateException( "Could not find a CvDatabase based on the MI reference given by the " +
-                                             "TaxonomyService[" + name + "]: " + miRef );
+                    "TaxonomyService[" + name + "]: " + miRef );
         }
 
         // retrieve identity qualifier
@@ -240,7 +283,7 @@ public class BioSourceServiceImpl implements BioSourceService {
         if ( taxid == null ) {
             throw new NullPointerException( "taxid must not be null." );
         }
-        
+
         int taxidInt;
         try {
             taxidInt = Integer.parseInt( taxid );
@@ -274,8 +317,59 @@ public class BioSourceServiceImpl implements BioSourceService {
                 }
 
                 bs = createAndPersistBioSource( shortlabel.toLowerCase(),
-                                                taxTerm.getScientificName(),
-                                                String.valueOf( taxTerm.getTaxid() ) );
+                        taxTerm.getScientificName(),
+                        String.valueOf( taxTerm.getTaxid() ) );
+            }
+        }
+
+        if ( bs == null ) {
+            throw new BioSourceServiceException( "Failed to create a valid BioSource(taxid:" + taxid + ")" );
+        }
+
+        return bs;
+    }
+
+    public BioSource getUnsavedBiosourceByTaxid( String taxid ) throws BioSourceServiceException {
+
+        if ( taxid == null ) {
+            throw new NullPointerException( "taxid must not be null." );
+        }
+
+        int taxidInt;
+        try {
+            taxidInt = Integer.parseInt( taxid );
+        } catch ( NumberFormatException e ) {
+            throw new BioSourceServiceException( "A taxid is expected to be an Integer value: " + taxid );
+        }
+
+        BioSource bs = searchIntactByTaxid( taxid );
+        if ( bs == null ) {
+            // it is not yet in IntAct
+            bs = handleSpecialBiosource( taxid );
+
+            if ( bs == null ) {
+                // it is not a special BioSource, use the taxonomy service to retreive data.
+                TaxonomyTerm taxTerm = null;
+                try {
+                    taxTerm = taxonomyService.getTaxonomyTerm( taxidInt );
+                } catch ( TaxonomyServiceException e ) {
+                    throw new BioSourceServiceException( "Error while retreiving Taxonomy term.", e );
+                }
+
+                if ( taxTerm == null ) {
+                    String name = taxonomyService.getClass().getSimpleName();
+                    throw new BioSourceServiceException( "The TaxonomyService[" + name + "] returned a null TaxonomyTerm" );
+                }
+
+                //Sometimes the common name is null in Newt, therefore we choose as shortlabel the taxid.
+                String shortlabel = taxTerm.getMnemonic() != null ? taxTerm.getMnemonic() : taxTerm.getCommonName();
+                if(shortlabel == null || (shortlabel != null && shortlabel.trim().length() == 0)){
+                    shortlabel = taxTerm.getTaxid() + "";
+                }
+
+                bs = createBioSource( shortlabel.toLowerCase(),
+                        taxTerm.getScientificName(),
+                        String.valueOf( taxTerm.getTaxid() ) );
             }
         }
 
