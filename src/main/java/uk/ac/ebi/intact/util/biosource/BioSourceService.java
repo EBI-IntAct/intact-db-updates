@@ -41,4 +41,6 @@ public interface BioSourceService {
     public BioSource getBiosourceByTaxid( String taxid ) throws BioSourceServiceException;
 
     public TaxonomyService getTaxonomyService();
+
+    public BioSource getUnsavedBiosourceByTaxid( String taxid ) throws BioSourceServiceException;
 }
