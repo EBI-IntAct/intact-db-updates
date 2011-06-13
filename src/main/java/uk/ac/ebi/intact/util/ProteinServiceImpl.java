@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.taxonomy.UniprotTaxonomyService;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -17,8 +16,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
-import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
-import uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdaterUtils;
@@ -44,7 +41,6 @@ public class ProteinServiceImpl implements ProteinService{
      */
     public static final Log log = LogFactory.getLog( ProteinServiceImpl.class );
     private UniprotService uniprotService;
-    private BioSourceService biosourceService;
 
     /**
      * Mapping allowing to specify which database shortlabel correspond to which MI reference.
@@ -53,14 +49,12 @@ public class ProteinServiceImpl implements ProteinService{
 
     public ProteinServiceImpl(){
         this.uniprotService = new UniprotRemoteService();
-        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
 
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
     }
 
     public ProteinServiceImpl(UniprotService service){
-        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
         if (service != null){
             this.uniprotService = service;
         }
@@ -80,14 +74,6 @@ public class ProteinServiceImpl implements ProteinService{
         else {
             log.warn("No uniprot service is given, a default remote service will be used");
             this.uniprotService = new UniprotRemoteService();
-        }
-
-        if (biosourceService != null){
-            this.biosourceService = biosourceService;
-        }
-        else {
-            log.warn("No biosource service is given, a default uniprot taxonomy service will be used");
-            this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
         }
 
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
@@ -151,12 +137,11 @@ public class ProteinServiceImpl implements ProteinService{
             throw new ProteinServiceException("Uniprot protein without organism: "+uniprot);
         }
 
-        BioSource biosource = null;
-        try {
-            biosource = biosourceService.getUnsavedBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
-        } catch ( BioSourceServiceException e ) {
-            throw new ProteinServiceException(e);
-        }
+        BioSource biosource = new BioSource(uniprot.getOrganism().getName(), String.valueOf(uniprot.getOrganism().getTaxid()));
+        biosource.setFullName(uniprot.getOrganism().getName());
+
+        BioSourceXref taxidRef = new BioSourceXref( CvHelper.getInstitution(), CvHelper.getDatabaseByMi("MI:0942"), Integer.toString(uniprot.getOrganism().getTaxid()), CvHelper.getQualifierByMi(CvXrefQualifier.IDENTITY_MI_REF) );
+        biosource.addXref(taxidRef);
 
         // create minimalistic protein transcript
         Protein variant = new ProteinImpl( CvHelper.getInstitution(),
@@ -214,12 +199,11 @@ public class ProteinServiceImpl implements ProteinService{
             throw new ProteinServiceException("Uniprot protein without organism: "+uniprot);
         }
 
-        BioSource biosource = null;
-        try {
-            biosource = biosourceService.getUnsavedBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
-        } catch ( BioSourceServiceException e ) {
-            throw new ProteinServiceException(e);
-        }
+        BioSource biosource = new BioSource(uniprot.getOrganism().getName(), String.valueOf(uniprot.getOrganism().getTaxid()));
+        biosource.setFullName(uniprot.getOrganism().getName());
+
+        BioSourceXref taxidRef = new BioSourceXref( CvHelper.getInstitution(), CvHelper.getDatabaseByMi("MI:0942"), Integer.toString(uniprot.getOrganism().getTaxid()), CvHelper.getQualifierByMi(CvXrefQualifier.IDENTITY_MI_REF) );
+        biosource.addXref(taxidRef);
 
         // create minimalistic protein
         Protein protein = new ProteinImpl( CvHelper.getInstitution(),
@@ -379,13 +363,5 @@ public class ProteinServiceImpl implements ProteinService{
 
     public void setUniprotService(UniprotService uniprotService) {
         this.uniprotService = uniprotService;
-    }
-
-    public BioSourceService getBiosourceService() {
-        return biosourceService;
-    }
-
-    public void setBiosourceService(BioSourceService biosourceService) {
-        this.biosourceService = biosourceService;
     }
 }

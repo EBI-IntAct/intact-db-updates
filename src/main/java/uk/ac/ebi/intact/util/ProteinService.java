@@ -4,7 +4,6 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
-import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 
 import java.util.Collection;
@@ -20,8 +19,6 @@ import java.util.Collection;
 public interface ProteinService {
 
     public UniprotService getUniprotService();
-
-    public BioSourceService getBiosourceService();
 
     public Collection<Protein> getMasterProteinsByUniprotAc(String uniprotAc) throws ProteinServiceException;
 
