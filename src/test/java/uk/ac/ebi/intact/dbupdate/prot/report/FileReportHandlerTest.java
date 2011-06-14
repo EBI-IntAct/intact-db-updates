@@ -205,6 +205,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
 
         Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setCreated(dupe1.getCreated());
 
         for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
             InteractorXref xref =  xrefIter.next();
