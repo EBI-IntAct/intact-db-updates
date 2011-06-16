@@ -152,7 +152,7 @@ public class ProteinServiceImpl implements ProteinService{
 
         BioSource biosource = null;
         try {
-            biosource = biosourceService.getUnsavedBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
+            biosource = biosourceService.getBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
         } catch ( BioSourceServiceException e ) {
             throw new ProteinServiceException(e);
         }
@@ -230,7 +230,7 @@ public class ProteinServiceImpl implements ProteinService{
 
         BioSource biosource = null;
         try {
-            biosource = biosourceService.getUnsavedBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
+            biosource = biosourceService.getBiosourceByTaxid( String.valueOf( uniprot.getOrganism().getTaxid() ) );
         } catch ( BioSourceServiceException e ) {
             throw new ProteinServiceException(e);
         }
