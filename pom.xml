@@ -15,7 +15,7 @@
     <properties>
         <folder>/ebi/sp/pro6/intact/local/data/protein-update-report/</folder>
         <blast>false</blast>
-        <bridges.version>2.1.4-SNAPSHOT</bridges.version>
+        <bridges.version>2.1.4</bridges.version>
     </properties>
 
     <build>
