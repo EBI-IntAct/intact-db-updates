@@ -430,6 +430,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Protein dupe1_1 = getMockBuilder().createProteinSpliceVariant(dupe1, "P12346-1", "p12346-1");
         dupe1_1.getBioSource().setTaxId("10116");
         dupe1_1.setSequence("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        dupe1_1.setCreated(new Date(System.currentTimeMillis()));
+        getCorePersister().saveOrUpdate(dupe1_1);
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe1_2 = cloner.clone(dupe1_1);
@@ -455,7 +457,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         Protein prot2 = getMockBuilder().createProteinRandom();
         Protein prot3 = getMockBuilder().createProteinRandom();
 
-        getCorePersister().saveOrUpdate(dupe1, dupe1_1, dupe1_2, prot1, prot2, prot3);
+        getCorePersister().saveOrUpdate(dupe1_2, prot1, prot2, prot3);
 
         Interaction interaction1 = getMockBuilder().createInteraction(dupe1_1, prot1);
         Collection<Component> components = interaction1.getComponents();
