@@ -64,7 +64,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, but has splice variants with interactions
      */
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_delete_masterNoInteractions_spliceVars_yes() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
@@ -133,7 +132,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete splice vars without interactions too
      */
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_delete_masterNoInteractions_spliceVars_yes_deleteSpliceVars() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
@@ -197,7 +195,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Delete: master prot does not have interactions, neither its splice variants
      */
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
@@ -257,7 +254,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
      * Duplicates: fix duplicates
      */
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void duplicates_found() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
@@ -326,7 +322,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void duplicates_found_isoforms() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
@@ -409,7 +404,6 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void duplicates_found_isoforms_differentSequence_oneBadRange() throws Exception {
         DataContext context = getDataContext();
@@ -421,6 +415,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
         configUpdate.setGlobalProteinUpdate(true);
+        configUpdate.setProcessProteinNotFoundInUniprot(false);
 
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12346", "dupe1");
         dupe1.getBioSource().setTaxId("10116");
@@ -548,17 +543,37 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         TransactionStatus status2 = context2.beginTransaction();
 
-        Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(3, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(6, getDaoFactory().getComponentDao().countAll());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc()));
 
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
-        Assert.assertNotNull(dupe2FromDb);
-        Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
 
         ProteinImpl dupe1FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_1.getAc());
-        Assert.assertNotNull(dupe1FromDb);
+
+        // if dupe 2 before, dupe 2 will be kept as original protein and will have only one interaction because the other interactions have range conflicts.
+        // dupe 1 is now deprecated and contains two interactions
+        if (dupe2FromDb.getCreated().before(dupe1FromDb.getCreated())){
+            // keep same number of proteins
+            Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
+
+            Assert.assertNotNull(dupe2FromDb);
+            Assert.assertNotNull(dupe1FromDb);
+
+            Assert.assertEquals(1, dupe2FromDb.getActiveInstances().size());
+            Assert.assertEquals(2, dupe1FromDb.getActiveInstances().size());
+        }
+        // if dupe 1 before, dupe 1 will be kept as original an a new protein will be deprecated and have 2 interactions od dupe1.
+        // dupe 1 will have one interaction (the one of dupe 2)
+        // dupe 2 is deleted
+        else {
+            Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
+
+            Assert.assertNull(dupe2FromDb);
+            Assert.assertNotNull(dupe1FromDb);
+
+            Assert.assertEquals(1, dupe1FromDb.getActiveInstances().size());
+        }
 
         context2.commitTransaction(status2);
     }
