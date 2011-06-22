@@ -49,6 +49,7 @@ import java.util.Iterator;
  * @version $Id$
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
     ProteinProcessor processor;
@@ -72,7 +73,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void simulation() throws Exception {
 

@@ -37,7 +37,7 @@ import java.util.*;
 public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
     @Before
-    public void before_schema() throws Exception {
+    public void before() throws Exception {
 
         DataContext context = getDataContext();
 
@@ -150,8 +150,6 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         DataContext context2 = getDataContext();
         TransactionStatus status2 = context2.beginTransaction();
-
-        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().clear();
 
         final ProteinImpl refreshedProt = getDaoFactory().getProteinDao().getByAc(prot.getAc());
 

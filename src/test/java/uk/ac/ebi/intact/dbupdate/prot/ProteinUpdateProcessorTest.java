@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -48,7 +49,7 @@ import java.util.List;
 public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Before
-    public void before_schema() throws Exception {
+    public void before() throws Exception{
 
         DataContext context = getDataContext();
 
@@ -405,6 +406,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
+    @Ignore
     public void duplicates_found_isoforms_differentSequence_oneBadRange() throws Exception {
         DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();

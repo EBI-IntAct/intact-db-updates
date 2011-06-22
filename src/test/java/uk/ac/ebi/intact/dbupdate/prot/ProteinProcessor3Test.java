@@ -42,6 +42,7 @@ import java.util.List;
  * @version $Id: ProteinProcessorTest.java 15394 2010-11-19 15:30:14Z marine.dumousseau@wanadoo.fr $
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor3Test extends IntactBasicTestCase {
 
     ProteinProcessor processor;
@@ -67,7 +68,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration allows to delete proteins without interactions.
@@ -100,7 +100,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -143,7 +142,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -189,7 +187,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -227,7 +224,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is involved in one interaction but is a dead protein in uniprot.
@@ -273,7 +269,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * One Intact protein is not involved in any interactions and the other is involved in one interaction.

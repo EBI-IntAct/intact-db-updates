@@ -33,7 +33,7 @@ import java.util.Set;
  * @since <pre>19-Nov-2010</pre>
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor2Test extends IntactBasicTestCase {
 
     ProteinProcessor processor;
@@ -59,7 +59,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same protein in IntAct. Should be merged because
@@ -136,7 +135,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same protein in IntAct. Should not be merged because
@@ -218,7 +216,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same isoform in IntAct. Should be merged because
@@ -289,7 +286,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same isoform in IntAct. Should not be merged because
@@ -362,7 +358,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same protein in IntAct. Should not be merged because
@@ -453,7 +448,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same protein in IntAct. Should not be merged because
@@ -541,7 +535,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same isoform in IntAct. Should not be merged because
@@ -648,7 +641,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * There are two duplicates of the same isoform in IntAct. Should not be merged because
@@ -753,7 +745,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * One protein is involved in one interactions which contains invalid ranges.
@@ -822,7 +813,6 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
         DataContext context = getDataContext();

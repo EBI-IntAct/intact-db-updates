@@ -57,7 +57,6 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void deadUniprotProtein() throws Exception {
         DataContext context = getDataContext();
@@ -119,7 +118,6 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void deadUniprotProtein_otherXRefs() throws Exception {
 
@@ -188,7 +186,6 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void range_shifting_OutOfBoundBeforeUpdate() throws Exception {
 

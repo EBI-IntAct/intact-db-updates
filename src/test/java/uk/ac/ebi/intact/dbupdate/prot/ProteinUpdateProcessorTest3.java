@@ -27,7 +27,7 @@ import java.util.Collection;
 public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
 
     @Before
-    public void before_schema() throws Exception {
+    public void before() throws Exception {
 
         DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();
@@ -42,7 +42,6 @@ public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
      * One participant with range conflicts
      */
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_create_bad_participant() throws Exception {
         DataContext context = getDataContext();

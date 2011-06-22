@@ -43,6 +43,7 @@ import java.util.Set;
  * @version $Id$
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
     ProteinProcessor processor;
@@ -68,7 +69,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration allows to delete proteins without interactions.
@@ -96,7 +96,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -166,7 +165,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -236,7 +234,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
@@ -306,7 +303,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is involved in one interaction but is 'no-uniprot-update'.
@@ -349,7 +345,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is involved in one interaction but is a dead protein in uniprot.
@@ -395,7 +390,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * The Intact protein is involved in one interaction but is a dead protein in uniprot.
@@ -441,7 +435,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * One Intact protein is not involved in any interactions and the other is involved in one interaction.
@@ -512,7 +505,6 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
     }
 
     @Test
-    @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
     /**
      * One Intact protein is 'no-uniprot' and the other is from uniprot.
