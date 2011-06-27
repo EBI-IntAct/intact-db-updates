@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
 import uk.ac.ebi.intact.update.persistence.impl.MappingReportDaoImpl;
@@ -51,7 +51,7 @@ public class UpdateDaoFactory implements Serializable{
     private BlastResultsDao blastResultsDao;
 
     /**
-     * The PICRCrossReferences instance
+     * The PersistentPICRCrossReferences instance
      */
     @Autowired
     private PICRCrossReferencesDao picrCrossReferencesDao;
@@ -100,7 +100,7 @@ public class UpdateDaoFactory implements Serializable{
      * @param <T>
      * @return the MappingReportDao instance
      */
-    public <T extends MappingReport> MappingReportDao<T> getMappingReportDao(Class<T> entityType) {
+    public <T extends PersistentMappingReport> MappingReportDao<T> getMappingReportDao(Class<T> entityType) {
         MappingReportDao actionReportDao = getBean(MappingReportDaoImpl.class);
         actionReportDao.setEntityClass(entityType);
         return actionReportDao;

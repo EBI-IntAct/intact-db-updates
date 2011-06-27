@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 
 import java.util.List;
 
@@ -13,20 +13,20 @@ import java.util.List;
  * @since <pre>20-May-2010</pre>
  */
 @Mockable
-public interface BlastReportDao extends MappingReportDao<BlastReport> {
+public interface BlastReportDao extends MappingReportDao<PersistentBlastReport> {
 
     /**
      *
      * @param id
      * @return The list of BlastReports attached to a specific result
      */
-    public List<BlastReport> getBlastReportsByResultsId(long id);
+    public List<PersistentBlastReport> getBlastReportsByResultsId(long id);
 
     /**
      *
      * @param id
      * @return the list of BlastReports containing swissprot remapping information for a specific update result
      */
-    public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id);
+    public List<PersistentBlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id);
 
 }

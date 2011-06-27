@@ -2,9 +2,9 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.IdentificationResultsDao;
@@ -26,7 +26,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        BlastReport report = getMockBuilder().createBlastReport();
+        PersistentBlastReport report = getMockBuilder().createBlastReport();
 
         blastReportDao.persist( report );
         blastReportDao.flush();
@@ -40,8 +40,8 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        BlastReport report = getMockBuilder().createBlastReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentBlastReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -51,7 +51,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<BlastReport> r = blastReportDao.getBlastReportsByResultsId(id);
+        List<PersistentBlastReport> r = blastReportDao.getBlastReportsByResultsId(id);
 
         Assert.assertFalse(r.isEmpty());
         Assert.assertTrue(r.get(0).getUpdateResult() != null);
@@ -65,14 +65,14 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createBlastReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createBlastReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
         updateResultsDao.flush();
 
-        List<BlastReport> r = blastReportDao.getBlastReportsByResultsId(1);
+        List<PersistentBlastReport> r = blastReportDao.getBlastReportsByResultsId(1);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -84,8 +84,8 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        BlastReport report = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentBlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
@@ -93,7 +93,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<BlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(id);
+        List<PersistentBlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(id);
 
         Assert.assertTrue(!list.isEmpty());
         Assert.assertTrue(list.get(0).getUpdateResult().getId() == id);
@@ -106,14 +106,14 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        BlastReport report = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentBlastReport report = getMockBuilder().createSwissprotRemappingReport();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<BlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(1);
+        List<PersistentBlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(1);
 
         Assert.assertTrue(list.isEmpty());
     }

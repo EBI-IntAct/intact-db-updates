@@ -2,9 +2,9 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.IdentificationResultsDao;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
@@ -26,7 +26,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
 
-        PICRReport report = getMockBuilder().createPICRReport();
+        PersistentPICRReport report = getMockBuilder().createPICRReport();
 
         picrReportDao.persist( report );
         picrReportDao.flush();
@@ -40,8 +40,8 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        PICRReport report = getMockBuilder().createPICRReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentPICRReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -49,7 +49,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PICRReport> r = picrReportDao.getPICRReportsByResultsId(id);
+        List<PersistentPICRReport> r = picrReportDao.getPICRReportsByResultsId(id);
 
         Assert.assertTrue(!r.isEmpty());
         Assert.assertTrue(r.get(0).getUpdateResult() != null);
@@ -63,8 +63,8 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createPICRReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createPICRReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -72,7 +72,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PICRReport> r = picrReportDao.getPICRReportsByResultsId(1);
+        List<PersistentPICRReport> r = picrReportDao.getPICRReportsByResultsId(1);
 
         Assert.assertTrue(r.isEmpty());
     }

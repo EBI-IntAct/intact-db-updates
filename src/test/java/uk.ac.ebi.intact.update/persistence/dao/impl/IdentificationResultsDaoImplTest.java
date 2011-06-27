@@ -2,11 +2,11 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.IdentificationResultsDao;
 
@@ -27,7 +27,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
@@ -39,14 +39,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
         long id = results.getId();
 
-        IdentificationResults r = updateResultDao.getById(id);
+        PersistentIdentificationResults r = updateResultDao.getById(id);
 
         Assert.assertNotNull(r);
         Assert.assertTrue(r.getId() == id);
@@ -57,12 +57,12 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        IdentificationResults r = updateResultDao.getById(1);
+        PersistentIdentificationResults r = updateResultDao.getById(1);
 
         Assert.assertNull(r);
     }
@@ -72,14 +72,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
         long id = results.getId();
 
-        IdentificationResults r = updateResultDao.getById(results.getId());
+        PersistentIdentificationResults r = updateResultDao.getById(results.getId());
 
         Assert.assertNotNull(r);
         Assert.assertTrue(r.getId() == id);
@@ -90,14 +90,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_uniprot);
+        List<PersistentIdentificationResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_uniprot);
 
         Assert.assertTrue(!list.isEmpty());
         Assert.assertEquals(list.get(0).getActionsByName(ActionName.BLAST_uniprot).size(), 1);
@@ -108,14 +108,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_Swissprot_Total_Identity);
+        List<PersistentIdentificationResults> list = updateResultDao.getResultsContainingAction(ActionName.BLAST_Swissprot_Total_Identity);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -125,14 +125,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.TO_BE_REVIEWED);
+        List<PersistentIdentificationResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.TO_BE_REVIEWED);
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -142,14 +142,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.COMPLETED);
+        List<PersistentIdentificationResults> list = updateResultDao.getResultsContainingActionWithLabel(StatusLabel.COMPLETED);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -159,9 +159,9 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(report);
         results.addActionReport(remapping);
@@ -169,7 +169,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -179,14 +179,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithSwissprotRemapping();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -196,15 +196,15 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
 
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getSuccessfulUpdateResults();
+        List<PersistentIdentificationResults> list = updateResultDao.getSuccessfulUpdateResults();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -214,14 +214,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getSuccessfulUpdateResults();
+        List<PersistentIdentificationResults> list = updateResultDao.getSuccessfulUpdateResults();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -231,10 +231,10 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        MappingReport report = getMockBuilder().createActionReportWithWarning();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(report);
         results.addActionReport(remapping);
@@ -243,7 +243,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -253,14 +253,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -270,10 +270,10 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        MappingReport report = getMockBuilder().createUpdateReportWithNoSequenceNoIdentityXRef();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUpdateReportWithNoSequenceNoIdentityXRef();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(report);
         results.addActionReport(remapping);
@@ -282,7 +282,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
+        List<PersistentIdentificationResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -292,14 +292,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<IdentificationResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
+        List<PersistentIdentificationResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -309,15 +309,15 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
-        MappingReport report = getMockBuilder().createReportWithStatusFailed();
+        PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createReportWithStatusFailed();
 
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUnsuccessfulUpdateResults();
+        List<PersistentIdentificationResults> list = updateResultDao.getUnsuccessfulUpdateResults();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -327,14 +327,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<IdentificationResults> list = updateResultDao.getUnsuccessfulUpdateResults();
+        List<PersistentIdentificationResults> list = updateResultDao.getUnsuccessfulUpdateResults();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -345,15 +345,15 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
-        MappingReport report = getMockBuilder().createUpdateReportWithConflict();
+        PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createUpdateReportWithConflict();
 
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -363,14 +363,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -380,15 +380,15 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
-        MappingReport report = getMockBuilder().createFeatureRangeCheckingReportWithConflict();
+        PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
+        PersistentMappingReport report = getMockBuilder().createFeatureRangeCheckingReportWithConflict();
 
         results.addActionReport(report);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 
         Assert.assertTrue(!list.isEmpty());
     }
@@ -398,14 +398,14 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
-        IdentificationResults results = getMockBuilder().createUpdateResult();
-        MappingReport picr = getMockBuilder().createPICRReport();
-        BlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
+        PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
+        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
         results.addActionReport(picr);
 
-        List<IdentificationResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
+        List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 
         Assert.assertTrue(list.isEmpty());
     }

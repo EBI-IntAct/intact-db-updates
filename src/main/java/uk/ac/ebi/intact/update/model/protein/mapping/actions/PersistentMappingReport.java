@@ -1,10 +1,12 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
 import org.apache.commons.collections.CollectionUtils;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.Status;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -22,9 +24,9 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objclass", discriminatorType= DiscriminatorType.STRING, length = 100)
-@DiscriminatorValue("MappingReport")
+@DiscriminatorValue("PersistentMappingReport")
 @Table( name = "ia_mapping_report" )
-public class MappingReport extends HibernatePersistentImpl {
+public class PersistentMappingReport extends HibernatePersistentImpl implements MappingReport {
 
     /**
      * the name of the action
@@ -54,13 +56,13 @@ public class MappingReport extends HibernatePersistentImpl {
     /**
      * The parent object of this report. We store the parent of this object only if it is an instance of UpdateMappingResults
      */
-    protected IdentificationResults updateResult;
+    protected PersistentIdentificationResults updateResult;
 
     /**
      * Create a new report for an action with a specific name
      * @param name the naem of the action
      */
-    public MappingReport(ActionName name){
+    public PersistentMappingReport(ActionName name){
         this.name = name;
     }
 
@@ -231,6 +233,10 @@ public class MappingReport extends HibernatePersistentImpl {
      * set the isASwissprotEntry value
      * @param isSwissprot : boolean value
      */
+    public void setIsASwissprotEntry(boolean isSwissprot){
+        this.isASwissprotEntry = isSwissprot;
+    }
+
     public void setASwissprotEntry(boolean isSwissprot){
         this.isASwissprotEntry = isSwissprot;
     }
@@ -241,7 +247,7 @@ public class MappingReport extends HibernatePersistentImpl {
      */
     @ManyToOne
     @JoinColumn(name="result_id")
-    public IdentificationResults getUpdateResult() {
+    public PersistentIdentificationResults getUpdateResult() {
         return updateResult;
     }
 
@@ -249,7 +255,7 @@ public class MappingReport extends HibernatePersistentImpl {
      * Set the parent of this object only if it is an instance of UpdateMappingResults
      * @param result
      */
-    public void setUpdateResult(IdentificationResults result) {
+    public void setUpdateResult(PersistentIdentificationResults result) {
         this.updateResult = result;
     }
 
@@ -259,7 +265,7 @@ public class MappingReport extends HibernatePersistentImpl {
             return false;
         }
 
-        final MappingReport report = ( MappingReport ) o;
+        final PersistentMappingReport report = (PersistentMappingReport) o;
 
         if ( name != null ) {
             if (!name.equals( report.getName() )){
@@ -319,7 +325,7 @@ public class MappingReport extends HibernatePersistentImpl {
             return false;
         }
 
-        final MappingReport report = ( MappingReport ) o;
+        final PersistentMappingReport report = (PersistentMappingReport) o;
 
         if ( name != null ) {
             if (!name.equals( report.getName() )){

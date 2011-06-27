@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
@@ -25,7 +25,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferenceDoa = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
 
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
 
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
@@ -37,13 +37,13 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferenceDoa = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
 
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
 
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
 
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Ensembl");
+        List<PersistentPICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Ensembl");
 
         Assert.assertTrue(!picrResults.isEmpty());
         Assert.assertEquals("Ensembl", picrResults.iterator().next().getDatabase());
@@ -54,13 +54,13 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferenceDoa = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
 
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
 
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
 
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Uniprot");
+        List<PersistentPICRCrossReferences> picrResults = picrCrossReferenceDoa.getAllCrossReferencesByDatabaseName("Uniprot");
 
         Assert.assertTrue(picrResults.isEmpty());
     }
@@ -72,8 +72,8 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
         Assert.assertEquals( 0, picrReportDao.countAll() );
 
-        PICRReport report = getMockBuilder().createPICRReport();
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRReport report = getMockBuilder().createPICRReport();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
         report.addPICRCrossReference(picrRefs);
 
         picrReportDao.persist( report );
@@ -81,7 +81,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
 
         long id = report.getId();
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", id);
+        List<PersistentPICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", id);
 
         Assert.assertTrue(!picrResults.isEmpty());
         Assert.assertNotNull(picrResults.get(0).getPicrReport());
@@ -95,8 +95,8 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
         Assert.assertEquals( 0, picrReportDao.countAll() );
 
-        PICRReport report = getMockBuilder().createPICRReport();
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRReport report = getMockBuilder().createPICRReport();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
         report.addPICRCrossReference(picrRefs);
 
         picrReportDao.persist( report );
@@ -104,7 +104,7 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
 
         long id = report.getId();
 
-        List<PICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", 1);
+        List<PersistentPICRCrossReferences> picrResults = picrCrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", 1);
 
         Assert.assertTrue(picrResults.isEmpty());
     }
@@ -114,14 +114,14 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferenceDoa = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
 
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
 
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
 
         long id = picrRefs.getId();
 
-        PICRCrossReferences picrResults = picrCrossReferenceDoa.getById(id);
+        PersistentPICRCrossReferences picrResults = picrCrossReferenceDoa.getById(id);
 
         Assert.assertNotNull(picrResults);
         Assert.assertTrue(picrResults.getId() == id);
@@ -132,12 +132,12 @@ public class PICRCrossReferenceDaoImplTest extends UpdateBasicTestCase {
         final PICRCrossReferencesDao picrCrossReferenceDoa = getDaoFactory().getPicrCrossReferencesDao();
         Assert.assertEquals( 0, picrCrossReferenceDoa.countAll() );
 
-        PICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
+        PersistentPICRCrossReferences picrRefs = getMockBuilder().createPICRCrossReferences();
 
         picrCrossReferenceDoa.persist( picrRefs );
         picrCrossReferenceDoa.flush();
 
-        PICRCrossReferences picrResults = picrCrossReferenceDoa.getById(1);
+        PersistentPICRCrossReferences picrResults = picrCrossReferenceDoa.getById(1);
 
         Assert.assertNull(picrResults);
     }

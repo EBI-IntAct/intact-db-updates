@@ -5,9 +5,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.persistence.MappingReportDao;
 
 import javax.persistence.EntityManager;
@@ -24,13 +24,13 @@ import java.util.List;
 @Scope(org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE)
 @Transactional(readOnly = true)
 @Lazy
-public class MappingReportDaoImpl<T extends MappingReport> extends UpdateBaseDaoImpl<T> implements MappingReportDao<T> {
+public class MappingReportDaoImpl<T extends PersistentMappingReport> extends UpdateBaseDaoImpl<T> implements MappingReportDao<T> {
 
     /**
      * Create an MappingReportDaoImpl
      */
     public MappingReportDaoImpl() {
-        super((Class<T>) MappingReport.class);
+        super((Class<T>) PersistentMappingReport.class);
     }
 
     /**

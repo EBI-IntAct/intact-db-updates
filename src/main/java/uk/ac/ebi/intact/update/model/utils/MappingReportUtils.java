@@ -1,8 +1,8 @@
 package uk.ac.ebi.intact.update.model.utils;
 
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,12 +17,12 @@ import java.util.Collection;
 
 public class MappingReportUtils {
 
-     public static Collection<MappingReport> extractReportsHavingNameFrom(Collection<MappingReport> reports, ActionName name){
+     public static Collection<PersistentMappingReport> extractReportsHavingNameFrom(Collection<PersistentMappingReport> reports, ActionName name){
 
-         Collection<MappingReport> extractedReport = new ArrayList<MappingReport>(reports.size());
+         Collection<PersistentMappingReport> extractedReport = new ArrayList<PersistentMappingReport>(reports.size());
 
          if (reports != null && name != null){
-             for (MappingReport report : reports){
+             for (PersistentMappingReport report : reports){
                  if (name.equals(report.getName())){
                      extractedReport.add(report);
                  }
@@ -32,12 +32,12 @@ public class MappingReportUtils {
          return extractedReport;
      }
 
-    public static Collection<MappingReport> extractReportsHavingStatusFrom(Collection<MappingReport> reports, StatusLabel label){
+    public static Collection<PersistentMappingReport> extractReportsHavingStatusFrom(Collection<PersistentMappingReport> reports, StatusLabel label){
 
-         Collection<MappingReport> extractedReport = new ArrayList<MappingReport>(reports.size());
+         Collection<PersistentMappingReport> extractedReport = new ArrayList<PersistentMappingReport>(reports.size());
 
          if (reports != null && label != null){
-             for (MappingReport report : reports){
+             for (PersistentMappingReport report : reports){
                  if (label.equals(report.getStatusLabel())){
                      extractedReport.add(report);
                  }

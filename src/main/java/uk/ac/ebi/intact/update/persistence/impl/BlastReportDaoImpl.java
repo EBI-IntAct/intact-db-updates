@@ -4,8 +4,8 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 
 import javax.persistence.EntityManager;
@@ -21,13 +21,13 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implements BlastReportDao {
+public class BlastReportDaoImpl extends MappingReportDaoImpl<PersistentBlastReport> implements BlastReportDao {
 
     /**
      * create a new BlastReportDaoImpl
      */
     public BlastReportDaoImpl() {
-        super(BlastReport.class, null);
+        super(PersistentBlastReport.class, null);
     }
 
     /**
@@ -35,7 +35,7 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @param entityManager
      */
     public BlastReportDaoImpl(EntityManager entityManager) {
-        super(BlastReport.class, entityManager);
+        super(PersistentBlastReport.class, entityManager);
     }
 
     /**
@@ -43,8 +43,8 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @param id
      * @return
      */
-    public List<BlastReport> getBlastReportsByResultsId(long id) {
-        return getSession().createCriteria(BlastReport.class)
+    public List<PersistentBlastReport> getBlastReportsByResultsId(long id) {
+        return getSession().createCriteria(PersistentBlastReport.class)
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id)).list();
     }
 
@@ -53,8 +53,8 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<BlastReport> implem
      * @param id
      * @return
      */
-    public List<BlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id) {
-        return getSession().createCriteria(BlastReport.class)
+    public List<PersistentBlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id) {
+        return getSession().createCriteria(PersistentBlastReport.class)
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id))
                 .add(Restrictions.eq("name", ActionName.BLAST_Swissprot_Remapping)).list();
     }

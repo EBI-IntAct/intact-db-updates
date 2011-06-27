@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.BlastReportDao;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
@@ -25,7 +25,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
@@ -37,12 +37,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
+        List<PersistentBlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
 
         Assert.assertEquals(1, r.size());
         Assert.assertTrue(r.get(0).getIdentity() >= 98);
@@ -53,12 +53,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults("AXZ089", "P01234", 1, 198, 1, 198, (float) 96);
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults("AXZ089", "P01234", 1, 198, 1, 198, (float) 96);
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
+        List<PersistentBlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -70,8 +70,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        BlastReport r = getMockBuilder().createSwissprotRemappingReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastReport r = getMockBuilder().createSwissprotRemappingReport();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         r.addBlastMatchingProtein(blastResults);
 
         blastReportDao.persist( r );
@@ -79,7 +79,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<BlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, id);
+        List<PersistentBlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, id);
 
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.get(0).getIdentity() >= 98);
@@ -94,8 +94,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        BlastReport r = getMockBuilder().createSwissprotRemappingReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastReport r = getMockBuilder().createSwissprotRemappingReport();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         r.addBlastMatchingProtein(blastResults);
 
         blastReportDao.persist( r );
@@ -103,7 +103,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<BlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, 1);
+        List<PersistentBlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, 1);
 
         Assert.assertEquals(0, results.size());
     }
@@ -113,12 +113,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> results = blastResultDao.getAllSwissprotRemappingResults();
+        List<PersistentBlastResults> results = blastResultDao.getAllSwissprotRemappingResults();
 
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.get(0).getTremblAccession()!= null);
@@ -129,12 +129,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createBlastResults();
+        PersistentBlastResults blastResults = getMockBuilder().createBlastResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> results = blastResultDao.getAllSwissprotRemappingResults();
+        List<PersistentBlastResults> results = blastResultDao.getAllSwissprotRemappingResults();
 
         Assert.assertEquals(0, results.size());
     }
@@ -146,8 +146,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        BlastReport r = getMockBuilder().createSwissprotRemappingReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastReport r = getMockBuilder().createSwissprotRemappingReport();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         r.addBlastMatchingProtein(blastResults);
 
         blastReportDao.persist( r );
@@ -155,7 +155,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<BlastResults> results = blastResultDao.getAllSwissprotRemappingResultsFor(id);
+        List<PersistentBlastResults> results = blastResultDao.getAllSwissprotRemappingResultsFor(id);
 
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.get(0).getTremblAccession() != null);
@@ -170,8 +170,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
-        BlastReport r = getMockBuilder().createSwissprotRemappingReport();
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastReport r = getMockBuilder().createSwissprotRemappingReport();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
         r.addBlastMatchingProtein(blastResults);
 
         blastReportDao.persist( r );
@@ -179,7 +179,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<BlastResults> results = blastResultDao.getAllSwissprotRemappingResultsFor(1);
+        List<PersistentBlastResults> results = blastResultDao.getAllSwissprotRemappingResultsFor(1);
 
         Assert.assertEquals(0, results.size());
     }
@@ -189,12 +189,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> results = blastResultDao.getSwissprotRemappingResultsByTremblAc("Q8R3H6");
+        List<PersistentBlastResults> results = blastResultDao.getSwissprotRemappingResultsByTremblAc("Q8R3H6");
 
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.get(0).getTremblAccession().equalsIgnoreCase("Q8R3H6"));
@@ -205,12 +205,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<BlastResults> results = blastResultDao.getSwissprotRemappingResultsByTremblAc("XXXXX");
+        List<PersistentBlastResults> results = blastResultDao.getSwissprotRemappingResultsByTremblAc("XXXXX");
 
         Assert.assertEquals(0, results.size());
     }
@@ -220,14 +220,14 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
         long id = blastResults.getId();
 
-        BlastResults results = blastResultDao.getById(id);
+        PersistentBlastResults results = blastResultDao.getById(id);
 
         Assert.assertNotNull(results);
         Assert.assertTrue(results.getId() == id);
@@ -238,12 +238,12 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
-        BlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
+        PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
 
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        BlastResults results = blastResultDao.getById(1);
+        PersistentBlastResults results = blastResultDao.getById(1);
 
         Assert.assertNull(results);
     }

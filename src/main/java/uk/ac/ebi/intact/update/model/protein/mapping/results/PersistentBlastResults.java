@@ -1,9 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import uk.ac.ebi.intact.bridges.ncbiblast.model.BlastProtein;
+import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 
 import javax.persistence.*;
 
@@ -16,7 +17,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "ia_blast_results")
-public class BlastResults extends HibernatePersistentImpl {
+public class PersistentBlastResults extends HibernatePersistentImpl implements BlastResults{
 
     private BlastProtein blastProtein;
 
@@ -34,22 +35,22 @@ public class BlastResults extends HibernatePersistentImpl {
     /**
      * The parent of this object.
      */
-    private BlastReport blastReport;
+    private PersistentBlastReport blastReport;
 
     /**
-     * Create a new BlastResults instance
+     * Create a new PersistentBlastResults instance
      */
-    public BlastResults() {
+    public PersistentBlastResults() {
         taxId = 0;
         this.tremblAccession = null;
         this.blastProtein = new BlastProtein();
     }
 
     /**
-     * Create a new BlastResults instance from a previous BlastProtein instance
+     * Create a new PersistentBlastResults instance from a previous BlastProtein instance
      * @param protein : the Blastprotein instance
      */
-    public BlastResults(BlastProtein protein) {
+    public PersistentBlastResults(BlastProtein protein) {
         if( protein == null ) {
             throw new IllegalArgumentException( "You must give a non null protein" );
         }
@@ -363,7 +364,7 @@ public class BlastResults extends HibernatePersistentImpl {
      */
     @ManyToOne
     @JoinColumn(name = "blast_report_id")
-    public BlastReport getBlastReport() {
+    public PersistentBlastReport getBlastReport() {
         return blastReport;
     }
 
@@ -371,7 +372,7 @@ public class BlastResults extends HibernatePersistentImpl {
      * Set the parent report
      * @param blastReport
      */
-    public void setBlastReport(BlastReport blastReport) {
+    public void setBlastReport(PersistentBlastReport blastReport) {
         this.blastReport = blastReport;
     }
 
@@ -381,7 +382,7 @@ public class BlastResults extends HibernatePersistentImpl {
             return false;
         }
 
-        final BlastResults results = ( BlastResults ) o;
+        final PersistentBlastResults results = (PersistentBlastResults) o;
 
         if ( tremblAccession != null ) {
             if (!tremblAccession.equals( results.getTremblAccession() )){
@@ -524,7 +525,7 @@ public class BlastResults extends HibernatePersistentImpl {
             return false;
         }
 
-        final BlastResults results = ( BlastResults ) o;
+        final PersistentBlastResults results = (PersistentBlastResults) o;
 
         if ( tremblAccession != null ) {
             if (!tremblAccession.equals( results.getTremblAccession() )){

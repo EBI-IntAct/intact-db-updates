@@ -1,9 +1,11 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import org.apache.commons.collections.CollectionUtils;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
+import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import java.util.List;
  */
 @Entity
 @Table( name = "ia_mapping_result" )
-public class IdentificationResults extends HibernatePersistentImpl{
+public class PersistentIdentificationResults extends HibernatePersistentImpl implements IdentificationResults<PersistentMappingReport>{
 
     /**
      * the unique uniprot id identifying the protein
@@ -29,16 +31,16 @@ public class IdentificationResults extends HibernatePersistentImpl{
     /**
      * the list of actions done to identify the protein
      */
-    private List<MappingReport> listOfActions = new ArrayList<MappingReport>();
+    private List<PersistentMappingReport> listOfActions = new ArrayList<PersistentMappingReport>();
 
     /**
      * Create a new Identificationresult
      */
-    public IdentificationResults(){
+    public PersistentIdentificationResults(){
         this.finalUniprotId = null;
     }
 
-    public void setListOfActions(List<MappingReport> listOfActions) {
+    public void setListOfActions(List<PersistentMappingReport> listOfActions) {
         this.listOfActions = listOfActions;
     }
 
@@ -72,7 +74,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * @return the list of actions done to identify the protein
      */
     @OneToMany(mappedBy = "updateResult", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public List<MappingReport> getListOfActions(){
+    public List<PersistentMappingReport> getListOfActions(){
         return this.listOfActions;
     }
 
@@ -80,15 +82,16 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * add a new action report to the list of reports
      * @param report : action report
      */
-    public boolean addActionReport(MappingReport report){
+    public boolean addActionReport(PersistentMappingReport report){
         if (this.listOfActions.add(report)){
+
             report.setUpdateResult(this);
             return true;
         }
         return false;
     }
 
-    public boolean removeActionReport(MappingReport report){
+    public boolean removeActionReport(PersistentMappingReport report){
         if (this.listOfActions.remove(report)){
             report.setUpdateResult(null);
             return true;
@@ -101,7 +104,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * @return the last action report added to this result
      */
     @Transient
-    public MappingReport getLastAction(){
+    public PersistentMappingReport getLastAction(){
         if (listOfActions.isEmpty()){
             return null;
         }
@@ -114,10 +117,10 @@ public class IdentificationResults extends HibernatePersistentImpl{
      * @return the list of actions with this specific name which have been done to identify the protein
      */
     @Transient
-    public List<MappingReport> getActionsByName(ActionName name){
-        ArrayList<MappingReport> reports = new ArrayList<MappingReport>();
+    public List<PersistentMappingReport> getActionsByName(ActionName name){
+        ArrayList<PersistentMappingReport> reports = new ArrayList<PersistentMappingReport>();
 
-        for (MappingReport action : this.listOfActions){
+        for (PersistentMappingReport action : this.listOfActions){
             if (action.getName() != null && action.getName().equals(name)){
                 reports.add(action);
             }
@@ -131,7 +134,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
             return false;
         }
 
-        final IdentificationResults results = ( IdentificationResults ) o;
+        final PersistentIdentificationResults results = (PersistentIdentificationResults) o;
 
         if ( finalUniprotId != null ) {
             if (!finalUniprotId.equals( results.getFinalUniprotId() )){
@@ -172,7 +175,7 @@ public class IdentificationResults extends HibernatePersistentImpl{
             return false;
         }
 
-        final IdentificationResults results = ( IdentificationResults ) o;
+        final PersistentIdentificationResults results = (PersistentIdentificationResults) o;
 
         if ( finalUniprotId != null ) {
             if (!finalUniprotId.equals( results.getFinalUniprotId() )){

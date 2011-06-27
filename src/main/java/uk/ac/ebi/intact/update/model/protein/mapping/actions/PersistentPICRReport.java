@@ -1,7 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
+import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 
 import javax.persistence.CascadeType;
 import javax.persistence.DiscriminatorValue;
@@ -18,19 +21,19 @@ import java.util.Set;
  * @since <pre>01-Apr-2010</pre>
  */
 @Entity
-@DiscriminatorValue("PICRReport")
-public class PICRReport extends MappingReport{
+@DiscriminatorValue("PersistentPICRReport")
+public class PersistentPICRReport extends PersistentMappingReport implements PICRReport<PersistentPICRCrossReferences> {
 
     /**
      * the list of cross references that PICR could collect
      */
-    private Set<PICRCrossReferences> crossReferences = new HashSet<PICRCrossReferences>();
+    private Set<PersistentPICRCrossReferences> crossReferences = new HashSet<PersistentPICRCrossReferences>();
 
     /**
-     * Create a new PICRReport
+     * Create a new PersistentPICRReport
      * @param name : name of the action
      */
-    public PICRReport(ActionName name) {
+    public PersistentPICRReport(ActionName name) {
         super(name);
     }
 
@@ -39,7 +42,7 @@ public class PICRReport extends MappingReport{
      * @return the cross references
      */
     @OneToMany(mappedBy = "picrReport", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Set<PICRCrossReferences> getCrossReferences(){
+    public Set<PersistentPICRCrossReferences> getCrossReferences(){
         return this.crossReferences;
     }
 
@@ -51,7 +54,7 @@ public class PICRReport extends MappingReport{
     public void addCrossReference(String databaseName, String accession){
         boolean isADatabaseNamePresent = false;
 
-        for (PICRCrossReferences c : this.crossReferences){
+        for (PersistentPICRCrossReferences c : this.crossReferences){
             if (c.getDatabase() != null){
                 if (c.getDatabase().equalsIgnoreCase(databaseName)){
                     isADatabaseNamePresent = true;
@@ -61,7 +64,7 @@ public class PICRReport extends MappingReport{
         }
 
         if (!isADatabaseNamePresent){
-            PICRCrossReferences picrRefs = new PICRCrossReferences();
+            PersistentPICRCrossReferences picrRefs = new PersistentPICRCrossReferences();
             picrRefs.setPicrReport(this);
             picrRefs.setDatabase(databaseName);
             picrRefs.addAccession(accession);
@@ -72,10 +75,10 @@ public class PICRReport extends MappingReport{
      * Add a new PICRCrossReference instance to the list of references
      * @param refs : the PICRCrossReference instance to add
      */
-    public void addPICRCrossReference(PICRCrossReferences refs){
+    public void addPICRCrossReference(PersistentPICRCrossReferences refs){
          if (refs != null){
              refs.setPicrReport(this);
-            this.crossReferences.add(refs);   
+            this.crossReferences.add(refs);
          }
     }
 
@@ -83,7 +86,7 @@ public class PICRReport extends MappingReport{
      * Set the PICR cross references
      * @param crossReferences : set containing the PICR cross references
      */
-    public void setCrossReferences(Set<PICRCrossReferences> crossReferences) {
+    public void setCrossReferences(Set<PersistentPICRCrossReferences> crossReferences) {
         this.crossReferences = crossReferences;
     }
 
@@ -111,7 +114,7 @@ public class PICRReport extends MappingReport{
             return false;
         }
 
-        final PICRReport report = ( PICRReport ) o;
+        final PersistentPICRReport report = (PersistentPICRReport) o;
 
         return CollectionUtils.isEqualCollection(this.crossReferences, report.getCrossReferences());
     }

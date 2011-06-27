@@ -4,7 +4,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
 import uk.ac.ebi.intact.update.persistence.PICRReportDao;
 
 import javax.persistence.EntityManager;
@@ -20,13 +20,13 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implements PICRReportDao {
+public class PICRReportDaoImpl extends MappingReportDaoImpl<PersistentPICRReport> implements PICRReportDao {
 
     /**
      * create a new PICRReportDaoImpl
      */
     public PICRReportDaoImpl() {
-        super(PICRReport.class, null);
+        super(PersistentPICRReport.class, null);
     }
 
     /**
@@ -34,7 +34,7 @@ public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implemen
      * @param entityManager
      */
     public PICRReportDaoImpl(EntityManager entityManager) {
-        super(PICRReport.class, entityManager);
+        super(PersistentPICRReport.class, entityManager);
     }
 
     /**
@@ -42,8 +42,8 @@ public class PICRReportDaoImpl extends MappingReportDaoImpl<PICRReport> implemen
      * @param id
      * @return
      */
-    public List<PICRReport> getPICRReportsByResultsId(long id) {
-        return getSession().createCriteria(PICRReport.class).createAlias("updateResult", "u")
+    public List<PersistentPICRReport> getPICRReportsByResultsId(long id) {
+        return getSession().createCriteria(PersistentPICRReport.class).createAlias("updateResult", "u")
                 .add(Restrictions.eq("u.id", id)).list();
     }
 }

@@ -1,9 +1,9 @@
 package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,31 +16,31 @@ import java.util.List;
  * @since <pre>19-May-2010</pre>
  */
 @Mockable
-public interface MappingReportDao<T extends MappingReport> extends UpdateBaseDao<T>, Serializable{
+public interface MappingReportDao<T extends PersistentMappingReport> extends UpdateBaseDao<T>, Serializable{
 
     /**
      *
      * @param name
-     * @return the list of MappingReport with a specific name
+     * @return the list of PersistentMappingReport with a specific name
      */
     public List<T> getByActionName(ActionName name);
 
     /**
      *
      * @param status
-     * @return the list of MappingReport with a specific status
+     * @return the list of PersistentMappingReport with a specific status
      */
     public List<T> getByReportStatus(StatusLabel status);
 
     /**
      *
-     * @return the list of MappingReport containing warnings
+     * @return the list of PersistentMappingReport containing warnings
      */
     public List<T> getAllReportsWithWarnings();
 
     /**
      *
-     * @return the list of MappingReport containing several possible uniprot accessions
+     * @return the list of PersistentMappingReport containing several possible uniprot accessions
      */
     public List<T> getAllReportsWithSeveralPossibleUniprot();
 

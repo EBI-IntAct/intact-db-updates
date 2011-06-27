@@ -4,7 +4,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.persistence.PICRCrossReferencesDao;
 
 import java.util.List;
@@ -19,13 +19,13 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossReferences> implements PICRCrossReferencesDao {
+public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PersistentPICRCrossReferences> implements PICRCrossReferencesDao {
 
 /**
      * Create a new PICRCrossReferencesDAOImpl
      */
     public PICRCrossReferencesDaoImpl() {
-        super(PICRCrossReferences.class);
+        super(PersistentPICRCrossReferences.class);
     }
 
     /**
@@ -33,8 +33,8 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
      * @param databaseName
      * @return
      */
-    public List<PICRCrossReferences> getAllCrossReferencesByDatabaseName(String databaseName) {
-        return getSession().createCriteria(PICRCrossReferences.class).add(Restrictions.eq("database", databaseName)).list();
+    public List<PersistentPICRCrossReferences> getAllCrossReferencesByDatabaseName(String databaseName) {
+        return getSession().createCriteria(PersistentPICRCrossReferences.class).add(Restrictions.eq("database", databaseName)).list();
     }
 
     /**
@@ -43,8 +43,8 @@ public class PICRCrossReferencesDaoImpl extends UpdateBaseDaoImpl<PICRCrossRefer
      * @param actionId
      * @return
      */
-    public List<PICRCrossReferences> getCrossReferencesByDatabaseNameAndActionId(String databaseName, long actionId) {
-        return getSession().createCriteria(PICRCrossReferences.class).
+    public List<PersistentPICRCrossReferences> getCrossReferencesByDatabaseNameAndActionId(String databaseName, long actionId) {
+        return getSession().createCriteria(PersistentPICRCrossReferences.class).
                 createAlias("picrReport", "p").add(Restrictions.eq("database", databaseName))
                 .add(Restrictions.eq("p.id", actionId)).list();
     }

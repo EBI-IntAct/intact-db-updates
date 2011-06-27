@@ -4,7 +4,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.persistence.BlastResultsDao;
 
 import java.util.List;
@@ -19,13 +19,13 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> implements BlastResultsDao {
+public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<PersistentBlastResults> implements BlastResultsDao {
 
     /**
      * Create a new BlastResultsDaoImpl
      */
     public BlastResultsDaoImpl() {
-        super(BlastResults.class);
+        super(PersistentBlastResults.class);
     }
 
     /**
@@ -33,8 +33,8 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @param identity
      * @return
      */
-    public List<BlastResults> getResultsByIdentitySuperior(float identity) {
-        return getSession().createCriteria(BlastResults.class).add(Restrictions.ge("identity", identity)).list();
+    public List<PersistentBlastResults> getResultsByIdentitySuperior(float identity) {
+        return getSession().createCriteria(PersistentBlastResults.class).add(Restrictions.ge("identity", identity)).list();
     }
 
     /**
@@ -43,8 +43,8 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @param actionId
      * @return
      */
-    public List<BlastResults> getResultsByActionIdAndIdentitySuperior(float identity, long actionId) {
-        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
+    public List<PersistentBlastResults> getResultsByActionIdAndIdentitySuperior(float identity, long actionId) {
+        return getSession().createCriteria(PersistentBlastResults.class).createAlias("blastReport", "b")
                 .add(Restrictions.ge("identity", identity)).add(Restrictions.eq("b.id", actionId)).list();
 
     }
@@ -53,8 +53,8 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      *
      * @return
      */
-    public List<BlastResults> getAllSwissprotRemappingResults() {
-        return getSession().createCriteria(BlastResults.class).add(Restrictions.isNotNull("tremblAccession")).list();
+    public List<PersistentBlastResults> getAllSwissprotRemappingResults() {
+        return getSession().createCriteria(PersistentBlastResults.class).add(Restrictions.isNotNull("tremblAccession")).list();
     }
 
     /**
@@ -62,8 +62,8 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @param actionId
      * @return
      */
-    public List<BlastResults> getAllSwissprotRemappingResultsFor(long actionId) {
-        return getSession().createCriteria(BlastResults.class).createAlias("blastReport", "b")
+    public List<PersistentBlastResults> getAllSwissprotRemappingResultsFor(long actionId) {
+        return getSession().createCriteria(PersistentBlastResults.class).createAlias("blastReport", "b")
                 .add(Restrictions.isNotNull("tremblAccession")).add(Restrictions.eq("b.id", actionId)).list();
     }
 
@@ -72,7 +72,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<BlastResults> impleme
      * @param tremblAc
      * @return
      */
-    public List<BlastResults> getSwissprotRemappingResultsByTremblAc(String tremblAc) {
-        return getSession().createCriteria(BlastResults.class).add(Restrictions.eq("tremblAccession", tremblAc)).list();
+    public List<PersistentBlastResults> getSwissprotRemappingResultsByTremblAc(String tremblAc) {
+        return getSession().createCriteria(PersistentBlastResults.class).add(Restrictions.eq("tremblAccession", tremblAc)).list();
     }
 }

@@ -1,8 +1,9 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import org.apache.commons.collections.CollectionUtils;
+import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -17,7 +18,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "ia_picr_xrefs")
-public class PICRCrossReferences extends HibernatePersistentImpl {
+public class PersistentPICRCrossReferences extends HibernatePersistentImpl implements PICRCrossReferences {
 
     /**
      * The database name returned by PICR
@@ -32,12 +33,12 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
     /**
      * The parent report
      */
-    private PICRReport picrReport;
+    private PersistentPICRReport picrReport;
 
     /**
-     * Create a new PICRCrossReferences instance
+     * Create a new PersistentPICRCrossReferences instance
      */
-    public PICRCrossReferences() {
+    public PersistentPICRCrossReferences() {
         database = null;
     }
 
@@ -133,7 +134,7 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
      */
     @ManyToOne
     @JoinColumn(name="picr_report_id")
-    public PICRReport getPicrReport() {
+    public PersistentPICRReport getPicrReport() {
         return picrReport;
     }
 
@@ -141,7 +142,7 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
      * Set the parent report
      * @param picrReport
      */
-    public void setPicrReport(PICRReport picrReport) {
+    public void setPicrReport(PersistentPICRReport picrReport) {
         this.picrReport = picrReport;
     }
 
@@ -151,7 +152,7 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
             return false;
         }
 
-        final PICRCrossReferences refs = ( PICRCrossReferences ) o;
+        final PersistentPICRCrossReferences refs = (PersistentPICRCrossReferences) o;
 
         if ( database != null ) {
             if (!database.equals( refs.getDatabase() )){
@@ -192,7 +193,7 @@ public class PICRCrossReferences extends HibernatePersistentImpl {
             return false;
         }
 
-        final PICRCrossReferences refs = ( PICRCrossReferences ) o;
+        final PersistentPICRCrossReferences refs = (PersistentPICRCrossReferences) o;
 
         if ( database != null ) {
             if (!database.equals( refs.getDatabase() )){

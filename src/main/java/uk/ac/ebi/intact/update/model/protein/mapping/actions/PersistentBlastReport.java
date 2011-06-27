@@ -2,7 +2,10 @@ package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.BlastReport;
+import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -17,13 +20,13 @@ import java.util.Set;
  */
 @Entity
 @DiscriminatorFormula("objclass")
-@DiscriminatorValue("BlastReport")
-public class BlastReport extends MappingReport{
+@DiscriminatorValue("PersistentBlastReport")
+public class PersistentBlastReport extends PersistentMappingReport implements BlastReport<PersistentBlastResults> {
 
     /**
      * The list of BLASTProteins
      */
-    protected Set<BlastResults> listOfProteins = new HashSet<BlastResults>();
+    protected Set<PersistentBlastResults> listOfProteins = new HashSet<PersistentBlastResults>();
 
     /**
      * The sequence used for the blast
@@ -31,10 +34,10 @@ public class BlastReport extends MappingReport{
     protected String querySequence;
 
     /**
-     * Create a new BlastReport
+     * Create a new PersistentBlastReport
      * @param name : the name of the action
      */
-    public BlastReport(ActionName name){
+    public PersistentBlastReport(ActionName name){
         super(name);
         this.querySequence = null;
     }
@@ -44,11 +47,11 @@ public class BlastReport extends MappingReport{
      * @return the list of Blast results
      */
     @OneToMany(mappedBy = "blastReport", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Set<BlastResults> getBlastMatchingProteins(){
+    public Set<PersistentBlastResults> getBlastMatchingProteins(){
         return this.listOfProteins;
     }
 
-    public void setBlastMatchingProteins(Set<BlastResults> blastResults){
+    public void setBlastMatchingProteins(Set<PersistentBlastResults> blastResults){
         this.listOfProteins = blastResults;
     }
 
@@ -56,8 +59,10 @@ public class BlastReport extends MappingReport{
      *  add a blast protein
      * @param prot : new blast result
      */
-    public void addBlastMatchingProtein(BlastResults prot){
+    public void addBlastMatchingProtein(PersistentBlastResults prot){
+
         prot.setBlastReport(this);
+
         this.listOfProteins.add(prot);
     }
 
@@ -85,7 +90,7 @@ public class BlastReport extends MappingReport{
             return false;
         }
 
-        final BlastReport report = ( BlastReport ) o;
+        final PersistentBlastReport report = (PersistentBlastReport) o;
 
         if ( querySequence != null ) {
             if (!querySequence.equals( report.getQuerySequence() )){
@@ -126,7 +131,7 @@ public class BlastReport extends MappingReport{
             return false;
         }
 
-        final BlastReport report = ( BlastReport ) o;
+        final PersistentBlastReport report = (PersistentBlastReport) o;
 
         if ( querySequence != null ) {
             if (!querySequence.equals( report.getQuerySequence() )){

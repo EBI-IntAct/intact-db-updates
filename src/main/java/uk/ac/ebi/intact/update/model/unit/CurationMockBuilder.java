@@ -1,15 +1,15 @@
 package uk.ac.ebi.intact.update.model.unit;
 
 import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.Status;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.status.StatusLabel;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
+import uk.ac.ebi.intact.protein.mapping.actions.status.Status;
+import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
@@ -35,8 +35,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated Swissprot remapping results
      */
-    public BlastResults createSwissprotRemappingResults(){
-        BlastResults results = new BlastResults();
+    public PersistentBlastResults createSwissprotRemappingResults(){
+        PersistentBlastResults results = new PersistentBlastResults();
 
         results.setTremblAccession("Q8R3H6");
         results.setAccession("P01867");
@@ -55,8 +55,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated blast results
      */
-    public BlastResults createBlastResults(){
-        BlastResults results = new BlastResults();
+    public PersistentBlastResults createBlastResults(){
+        PersistentBlastResults results = new PersistentBlastResults();
 
         results.setAccession("Q8R3H6");
         results.setDatabase("TR");
@@ -80,8 +80,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @param identity
      * @return a Blast results instance with trembl. swissprotAc. start and end query, start and end match, identity
      */
-    public BlastResults createSwissprotRemappingResults(String trembl, String swissprotAc, int sartQuery, int endQuery, int startMatch, int endMatch, float identity){
-        BlastResults results = new BlastResults();
+    public PersistentBlastResults createSwissprotRemappingResults(String trembl, String swissprotAc, int sartQuery, int endQuery, int startMatch, int endMatch, float identity){
+        PersistentBlastResults results = new PersistentBlastResults();
 
         results.setTremblAccession(trembl);
         results.setAccession(swissprotAc);
@@ -97,12 +97,12 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return An auto-generated BlastReport for swissprot remapping
+     * @return An auto-generated PersistentBlastReport for swissprot remapping
      */
-    public BlastReport createSwissprotRemappingReport(){
-        BlastReport report = new BlastReport(ActionName.BLAST_Swissprot_Remapping);
+    public PersistentBlastReport createSwissprotRemappingReport(){
+        PersistentBlastReport report = new PersistentBlastReport(ActionName.BLAST_Swissprot_Remapping);
 
-        report.setASwissprotEntry(true);
+        report.setIsASwissprotEntry(true);
         report.setStatus(new Status(StatusLabel.COMPLETED, "mapping successful"));
         report.setQuerySequence("GCAGGT");
         return report;
@@ -112,8 +112,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return an auto-generated PICRCrossReference instance
      */
-    public PICRCrossReferences createPICRCrossReferences(){
-        PICRCrossReferences pc = new PICRCrossReferences();
+    public PersistentPICRCrossReferences createPICRCrossReferences(){
+        PersistentPICRCrossReferences pc = new PersistentPICRCrossReferences();
 
         pc.setDatabase("Ensembl");
         pc.addAccession("ENSG0007777");
@@ -123,25 +123,25 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated PICRReport
+     * @return auto-generated PersistentPICRReport
      */
-    public PICRReport createPICRReport(){
-        PICRReport report = new PICRReport(ActionName.PICR_accession);
+    public PersistentPICRReport createPICRReport(){
+        PersistentPICRReport report = new PersistentPICRReport(ActionName.PICR_accession);
 
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.COMPLETED, null));
         return report;
     }
 
     /**
      *
-     * @return auto-generated MappingReport containing warnings
+     * @return auto-generated PersistentMappingReport containing warnings
      */
-    public MappingReport createActionReportWithWarning(){
-        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
+    public PersistentMappingReport createActionReportWithWarning(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.addWarning("To be reviewed by a curator");
         report.addPossibleAccession("P02134");
         report.addPossibleAccession("P12345");
@@ -151,13 +151,13 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated MappingReport without any warnings
+     * @return auto-generated PersistentMappingReport without any warnings
      */
-    public MappingReport createActionReportWithoutWarning(){
-        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
+    public PersistentMappingReport createActionReportWithoutWarning(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.addPossibleAccession("P02134");
         report.addPossibleAccession("P12345");
 
@@ -166,13 +166,13 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated MappingReport without any possible uniprot ac
+     * @return auto-generated PersistentMappingReport without any possible uniprot ac
      */
-    public MappingReport createActionReportWithoutPossibleUniprot(){
-        MappingReport report = new MappingReport(ActionName.BLAST_uniprot);
+    public PersistentMappingReport createActionReportWithoutPossibleUniprot(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.BLAST_uniprot);
 
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, null));
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.addWarning("To be reviewed by a curator");
 
         return report;
@@ -180,12 +180,12 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated BlastReport
+     * @return auto-generated PersistentBlastReport
      */
-    public BlastReport createBlastReport(){
-        BlastReport report = new BlastReport(ActionName.BLAST_uniprot);
+    public PersistentBlastReport createBlastReport(){
+        PersistentBlastReport report = new PersistentBlastReport(ActionName.BLAST_uniprot);
 
-        report.setASwissprotEntry(true);
+        report.setIsASwissprotEntry(true);
         report.setQuerySequence("GCAGGT");
         report.setStatus(new Status(StatusLabel.COMPLETED, "mapping successful"));
         return report;
@@ -195,8 +195,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated updateResult
      */
-    public IdentificationResults createUpdateResult(){
-        IdentificationResults results = new IdentificationResults();
+    public PersistentIdentificationResults createUpdateResult(){
+        PersistentIdentificationResults results = new PersistentIdentificationResults();
 
         results.setFinalUniprotId("P01234");
         return results;
@@ -206,8 +206,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated update result without a final uniprot ac
      */
-    public IdentificationResults createUnsuccessfulUpdateResult(){
-        IdentificationResults results = new IdentificationResults();
+    public PersistentIdentificationResults createUnsuccessfulUpdateResult(){
+        PersistentIdentificationResults results = new PersistentIdentificationResults();
 
         return results;
     }
@@ -216,10 +216,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated action report for a protein without any sequences and without any identity cross references
      */
-    public MappingReport createUpdateReportWithNoSequenceNoIdentityXRef(){
-        MappingReport report = new MappingReport(ActionName.update_checking);
+    public PersistentMappingReport createUpdateReportWithNoSequenceNoIdentityXRef(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.update_checking);
 
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is neither a sequence nor an identity xref"));
         return report;
     }
@@ -228,34 +228,34 @@ public class CurationMockBuilder extends IntactMockBuilder {
      *
      * @return auto-generated action report with a conflict during the update
      */
-    public MappingReport createUpdateReportWithConflict(){
-        MappingReport report = new MappingReport(ActionName.update_checking);
+    public PersistentMappingReport createUpdateReportWithConflict(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.update_checking);
 
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.TO_BE_REVIEWED, "There is a conflict"));
         return report;
     }
 
     /**
      *
-     * @return auto-generated MappingReport containing feature range conflicts
+     * @return auto-generated PersistentMappingReport containing feature range conflicts
      */
-    public MappingReport createFeatureRangeCheckingReportWithConflict(){
-        MappingReport report = new MappingReport(ActionName.feature_range_checking);
+    public PersistentMappingReport createFeatureRangeCheckingReportWithConflict(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.feature_range_checking);
 
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "There is a conflict"));
         return report;
     }
 
     /**
      *
-     * @return auto-generated MappingReport with a status FAILED
+     * @return auto-generated PersistentMappingReport with a status FAILED
      */
-    public MappingReport createReportWithStatusFailed(){
-        MappingReport report = new MappingReport(ActionName.PICR_accession);
+    public PersistentMappingReport createReportWithStatusFailed(){
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.PICR_accession);
 
-        report.setASwissprotEntry(false);
+        report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.FAILED, "PICR couldn't match the accession to any Uniprot entries"));
         return report;
     }
