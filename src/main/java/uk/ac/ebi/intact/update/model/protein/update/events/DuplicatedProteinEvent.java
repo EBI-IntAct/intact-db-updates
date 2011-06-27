@@ -27,6 +27,8 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
 
     private Collection<String> movedInteractions;
 
+    private Collection<String> updatedTranscripts;
+
     public DuplicatedProteinEvent(){
         super();
         this.originalProtein = null;
@@ -34,6 +36,7 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         wasMergeSuccessful = false;
 
         movedInteractions = new ArrayList<String>();
+        updatedTranscripts = new ArrayList<String>();
     }
 
     public DuplicatedProteinEvent(UpdateProcess updateProcess, Protein duplicatedProtein, int index, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
@@ -43,6 +46,7 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         this.wasMergeSuccessful = wasMergeSuccessful;
 
         movedInteractions = new ArrayList<String>();
+        updatedTranscripts = new ArrayList<String>();
     }
 
     @Column(name="original_protein_ac")
@@ -82,6 +86,19 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
     public void setMovedInteractions(Collection<String> movedInteractions) {
         if (movedInteractions != null){
             this.movedInteractions = movedInteractions;
+        }
+    }
+
+    @ElementCollection
+    @CollectionTable(name="ia_updated_transcripts", joinColumns=@JoinColumn(name="event_id"))
+    @Column(name="transcript_ac")
+    public Collection<String> getUpdatedTranscripts() {
+        return updatedTranscripts;
+    }
+
+    public void setUpdatedTranscripts(Collection<String> updatedTranscripts) {
+        if (updatedTranscripts != null){
+            this.updatedTranscripts = updatedTranscripts;
         }
     }
 
@@ -162,7 +179,11 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
              return false;
         }
 
-        return CollectionUtils.isEqualCollection(this.movedInteractions, event.getMovedInteractions());
+        if (!CollectionUtils.isEqualCollection(this.movedInteractions, event.getMovedInteractions())){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(this.updatedTranscripts, event.getUpdatedTranscripts());
     }
 
     @Override
