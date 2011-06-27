@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot;
 
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 
@@ -25,6 +27,9 @@ public class DuplicateReport {
     private boolean hasShiftedRanges;
 
     private Map<String, Collection<String>> movedInteractions = new HashMap<String, Collection<String>>();
+    private Map<String, Collection<String>> updatedTranscripts = new HashMap<String, Collection<String>>();
+    private Map<String, Collection<InteractorXref>> addedXRefs = new HashMap<String, Collection<InteractorXref>>();
+    private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
 
     public DuplicateReport(){
         originalProtein = null;
@@ -85,5 +90,17 @@ public class DuplicateReport {
 
     public Map<String, Collection<String>> getMovedInteractions() {
         return movedInteractions;
+    }
+
+    public Map<String, Collection<InteractorXref>> getAddedXRefs() {
+        return addedXRefs;
+    }
+
+    public Map<String, Collection<Annotation>> getAddedAnnotations() {
+        return addedAnnotations;
+    }
+
+    public Map<String, Collection<String>> getUpdatedTranscripts() {
+        return updatedTranscripts;
     }
 }

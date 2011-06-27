@@ -47,11 +47,21 @@
 
     </bean>
 
-    <jee:jndi-lookup id="coreDataSource" jndi-name="${db.jndi}"/>
+    <bean id="coreDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
+        <property name="url" value="jdbc:hsqldb:mem:intactcore"/>
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
 
     <!-- intact-update -->
 
-    <jee:jndi-lookup id="intactUpdateDataSource" jndi-name="${db.update.jndi}"/>
+    <bean id="intactUpdateDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
+        <property name="url" value="jdbc:hsqldb:mem:intactupdate"/>
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
 
     <bean id="updateEntityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="persistenceUnitName" value="intact-update"/>

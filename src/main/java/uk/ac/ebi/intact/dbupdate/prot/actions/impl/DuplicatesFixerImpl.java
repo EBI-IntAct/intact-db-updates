@@ -83,12 +83,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         DuplicateReport report = mergeDuplicates(evt.getProteins(), evt);
         evt.setDuplicateReport(report);
 
-        // log in 'duplicates.csv'
-        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(evt);
-        }
-
         return report;
     }
 
@@ -114,6 +108,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 evt.getPrimaryProteins().clear();
                 evt.getPrimaryProteins().add(masterProtein);
             }
+
+            // log in 'duplicates.csv'
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                processor.fireOnProteinDuplicationFound(duplicateEvent);
+            }
         }
 
         return masterProtein;
@@ -136,6 +136,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     if (report.getOriginalProtein() != null){
                         mergedIsoforms.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
                     }
+
+                    // log in 'duplicates.csv'
+                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnProteinDuplicationFound(duplEvt);
+                    }
                 }
 
                 if (!mergedIsoforms.isEmpty()){
@@ -154,6 +160,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
                     if (report.getOriginalProtein() != null){
                         mergedChains.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+                    }
+
+                    // log in 'duplicates.csv'
+                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        processor.fireOnProteinDuplicationFound(duplEvt);
                     }
                 }
 
@@ -290,7 +302,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * @param protein : the duplicate with range conflicts
      * @param previousAc : the original protein to keep
      */
-    private void addAnnotationsForBadParticipant(Protein protein, String previousAc, DaoFactory factory){
+    private Collection<Annotation> addAnnotationsForBadParticipant(Protein protein, String previousAc, DaoFactory factory){
+
+        Collection<Annotation> badAnnotations = new ArrayList<Annotation>(2);
 
         CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
@@ -329,6 +343,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             annotationDao.persist(no_uniprot);
 
             protein.addAnnotation(no_uniprot);
+            badAnnotations.add(no_uniprot);
         }
 
         if (!has_caution){
@@ -336,7 +351,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             annotationDao.persist(demerge);
 
             protein.addAnnotation(demerge);
+            badAnnotations.add(demerge);
         }
+
+        return badAnnotations;
     }
 
     /**
@@ -370,10 +388,13 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
 
                     // add the intact secondary references
-                    ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
+                    Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
 
                     // update the protein transcripts if necessary
-                    ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
+                    Collection<String> updatedTranscripts = ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
+
+                    report.getAddedXRefs().put(originalProt.getAc(), addedXRef);
+                    report.getUpdatedTranscripts().put(duplicate.getAc(), updatedTranscripts);
 
                     // update the duplicate
                     factory.getProteinDao().update((ProteinImpl) duplicate);
@@ -408,7 +429,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                         originalProt.getAc() + " because we have " +
                                         proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.impossible_merge, duplicate));
                         // add no-uniprot-update and caution
-                        addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
+                        Collection<Annotation> addedAnnotations = addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
                         Collection<Component> componentToFix = proteinsNeedingPartialMerge.get(duplicate.getAc());
                         // components without conflicts to move on the original protein
@@ -418,6 +439,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         reportMovedInteraction(duplicate, componentToMove, report);
                         // move components without conflicts
                         ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove);
+
+                        report.getAddedAnnotations().put(duplicate.getAc(), addedAnnotations);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
@@ -431,7 +454,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor);
 
                         // the duplicate will be deleted, add intact secondary references
-                        ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
+                        Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
+                        report.getAddedXRefs().put(originalProt.getAc(), addedXRef);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
@@ -440,7 +464,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
 
                     // update isoforms and feature chains
-                    ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
+                    Collection<String> updatedTranscripts = ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
+
+                    report.getUpdatedTranscripts().put(duplicate.getAc(), updatedTranscripts);
 
                     // update duplicate
                     factory.getProteinDao().update((ProteinImpl) duplicate);

@@ -17,11 +17,6 @@
         <blast>false</blast>
         <bridges.version>2.1.4</bridges.version>
 
-        <!-- database defaults -->
-        <db.jndi>jdbc/IntactCoreDS</db.jndi>
-        <!-- database defaults -->
-        <db.update.jndi>jdbc/IntactUpdateDS</db.update.jndi>
-
         <db.url>${db.protocol}:${db.subprotocol}${db.separator}${db.alias}</db.url>
         <db.hbm2ddl>none</db.hbm2ddl>
 

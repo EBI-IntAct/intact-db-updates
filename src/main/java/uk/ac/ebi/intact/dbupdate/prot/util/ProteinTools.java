@@ -176,7 +176,10 @@ public class ProteinTools {
         }
     }
 
-    public static void addIntactSecondaryReferences(Protein original, Protein duplicate, DaoFactory factory){
+    public static Collection<InteractorXref> addIntactSecondaryReferences(Protein original, Protein duplicate, DaoFactory factory){
+
+        Collection<InteractorXref> addedIntactSecondary = new ArrayList<InteractorXref>();
+
         // create an "intact-secondary" xref to the protein to be kept.
         // This will allow the user to search using old ACs
         Institution owner = duplicate.getOwner();
@@ -223,6 +226,8 @@ public class ProteinTools {
             factory.getXrefDao(InteractorXref.class).persist(xref);
 
             original.addXref(xref);
+
+            addedIntactSecondary.add(xref);
         }
 
         Collection<InteractorXref> refsToRemove = new ArrayList(duplicate.getXrefs());
@@ -236,6 +241,8 @@ public class ProteinTools {
 
                                 original.addXref(new InteractorXref(ref.getOwner(), ref.getCvDatabase(), ref.getPrimaryId(), ref.getCvXrefQualifier()));
                                 factory.getXrefDao(InteractorXref.class).persist(ref);
+
+                                addedIntactSecondary.add(ref);
                             }
                         }
                     }
@@ -245,6 +252,8 @@ public class ProteinTools {
 
         factory.getProteinDao().update((ProteinImpl) duplicate);
         factory.getProteinDao().update((ProteinImpl) original);
+
+        return addedIntactSecondary;
     }
 
     public static void loadCollections(List<ProteinImpl> proteinsInIntact) {
@@ -272,7 +281,9 @@ public class ProteinTools {
         }
     }
 
-    public static void updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
+    public static Collection<String> updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
+        Collection<String> updatedTranscripts = new ArrayList<String>();
+
         final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
 
         ProteinTools.loadCollections(isoforms);
@@ -286,6 +297,7 @@ public class ProteinTools {
                             CvXrefQualifier.ISOFORM_PARENT_MI_REF );
 
             remapTranscriptParent(originalProt, duplicate.getAc(), isoformParents, factory);
+            updatedTranscripts.add(isoform.getAc());
         }
 
         final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
@@ -300,7 +312,10 @@ public class ProteinTools {
                             CvXrefQualifier.CHAIN_PARENT_MI_REF );
 
             remapTranscriptParent(originalProt, duplicate.getAc(), chainParents, factory);
+            updatedTranscripts.add(chain.getAc());
         }
+
+        return updatedTranscripts;
     }
 
     /**
