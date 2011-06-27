@@ -29,11 +29,11 @@ import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.MappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.BlastReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PICRReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.BlastReport;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
+import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
+import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
@@ -529,7 +529,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     if (report instanceof PICRReport){
                         actions.append(", ");
 
-                        PICRReport picr = (PICRReport) report;
+                        PICRReport<PICRCrossReferences> picr = (PICRReport) report;
                         actions.append("Is a Swissprot entry : " + picr.isASwissprotEntry());
 
                         if (!picr.getCrossReferences().isEmpty()){
@@ -541,7 +541,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     }
                     else if (report instanceof BlastReport){
 
-                        BlastReport blast = (BlastReport) report;
+                        BlastReport<BlastResults> blast = (BlastReport) report;
 
                         if (!blast.getBlastMatchingProteins().isEmpty()){
                             actions.append(", Blast Results : ");

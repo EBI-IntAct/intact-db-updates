@@ -15,12 +15,13 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
+import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
 import uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException;
 import uk.ac.ebi.intact.protein.mapping.update.ProteinUpdateException;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -149,7 +150,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 addIdentityCrossreferencesToContext(refs, context);
 
                 // result
-                IdentificationResults result = null;
+                IdentificationResults<MappingReport> result = null;
                 try {
                     result = this.strategy.identifyProtein(context);
 

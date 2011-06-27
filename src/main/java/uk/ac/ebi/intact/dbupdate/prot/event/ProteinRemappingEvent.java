@@ -2,8 +2,9 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.IdentificationResults;
+import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 
 import java.util.EventObject;
 
@@ -18,7 +19,7 @@ import java.util.EventObject;
 public class ProteinRemappingEvent extends EventObject implements ProteinProcessorEvent, MessageContainer{
 
     private UpdateContext context;
-    private IdentificationResults result;
+    private IdentificationResults<MappingReport> result;
     private String message;
     private DataContext dataContext;
 
