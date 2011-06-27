@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
 
 import javax.persistence.*;
@@ -23,33 +23,33 @@ public class UpdateProcess extends HibernatePersistentImpl{
 
     private Date date;
 
-    private Collection<ProteinEvent> events;
+    private Collection<PersistentProteinEvent> events;
     private Collection<UpdatedRange> rangeUpdates;
 
     public UpdateProcess(){
         setDate(new Date(System.currentTimeMillis()));
 
-        this.events = new ArrayList<ProteinEvent>();
+        this.events = new ArrayList<PersistentProteinEvent>();
         this.rangeUpdates = new ArrayList<UpdatedRange>();
     }
 
     public UpdateProcess(Date date){
         setDate(date);
 
-        this.events = new ArrayList<ProteinEvent>();
+        this.events = new ArrayList<PersistentProteinEvent>();
         this.rangeUpdates = new ArrayList<UpdatedRange>();
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<ProteinEvent> getEvents() {
+    public Collection<PersistentProteinEvent> getEvents() {
         return events;
     }
 
-    public void setEvents(Collection<ProteinEvent> events) {
+    public void setEvents(Collection<PersistentProteinEvent> events) {
         this.events = events;
     }
 
-    public boolean addEvent(ProteinEvent event){
+    public boolean addEvent(PersistentProteinEvent event){
         if (events.add(event)){
             event.setParent(this);
             return true;
@@ -57,7 +57,7 @@ public class UpdateProcess extends HibernatePersistentImpl{
         return false;
     }
 
-    public boolean removeEvent(ProteinEvent event){
+    public boolean removeEvent(PersistentProteinEvent event){
         if (events.remove(event)){
             event.setParent(null);
             return true;
@@ -176,7 +176,7 @@ public class UpdateProcess extends HibernatePersistentImpl{
         if (events.isEmpty()){
             buffer.append("Events : \n");
 
-            for (ProteinEvent ev : events){
+            for (PersistentProteinEvent ev : events){
                 buffer.append(ev.toString() + "\n");
             }
         }

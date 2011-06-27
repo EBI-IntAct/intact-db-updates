@@ -21,9 +21,9 @@ import java.util.Collection;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
-@DiscriminatorValue("ProteinEvent")
+@DiscriminatorValue("PersistentProteinEvent")
 @Table(name = "ia_update_event")
-public class ProteinEvent extends HibernatePersistentImpl {
+public class PersistentProteinEvent extends HibernatePersistentImpl {
 
     EventName name;
     int index;
@@ -35,7 +35,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
     private Collection<UpdatedAnnotation> updatedAnnotations;
     private Collection<UpdatedAlias> updatedAliases;
 
-    public ProteinEvent(){
+    public PersistentProteinEvent(){
         super();
         this.name = EventName.uniprot_update;
         this.index = 0;
@@ -47,7 +47,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
         updatedAliases = new ArrayList<UpdatedAlias>();
     }
 
-    public ProteinEvent(UpdateProcess process, EventName name, Protein protein, int index){
+    public PersistentProteinEvent(UpdateProcess process, EventName name, Protein protein, int index){
         super();
         this.name = name;
         this.index = index;
@@ -213,7 +213,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
             return false;
         }
 
-        final ProteinEvent event = ( ProteinEvent ) o;
+        final PersistentProteinEvent event = (PersistentProteinEvent) o;
 
         if ( name != null ) {
             if (!name.equals( event.getName())){
@@ -274,7 +274,7 @@ public class ProteinEvent extends HibernatePersistentImpl {
             return false;
         }
 
-        final ProteinEvent event = ( ProteinEvent ) o;
+        final PersistentProteinEvent event = (PersistentProteinEvent) o;
 
         if ( name != null ) {
             if (!name.equals( event.getName())){

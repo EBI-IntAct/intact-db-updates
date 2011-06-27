@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.persistence.ProteinEventDao;
 
 import javax.persistence.EntityManager;
@@ -23,12 +23,12 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class ProteinEventDaoImpl<T extends ProteinEvent> extends UpdateBaseDaoImpl<T> implements ProteinEventDao<T> {
+public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends UpdateBaseDaoImpl<T> implements ProteinEventDao<T> {
     public ProteinEventDaoImpl() {
-        super((Class<T>) ProteinEvent.class);
+        super((Class<T>) PersistentProteinEvent.class);
     }
 
-    public ProteinEventDaoImpl(Class<ProteinEvent> entityClass, EntityManager entityManager) {
+    public ProteinEventDaoImpl(Class<PersistentProteinEvent> entityClass, EntityManager entityManager) {
         super((Class<T>) entityClass, entityManager);
     }
 

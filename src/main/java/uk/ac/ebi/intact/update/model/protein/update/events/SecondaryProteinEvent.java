@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("SecondaryProteinEvent")
-public class SecondaryProteinEvent extends ProteinEvent{
+public class SecondaryProteinEvent extends PersistentProteinEvent {
 
     String secondaryAc;
     String primaryAc;

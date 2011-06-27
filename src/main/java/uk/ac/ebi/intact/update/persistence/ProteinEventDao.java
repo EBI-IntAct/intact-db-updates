@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.persistence;
 
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -15,7 +15,7 @@ import java.util.List;
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface ProteinEventDao<T extends ProteinEvent> extends UpdateBaseDao<T>, Serializable {
+public interface ProteinEventDao<T extends PersistentProteinEvent> extends UpdateBaseDao<T>, Serializable {
 
     List<T> getAllProteinEventsByName(EventName name);
     List<T> getAllProteinEventsByProteinAc(String proteinAc);

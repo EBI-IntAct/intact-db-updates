@@ -17,7 +17,7 @@ import javax.persistence.*;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("UniprotProteinMapperEvent")
-public class UniprotProteinMapperEvent extends ProteinEvent{
+public class UniprotProteinMapperEvent extends PersistentProteinEvent {
 
     PersistentIdentificationResults identificationResults;
 

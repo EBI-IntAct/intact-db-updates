@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("UniprotUpdateEvent")
-public class UniprotUpdateEvent extends ProteinEvent{
+public class UniprotUpdateEvent extends PersistentProteinEvent {
 
     String shortLabel;
     String fullName;

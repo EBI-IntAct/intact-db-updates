@@ -19,7 +19,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("DeadProteinEvent")
-public class DeadProteinEvent extends ProteinEvent{
+public class DeadProteinEvent extends PersistentProteinEvent {
 
     private String uniprotReference;
 

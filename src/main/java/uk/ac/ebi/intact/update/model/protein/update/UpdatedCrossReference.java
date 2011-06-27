@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update;
 
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
@@ -21,7 +21,7 @@ public class UpdatedCrossReference extends HibernatePersistentImpl{
     private String identifier;
     private String qualifier;
 
-    private ProteinEvent parent;
+    private PersistentProteinEvent parent;
 
     private UpdateStatus status;
 
@@ -95,11 +95,11 @@ public class UpdatedCrossReference extends HibernatePersistentImpl{
 
     @ManyToOne
     @JoinColumn(name = "event_id")
-    public ProteinEvent getParent() {
+    public PersistentProteinEvent getParent() {
         return parent;
     }
 
-    public void setParent(ProteinEvent parent) {
+    public void setParent(PersistentProteinEvent parent) {
         this.parent = parent;
     }
 

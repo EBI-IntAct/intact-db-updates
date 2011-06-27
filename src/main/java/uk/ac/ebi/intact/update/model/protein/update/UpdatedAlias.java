@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update;
 
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
@@ -20,7 +20,7 @@ public class UpdatedAlias extends HibernatePersistentImpl {
     private String type;
     private String name;
 
-    private ProteinEvent parent;
+    private PersistentProteinEvent parent;
 
     private UpdateStatus status;
 
@@ -85,11 +85,11 @@ public class UpdatedAlias extends HibernatePersistentImpl {
 
     @ManyToOne
     @JoinColumn(name = "event_id")
-    public ProteinEvent getParent() {
+    public PersistentProteinEvent getParent() {
         return parent;
     }
 
-    public void setParent(ProteinEvent parent) {
+    public void setParent(PersistentProteinEvent parent) {
         this.parent = parent;
     }
 

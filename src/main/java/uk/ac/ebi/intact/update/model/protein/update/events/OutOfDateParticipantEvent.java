@@ -19,7 +19,7 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("OutOfDateParticipantEvent")
-public class OutOfDateParticipantEvent extends ProteinEvent{
+public class OutOfDateParticipantEvent extends PersistentProteinEvent {
 
     private Collection<String> componentsWithFeatureConflicts;
     private String remapped_protein;

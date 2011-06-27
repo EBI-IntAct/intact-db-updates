@@ -19,7 +19,7 @@ import javax.persistence.Lob;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("SequenceUpdateEvent")
-public class SequenceUpdateEvent extends ProteinEvent {
+public class SequenceUpdateEvent extends PersistentProteinEvent {
 
     private String newSequence;
     private String oldSequence;

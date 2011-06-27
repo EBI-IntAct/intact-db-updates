@@ -18,7 +18,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProteinEventWithMessage")
-public class ProteinEventWithMessage extends ProteinEvent {
+public class ProteinEventWithMessage extends PersistentProteinEvent {
 
     String message;
 
