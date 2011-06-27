@@ -22,6 +22,8 @@ import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
 import uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException;
 import uk.ac.ebi.intact.protein.mapping.update.ProteinUpdateException;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
+import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentReportsFactory;
+import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentResultsFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,6 +67,12 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
         this.strategy.enableIsoforms(false);
         this.strategy.setBasicBlastProcessRequired(config.isBlastEnabled());
         this.context = new UpdateContext();
+
+        // if we want to persist the events for remapping proteins, we need to use a persistent factory for creating reports and results
+        if (config.isPersistUpdateEvents()){
+            this.strategy.setReportsFactory(new PersistentReportsFactory());
+            this.strategy.setResultsFactory(new PersistentResultsFactory());
+        }
     }
 
     /**

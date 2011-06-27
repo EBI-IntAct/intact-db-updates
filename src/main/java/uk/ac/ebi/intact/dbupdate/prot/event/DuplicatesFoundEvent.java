@@ -16,9 +16,9 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 
 import java.util.Collection;
 
@@ -38,6 +38,8 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
     private String uniprotSequence;
 
     private String uniprotCrc64;
+
+    private DuplicateReport duplicateReport;
 
     /**
      * An event involving a list of proteins.
@@ -74,5 +76,13 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     public String getUniprotCrc64() {
         return uniprotCrc64;
+    }
+
+    public DuplicateReport getDuplicateReport() {
+        return duplicateReport;
+    }
+
+    public void setDuplicateReport(DuplicateReport duplicateReport) {
+        this.duplicateReport = duplicateReport;
     }
 }

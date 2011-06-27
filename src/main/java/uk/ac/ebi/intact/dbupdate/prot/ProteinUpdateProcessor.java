@@ -24,10 +24,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
-import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
@@ -161,6 +158,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
 
         addListener(new SequenceChangedListener());
+
+        // if we want to persist each protein update event, we need the eventPersisterListener
+        if (config.isPersistUpdateEvents()){
+           addListener(new ProteinEventPersisterListener());
+        }
     }
 
     public void fireOnDelete(ProteinEvent evt) {

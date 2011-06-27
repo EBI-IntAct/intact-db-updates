@@ -81,6 +81,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     public DuplicateReport fixProteinDuplicates(DuplicatesFoundEvent evt) throws ProcessorException {
         // merge protein duplicates and shift ranges when necessary
         DuplicateReport report = mergeDuplicates(evt.getProteins(), evt);
+        evt.setDuplicateReport(report);
 
         // log in 'duplicates.csv'
         if (evt.getSource() instanceof ProteinUpdateProcessor) {
@@ -362,6 +363,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 // don't process the original protein with itself
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
+                    // report the interactions to move before moving them
+                    reportMovedInteraction(duplicate, duplicate.getActiveInstances(), report);
+
                     // move the interactions
                     ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
 
@@ -410,6 +414,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // components without conflicts to move on the original protein
                         Collection<Component> componentToMove = CollectionUtils.subtract(duplicate.getActiveInstances(), componentToFix);
 
+                        // report the interactions to move before moving them
+                        reportMovedInteraction(duplicate, componentToMove, report);
                         // move components without conflicts
                         ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove);
 
@@ -419,6 +425,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
+                        // report the interactions to move before moving them
+                        reportMovedInteraction(duplicate, duplicate.getActiveInstances(), report);
                         // move the interactions
                         ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor);
 
@@ -782,5 +790,18 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
     public void setDuplicatesFinder(DuplicatesFinder duplicatesFinder) {
         this.duplicatesFinder = duplicatesFinder;
+    }
+
+    private void reportMovedInteraction(Protein sourceProtein, Collection<Component> componentsToMove, DuplicateReport report) {
+        Map<String, Collection<String>> movedInteractions = report.getMovedInteractions();
+
+        if (!movedInteractions.containsKey(sourceProtein.getAc())){
+            Collection<String> moved = new ArrayList<String>(componentsToMove.size());
+            movedInteractions.put(sourceProtein.getAc(), moved);
+        }
+
+        for (Component c : componentsToMove){
+            movedInteractions.get(sourceProtein.getAc()).add(c.getAc());
+        }
     }
 }

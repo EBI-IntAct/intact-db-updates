@@ -64,6 +64,8 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean isBlastEnabled = true;
 
+    private boolean persistUpdateEvents = false;
+
     public ProteinUpdateProcessorConfig() {
         this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
@@ -145,5 +147,13 @@ public class ProteinUpdateProcessorConfig {
 
     public void setBlastEnabled(boolean blastEnabled) {
         isBlastEnabled = blastEnabled;
+    }
+
+    public boolean isPersistUpdateEvents() {
+        return persistUpdateEvents;
+    }
+
+    public void setPersistUpdateEvents(boolean persistUpdateEvents) {
+        this.persistUpdateEvents = persistUpdateEvents;
     }
 }
