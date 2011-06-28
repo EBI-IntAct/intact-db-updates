@@ -1,9 +1,9 @@
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
+import uk.ac.ebi.intact.dbupdate.prot.IntactUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
@@ -15,7 +15,6 @@ import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
-import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -33,12 +32,6 @@ import java.util.Date;
 public class ProteinEventPersisterListener extends AbstractProteinUpdateProcessorListener {
 
     /**
-     * The dao factory for update model persistence unit
-     */
-    @Autowired
-    private UpdateDaoFactory updateFactory;
-
-    /**
      * The entity manager
      */
     @PersistenceContext(unitName = "intact-update")
@@ -50,7 +43,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     public void createUpdateProcess(){
         this.updateProcess = new UpdateProcess(new Date(System.currentTimeMillis()));
 
-        getUpdateFactory().getUpdateProcessDao().persist(this.updateProcess);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdateProcessDao().persist(this.updateProcess);
     }
 
     @Transactional( "update" )
@@ -72,7 +65,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
             proteinEvt.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.deleted));
         }
 
-        getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -118,7 +111,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
                 }
             }
 
-            getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
         }
     }
 
@@ -151,7 +144,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
             proteinEvt.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.added));
         }
 
-        getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
     }
 
     @Override
@@ -217,10 +210,6 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     @Override
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
         super.onDeletedComponent(evt);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    public UpdateDaoFactory getUpdateFactory() {
-        return updateFactory;
     }
 
     public EntityManager getEntityManager() {
