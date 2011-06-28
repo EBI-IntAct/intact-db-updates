@@ -51,7 +51,7 @@ public class BioSourceServiceImpl implements BioSourceService {
 
     public BioSourceServiceImpl( TaxonomyService taxonomyService ) {
         // set default institution
-        this( taxonomyService, IntactContext.getCurrentInstance().getInstitution() );
+        this( taxonomyService, null );
     }
 
     public BioSourceServiceImpl( TaxonomyService taxonomyAdapter, Institution institution ) {
@@ -70,9 +70,6 @@ public class BioSourceServiceImpl implements BioSourceService {
     }
 
     private void setInstitution( Institution institution ) {
-        if ( institution == null ) {
-            throw new IllegalArgumentException();
-        }
         this.institution = institution;
     }
 
@@ -130,6 +127,10 @@ public class BioSourceServiceImpl implements BioSourceService {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         DaoFactory daoFactory = dataContext.getDaoFactory();
 
+        if (institution == null){
+            institution = IntactContext.getCurrentInstance().getInstitution();
+        }
+
         // Instanciate it
         BioSource bioSource = new BioSource( institution, shortlabel, taxid );
         bioSource.setFullName( fullname );
@@ -175,6 +176,10 @@ public class BioSourceServiceImpl implements BioSourceService {
         DaoFactory daoFactory = dataContext.getDaoFactory();
 
         TransactionStatus transactionStatus = dataContext.beginTransaction();
+
+        if (institution == null){
+            institution = IntactContext.getCurrentInstance().getInstitution();
+        }
 
         // Instanciate it
         BioSource bioSource = new BioSource( institution, shortlabel, taxid );
