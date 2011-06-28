@@ -25,13 +25,14 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
+import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.io.BufferedReader;
@@ -339,6 +340,13 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
 
         getDataContext().commitTransaction(status2);
+
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
+
+        Assert.assertEquals(1, updateFactory.getUpdateProcessDao().countAll());
+        Assert.assertEquals(3, updateFactory.getProteinEventDao(DuplicatedProteinEvent.class).countAll());
+        Assert.assertEquals(2, updateFactory.getProteinEventDao(ProteinEventWithMessage.class).getAllProteinEventsByName(EventName.deleted_protein).size());
+        Assert.assertEquals(0, updateFactory.getProteinEventDao(ProteinEventWithMessage.class).getAllProteinEventsByName(EventName.created_protein).size());
     }
 
     private static int countLinesInFile(File file) {

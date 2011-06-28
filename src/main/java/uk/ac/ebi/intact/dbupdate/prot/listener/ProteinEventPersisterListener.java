@@ -50,7 +50,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, EventName.deleted_protein, protein, evt.getIndex(), evt.getMessage());
+        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, EventName.deleted_protein, protein, evt.getMessage());
 
         // all aliases deleted
         for (InteractorAlias alias : protein.getAliases()){
@@ -85,7 +85,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
 
             boolean isMergeSuccessful = (rangeReport == null);
 
-            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
+            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, originalProtein, sequenceUpdate, isMergeSuccessful);
 
             // add the moved interactions
             if (movedInteractions != null){
@@ -129,7 +129,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, EventName.created_protein, protein, evt.getIndex(), evt.getMessage());
+        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, EventName.created_protein, protein, evt.getMessage());
 
         // all aliases deleted
         for (InteractorAlias alias : protein.getAliases()){

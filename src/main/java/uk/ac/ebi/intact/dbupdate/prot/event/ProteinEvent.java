@@ -55,11 +55,6 @@ public class ProteinEvent extends EventObject implements ProteinProcessorEvent, 
     private String uniprotIdentity;
 
     /**
-     * The place of the protein event in the protein update data flow
-     */
-    private int index;
-
-    /**
      * A protein update event
      *
      * @param source The object on which the Event initially occurred.
@@ -129,13 +124,5 @@ public class ProteinEvent extends EventObject implements ProteinProcessorEvent, 
 
     public void setUniprotIdentity(String uniprotIdentity) {
         this.uniprotIdentity = uniprotIdentity;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
     }
 }
