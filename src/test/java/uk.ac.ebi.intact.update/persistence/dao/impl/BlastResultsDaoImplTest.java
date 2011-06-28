@@ -22,7 +22,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -34,7 +34,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_identity_superior_98_successful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -50,7 +50,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_identity_superior_98_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults("AXZ089", "P01234", 1, 198, 1, 198, (float) 96);
@@ -65,8 +65,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_identity_superior_98_and_actionId_successful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
@@ -89,8 +89,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_identity_superior_98_and_actionId_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
@@ -110,7 +110,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all_swissprot_remapping_results() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -126,7 +126,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all_swissprot_remapping_results_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createBlastResults();
@@ -141,8 +141,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_swissprotRemapping_resuts_and_actionId_successful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
@@ -165,8 +165,8 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_swissprotRemapping_resuts_and_actionId_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
@@ -186,7 +186,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_swissprotRemapping_resuts_By_Trembl_ac_successful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -202,7 +202,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_swissprotRemapping_resuts_By_Trembl_ac_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -217,7 +217,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_blast_resuts_By_Id_successful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();
@@ -235,7 +235,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_blast_resuts_By_Id_Unsuccessful() throws Exception {
-        final BlastResultsDao blastResultDao = getDaoFactory().getBlastResultsDao();
+        final BlastResultsDao blastResultDao = getUpdateDaoFactory().getBlastResultsDao();
         Assert.assertEquals( 0, blastResultDao.countAll() );
 
         PersistentBlastResults blastResults = getMockBuilder().createSwissprotRemappingResults();

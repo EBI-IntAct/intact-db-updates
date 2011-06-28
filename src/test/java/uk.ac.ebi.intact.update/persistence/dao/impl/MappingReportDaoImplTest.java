@@ -26,7 +26,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -38,7 +38,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithId_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -56,7 +56,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithId_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -71,7 +71,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportByName_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -87,7 +87,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportByName_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -102,7 +102,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportByStatus_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -118,7 +118,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportByStatus_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -133,7 +133,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithWarnings_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -149,7 +149,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithWartnings_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithoutWarning();
@@ -164,7 +164,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithPossibleUniprot_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
@@ -180,7 +180,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReportWithPossibleUniprot_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithoutPossibleUniprot();
@@ -195,7 +195,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_PICRReport_successful() throws Exception {
-        final MappingReportDao<PersistentPICRReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentPICRReport.class);
+        final MappingReportDao<PersistentPICRReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentPICRReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentPICRReport report = getMockBuilder().createPICRReport();
@@ -210,12 +210,12 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_PICRReport_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentPICRReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentPICRReport.class);
+        final MappingReportDao<PersistentPICRReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentPICRReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
 
-        getDaoFactory().getMappingReportDao(PersistentMappingReport.class).persist( report );
+        getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class).persist( report );
 
         List<PersistentPICRReport> r = actionReportDao.getAll();
 
@@ -224,7 +224,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_BlastReport_successful() throws Exception {
-        final MappingReportDao<PersistentBlastReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentBlastReport.class);
+        final MappingReportDao<PersistentBlastReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentBlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentBlastReport report = getMockBuilder().createSwissprotRemappingReport();
@@ -239,12 +239,12 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_BlastReport_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentBlastReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentBlastReport.class);
+        final MappingReportDao<PersistentBlastReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentBlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
 
-        getDaoFactory().getMappingReportDao(PersistentMappingReport.class).persist( report );
+        getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class).persist( report );
         actionReportDao.flush();
 
         List<PersistentBlastReport> r = actionReportDao.getAll();
@@ -254,7 +254,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_SwissprotRemappingReport_successful() throws Exception {
-        final MappingReportDao<PersistentBlastReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentBlastReport.class);
+        final MappingReportDao<PersistentBlastReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentBlastReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentBlastReport report = getMockBuilder().createSwissprotRemappingReport();
@@ -269,8 +269,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_WithWarnings_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -292,8 +292,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_WithWarnings_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -313,8 +313,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_WithPossibleUniprot_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -336,8 +336,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_WithPossibleUniprot_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -357,8 +357,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_ByResultId_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -380,8 +380,8 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_ActionReport_ByResultId_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, actionReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -401,9 +401,9 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetActionReportByNameAndResultId_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
-        final IdentificationResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultsdao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -424,9 +424,9 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetUActionReportsByNameAndResultId_unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
-        final IdentificationResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultsdao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -443,9 +443,9 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetActionReportByStatusAndResultId_successful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
-        final IdentificationResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultsdao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -466,9 +466,9 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetUActionReportsByStatusAndResultId_unsuccessful() throws Exception {
-        final MappingReportDao<PersistentMappingReport> actionReportDao = getDaoFactory().getMappingReportDao(PersistentMappingReport.class);
+        final MappingReportDao<PersistentMappingReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
-        final IdentificationResultsDao updateResultsdao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultsdao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();

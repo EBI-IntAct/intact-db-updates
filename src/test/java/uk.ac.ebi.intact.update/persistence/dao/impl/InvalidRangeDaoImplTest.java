@@ -23,7 +23,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void save_all_invalids(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createInvalidRange();
 
@@ -36,7 +36,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void update_all_invalids(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createInvalidRange();
 
@@ -55,7 +55,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void delete_all_invalids(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createInvalidRange();
 
@@ -68,7 +68,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_all_invalids(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createInvalidRange();
 
@@ -79,7 +79,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_all_out_of_date(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createOutOfDateRangeWithoutSequenceVersion();
 
@@ -90,7 +90,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_all_out_of_date_sequence_version(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
         InvalidRange invalid = getMockBuilder().createOutOfDateRangeWithoutSequenceVersion();
         InvalidRange invalid2 = getMockBuilder().createOutOfDateRangeWithSequenceVersion();
@@ -112,8 +112,8 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_invalid_ranges_using_processId(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process1 = getMockBuilder().createUpdateProcess();
         UpdateProcess process2 = getMockBuilder().createUpdateProcess();
@@ -158,8 +158,8 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_invalid_ranges_using_date(){
-        InvalidRangeDao invalidRangeDao = getDaoFactory().getInvalidRangeDao();
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process1 = getMockBuilder().createUpdateProcess();
         UpdateProcess process2 = getMockBuilder().createUpdateProcess();

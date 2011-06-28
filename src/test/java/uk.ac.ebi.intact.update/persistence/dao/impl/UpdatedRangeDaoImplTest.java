@@ -22,7 +22,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void create_updated_range(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -30,13 +30,13 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         Assert.assertEquals(1, updatedRangeDao.countAll());
 
-        UpdatedRangeDao<InvalidRange> invalidRangeDao = getDaoFactory().getUpdatedRangeDao(InvalidRange.class);
+        UpdatedRangeDao<InvalidRange> invalidRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(InvalidRange.class);
         Assert.assertEquals(0, invalidRangeDao.countAll());
     }
 
     @Test
     public void delete_updated_range(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -50,7 +50,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -67,7 +67,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_processId_Date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -76,7 +76,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         process.addRangeUpdate(range);
 
-        getDaoFactory().getUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getUpdateProcessDao().persist(process);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -94,7 +94,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createInvalidRange();
 
@@ -107,7 +107,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac_process_id_and_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -119,7 +119,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         process.addRangeUpdate(range);
 
-        getDaoFactory().getUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getUpdateProcessDao().persist(process);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -132,7 +132,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createInvalidRange();
 
@@ -143,7 +143,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         process.addRangeUpdate(range);
 
-        getDaoFactory().getUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getUpdateProcessDao().persist(process);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -154,7 +154,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac_process_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createUpdatedRange();
 
@@ -166,7 +166,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         process.addRangeUpdate(range);
 
-        getDaoFactory().getUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getUpdateProcessDao().persist(process);
 
         Date date = process.getDate();
 
@@ -181,7 +181,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations_process_id_and_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
 
         UpdatedRange range = getMockBuilder().createInvalidRange();
 
@@ -192,7 +192,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         process.addRangeUpdate(range);
 
-        getDaoFactory().getUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getUpdateProcessDao().persist(process);
 
         Date date = process.getDate();
 

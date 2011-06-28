@@ -23,7 +23,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all() throws Exception {
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
         PersistentBlastReport report = getMockBuilder().createBlastReport();
@@ -35,8 +35,8 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_BlastReport_ByResultId_successful() throws Exception {
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -60,8 +60,8 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_BlastReport_ByResultId_Unsuccessful() throws Exception {
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -79,9 +79,9 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByResultId_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -101,9 +101,9 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void test_GetSwissprotRemappingReportByResultId_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
-        final BlastReportDao blastReportDao = getDaoFactory().getBlastReportDao();
+        final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();

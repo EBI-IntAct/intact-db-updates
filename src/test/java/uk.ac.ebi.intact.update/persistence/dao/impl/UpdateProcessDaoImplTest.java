@@ -22,7 +22,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void create_update_process(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
 
@@ -32,7 +32,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void update_date_process(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         Date dateBefore = process.getDate();
@@ -55,14 +55,14 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void update_event_process(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
 
         processDao.persist(process);
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(0, getDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
+        Assert.assertEquals(0, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
 
         PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
 
@@ -71,19 +71,19 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
         processDao.update(process);
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(1, getDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
+        Assert.assertEquals(1, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
     }
 
     @Test
     public void update_range_process(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
 
         processDao.persist(process);
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(0, getDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
+        Assert.assertEquals(0, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
 
         UpdatedRange range = getMockBuilder().createInvalidRange();
 
@@ -92,12 +92,12 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
         processDao.update(process);
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(1, getDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
+        Assert.assertEquals(1, getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
     }
 
     @Test
     public void delete_update_process(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
 
@@ -114,13 +114,13 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         processDao.delete(process);
         Assert.assertEquals(0, processDao.countAll());
-        Assert.assertEquals(0, getDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
-        Assert.assertEquals(0, getDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
+        Assert.assertEquals(0, getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
+        Assert.assertEquals(0, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
     }
 
     @Test
     public void get_by_date(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         Date dateBefore = process.getDate();
@@ -137,7 +137,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void get_before_after_date(){
-        UpdateProcessDao processDao = getDaoFactory().getUpdateProcessDao();
+        UpdateProcessDao processDao = getUpdateDaoFactory().getUpdateProcessDao();
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
         Date date = new Date(3);

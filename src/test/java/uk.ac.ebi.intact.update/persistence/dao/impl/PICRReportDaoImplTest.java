@@ -23,7 +23,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_all() throws Exception {
-        final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
+        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
 
         PersistentPICRReport report = getMockBuilder().createPICRReport();
@@ -35,8 +35,8 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_PICRReport_ByResultId_successful() throws Exception {
-        final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
@@ -58,8 +58,8 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void search_PICRReport_ByResultId_Unsuccessful() throws Exception {
-        final PICRReportDao picrReportDao = getDaoFactory().getPICRReportDao();
-        final IdentificationResultsDao updateResultsDao = getDaoFactory().getUpdateResultsDao();
+        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
+        final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 

@@ -24,7 +24,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_all() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -36,7 +36,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetUpdateResultsWithId_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -54,7 +54,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetUpdateResultsWithId_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -69,7 +69,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetUpdateResults_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -87,7 +87,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingActionWithSpecificName_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -105,7 +105,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingActionWithSpecificName_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -122,7 +122,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingActionWithSpecificLabel_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -139,7 +139,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingActionWithSpecificLabel_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -156,7 +156,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingSwissprotRemapping_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -176,7 +176,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsContainingSwissprotRemapping_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -193,7 +193,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResults_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -211,7 +211,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_NoSuccessfulresults() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
@@ -228,7 +228,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsToBeReviewed_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -250,7 +250,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsToBeReviewed_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -267,7 +267,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithNoSequenceNoIdentityXRefs_successful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -289,7 +289,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithNoSequenceNoIdentityXRefs_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -306,7 +306,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetUnsuccessfulResults() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
@@ -324,7 +324,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetNoUnsuccessfulResults() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -342,7 +342,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithConflictSequenceIdentityXRefs() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
@@ -360,7 +360,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithConflictSequenceIdentityXRefs_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
@@ -377,7 +377,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithConflictSequencefeatureRange() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUnsuccessfulUpdateResult();
@@ -395,7 +395,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void test_GetResultsWithConflictSequenceFeatureRange_unsuccessful() throws Exception {
-        final IdentificationResultsDao updateResultDao = getDaoFactory().getUpdateResultsDao();
+        final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();

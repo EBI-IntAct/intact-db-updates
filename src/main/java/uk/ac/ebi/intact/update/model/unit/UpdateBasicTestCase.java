@@ -74,7 +74,7 @@ public abstract class UpdateBasicTestCase {
      *
      * @return the DaoFactory
      */
-    public UpdateDaoFactory getDaoFactory() {
+    public UpdateDaoFactory getUpdateDaoFactory() {
         return daoFactory;
     }
 
