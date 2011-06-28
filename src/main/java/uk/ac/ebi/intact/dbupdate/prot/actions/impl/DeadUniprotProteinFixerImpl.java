@@ -9,6 +9,7 @@ import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.event.DeadUniprotEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -51,17 +52,20 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         Protein protein = evt.getProtein();
 
         // add no-uniprot-update and the caution
-        updateAnnotations(protein, evt.getDataContext());
+        Collection<Annotation> addedAnnotations = updateAnnotations(protein, evt.getDataContext());
 
         if (evt.getSource() instanceof ProteinUpdateProcessor) {
 
             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
+            DeadUniprotEvent deadEvt = new DeadUniprotEvent(updateProcessor, evt.getDataContext(), evt.getProtein());
+            deadEvt.setAddedAnnotations(addedAnnotations);
+
             // delete all other xrefs which are not intact or uniprot identity and update the uniprot identity
-            updateXRefs(protein, evt.getDataContext(), updateProcessor);
+            updateXRefs(protein, evt.getDataContext(), updateProcessor, deadEvt);
 
             // log the dead protein in 'dead_proteins.csv'
-            updateProcessor.fireOnUniprotDeadEntry(new ProteinEvent(updateProcessor, evt.getDataContext(), evt.getProtein()));
+            updateProcessor.fireOnUniprotDeadEntry(deadEvt);
         }
     }
 
@@ -69,7 +73,9 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
      * Two new annotations will be added : a 'no-uniprot-update' and a 'caution' explaining that this protein is now obsolete in uniprot
      * @param protein :the dead protein in IntAct
      */
-    private void updateAnnotations(Protein protein, DataContext context){
+    private Collection<Annotation> updateAnnotations(Protein protein, DataContext context){
+        Collection<Annotation> addedAnnotations = new ArrayList<Annotation>(2);
+
         DaoFactory factory = context.getDaoFactory();
         Collection<Annotation> annotations = protein.getAnnotations();
 
@@ -114,6 +120,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             annotationDao.persist(no_uniprot);
 
             protein.addAnnotation(no_uniprot);
+            addedAnnotations.add(no_uniprot);
         }
         // if no 'caution' exists, add the annotation
         if (!has_caution_obsolete){
@@ -121,16 +128,20 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             annotationDao.persist(obsolete);
 
             protein.addAnnotation(obsolete);
+            addedAnnotations.add(obsolete);
         }
 
         proteinDao.update((ProteinImpl) protein);
+
+        return addedAnnotations;
     }
 
     /**
      * This method removes all the cross references which are not intact cross references and replace the uniprot identity with 'uniprot-removed-ac'
      * @param protein : the dead protein in IntAct
      */
-    private void updateXRefs(Protein protein, DataContext context, ProteinUpdateProcessor processor){
+    private void updateXRefs(Protein protein, DataContext context, ProteinUpdateProcessor processor, DeadUniprotEvent deadEvt){
+
         DaoFactory factory = context.getDaoFactory();
 
         // get the list of uniprot identities (are supposed to be duplicates of the same uniprot ac because
@@ -147,7 +158,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         XrefDao<InteractorXref> refDao = factory.getXrefDao(InteractorXref.class);
 
         // the collection of xrefs to delete
-        Collection<InteractorXref> xRefsToRemove = new ArrayList<InteractorXref>();
+        Collection<InteractorXref> xRefsToRemove = new ArrayList<InteractorXref>(protein.getXrefs().size());
 
         for (InteractorXref ref : xRefs){
             boolean toDelete = false;
@@ -200,6 +211,8 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             }
             // if the xref is uniprot identity, we update it as uniprot-removed-ac
             else if (isUniprotIdentity){
+                deadEvt.setUniprotIdentityXref(ref);
+
                 CvXrefQualifier uniprot_removed_ac = factory.getCvObjectDao(CvXrefQualifier.class).getByShortLabel(CvXrefQualifier.UNIPROT_REMOVED_AC);
 
                 if (uniprot_removed_ac == null){
@@ -219,5 +232,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
 
         // update the protein to be deleted
         factory.getProteinDao().update((ProteinImpl) protein);
+
+        deadEvt.setDeletedXrefs(xRefsToRemove);
     }
 }

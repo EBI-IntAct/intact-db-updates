@@ -39,7 +39,7 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("Duplicated proteins: "+ DebugUtil.acList(evt.getProteins()));
     }
 
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+    public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Dead protein found: "+evt.getProtein().getShortLabel());
     }
 

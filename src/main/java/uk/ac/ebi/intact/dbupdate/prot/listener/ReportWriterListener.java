@@ -67,14 +67,27 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
             DuplicateReport report = evt.getDuplicateReport();
 
-            duplicatedWriter.writeColumnValues(protAc,
-                    String.valueOf(activeInstanceNumber),
-                    protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
-                    mapCollectionStringToString(report.getUpdatedTranscripts()),
-                    mapCollectionStringToString(report.getMovedInteractions()),
-                    mapCollectionXrefsToString(report.getAddedXRefs()),
-                    mapCollectionAnnotationsToString(report.getAddedAnnotations())
-            );
+            if (report != null){
+                duplicatedWriter.writeColumnValues(protAc,
+                        String.valueOf(activeInstanceNumber),
+                        protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
+                        mapCollectionStringToString(report.getUpdatedTranscripts()),
+                        mapCollectionStringToString(report.getMovedInteractions()),
+                        mapCollectionXrefsToString(report.getAddedXRefs()),
+                        mapCollectionAnnotationsToString(report.getAddedAnnotations())
+                );
+            }
+            else{
+                duplicatedWriter.writeColumnValues(protAc,
+                        String.valueOf(activeInstanceNumber),
+                        protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
+                        "-",
+                        "-",
+                        "-",
+                        "-"
+                );
+            }
+
             duplicatedWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
@@ -231,7 +244,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+    public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
         final Protein protein = evt.getProtein();
         try {
             final ReportWriter writer = reportHandler.getDeadProteinWriter();

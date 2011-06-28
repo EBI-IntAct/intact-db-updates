@@ -116,8 +116,9 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     }
 
     @Override
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
-        super.onDeadProteinFound(evt);    //To change body of overridden methods use File | Settings | File Templates.
+    @Transactional( "update" )
+    public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
+
     }
 
     @Override

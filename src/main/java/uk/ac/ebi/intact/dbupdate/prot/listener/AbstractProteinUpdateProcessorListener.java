@@ -35,7 +35,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinU
          // nothing
     }
 
-    public void onDeadProteinFound(ProteinEvent evt) throws ProcessorException {
+    public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
         // nothing
     }
 
