@@ -16,6 +16,8 @@ import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
 import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Collection;
 import java.util.Date;
 
@@ -34,6 +36,12 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
      */
     @Autowired
     private UpdateDaoFactory updateFactory;
+
+    /**
+     * The entity manager
+     */
+    @PersistenceContext(unitName = "intact-update")
+    private EntityManager entityManager;
 
     private UpdateProcess updateProcess;
 
@@ -79,52 +87,41 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
 
         for (Protein duplicate : evt.getProteins()){
 
-            // if real duplicate, we add information
-            if (!duplicate.getAc().equals(originalProtein.getAc())){
-                Collection<String> movedInteractions = report.getMovedInteractions().get(duplicate.getAc());
-                RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(duplicate);
-                Collection<Annotation> addedAnnotations = report.getAddedAnnotations().get(duplicate.getAc());
-                Collection<String> updatedTranscripts = report.getUpdatedTranscripts().get(duplicate.getAc());
+            Collection<String> movedInteractions = report.getMovedInteractions().get(duplicate.getAc());
+            RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(duplicate);
+            Collection<Annotation> addedAnnotations = report.getAddedAnnotations().get(duplicate.getAc());
+            Collection<String> updatedTranscripts = report.getUpdatedTranscripts().get(duplicate.getAc());
+            Collection<InteractorXref> addedXrefs = report.getAddedXRefs().get(duplicate.getAc());
 
-                // no range conflicts, means that the merge was successfull and duplicate is deleted
-                if (rangeReport == null){
-                    boolean isMergeSuccessful = true;
+            boolean isMergeSuccessful = (rangeReport == null);
 
-                    DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
+            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
 
-                    // all aliases deleted
-                    for (InteractorAlias alias : duplicate.getAliases()){
-                        duplicatedEvent.addUpdatedAlias(new UpdatedAlias(alias, UpdateStatus.deleted));
-                    }
-                    // all xrefs deleted
-                    for (InteractorXref xref : duplicate.getXrefs()){
-                        duplicatedEvent.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.deleted));
-                    }
-                    // all annotations deleted
-                    for (Annotation annotation : duplicate.getAnnotations()){
-                        duplicatedEvent.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.deleted));
-                    }
+            // add the moved interactions
+            if (movedInteractions != null){
+                duplicatedEvent.getMovedInteractions().addAll(movedInteractions);
+            }
 
-                    // add the moved interactions
-                    if (movedInteractions != null){
-                        duplicatedEvent.getMovedInteractions().addAll(movedInteractions);
-                    }
+            // add the updated transcripts
+            if (updatedTranscripts != null){
+                duplicatedEvent.getUpdatedTranscripts().addAll(updatedTranscripts);
+            }
 
-                    // add the updated transcripts
-                    if (updatedTranscripts != null){
-                        duplicatedEvent.getUpdatedTranscripts().addAll(updatedTranscripts);
-                    }
-
-                    getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).saveOrUpdate(duplicatedEvent);
-                }
-                else {
-                    boolean isMergeSuccessful = false;
-
-                    DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
-
-
+            // added annotations
+            if (addedAnnotations != null){
+                for (Annotation annotation : addedAnnotations){
+                    duplicatedEvent.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.added));
                 }
             }
+
+            // added xrefs
+            if (addedXrefs != null){
+                for (InteractorXref xref : addedXrefs){
+                    duplicatedEvent.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.added));
+                }
+            }
+
+            getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).saveOrUpdate(duplicatedEvent);
         }
     }
 
@@ -225,5 +222,9 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
 
     public UpdateDaoFactory getUpdateFactory() {
         return updateFactory;
+    }
+
+    public EntityManager getEntityManager() {
+        return entityManager;
     }
 }
