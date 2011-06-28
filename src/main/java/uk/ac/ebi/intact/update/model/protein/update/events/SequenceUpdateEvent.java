@@ -33,8 +33,8 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
         this.oldSequence = null;
     }
 
-    public SequenceUpdateEvent(UpdateProcess updateProcess, EventName name, Protein protein, int index, String newSequence, String oldSequence, double relativeConservation){
-        super(updateProcess, name, protein, index);
+    public SequenceUpdateEvent(UpdateProcess updateProcess, EventName name, Protein protein, String newSequence, String oldSequence, double relativeConservation){
+        super(updateProcess, name, protein);
         this.newSequence = newSequence;
         this.relativeConservation = relativeConservation;
         this.oldSequence = oldSequence;

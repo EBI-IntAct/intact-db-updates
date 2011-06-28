@@ -39,8 +39,8 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         updatedTranscripts = new ArrayList<String>();
     }
 
-    public DuplicatedProteinEvent(UpdateProcess updateProcess, Protein duplicatedProtein, int index, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
-        super(updateProcess, EventName.protein_duplicate, duplicatedProtein, index);
+    public DuplicatedProteinEvent(UpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
+        super(updateProcess, EventName.protein_duplicate, duplicatedProtein);
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
         this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;

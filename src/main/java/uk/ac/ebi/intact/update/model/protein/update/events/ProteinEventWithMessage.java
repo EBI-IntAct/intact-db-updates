@@ -28,8 +28,8 @@ public class ProteinEventWithMessage extends PersistentProteinEvent {
 
     }
 
-    public ProteinEventWithMessage(UpdateProcess updateProcess, EventName name, Protein protein, int index, String message ){
-        super(updateProcess, name, protein, index);
+    public ProteinEventWithMessage(UpdateProcess updateProcess, EventName name, Protein protein, String message ){
+        super(updateProcess, name, protein);
         this.message = message;
     }
 

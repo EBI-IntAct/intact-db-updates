@@ -28,8 +28,8 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
         super();
     }
 
-    public IntactTranscriptUpdateEvent(UpdateProcess updateProcess, Protein transcript, int index, String message, String newParentAc ){
-        super(updateProcess, EventName.transcript_parent_update, transcript, index, message);
+    public IntactTranscriptUpdateEvent(UpdateProcess updateProcess, Protein transcript, String message, String newParentAc ){
+        super(updateProcess, EventName.transcript_parent_update, transcript, message);
         this.newParentAc = newParentAc;
         this.message = message;
         this.oldParentAcs = new ArrayList<String>();

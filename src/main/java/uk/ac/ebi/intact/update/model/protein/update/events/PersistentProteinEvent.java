@@ -26,7 +26,6 @@ import java.util.Collection;
 public class PersistentProteinEvent extends HibernatePersistentImpl {
 
     EventName name;
-    int index;
 
     String proteinAc;
     UpdateProcess parent;
@@ -38,7 +37,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
     public PersistentProteinEvent(){
         super();
         this.name = EventName.uniprot_update;
-        this.index = 0;
 
         this.proteinAc = null;
 
@@ -47,10 +45,9 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         updatedAliases = new ArrayList<UpdatedAlias>();
     }
 
-    public PersistentProteinEvent(UpdateProcess process, EventName name, Protein protein, int index){
+    public PersistentProteinEvent(UpdateProcess process, EventName name, Protein protein){
         super();
         this.name = name;
-        this.index = index;
         this.proteinAc = protein != null ? protein.getAc() : null;
         this.parent = process;
         updatedReferences = new ArrayList<UpdatedCrossReference>();
@@ -198,15 +195,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         this.name = name;
     }
 
-    @Column(name = "index", nullable = false)
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
     @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
@@ -233,10 +221,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
             return false;
         }
 
-        if (index != event.getIndex()){
-            return false;
-        }
-
         return true;
     }
 
@@ -260,9 +244,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         if ( proteinAc != null ) {
             code = 29 * code + proteinAc.hashCode();
         }
-
-        code = 29 * code + Integer.toString(index).hashCode();
-
 
         return code;
     }
@@ -294,10 +275,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
             return false;
         }
 
-        if (index != event.getIndex()){
-            return false;
-        }
-
         if (!CollectionUtils.isEqualCollection(updatedAliases, event.getUpdatedAliases())){
             return false;
         }
@@ -319,9 +296,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         buffer.append(" \n");
 
         buffer.append("Event : " + name != null ? name.toString() : "none");
-        buffer.append(" \n");
-
-        buffer.append("Index : " + index);
         buffer.append(" \n");
 
         return buffer.toString();

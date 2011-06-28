@@ -404,7 +404,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         PersistentProteinEvent event = new PersistentProteinEvent();
 
         event.setName(EventName.uniprot_update);
-        event.setIndex(1);
         event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
@@ -423,7 +422,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
     public DeadProteinEvent createDefaultDeadProteinEvent(){
         DeadProteinEvent proteinEvent = new DeadProteinEvent();
 
-        proteinEvent.setIndex(1);
         proteinEvent.setName(EventName.dead_protein);
         proteinEvent.setProteinAc("EBI-xxxxx10");
         proteinEvent.setUniprotReference("P12345");

@@ -31,8 +31,8 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
         this.uniprotAc = null;
     }
 
-    public ProcessErrorEvent(UpdateProcess updateProcess, Protein protein, int index, String type, String message, String uniprotAc ){
-        super(updateProcess, EventName.update_error, protein, index, message);
+    public ProcessErrorEvent(UpdateProcess updateProcess, Protein protein, String type, String message, String uniprotAc ){
+        super(updateProcess, EventName.update_error, protein, message);
         this.type = type;
         this.uniprotAc = uniprotAc;
     }

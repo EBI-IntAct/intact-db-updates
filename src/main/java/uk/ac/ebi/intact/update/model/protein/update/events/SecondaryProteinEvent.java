@@ -30,8 +30,8 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
     }
 
-    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, int index, String secondaryAc, String primaryAc){
-        super(updateProcess, EventName.secondary_protein, protein, index);
+    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc){
+        super(updateProcess, EventName.secondary_protein, protein);
         this.primaryAc = primaryAc;
         this.secondaryAc = secondaryAc;
     }

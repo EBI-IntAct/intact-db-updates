@@ -28,8 +28,8 @@ public class DeadProteinEvent extends PersistentProteinEvent {
         this.uniprotReference = null;
     }
 
-    public DeadProteinEvent(UpdateProcess process, Protein protein, int index, InteractorXref uniprotRef){
-        super(process, EventName.dead_protein, protein, index);
+    public DeadProteinEvent(UpdateProcess process, Protein protein, InteractorXref uniprotRef){
+        super(process, EventName.dead_protein, protein);
 
         setUniprotReference(uniprotRef);
     }
