@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.ac.ebi.intact.commons.util.Crc64;
+import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
@@ -37,10 +38,7 @@ import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Listener for logging the actions during the update
@@ -63,17 +61,84 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         try {
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
-            duplicatedWriter.writeHeaderIfNecessary("Kept", "Active instances", "Duplicates");
+            duplicatedWriter.writeHeaderIfNecessary("Kept", "Total Active instances", "Duplicates", "Updated isoforms/feature chains", "moved interactions", "Added xrefs", "Added annotations");
             String protAc = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getAc() : "All. Impossible to merge";
             int activeInstanceNumber = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getActiveInstances().size() : 0;
 
+            DuplicateReport report = evt.getDuplicateReport();
+
             duplicatedWriter.writeColumnValues(protAc,
                     String.valueOf(activeInstanceNumber),
-                    protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()));
+                    protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
+                    mapCollectionStringToString(report.getUpdatedTranscripts()),
+                    mapCollectionStringToString(report.getMovedInteractions()),
+                    mapCollectionXrefsToString(report.getAddedXRefs()),
+                    mapCollectionAnnotationsToString(report.getAddedAnnotations())
+            );
             duplicatedWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
         }
+    }
+
+    private String mapCollectionStringToString(Map<String, Collection<String>> mapInfo){
+        StringBuffer buffer = new StringBuffer();
+
+        int i = 1;
+
+        for (Map.Entry<String, Collection<String>> entry : mapInfo.entrySet()){
+            buffer.append(entry.getKey());
+            buffer.append("[");
+            buffer.append(entry.getValue().size());
+            buffer.append("]");
+
+            if (i < mapInfo.size()){
+                buffer.append(", ");
+            }
+            i++;
+        }
+
+        return buffer.toString();
+    }
+
+    private String mapCollectionXrefsToString(Map<String, Collection<InteractorXref>> mapInfo){
+        StringBuffer buffer = new StringBuffer();
+
+        int i = 1;
+
+        for (Map.Entry<String, Collection<InteractorXref>> entry : mapInfo.entrySet()){
+            buffer.append(entry.getKey());
+            buffer.append("[");
+            buffer.append(entry.getValue().size());
+            buffer.append("]");
+
+            if (i < mapInfo.size()){
+                buffer.append(", ");
+            }
+            i++;
+        }
+
+        return buffer.toString();
+    }
+
+    private String mapCollectionAnnotationsToString(Map<String, Collection<Annotation>> mapInfo){
+        StringBuffer buffer = new StringBuffer();
+
+        int i = 1;
+
+        for (Map.Entry<String, Collection<Annotation>> entry : mapInfo.entrySet()){
+            buffer.append(entry.getKey());
+            buffer.append("[");
+            buffer.append(entry.getValue().size());
+            buffer.append("]");
+
+            if (i < mapInfo.size()){
+                buffer.append(", ");
+            }
+            i++;
+        }
+
+        return buffer.toString();
     }
 
     @Override
@@ -682,7 +747,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     private static String protCollectionToString(Collection<? extends Protein> protCollection,
                                                  boolean showActiveInstancesCount) {
-        return protCollectionToString(protCollection, showActiveInstancesCount, null);
+        return protCollectionToString(protCollection, showActiveInstancesCount, Collections.EMPTY_MAP);
     }
 
     private static String protCollectionToString(Collection<? extends Protein> protCollection,
@@ -701,6 +766,32 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
             if (additionalInfo != null && !additionalInfo.isEmpty()) {
                 sb.append("[").append(additionalInfo.get(protein.getAc())).append("]");
+            }
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private static String protCollectionToString(Collection<? extends Protein> protCollection,
+                                                 boolean showInteractionsCount,
+                                                 Map<String,Collection<?>> additionalInfo) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<? extends Protein> iterator = protCollection.iterator(); iterator.hasNext();) {
+            Protein protein = iterator.next();
+
+            sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
+
+            if (showInteractionsCount) {
+                sb.append("[").append(protein.getActiveInstances().size()).append("]");
+            }
+
+            if (additionalInfo != null && !additionalInfo.isEmpty()) {
+                sb.append("[").append(additionalInfo.get(protein.getAc()).size()).append("]");
             }
 
             if (iterator.hasNext()) {
