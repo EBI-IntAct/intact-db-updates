@@ -143,7 +143,7 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Secondary protein event : [ primary ac = " + primaryAc != null ? primaryAc : "none" + ", secondary ac = "+ secondaryAc != null ? secondaryAc : "none");
+        buffer.append("Secondary proteinAc event : [ primary ac = " + primaryAc != null ? primaryAc : "none" + ", secondary ac = "+ secondaryAc != null ? secondaryAc : "none");
 
         return buffer.toString();
     }

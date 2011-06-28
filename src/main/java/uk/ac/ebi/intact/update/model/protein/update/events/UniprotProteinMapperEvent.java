@@ -109,7 +109,7 @@ public class UniprotProteinMapperEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Uniprot protein remapping event : \n");
+        buffer.append("Uniprot proteinAc remapping event : \n");
 
         buffer.append(identificationResults != null ? identificationResults.toString() : "No results.");
 

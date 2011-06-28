@@ -192,7 +192,7 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Duplicate event : [Original protein = " + originalProtein != null ? originalProtein : "none");
+        buffer.append("Duplicate event : [Original proteinAc = " + originalProtein != null ? originalProtein : "none");
         buffer.append("sequence update = "+isSequenceUpdate()+", merge successful = "+isMergeSuccessful()+"] \n");
 
         return buffer.toString();
