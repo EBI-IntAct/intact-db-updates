@@ -2,17 +2,21 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.update.*;
+import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
 import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -34,7 +38,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     private UpdateProcess updateProcess;
 
     public ProteinEventPersisterListener(){
-       createUpdateProcess();
+        createUpdateProcess();
     }
 
     @Transactional( "update" )
@@ -69,6 +73,59 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
     @Transactional( "update" )
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
 
+        DuplicateReport report = evt.getDuplicateReport();
+        Protein originalProtein = report.getOriginalProtein();
+        boolean sequenceUpdate = report.hasShiftedRanges();
+
+        for (Protein duplicate : evt.getProteins()){
+
+            // if real duplicate, we add information
+            if (!duplicate.getAc().equals(originalProtein.getAc())){
+                Collection<String> movedInteractions = report.getMovedInteractions().get(duplicate.getAc());
+                RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(duplicate);
+                Collection<Annotation> addedAnnotations = report.getAddedAnnotations().get(duplicate.getAc());
+                Collection<String> updatedTranscripts = report.getUpdatedTranscripts().get(duplicate.getAc());
+
+                // no range conflicts, means that the merge was successfull and duplicate is deleted
+                if (rangeReport == null){
+                    boolean isMergeSuccessful = true;
+
+                    DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
+
+                    // all aliases deleted
+                    for (InteractorAlias alias : duplicate.getAliases()){
+                        duplicatedEvent.addUpdatedAlias(new UpdatedAlias(alias, UpdateStatus.deleted));
+                    }
+                    // all xrefs deleted
+                    for (InteractorXref xref : duplicate.getXrefs()){
+                        duplicatedEvent.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.deleted));
+                    }
+                    // all annotations deleted
+                    for (Annotation annotation : duplicate.getAnnotations()){
+                        duplicatedEvent.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.deleted));
+                    }
+
+                    // add the moved interactions
+                    if (movedInteractions != null){
+                        duplicatedEvent.getMovedInteractions().addAll(movedInteractions);
+                    }
+
+                    // add the updated transcripts
+                    if (updatedTranscripts != null){
+                        duplicatedEvent.getUpdatedTranscripts().addAll(updatedTranscripts);
+                    }
+
+                    getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).saveOrUpdate(duplicatedEvent);
+                }
+                else {
+                    boolean isMergeSuccessful = false;
+
+                    DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, evt.getIndex(), originalProtein, sequenceUpdate, isMergeSuccessful);
+
+
+                }
+            }
+        }
     }
 
     @Override
