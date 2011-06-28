@@ -34,7 +34,7 @@ import java.util.Collections;
  * @version $Id$
  * @since <pre>19-Jan-2011</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
     private UniprotProteinUpdaterImpl updater;

@@ -22,7 +22,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>02-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"}  )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"}  )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
 

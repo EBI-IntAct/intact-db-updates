@@ -40,7 +40,7 @@ import java.util.Collections;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class SequenceChangeListenerTest extends IntactBasicTestCase {
 
     @Test

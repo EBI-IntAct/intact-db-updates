@@ -33,7 +33,7 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>11-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
 
     private ProtWithoutInteractionDeleterImpl deleter;

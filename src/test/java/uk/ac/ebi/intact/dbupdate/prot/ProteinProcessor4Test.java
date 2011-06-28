@@ -30,7 +30,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>19-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor4Test extends IntactBasicTestCase {
 

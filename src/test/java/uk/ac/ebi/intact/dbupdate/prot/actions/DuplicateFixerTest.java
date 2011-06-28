@@ -32,7 +32,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>15-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class DuplicateFixerTest extends IntactBasicTestCase{
 
     private DuplicatesFixerImpl duplicateFixer;

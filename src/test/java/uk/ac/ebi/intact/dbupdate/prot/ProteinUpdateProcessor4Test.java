@@ -33,7 +33,7 @@ import java.util.*;
  * @version $Id$
  * @since <pre>08-Dec-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
     @Before

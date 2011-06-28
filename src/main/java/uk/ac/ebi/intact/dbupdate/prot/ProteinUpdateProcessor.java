@@ -81,6 +81,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     public ProteinUpdateProcessor(){
         super();
+        initActionsAndListeners();
+    }
+
+    public void initActionsAndListeners(){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         updateFilter = new ProteinUpdateFilterImpl();
@@ -161,7 +165,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         // if we want to persist each protein update event, we need the eventPersisterListener
         if (config.isPersistUpdateEvents()){
-           addListener(new ProteinEventPersisterListener());
+
+           IntactUpdateContext updateContext = IntactUpdateContext.getCurrentInstance();
+            ProteinEventPersisterListener listenerPersister = updateContext.getProteinEventPersisterListener();
+           addListener(listenerPersister);
+           listenerPersister.createUpdateProcess();
         }
     }
 

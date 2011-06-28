@@ -26,7 +26,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>08-Dec-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class RangeChecker3Test extends IntactBasicTestCase {
 
     private RangeChecker rangeChecker;

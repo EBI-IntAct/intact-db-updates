@@ -34,7 +34,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>07-Dec-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
     private IntactTranscriptParentUpdaterImpl intactUpdater;

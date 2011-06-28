@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -28,7 +29,7 @@ import java.util.Date;
  * @version $Id$
  * @since <pre>27/06/11</pre>
  */
-
+@Component
 public class ProteinEventPersisterListener extends AbstractProteinUpdateProcessorListener {
 
     /**
@@ -45,12 +46,8 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
 
     private UpdateProcess updateProcess;
 
-    public ProteinEventPersisterListener(){
-        createUpdateProcess();
-    }
-
     @Transactional( "update" )
-    private void createUpdateProcess(){
+    public void createUpdateProcess(){
         this.updateProcess = new UpdateProcess(new Date(System.currentTimeMillis()));
 
         getUpdateFactory().getUpdateProcessDao().persist(this.updateProcess);
@@ -75,7 +72,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
             proteinEvt.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.deleted));
         }
 
-        getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).saveOrUpdate(proteinEvt);
+        getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -121,7 +118,7 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
                 }
             }
 
-            getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).saveOrUpdate(duplicatedEvent);
+            getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
         }
     }
 
@@ -153,6 +150,8 @@ public class ProteinEventPersisterListener extends AbstractProteinUpdateProcesso
         for (Annotation annotation : protein.getAnnotations()){
             proteinEvt.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.added));
         }
+
+        getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
     }
 
     @Override

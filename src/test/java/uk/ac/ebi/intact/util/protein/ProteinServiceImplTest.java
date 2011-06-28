@@ -40,7 +40,7 @@ import static org.junit.Assert.*;
  * @version $Id$
  * @since TODO artifact version
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinServiceImplTest extends IntactBasicTestCase {
 

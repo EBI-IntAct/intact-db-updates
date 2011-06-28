@@ -48,7 +48,7 @@ import java.util.Iterator;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/jpa.test.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
@@ -82,6 +82,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         UpdateReportHandler reportHandler = new FileReportHandler(dir);
         ProteinUpdateContext.getInstance().getConfig().setReportHandler( reportHandler );
         ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate(true);
+        ProteinUpdateContext.getInstance().getConfig().setPersistUpdateEvents(true);
 
         getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
 
