@@ -213,14 +213,6 @@ public class PersistentPICRCrossReferences extends HibernatePersistentImpl imple
 
         buffer.append("PICR cross reference : [" + database != null ? database : "");
 
-        if (!accessions.isEmpty()){
-            buffer.append(" Accessions : ");
-
-            for (String acc : accessions) {
-                buffer.append(acc + " ; ");
-            }
-        }
-
         return buffer.toString();
     }
 }

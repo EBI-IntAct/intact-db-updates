@@ -129,14 +129,6 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
         buffer.append("Out of date participant event : [Remapped proteinAc ac = " + remapped_protein != null ? remapped_protein : "none");
         buffer.append("] \n");
 
-        if (!componentsWithFeatureConflicts.isEmpty()){
-            buffer.append("Components having feature conflicts : ");
-
-            for (String p : componentsWithFeatureConflicts){
-                buffer.append(p + ", ");
-            }
-        }
-
         return buffer.toString();
     }
 }

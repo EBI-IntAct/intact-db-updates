@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
-import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
@@ -196,14 +195,6 @@ public class PersistentIdentificationResults extends HibernatePersistentImpl imp
         buffer.append("Identification result : [" + finalUniprotId != null ? finalUniprotId : "none");
 
         buffer.append("] \n");
-
-        if (!listOfActions.isEmpty()){
-            buffer.append(" List of Mapping Actions : ");
-
-            for (MappingReport rep : listOfActions) {
-                buffer.append(rep.toString() + " \n");
-            }
-        }
 
         return buffer.toString();
     }

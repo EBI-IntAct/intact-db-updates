@@ -173,22 +173,6 @@ public class UpdateProcess extends HibernatePersistentImpl{
 
         buffer.append("Update process : [ date = " + date != null ? date.toString() : "none" + "] \n");
 
-        if (events.isEmpty()){
-            buffer.append("Events : \n");
-
-            for (PersistentProteinEvent ev : events){
-                buffer.append(ev.toString() + "\n");
-            }
-        }
-
-        if (rangeUpdates.isEmpty()){
-            buffer.append("Range updates : \n");
-
-            for (UpdatedRange ev : rangeUpdates){
-                buffer.append(ev.toString() + "\n");
-            }
-        }
-
         return buffer.toString();
     }
 }

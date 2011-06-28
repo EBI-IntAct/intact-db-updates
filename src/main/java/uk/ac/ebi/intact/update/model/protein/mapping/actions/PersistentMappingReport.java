@@ -366,27 +366,7 @@ public class PersistentMappingReport extends HibernatePersistentImpl implements 
 
         buffer.append("] \n");
 
-        if (!warnings.isEmpty()){
-            buffer.append(" WARNINGS : ");
-
-            for (String warn : warnings) {
-                buffer.append(warn + " ; ");
-            }
-
-            buffer.append("\n");
-        }
-
         buffer.append(" Is A Swissprot entry : " + isASwissprotEntry + "\n");
-
-        if (!possibleAccessions.isEmpty()){
-            buffer.append(" POSSIBLE ACCESSIONS : ");
-
-            for (String acc : possibleAccessions) {
-                buffer.append(acc + " ; ");
-            }
-
-            buffer.append("\n");
-        }
 
         return buffer.toString();
     }

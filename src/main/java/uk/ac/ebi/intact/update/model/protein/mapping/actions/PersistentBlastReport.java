@@ -4,7 +4,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.BlastReport;
-import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 
 import javax.persistence.*;
@@ -152,14 +151,6 @@ public class PersistentBlastReport extends PersistentMappingReport implements Bl
         buffer.append(super.toString() + "\n");
 
         buffer.append("Blast : " + querySequence != null ? querySequence : "");
-
-        if (!listOfProteins.isEmpty()){
-            buffer.append(" [ ");
-
-            for (BlastResults prot : listOfProteins) {
-                buffer.append(prot.toString() + " ; ");
-            }
-        }
 
         buffer.append(" ]");
 

@@ -125,14 +125,6 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
         buffer.append("Intact transcript update event : [New parent ac = " + newParentAc != null ? newParentAc : "none");
         buffer.append("] \n");
 
-        if (!oldParentAcs.isEmpty()){
-            buffer.append("Old parent acs : ");
-
-            for (String p : oldParentAcs){
-                buffer.append(p + ", ");
-            }
-        }
-
         return buffer.toString();
     }
 }

@@ -358,14 +358,6 @@ public class UpdatedRange extends HibernatePersistentImpl {
             buffer.append("\n");
         }
 
-        if (!featureAnnotations.isEmpty()){
-            buffer.append("Feature annotations : ");
-
-            for (UpdatedAnnotation a : featureAnnotations){
-                buffer.append(a.toString() + "\n");
-            }
-        }
-
         return buffer.toString();
     }
 }

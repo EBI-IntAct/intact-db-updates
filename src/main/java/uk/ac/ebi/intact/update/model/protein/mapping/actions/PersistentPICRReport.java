@@ -3,7 +3,6 @@ package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
-import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 
 import javax.persistence.CascadeType;
@@ -117,24 +116,5 @@ public class PersistentPICRReport extends PersistentMappingReport implements PIC
         final PersistentPICRReport report = (PersistentPICRReport) o;
 
         return CollectionUtils.isEqualCollection(this.crossReferences, report.getCrossReferences());
-    }
-
-    @Override
-    public String toString() {
-        StringBuffer buffer = new StringBuffer();
-
-        buffer.append(super.toString() + "\n");
-
-        if (!crossReferences.isEmpty()){
-            buffer.append("PICR references : [");
-
-            for (PICRCrossReferences ref : crossReferences) {
-                buffer.append(ref.toString() + " ; ");
-            }
-
-            buffer.append("\n");
-        }
-
-        return buffer.toString();
     }
 }

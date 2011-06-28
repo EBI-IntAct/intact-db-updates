@@ -324,36 +324,6 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         buffer.append("Index : " + index);
         buffer.append(" \n");
 
-        if (!updatedAliases.isEmpty()){
-            buffer.append("Updated aliases : ");
-
-            for (UpdatedAlias p : updatedAliases){
-                buffer.append(p.toString() + ", ");
-            }
-
-            buffer.append("\n");
-        }
-
-        if (!updatedAnnotations.isEmpty()){
-            buffer.append("Updated annotations : ");
-
-            for (UpdatedAnnotation p : updatedAnnotations){
-                buffer.append(p.toString() + ", ");
-            }
-
-            buffer.append("\n");
-        }
-
-        if (!updatedReferences.isEmpty()){
-            buffer.append("Updated references : ");
-
-            for (UpdatedCrossReference p : updatedReferences){
-                buffer.append(p.toString() + ", ");
-            }
-
-            buffer.append("\n");
-        }
-
         return buffer.toString();
     }
 }
