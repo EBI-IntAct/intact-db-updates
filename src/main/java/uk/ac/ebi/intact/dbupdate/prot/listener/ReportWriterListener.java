@@ -260,7 +260,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             StringBuilder xRefs = new StringBuilder();
             StringBuilder annotations = new StringBuilder();
 
-            if (evt.getDeletedXrefs() != null){
+            if (evt.getDeletedXrefs() != null && !evt.getDeletedXrefs().isEmpty()){
                 for (InteractorXref ref : evt.getDeletedXrefs()) {
 
                     String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
@@ -272,7 +272,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 xRefs.append("-");
             }
 
-            if (evt.getAddedAnnotations() != null){
+            if (evt.getAddedAnnotations() != null && !evt.getAddedAnnotations().isEmpty()){
                 for (Annotation annotation : evt.getAddedAnnotations()) {
 
                     String qual = (annotation.getCvTopic()!= null)? "("+ annotation.getCvTopic().getShortLabel()+")" : "";
@@ -290,8 +290,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     taxId,
                     primaryRef,
                     xRefs.toString(),
-                    annotations.toString(),
-                    evt.getMessage());
+                    annotations.toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing to dead protein writer", e);

@@ -413,13 +413,9 @@ public class ProteinServiceImpl implements ProteinService {
             for (Protein protein : secondaryProteins){
 
                 // update UniProt Xrefs
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
+                XrefUpdaterReport xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotProteinTranscript, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
-                for (XrefUpdaterReport report : xrefReports){
-                    if (report.isUpdated()) {
-                        uniprotServiceResult.addXrefUpdaterReport(report);
-                    }
-                }
+                uniprotServiceResult.addXrefUpdaterReport(xrefReports);
 
                 // Update protein
                 updateProteinTranscript( protein, masterProtein, uniprotProteinTranscript, uniprotProtein );
@@ -482,13 +478,10 @@ public class ProteinServiceImpl implements ProteinService {
                 proteins.add( protein );
 
                 // update UniProt Xrefs
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
+                XrefUpdaterReport xrefReports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);
 
-                for (XrefUpdaterReport report : xrefReports){
-                    if (report.isUpdated()) {
-                        uniprotServiceResult.addXrefUpdaterReport(report);
-                    }
-                }
+                uniprotServiceResult.addXrefUpdaterReport(xrefReports);
+
 
                 // Update protein
                 updateProtein( protein, uniprotProtein );
@@ -778,13 +771,9 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor);
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor);
 
-        for (XrefUpdaterReport report : reports){
-            if (report.isUpdated()) {
-                uniprotServiceResult.addXrefUpdaterReport(report);
-            }
-        }
+        uniprotServiceResult.addXrefUpdaterReport(reports);
 
         // Aliases
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, IntactContext.getCurrentInstance().getDataContext(), processor);

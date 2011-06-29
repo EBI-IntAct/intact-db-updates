@@ -315,13 +315,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
 
-        for (XrefUpdaterReport report : reports){
-            if (report.isUpdated()) {
-                evt.getUniprotServiceResult().addXrefUpdaterReport(report);
-            }
-        }
+        evt.getUniprotServiceResult().addXrefUpdaterReport(reports);
 
         // Aliases
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext(), processor);
@@ -551,13 +547,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // update all Xrefs
-        Collection<XrefUpdaterReport> reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
 
-        for (XrefUpdaterReport report : reports){
-            if (report.isUpdated()) {
-                evt.getUniprotServiceResult().addXrefUpdaterReport(report);
-            }
-        }
+        evt.getUniprotServiceResult().addXrefUpdaterReport(reports);
 
         // Update Aliases from the uniprot protein aliases
         AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);

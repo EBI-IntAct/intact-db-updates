@@ -18,6 +18,9 @@ package uk.ac.ebi.intact.util.protein.utils;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 /**
  * Contains a summary of the xrefs update
  *
@@ -27,13 +30,18 @@ import uk.ac.ebi.intact.model.Xref;
 public final class XrefUpdaterReport {
 
     private Protein protein;
-    private Xref[] addedXrefs;
-    private Xref[] removedXrefs;
+    private Collection<Xref> addedXrefs = new ArrayList<Xref>();
+    private Collection<Xref> removedXrefs = new ArrayList<Xref>();
 
     public XrefUpdaterReport(Protein protein, Xref[] addedXrefs, Xref[] removedXrefs) {
         this.protein = protein;
-        this.addedXrefs = addedXrefs;
-        this.removedXrefs = removedXrefs;
+
+        for (Xref ref : addedXrefs){
+            this.addedXrefs.add(ref);
+        }
+        for (Xref ref : removedXrefs){
+            this.removedXrefs.add(ref);
+        }
     }
 
     public Protein getProtein() {
@@ -41,15 +49,15 @@ public final class XrefUpdaterReport {
     }
 
     public boolean isUpdated() {
-        return (addedXrefs != null && addedXrefs.length > 0) ||
-               (removedXrefs != null && removedXrefs.length > 0);
+        return (addedXrefs != null && addedXrefs.size() > 0) ||
+               (removedXrefs != null && removedXrefs.size() > 0);
     }
 
-    public Xref[] getAddedXrefs() {
+    public Collection<Xref> getAddedXrefs() {
         return addedXrefs;
     }
 
-    public Xref[] getRemovedXrefs() {
+    public Collection<Xref> getRemovedXrefs() {
         return removedXrefs;
     }
 
@@ -66,13 +74,12 @@ public final class XrefUpdaterReport {
         return xrefsToString(removedXrefs);
     }
 
-    protected static String xrefsToString(Xref[] xrefs) {
+    protected static String xrefsToString(Collection<Xref> xrefs) {
         StringBuilder sb = new StringBuilder();
+         int i = 1;
+        for (Xref xref : xrefs) {
 
-        for (int i=0; i<xrefs.length; i++) {
-            Xref xref = xrefs[i];
-
-            if (i > 0) {
+            if (i < xrefs.size()) {
                 sb.append(", ");
             }
 

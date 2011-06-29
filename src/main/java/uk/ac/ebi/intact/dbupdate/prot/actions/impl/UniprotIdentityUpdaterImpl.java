@@ -396,8 +396,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
 
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
-                serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
+                serviceResult.getXrefUpdaterReports().add(xrefReport);
             }
             primaryProteins.add(prot);
         }
@@ -423,8 +423,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             if (spliceVariant != null){
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    Collection<XrefUpdaterReport> xrefReports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
-                    serviceResult.getXrefUpdaterReports().addAll(xrefReports);
+                    XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
+                    serviceResult.getXrefUpdaterReports().add(xrefReport);
                 }
                 primaryProteins.add(prot);
             }
