@@ -47,6 +47,7 @@ import java.util.*;
  * @version $Id$
  * @since <pre>08-Feb-2007</pre>
  */
+@Deprecated
 public class ProteinServiceImpl implements ProteinService {
 
     /**

@@ -5,11 +5,9 @@
  */
 package uk.ac.ebi.intact.util.protein;
 
+import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
-import uk.ac.ebi.intact.uniprot.service.UniprotService;
-
-import java.util.Collection;
 
 /**
  * What the protein loader service van do.
@@ -18,6 +16,7 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>08-Feb-2007</pre>
  */
+@Deprecated
 public interface ProteinService {
 
     // Requirements:

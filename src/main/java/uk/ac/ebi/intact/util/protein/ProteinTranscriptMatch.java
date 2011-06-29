@@ -15,6 +15,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
  * @version $Id$
  * @since 1.1.2
  */
+@Deprecated
 public class ProteinTranscriptMatch {
 
     private Protein intactProtein;

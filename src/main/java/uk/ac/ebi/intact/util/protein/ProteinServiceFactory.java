@@ -17,6 +17,7 @@ import uk.ac.ebi.intact.uniprot.service.UniprotService;
  * @version $Id$
  * @since <pre>09-Feb-2007</pre>
  */
+@Deprecated
 public class ProteinServiceFactory {
 
     public static final String SPRING_CONFIG_FILE = "/protein-service.xml";

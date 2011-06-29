@@ -415,7 +415,17 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         Collection<Protein> proteins = uniprotServiceResult.getProteins();
         assertNotNull( proteins );
         assertEquals( 3, proteins.size() );
-        Protein protein = proteins.iterator().next();
+        Protein protein = null;
+
+        for (Protein prot : proteins){
+            InteractorXref ref = ProteinUtils.getUniprotXref(prot);
+
+            if (ref != null && ref.getPrimaryId().equals("P60952")){
+                protein = prot;
+            }
+        }
+
+        assertTrue(protein != null);
         String proteinSeq = protein.getSequence();
         String proteinCrc = protein.getCrc64();
 
