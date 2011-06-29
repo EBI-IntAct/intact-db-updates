@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
 
 /**
@@ -37,34 +38,37 @@ public class XrefUpdaterReportTest extends IntactBasicTestCase {
         Xref[] created = new Xref[0];
         Xref[] deleted = new Xref[0];
 
-        XrefUpdaterReport report = new XrefUpdaterReport(null, created, deleted);
+        XrefUpdaterReport report = new XrefUpdaterReport(getMockBuilder().createProteinRandom(), created, deleted);
         Assert.assertFalse(report.isUpdated());
     }
     
     @Test
     public void created() {
-        Xref[] created = new Xref[] { getMockBuilder().createProteinRandom().getXrefs().iterator().next() };
+        Protein protein = getMockBuilder().createProteinRandom();
+        Xref[] created = new Xref[] { protein.getXrefs().iterator().next() };
         Xref[] deleted = new Xref[0];
 
-        XrefUpdaterReport report = new XrefUpdaterReport(null, created, deleted);
+        XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());
     }
 
     @Test
     public void deleted() {
+        Protein protein = getMockBuilder().createProteinRandom();
         Xref[] created = new Xref[0];
-        Xref[] deleted = new Xref[] { getMockBuilder().createProteinRandom().getXrefs().iterator().next() };
+        Xref[] deleted = new Xref[] { protein.getXrefs().iterator().next() };
 
-        XrefUpdaterReport report = new XrefUpdaterReport(null, created, deleted);
+        XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());
     }
     
     @Test
     public void created_deleted() {
-        Xref[] created = new Xref[] { getMockBuilder().createProteinRandom().getXrefs().iterator().next() };
-        Xref[] deleted = new Xref[] { getMockBuilder().createProteinRandom().getXrefs().iterator().next() };
+        Protein protein = getMockBuilder().createProteinRandom();
+        Xref[] created = new Xref[] { protein.getXrefs().iterator().next() };
+        Xref[] deleted = new Xref[] { protein.getXrefs().iterator().next() };
 
-        XrefUpdaterReport report = new XrefUpdaterReport(null, created, deleted);
+        XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());
     }
 
