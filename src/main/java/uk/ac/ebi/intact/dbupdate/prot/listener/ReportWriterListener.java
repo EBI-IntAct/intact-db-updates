@@ -35,6 +35,7 @@ import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
 import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
@@ -382,10 +383,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "IA feature chain primary c.",
                     "IA feature chain primary",
                     "Xrefs added",
-                    "Xrefs removed");
+                    "Xrefs removed",
+                    "Aliases added",
+                    "Aliases removed");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
-                    protCollectionToString(evt.getProteins()),
+                    collectionToString(evt.getProteins()),
                     String.valueOf(evt.getPrimaryProteins().size()),
                     String.valueOf(evt.getSecondaryProteins().size()),
                     protCollectionToString(evt.getPrimaryProteins(), true),
@@ -397,7 +400,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     String.valueOf(evt.getPrimaryFeatureChains().size()),
                     protTranscriptCollectionToString(evt.getPrimaryFeatureChains(), true, null),
                     xrefReportsAddedToString(evt.getXrefUpdaterReports()),
-                    xrefReportsRemovedToString(evt.getXrefUpdaterReports()));
+                    xrefReportsRemovedToString(evt.getXrefUpdaterReports()),
+                    addedAliasReportsToString(evt.getAliasUpdaterReports()),
+                    removedAliasReportsToString(evt.getAliasUpdaterReports()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -833,7 +838,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         return sb.toString();
     }
 
-    private static String protCollectionToString(Collection<String> protCollection) {
+    private static String collectionToString(Collection<String> protCollection) {
         StringBuilder sb = new StringBuilder();
 
         for (Iterator<String> iterator = protCollection.iterator(); iterator.hasNext();) {
@@ -859,7 +864,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
             XrefUpdaterReport report = iterator.next();
 
-            sb.append(report.getProtein().getAc()).append("[").append(report.addedXrefsToString()).append("]");
+            sb.append(report.getProtein()).append("[").append(report.addedXrefsToString()).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");
@@ -873,13 +878,53 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         return sb.toString();
     }
 
+    private static String addedAliasReportsToString(Collection<AliasUpdateReport> aliasReports) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<AliasUpdateReport> iterator = aliasReports.iterator(); iterator.hasNext();) {
+            AliasUpdateReport report = iterator.next();
+
+            sb.append(report.getProtein()).append("[").append(collectionToString(report.getAddedAliases())).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append("|");
+            }
+        }
+
+        if (aliasReports.isEmpty()) {
+            sb.append(EMPTY_VALUE);
+        }
+
+        return sb.toString();
+    }
+
+    private static String removedAliasReportsToString(Collection<AliasUpdateReport> aliasReports) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<AliasUpdateReport> iterator = aliasReports.iterator(); iterator.hasNext();) {
+            AliasUpdateReport report = iterator.next();
+
+            sb.append(report.getProtein()).append("[").append(collectionToString(report.getRemovedAliases())).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append("|");
+            }
+        }
+
+        if (aliasReports.isEmpty()) {
+            sb.append(EMPTY_VALUE);
+        }
+
+        return sb.toString();
+    }
+
     private static String xrefReportsRemovedToString(Collection<XrefUpdaterReport> xrefReports) {
         StringBuilder sb = new StringBuilder();
 
         for (Iterator<XrefUpdaterReport> iterator = xrefReports.iterator(); iterator.hasNext();) {
             XrefUpdaterReport report = iterator.next();
 
-            sb.append(report.getProtein().getAc()).append("[").append(report.removedXrefsToString()).append("]");
+            sb.append(report.getProtein()).append("[").append(report.removedXrefsToString()).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");

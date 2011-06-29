@@ -32,6 +32,7 @@ import java.util.*;
  * @version $Id$
  * @since <pre>17-Nov-2006</pre>
  */
+@Deprecated
 public class UpdateDeadProteins {
 
     /**

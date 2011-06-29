@@ -9,7 +9,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -21,7 +20,6 @@ import uk.ac.ebi.intact.util.protein.CvHelper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Utilities for updating Aliases.
@@ -45,9 +43,9 @@ public class AliasUpdaterUtils {
      * @param protein
      * @param uniprotProtein
      */
-    public static void updateAllAliases( Protein protein, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor) {
+    public static AliasUpdateReport updateAllAliases( Protein protein, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor) {
 
-        updateAliasCollection( protein, buildAliases( uniprotProtein, protein), context, processor);
+        return updateAliasCollection( protein, buildAliases( uniprotProtein, protein), context, processor);
     }
 
     /**
@@ -56,9 +54,9 @@ public class AliasUpdaterUtils {
      * @param uniprotProteinTranscript
      * @param uniprotProtein
      */
-    public static void updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor ) {
+    public static AliasUpdateReport updateAllAliases( Protein protein, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor ) {
 
-        updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ), context, processor);
+        return updateAliasCollection( protein, buildAliases(uniprotProtein, uniprotProteinTranscript, protein ), context, processor);
     }
 
     /**
@@ -112,7 +110,7 @@ public class AliasUpdaterUtils {
      *
      * @return true if the protein has been updated, otherwise false
      */
-    public static boolean updateAliasCollection( Protein protein, Collection<Alias> newAliases, DataContext context, ProteinUpdateProcessor processor) {
+    public static AliasUpdateReport updateAliasCollection( Protein protein, Collection<Alias> newAliases, DataContext context, ProteinUpdateProcessor processor) {
 
         //AliasDao aliasDao = IntactContext.getCurrentInstance().getDataContext().getDaoFactory().getAliasDao( InteractorAlias.class );
 
@@ -129,6 +127,8 @@ public class AliasUpdaterUtils {
 
         Collection<InteractorAlias> toDelete = CollectionUtils.subtract( currentAliases, newAliases ); // current minus new
         Collection<InteractorAlias> toCreate = CollectionUtils.subtract( newAliases, currentAliases );
+
+        AliasUpdateReport report = new AliasUpdateReport(protein, toCreate, toDelete);
 
         Iterator<InteractorAlias> toDeleteIterator = toDelete.iterator();
         for ( InteractorAlias alias : toCreate ) {
@@ -161,7 +161,7 @@ public class AliasUpdaterUtils {
         }
 
         context.getDaoFactory().getProteinDao().update((ProteinImpl) protein);
-        return updated;
+        return report;
     }
 
     /**

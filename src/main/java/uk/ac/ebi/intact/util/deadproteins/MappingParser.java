@@ -21,6 +21,7 @@ import java.util.Map;
  * @version $Id$
  * @since <pre>21-Nov-2006</pre>
  */
+@Deprecated
 public class MappingParser {
 
     public static Map<String, Collection<RemappingEntry>> parse( File file ) throws IOException {

@@ -15,6 +15,7 @@ import java.util.Collection;
  * @version $Id$
  * @since TODO
  */
+@Deprecated
 public class ProteinToDeleteManager {
     private static ThreadLocal<Collection<String>> threadLocal = new ThreadLocal<Collection<String>>() {
         @Override

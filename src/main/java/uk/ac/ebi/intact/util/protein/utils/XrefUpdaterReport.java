@@ -29,12 +29,12 @@ import java.util.Collection;
  */
 public final class XrefUpdaterReport {
 
-    private Protein protein;
+    private String protein;
     private Collection<Xref> addedXrefs = new ArrayList<Xref>();
     private Collection<Xref> removedXrefs = new ArrayList<Xref>();
 
     public XrefUpdaterReport(Protein protein, Xref[] addedXrefs, Xref[] removedXrefs) {
-        this.protein = protein;
+        this.protein = protein.getAc();
 
         for (Xref ref : addedXrefs){
             this.addedXrefs.add(ref);
@@ -44,7 +44,7 @@ public final class XrefUpdaterReport {
         }
     }
 
-    public Protein getProtein() {
+    public String getProtein() {
         return protein;
     }
 
@@ -63,7 +63,7 @@ public final class XrefUpdaterReport {
 
     @Override
     public String toString() {
-        return protein.getAc()+" [Added xrefs:"+ xrefsToString(addedXrefs)+" / Removed xrefs: "+ xrefsToString(removedXrefs)+"]";
+        return protein+" [Added xrefs:"+ xrefsToString(addedXrefs)+" / Removed xrefs: "+ xrefsToString(removedXrefs)+"]";
     }
 
     public String addedXrefsToString() {

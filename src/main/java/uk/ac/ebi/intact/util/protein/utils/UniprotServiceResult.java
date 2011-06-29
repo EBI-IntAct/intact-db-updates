@@ -16,6 +16,7 @@ import java.util.*;
  * @version $Id$
  * @since TODO
  */
+@Deprecated
 public class UniprotServiceResult {
 
     public static final String MORE_THAN_1_PROT_MATCHING_UNIPROT_SECONDARY_AC_ERROR_TYPE = "More than one IntAct protein matching "

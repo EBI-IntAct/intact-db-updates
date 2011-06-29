@@ -31,6 +31,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>16-Nov-2006</pre>
  */
+@Deprecated
 public class DeleteDeadProteins {
 
     /**

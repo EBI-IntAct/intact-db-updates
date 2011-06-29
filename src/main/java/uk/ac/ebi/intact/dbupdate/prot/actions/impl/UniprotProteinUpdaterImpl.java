@@ -44,10 +44,7 @@ import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
-import uk.ac.ebi.intact.util.protein.utils.AliasUpdaterUtils;
-import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdaterUtils;
-import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
-import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
+import uk.ac.ebi.intact.util.protein.utils.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -316,11 +313,11 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
-
         evt.addXrefUpdaterReport(reports);
 
         // Aliases
-        AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext(), processor);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases(protein, uniprotProtein, evt.getDataContext(), processor);
+        evt.addAliasUpdaterReport(aliasReport);
 
         // Sequence
         updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc());
@@ -548,11 +545,11 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // update all Xrefs
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
-
         evt.addXrefUpdaterReport(reports);
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
+        evt.addAliasUpdaterReport(aliasReport);
 
         // Sequence
         if (uniprotTranscript.getSequence() != null){
