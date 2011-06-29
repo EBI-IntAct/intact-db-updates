@@ -34,7 +34,7 @@ public final class XrefUpdaterReport {
     private Collection<Xref> removedXrefs = new ArrayList<Xref>();
 
     public XrefUpdaterReport(Protein protein, Xref[] addedXrefs, Xref[] removedXrefs) {
-        this.protein = protein.getAc();
+        this.protein = protein != null ? protein.getAc() : null;
 
         for (Xref ref : addedXrefs){
             this.addedXrefs.add(ref);
