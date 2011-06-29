@@ -86,6 +86,7 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(protein);
 
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
+        Assert.assertTrue(protein.getActiveInstances().isEmpty());
 
         context.commitTransaction(status);
 
