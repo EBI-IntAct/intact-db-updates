@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.update.*;
+import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
@@ -111,7 +112,20 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
+        Protein protein = evt.getProtein();
 
+        DeadProteinEvent proteinEvt = new DeadProteinEvent(this.updateProcess, protein, evt.getUniprotIdentityXref());
+
+        // all xrefs deleted
+        for (InteractorXref xref : evt.getDeletedXrefs()){
+            proteinEvt.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.deleted));
+        }
+        // all annotations deleted
+        for (Annotation annotation : evt.getAddedAnnotations()){
+            proteinEvt.addUpdatedAnnotation(new UpdatedAnnotation(annotation, UpdateStatus.added));
+        }
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DeadProteinEvent.class).persist(proteinEvt);
     }
 
     @Override
