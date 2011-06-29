@@ -22,7 +22,7 @@ public class AliasUpdateReport {
     private Collection<String> removedAliases = new ArrayList<String>();
 
     public AliasUpdateReport(Protein protein, Collection<InteractorAlias> addedAliases, Collection<InteractorAlias> removedAliases){
-        this.protein = protein.getAc();
+        this.protein = protein != null ? protein.getAc() : null;
 
         for (Alias alias : addedAliases){
             String aliasType = "";
