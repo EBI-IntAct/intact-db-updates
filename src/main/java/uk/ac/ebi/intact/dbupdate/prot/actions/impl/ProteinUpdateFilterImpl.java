@@ -125,7 +125,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     updateProcessor.fireNonUniprotProteinFound(evt);
                 }
                 // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                caseEvent.getProteins().remove(protein);
 
                 proteinIterator.remove();
 
@@ -145,7 +145,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 }
 
                 // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                caseEvent.getProteins().remove(protein);
 
                 proteinIterator.remove();
             }
@@ -183,7 +183,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
 
                 // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                caseEvent.getProteins().remove(protein);
                 continue;
             }
 
@@ -201,7 +201,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
 
                 // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                caseEvent.getProteins().remove(protein);
             }
             else if (uniprotIdentities.size() > 1){
                 ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);

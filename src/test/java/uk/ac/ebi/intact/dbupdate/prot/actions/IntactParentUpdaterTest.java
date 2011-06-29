@@ -152,7 +152,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
         Assert.assertTrue(hasXRef(parentToFind, oldParent, CvDatabase.INTACT, "intact-secondary"));
         Assert.assertEquals(0, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());
 
-        intactUpdater.checkConsistencyOfAllTranscripts(new UpdateCaseEvent(new ProteinUpdateProcessor(), context, null, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST));
+        intactUpdater.checkConsistencyOfAllTranscripts(new UpdateCaseEvent(new ProteinUpdateProcessor(), context, null, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "P12345"));
 
         Assert.assertTrue(hasXRef(isoform, parentToFind.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
         Assert.assertEquals(1, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());

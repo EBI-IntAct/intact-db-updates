@@ -24,7 +24,6 @@ import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,8 +126,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
@@ -181,8 +179,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
@@ -235,8 +232,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
@@ -298,8 +294,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
@@ -361,8 +356,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 
@@ -414,8 +408,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
         ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
-        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), cdc, Collections.EMPTY_LIST, secondary, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, "P60953");
         Assert.assertEquals(2, evt.getSecondaryProteins().size());
         Assert.assertEquals(2, evt.getSecondaryIsoforms().size());
 

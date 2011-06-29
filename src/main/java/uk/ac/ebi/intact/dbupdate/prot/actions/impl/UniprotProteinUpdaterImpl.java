@@ -135,7 +135,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             proteinCreated(protein, evt.getDataContext(), "No Intact master protein existed (or was valid) for the uniprot ac " + uniprotProtein.getPrimaryAc());
             evt.getPrimaryProteins().add(protein);
-            evt.getUniprotServiceResult().getProteins().add(protein);
+            evt.getProteins().add(protein);
 
         } else {
             if (log.isDebugEnabled())
@@ -169,7 +169,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
 
-        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+caseEvent.getUniprotServiceResult().getQuerySentToService());
+        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+caseEvent.getQuerySentToService());
 
         // TODO returned proteins are not used here
         processIsoform(uniprotProtein, masterProtein, primaryProteins, secondaryProteins, caseEvent);
@@ -185,7 +185,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         int countPrimary = primaryProteins.size();
 
-        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary for "+caseEvent.getUniprotServiceResult().getQuerySentToService());
+        if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary for "+caseEvent.getQuerySentToService());
 
         // TODO returned proteins are not used here
         processChain(uniprotProtein, masterProtein, primaryProteins, caseEvent);
@@ -230,7 +230,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein, evt.getDataContext(), "No IntAct splice variant existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
-                    evt.getUniprotServiceResult().getProteins().add(protein);
+                    evt.getProteins().add(protein);
                 }
             }
         }
@@ -270,7 +270,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein, evt.getDataContext(), "No IntAct feature chain existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
-                    evt.getUniprotServiceResult().getProteins().add(protein);
+                    evt.getProteins().add(protein);
                 }
             }
         }
@@ -317,7 +317,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
 
-        evt.getUniprotServiceResult().addXrefUpdaterReport(reports);
+        evt.addXrefUpdaterReport(reports);
 
         // Aliases
         AliasUpdaterUtils.updateAllAliases( protein, uniprotProtein, evt.getDataContext(), processor);
@@ -408,7 +408,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
                 if (fixedProtein != null){
-                    evt.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                    evt.getProteins().add(fixedProtein.getProtein());
 
                     boolean hasToBeAdded = true;
 
@@ -549,7 +549,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         // update all Xrefs
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
 
-        evt.getUniprotServiceResult().addXrefUpdaterReport(reports);
+        evt.addXrefUpdaterReport(reports);
 
         // Update Aliases from the uniprot protein aliases
         AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);

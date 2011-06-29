@@ -27,7 +27,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,8 +103,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         // collect
-        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, "P60953");
 
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);
@@ -183,8 +181,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryChains.add(new ProteinTranscript(chain2, chain1));
 
         // collect
-        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, "P60953");
 
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);
@@ -269,8 +266,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryChains.add(new ProteinTranscript(chain2, chain1));
 
         // collect
-        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, "P60953");
 
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNotNull(dupEvt);
@@ -433,8 +429,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         primaryChains.add(new ProteinTranscript(chain4, chain1));
 
         // collect
-        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P60953"));
+        UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins, Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, "P60953");
 
         DuplicatesFoundEvent dupEvt = duplicateFinder.findProteinDuplicates(evt);
         Assert.assertNull(dupEvt);

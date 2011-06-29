@@ -20,7 +20,6 @@ import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -196,8 +195,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ProteinProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
-                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P12345"));
+                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
 
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -257,10 +255,8 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ProteinProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
-                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P12345"));
+                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
 
-        evt.setUniprotServiceResult(new UniprotServiceResult("P12345"));
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
@@ -326,8 +322,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ProteinProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
-                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P12345"));
+                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
 
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -390,8 +385,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ProteinProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
-                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult("P12345"));
+                secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
 
         Assert.assertEquals(2, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());

@@ -243,7 +243,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein " + protein.getAc() + " has " + isoformParentXRefs.size() + " " +
-                            "isoform parents and " + chainParentXRefs + " chain parents.", UpdateError.both_isoform_and_chain_xrefs, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+                            "isoform parents and " + chainParentXRefs + " chain parents.", UpdateError.both_isoform_and_chain_xrefs, protein, evt.getQuerySentToService()));
                 }
                 transcriptToDelete.add(p);
             }
@@ -258,7 +258,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                     if (evt.getSource() instanceof ProteinUpdateProcessor ){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has "+parents.size()+" different intact parents."
-                                , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+                                , UpdateError.several_intact_parents, protein, evt.getQuerySentToService()));
 
                     }
                     transcriptToDelete.add(p);
@@ -268,7 +268,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                     if (evt.getSource() instanceof ProteinUpdateProcessor ){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " does not have any intact parents."
-                                , UpdateError.transcript_without_parent, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+                                , UpdateError.transcript_without_parent, protein, evt.getQuerySentToService()));
 
                     }
                     proteinWithoutParents.add(protein);
@@ -317,7 +317,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
-                                            , UpdateError.dead_parent_xref, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+                                            , UpdateError.dead_parent_xref, protein, evt.getQuerySentToService()));
 
                                     InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                     processor.fireOnInvalidIntactParentFound(invalidEvent);
@@ -349,7 +349,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
-                                            , UpdateError.several_intact_parents, protein, evt.getUniprotServiceResult().getQuerySentToService()));
+                                            , UpdateError.several_intact_parents, protein, evt.getQuerySentToService()));
 
                                     InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                     processor.fireOnInvalidIntactParentFound(invalidEvent);

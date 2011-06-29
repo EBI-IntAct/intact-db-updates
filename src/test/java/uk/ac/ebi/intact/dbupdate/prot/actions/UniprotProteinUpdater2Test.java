@@ -25,7 +25,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,8 +122,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, secondaryIsoforms, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         updater.createOrUpdateProtein(evt);
 
@@ -132,7 +130,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(3, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(3, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -213,14 +211,13 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), uniprot.getPrimaryAc());
 
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -305,8 +302,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains, uniprot.getPrimaryAc());
 
         updater.createOrUpdateProtein(evt);
 
@@ -314,7 +310,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
         Assert.assertEquals(0, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -392,8 +388,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateIsoform(evt, master);
@@ -492,13 +487,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateIsoform(evt, master);
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
-        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         // test that isoform P60953-1 has been properly updated
         ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
@@ -571,13 +565,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateIsoform(evt, master);
         Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
-        Assert.assertEquals(0, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(0, evt.getXrefUpdaterReports().size());
 
         Assert.assertNotSame(master.getBioSource().getTaxId(), isoform.getBioSource().getTaxId());
         Assert.assertNotSame(variant.getPrimaryAc().toLowerCase(), isoform.getShortLabel());
@@ -642,13 +635,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateFeatureChain(evt, master);
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         // test that chain P60953-1 has been properly updated
         ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
@@ -740,13 +732,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateFeatureChain(evt, master);
         Assert.assertEquals(1, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(1, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         // test that chain P60953-1 has been properly updated
         ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
@@ -816,13 +807,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateFeatureChain(evt, master);
         Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(0, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(0, evt.getXrefUpdaterReports().size());
 
         Assert.assertNotSame(master.getBioSource().getTaxId(), chain.getBioSource().getTaxId());
         Assert.assertNotSame(chain1.getPrimaryAc().toLowerCase(), chain.getShortLabel());

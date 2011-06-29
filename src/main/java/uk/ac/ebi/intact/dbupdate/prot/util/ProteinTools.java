@@ -532,7 +532,7 @@ public class ProteinTools {
                 }
 
                 if (!hasFoundSpliceVariant){
-                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein);
                 }
             }
             else if (ProteinUtils.isFeatureChain(protein)){
@@ -548,14 +548,14 @@ public class ProteinTools {
                 }
 
                 if (!hasFoundChain){
-                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein);
                 }
             }
             else{
                 if (!caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
                     proteinsToDelete.add(protein);
 
-                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein);
                 }
                 else if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId()) && isPrimary){
                     proteinsToDelete.add(protein);
@@ -599,7 +599,7 @@ public class ProteinTools {
                     proteinsToDelete.add(proteinTranscript);
 
                     if (!hasFoundSpliceVariant){
-                        caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                        caseEvent.getProteins().remove(protein);
                     }
                 }
             }
@@ -617,7 +617,7 @@ public class ProteinTools {
                 if (!hasFoundChain || isSpliceVariant){
                     proteinsToDelete.add(proteinTranscript);
                     if (!hasFoundChain){
-                        caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                        caseEvent.getProteins().remove(protein);
                     }
                 }
             }
@@ -633,7 +633,7 @@ public class ProteinTools {
                     caseEvent.getPrimaryProteins().add(protein);
                 }
                 else {
-                    caseEvent.getUniprotServiceResult().getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein);
                 }
             }
         }

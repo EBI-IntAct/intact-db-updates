@@ -19,10 +19,9 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
-import java.util.Collection;
-import java.util.EventObject;
+import java.util.*;
 
 /**
  * An event that contains the information found for the formal cases during uniprot update.
@@ -40,7 +39,17 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
     private Collection<ProteinTranscript> secondaryIsoforms;
     private Collection<ProteinTranscript> primaryFeatureChains;
 
-    private UniprotServiceResult uniprotServiceResult;
+    /**
+     * A collection of retrieved proteins.
+     */
+    private Set<Protein> proteins = new HashSet<Protein>();
+
+    private List<XrefUpdaterReport> xrefUpdaterReports = new ArrayList<XrefUpdaterReport>();
+
+    /**
+     * The query sent to the UniprotService for protein update(ex : P12345).
+     */
+    private String querySentToService;
 
     /**
      * An event thrown when a specific case is found during update
@@ -56,7 +65,8 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
                            Collection<Protein> secondaryProteins,
                            Collection<ProteinTranscript> primaryIsoforms,
                            Collection<ProteinTranscript> secondaryIsoforms,
-                           Collection<ProteinTranscript> primaryFeatureChains) {
+                           Collection<ProteinTranscript> primaryFeatureChains,
+                           String querySentToService) {
         super(source);
         this.protein = protein;
         this.dataContext = dataContext;
@@ -65,6 +75,7 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
         this.primaryIsoforms = primaryIsoforms;
         this.secondaryIsoforms = secondaryIsoforms;
         this.primaryFeatureChains = primaryFeatureChains;
+        this.querySentToService = querySentToService;
     }
 
     public DataContext getDataContext() {
@@ -81,14 +92,6 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     public Collection<Protein> getSecondaryProteins() {
         return secondaryProteins;
-    }
-
-    public UniprotServiceResult getUniprotServiceResult() {
-        return uniprotServiceResult;
-    }
-
-    public void setUniprotServiceResult(UniprotServiceResult uniprotServiceResult) {
-        this.uniprotServiceResult = uniprotServiceResult;
     }
 
     public void setPrimaryProteins(Collection<Protein> primaryProteins) {
@@ -121,5 +124,29 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     public Collection<ProteinTranscript> getPrimaryFeatureChains() {
         return primaryFeatureChains;
+    }
+
+    public String getQuerySentToService() {
+        return querySentToService;
+    }
+
+    public void setQuerySentToService(String querySentToService) {
+        this.querySentToService = querySentToService;
+    }
+
+    public Set<Protein> getProteins() {
+        return proteins;
+    }
+
+    public List<XrefUpdaterReport> getXrefUpdaterReports() {
+        return xrefUpdaterReports;
+    }
+
+    public void addXrefUpdaterReport(XrefUpdaterReport report) {
+        xrefUpdaterReports.add(report);
+    }
+
+    public void addAllToProteins(Collection<Protein> proteins){
+        this.proteins.addAll(proteins);
     }
 }

@@ -40,7 +40,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -89,8 +88,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // the update event without any proteins in intact
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, new ArrayList<Protein>(),
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create and update the protein in intact
         updater.createOrUpdateProtein(evt);
@@ -157,8 +155,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create all splice variants
         updater.createOrUpdateIsoform(evt, master);
@@ -247,8 +244,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // the update case event
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), uniprot.getPrimaryAc());
 
         // create all feature chains
         updater.createOrUpdateFeatureChain(evt, master);
@@ -339,8 +335,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // the update case event
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         // create all splice variants : check that no protein transcript has been created in intact
         updater.createOrUpdateIsoform(evt, master);
@@ -383,8 +378,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // the update case event
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, Collections.EMPTY_LIST,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>());
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, new ArrayList<ProteinTranscript>(), uniprot.getPrimaryAc());
 
         // create all feature chains : check that no feature chain has been created in Intact
         updater.createOrUpdateFeatureChain(evt, master);
@@ -431,13 +425,12 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
                 IntactContext.getCurrentInstance().getDataContext(), uniprot, primaryProteins,
-                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        evt.setUniprotServiceResult(new UniprotServiceResult(uniprot.getPrimaryAc()));
+                Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprot.getPrimaryAc());
 
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
-        Assert.assertEquals(2, evt.getUniprotServiceResult().getXrefUpdaterReports().size());
+        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());

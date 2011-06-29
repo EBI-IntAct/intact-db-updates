@@ -24,14 +24,14 @@ public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
     String validParentAc;
 
     public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Collection<Component> components, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
-        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
+        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains, null);
         this.componentsToFix = components;
         this.proteinWithConflicts = protein;
         this.validParentAc = validParentAc;
     }
 
     public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
-        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains);
+        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains, null);
         this.proteinWithConflicts = protein;
         this.validParentAc = validParentAc;
     }

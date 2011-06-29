@@ -18,7 +18,6 @@ import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -314,7 +313,6 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      */
     private void filterSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
         Collection<? extends Protein> secondaryProteins = evt.getSecondaryProteins();
-        UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
 
         Collection<Protein> secondaryAcToRemove = new ArrayList<Protein>();
@@ -325,7 +323,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             String primaryAc = primary.getPrimaryId();
 
             // the protein is not the protein being updated at the moment so we need to query uniprot with this primary ac
-            if (!serviceResult.getQuerySentToService().equals(primaryAc)){
+            if (!evt.getQuerySentToService().equals(primaryAc)){
                 Collection<UniprotProtein> uniprotProteins = uniprotService.retrieve( primaryAc );
 
                 // no uniprot protein matches this uniprot ac
@@ -333,7 +331,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     secondaryAcToRemove.add(prot);
 
                     // remove the protein from the proteins whcih can be updated. Will be updated later
-                    evt.getUniprotServiceResult().getProteins().remove(prot);
+                    evt.getProteins().remove(prot);
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -398,7 +396,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                 secondaryAcToRemove.add(protTrans);
 
                 // remove the protein from the proteins whcih can be updated. Will be updated later
-                evt.getUniprotServiceResult().getProteins().remove(prot);
+                evt.getProteins().remove(prot);
             }
         }
         transcripts.removeAll(secondaryAcToRemove);

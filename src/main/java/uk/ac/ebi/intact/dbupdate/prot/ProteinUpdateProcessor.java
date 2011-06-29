@@ -440,7 +440,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                         if (caseEvent != null){
                             // add each protein to the list of processed proteins
-                            for (Protein p : caseEvent.getUniprotServiceResult().getProteins()){
+                            for (Protein p : caseEvent.getProteins()){
                                 processedProteins.add(p.getAc());
                             }
                         }
@@ -575,7 +575,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             }
             // master protein null because no merge done before and number of primary proteins != 1 : the master protein is impossible to decide
             else if (masterProtein == null && caseEvent.getPrimaryProteins().size() != 1){
-                caseEvent.getUniprotServiceResult().addException( new ProcessorException("The splice variants of " + uniprotProtein.getPrimaryAc() + " cannot be updated because we found " + caseEvent.getPrimaryProteins().size() + " possible master proteins in IntAct"));
+                throw new ProcessorException("The splice variants of " + uniprotProtein.getPrimaryAc() + " cannot be updated because we found " + caseEvent.getPrimaryProteins().size() + " possible master proteins in IntAct");
             }
             // a merge has been done, the master protein is the result of the merge
             else {

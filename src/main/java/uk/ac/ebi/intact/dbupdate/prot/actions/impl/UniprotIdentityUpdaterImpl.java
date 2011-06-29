@@ -20,7 +20,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
-import uk.ac.ebi.intact.util.protein.utils.UniprotServiceResult;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
@@ -59,10 +58,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         String uniprotId = evt.getUniprotIdentity();
 
         // new UpdateCaseEvent with empty collections
-        UpdateCaseEvent caseEvt = new UpdateCaseEvent(evt.getSource(), evt.getDataContext(), evt.getUniprotProtein(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
-        // create a UniprotServiceResult with the query = uniprot id of the protein event
-        UniprotServiceResult serviceResult = new UniprotServiceResult(uniprotId);
-        caseEvt.setUniprotServiceResult(serviceResult);
+        UpdateCaseEvent caseEvt = new UpdateCaseEvent(evt.getSource(), evt.getDataContext(), evt.getUniprotProtein(), Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, uniprotId);
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
@@ -105,8 +101,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         // set the list of proteins in the event
         caseEvt.setPrimaryProteins(primaryProteins);
         caseEvt.setSecondaryProteins(secondaryProteins);
-        caseEvt.getUniprotServiceResult().addAllToProteins(primaryProteins);
-        caseEvt.getUniprotServiceResult().addAllToProteins(secondaryProteins);
+        caseEvt.addAllToProteins(primaryProteins);
+        caseEvt.addAllToProteins(secondaryProteins);
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotAc);
 
@@ -252,7 +248,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
 
                     if (!ProteinUtils.isFromUniprot(variant)){
                         primaryIsoforms.add(new ProteinTranscript(variant, null));
-                        evt.getUniprotServiceResult().getProteins().add(variant);
+                        evt.getProteins().add(variant);
                     }
                     else if (uniprotId != null){
                         boolean hasFoundAc = false;
@@ -263,12 +259,12 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             if (sv.getPrimaryAc().equalsIgnoreCase(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 primaryIsoforms.add(new ProteinTranscript(variant, sv));
-                                evt.getUniprotServiceResult().getProteins().add(variant);
+                                evt.getProteins().add(variant);
                             }
                             else if (variantAcs.contains(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 secondaryIsoforms.add(new ProteinTranscript(variant, sv));
-                                evt.getUniprotServiceResult().getProteins().add(variant);
+                                evt.getProteins().add(variant);
                             }
                         }
 
@@ -320,7 +316,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
 
                     if (!ProteinUtils.isFromUniprot(variant)){
                         primaryChains.add(new ProteinTranscript(variant, null));
-                        evt.getUniprotServiceResult().getProteins().add(variant);
+                        evt.getProteins().add(variant);
                     }
                     else if (uniprotId != null){
                         boolean hasFoundAc = false;
@@ -330,7 +326,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             if (fc.getPrimaryAc().equalsIgnoreCase(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 primaryChains.add(new ProteinTranscript(variant, fc));
-                                evt.getUniprotServiceResult().getProteins().add(variant);
+                                evt.getProteins().add(variant);
                             }
                         }
 
@@ -389,7 +385,6 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
 
-        UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
 
         for (Protein prot : secondaryProteins){
@@ -397,7 +392,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                 XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
-                serviceResult.getXrefUpdaterReports().add(xrefReport);
+                evt.getXrefUpdaterReports().add(xrefReport);
             }
             primaryProteins.add(prot);
         }
@@ -414,7 +409,6 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         Collection<ProteinTranscript> secondaryProteins = evt.getSecondaryIsoforms();
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();
 
-        UniprotServiceResult serviceResult = evt.getUniprotServiceResult();
         UniprotProtein uniprotProtein = evt.getProtein();
 
         for (ProteinTranscript prot : secondaryProteins){
@@ -424,7 +418,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                     XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
-                    serviceResult.getXrefUpdaterReports().add(xrefReport);
+                    evt.getXrefUpdaterReports().add(xrefReport);
                 }
                 primaryProteins.add(prot);
             }

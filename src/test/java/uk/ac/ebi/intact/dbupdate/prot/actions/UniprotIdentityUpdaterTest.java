@@ -87,13 +87,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         evt.setUniprotProtein(uniprot);
         UpdateCaseEvent caseEvt = updater.collectPrimaryAndSecondaryProteins(evt);
 
-        Assert.assertEquals(caseEvt.getUniprotServiceResult().getQuerySentToService(), "P60953");
+        Assert.assertEquals(caseEvt.getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(3, caseEvt.getSecondaryProteins().size());
         Assert.assertEquals(2, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(10, caseEvt.getUniprotServiceResult().getProteins().size());
+        Assert.assertEquals(10, caseEvt.getProteins().size());
 
         // update
         updater.updateAllSecondaryProteins(caseEvt);
@@ -150,13 +150,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         evt.setUniprotProtein(uniprot);
         UpdateCaseEvent caseEvt = updater.collectPrimaryAndSecondaryProteins(evt);
 
-        Assert.assertEquals(caseEvt.getUniprotServiceResult().getQuerySentToService(), "P60953");
+        Assert.assertEquals(caseEvt.getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(2, caseEvt.getSecondaryProteins().size());
         Assert.assertEquals(2, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(0, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(8, caseEvt.getUniprotServiceResult().getProteins().size());
+        Assert.assertEquals(8, caseEvt.getProteins().size());
 
         // update
         updater.updateAllSecondaryProteins(caseEvt);
@@ -210,13 +210,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         evt.setUniprotProtein(uniprot);
         UpdateCaseEvent caseEvt = updater.collectPrimaryAndSecondaryProteins(evt);
 
-        Assert.assertEquals(caseEvt.getUniprotServiceResult().getQuerySentToService(), "P60953");
+        Assert.assertEquals(caseEvt.getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(3, caseEvt.getSecondaryProteins().size());
         Assert.assertEquals(2, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(10, caseEvt.getUniprotServiceResult().getProteins().size());
+        Assert.assertEquals(10, caseEvt.getProteins().size());
 
         // update
         updater.updateAllSecondaryProteins(caseEvt);
@@ -273,13 +273,13 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         evt.setUniprotProtein(uniprot);
         UpdateCaseEvent caseEvt = updater.collectPrimaryAndSecondaryProteins(evt);
 
-        Assert.assertEquals(caseEvt.getUniprotServiceResult().getQuerySentToService(), "P60953");
+        Assert.assertEquals(caseEvt.getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(3, caseEvt.getSecondaryProteins().size());
         Assert.assertEquals(3, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(11, caseEvt.getUniprotServiceResult().getProteins().size());
+        Assert.assertEquals(11, caseEvt.getProteins().size());
 
         // update
         // update

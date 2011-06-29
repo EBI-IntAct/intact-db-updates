@@ -96,7 +96,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryFeatureChains.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryFeatureChains);
+                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryFeatureChains, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -154,7 +154,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryIsoforms.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+                null, primaryProteins, secondaryProteins, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -204,7 +204,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         secondaryProteins.add(randomProt);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -259,7 +259,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryChains.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains);
+                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -285,7 +285,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryChains2.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt2 = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins2, secondaryProteins2, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains2);
+                null, primaryProteins2, secondaryProteins2, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChains2, "P12345");
 
         Assert.assertEquals(1, evt2.getPrimaryProteins().size());
         Assert.assertEquals(1, evt2.getSecondaryProteins().size());
@@ -345,7 +345,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryIsoforms.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+                null, primaryProteins, secondaryProteins, primaryIsoforms, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -371,7 +371,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryIsoforms2.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt2 = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins2, secondaryProteins2, primaryIsoforms2, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+                null, primaryProteins2, secondaryProteins2, primaryIsoforms2, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "P12345");
 
         Assert.assertEquals(1, evt2.getPrimaryProteins().size());
         Assert.assertEquals(1, evt2.getSecondaryProteins().size());
@@ -435,7 +435,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         primaryFeatureChains.add(new ProteinTranscript(chain2, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryFeatureChains);
+                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryFeatureChains, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());
@@ -497,7 +497,7 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         secondaryIsoforms.add(new ProteinTranscript(spliceVar2, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, primaryIsoforms, secondaryIsoforms, Collections.EMPTY_LIST);
+                null, primaryProteins, secondaryProteins, primaryIsoforms, secondaryIsoforms, Collections.EMPTY_LIST, "P12345");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());

@@ -349,7 +349,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         secondaryProteins.add(randomProt);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
-                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
+                null, primaryProteins, secondaryProteins, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, "Q13948");
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getSecondaryProteins().size());

@@ -617,7 +617,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
-                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
                     if (fixedProtein.getUniprotVariant() == null){
                         fixedProtein.setUniprotVariant(report.getTranscript());
@@ -644,7 +644,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                 if (!hasFoundSpliceVariant){
                                     caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                    caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                    caseEvent.getProteins().add(fixedProtein.getProtein());
 
                                     if (isIsoform){
                                         mergedTranscripts.add(fixedProtein);
@@ -667,7 +667,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                             if (!hasFoundChain){
                                 caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                caseEvent.getProteins().add(fixedProtein.getProtein());
 
                                 if (!isIsoform){
                                     mergedTranscripts.add(fixedProtein);
@@ -682,7 +682,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                 }
                 else {
-                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
                 }
             }
         }
@@ -736,7 +736,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
-                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
                     if (fixedProtein.getUniprotVariant() != null){
                         if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
@@ -760,7 +760,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                     if (!hasFoundSpliceVariant){
                                         caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                        caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                        caseEvent.getProteins().add(fixedProtein.getProtein());
                                     }
                                 }
                             }
@@ -779,7 +779,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                 if (!hasFoundChain){
                                     caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                    caseEvent.getUniprotServiceResult().getProteins().add(fixedProtein.getProtein());
+                                    caseEvent.getProteins().add(fixedProtein.getProtein());
                                 }
                             }
                         }
@@ -791,7 +791,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                 }
                 else {
-                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getUniprotServiceResult().getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
+                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
                 }
             }
         }
