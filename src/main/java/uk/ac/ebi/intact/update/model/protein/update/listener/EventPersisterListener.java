@@ -130,6 +130,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
     @Override
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+
     }
 
     @Transactional( "update" )
