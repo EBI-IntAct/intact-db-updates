@@ -658,7 +658,11 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     }
 
     private void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64, DataContext context) {
-        double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
+        double relativeConservation = 0;
+
+        if (oldSequence != null && newSequence != null){
+            relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
+        }
         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, oldSequence, newSequence, crc64, relativeConservation));
     }
 
