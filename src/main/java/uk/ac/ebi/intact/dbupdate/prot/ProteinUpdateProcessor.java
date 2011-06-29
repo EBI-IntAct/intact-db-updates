@@ -162,15 +162,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
 
         addListener(new SequenceChangedListener());
-
-        // if we want to persist each protein update event, we need the eventPersisterListener
-        if (config.isPersistUpdateEvents()){
-
-           IntactUpdateContext updateContext = IntactUpdateContext.getCurrentInstance();
-            ProteinEventPersisterListener listenerPersister = updateContext.getProteinEventPersisterListener();
-           addListener(listenerPersister);
-           listenerPersister.createUpdateProcess();
-        }
     }
 
     public void fireOnDelete(ProteinEvent evt) {
