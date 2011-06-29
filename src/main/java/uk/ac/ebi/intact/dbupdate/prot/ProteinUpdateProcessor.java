@@ -260,7 +260,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnProteinSequenceCaution(ProteinSequenceCautionEvent evt){
+    public void fireOnProteinSequenceCaution(ProteinSequenceChangeEvent evt){
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onProteinSequenceCaution(evt);
         }

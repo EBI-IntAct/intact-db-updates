@@ -21,9 +21,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceCautionEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinSequenceChangeEvent;
-import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
@@ -62,7 +60,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
         double relativeConservation = 0;
 
         if (oldSeq != null){
-            relativeConservation = ProteinTools.calculateSequenceConservation(oldSeq, newSeq);
+            relativeConservation = evt.getRelativeConservation();
 
             // if the sequences are considerably different, create a caution for the protein and the interactions
             if ( relativeConservation <= conservationThreshold) {
@@ -70,8 +68,7 @@ public class SequenceChangedListener extends AbstractProteinUpdateProcessorListe
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                    ProteinSequenceCautionEvent cautionEvent = new ProteinSequenceCautionEvent(evt.getSource(), evt.getDataContext(), evt.getProtein(), evt.getOldSequence(), evt.getNewSequence(), relativeConservation);
-                    processor.fireOnProteinSequenceCaution(cautionEvent);
+                    processor.fireOnProteinSequenceCaution(evt);
                 }
                 /*final InteractorXref xref = ProteinUtils.getUniprotXref(evt.getProtein());
                 String uniprotAc = null;

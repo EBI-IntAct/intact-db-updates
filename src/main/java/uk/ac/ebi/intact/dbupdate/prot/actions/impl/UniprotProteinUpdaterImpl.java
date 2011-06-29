@@ -30,6 +30,7 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
+import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -665,7 +666,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     }
 
     private void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64, DataContext context) {
-        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, oldSequence, newSequence, crc64));
+        double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
+        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, oldSequence, newSequence, crc64, relativeConservation));
     }
 
     private void proteinCreated(Protein protein, DataContext context, String message) {

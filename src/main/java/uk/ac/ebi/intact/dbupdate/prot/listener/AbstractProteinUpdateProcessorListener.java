@@ -91,7 +91,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinU
         // nothing
     }
 
-    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException{
+    public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException{
         // nothing
     }
 

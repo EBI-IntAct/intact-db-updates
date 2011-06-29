@@ -647,7 +647,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     @Override
-    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException {
+    public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
         ReportWriter writer = null;
         try {
             writer = reportHandler.getSequenceChangedCautionWriter();

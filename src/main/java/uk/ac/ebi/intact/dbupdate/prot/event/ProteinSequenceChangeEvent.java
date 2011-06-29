@@ -20,17 +20,20 @@ public class ProteinSequenceChangeEvent extends ProteinEvent {
 
     private String uniprotCrc64;
 
+    double relativeConservation;
+
     /**
      * A protein update event
      *
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public ProteinSequenceChangeEvent(Object source, DataContext dataContext, Protein protein, String oldSequence, String newSequence, String uniprotCrc64) {
+    public ProteinSequenceChangeEvent(Object source, DataContext dataContext, Protein protein, String oldSequence, String newSequence, String uniprotCrc64, double relativeConservation) {
         super(source, dataContext, protein);
         this.oldSequence = oldSequence;
         this.newSequence = newSequence;
         this.uniprotCrc64 = uniprotCrc64;
+        this.relativeConservation = relativeConservation;
     }
 
     public String getOldSequence() {
@@ -43,5 +46,9 @@ public class ProteinSequenceChangeEvent extends ProteinEvent {
 
     public String getUniprotCrc64() {
         return uniprotCrc64;
+    }
+
+    public double getRelativeConservation() {
+        return relativeConservation;
     }
 }

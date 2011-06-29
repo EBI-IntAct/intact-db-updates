@@ -101,7 +101,7 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
     }
 
     @Override
-    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException {
+    public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("The protein " + evt.getProtein().getAc() + " has a sequence which has been dramatically changed (sequence conservation = " + evt.getRelativeConservation() +").");
     }
 
