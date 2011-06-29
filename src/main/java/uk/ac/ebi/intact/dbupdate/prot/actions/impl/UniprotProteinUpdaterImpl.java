@@ -135,7 +135,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             proteinCreated(protein, evt.getDataContext(), "No Intact master protein existed (or was valid) for the uniprot ac " + uniprotProtein.getPrimaryAc());
             evt.getPrimaryProteins().add(protein);
-            evt.getProteins().add(protein);
+            evt.getProteins().add(protein.getAc());
 
         } else {
             if (log.isDebugEnabled())
@@ -230,7 +230,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein, evt.getDataContext(), "No IntAct splice variant existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
-                    evt.getProteins().add(protein);
+                    evt.getProteins().add(protein.getAc());
                 }
             }
         }
@@ -270,7 +270,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
                     proteinCreated(protein, evt.getDataContext(), "No IntAct feature chain existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
-                    evt.getProteins().add(protein);
+                    evt.getProteins().add(protein.getAc());
                 }
             }
         }
@@ -408,7 +408,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
                 if (fixedProtein != null){
-                    evt.getProteins().add(fixedProtein.getProtein());
+                    evt.getProteins().add(fixedProtein.getProtein().getAc());
 
                     boolean hasToBeAdded = true;
 

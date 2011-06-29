@@ -42,7 +42,7 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
     /**
      * A collection of retrieved proteins.
      */
-    private Set<Protein> proteins = new HashSet<Protein>();
+    private Set<String> proteins = new HashSet<String>();
 
     private List<XrefUpdaterReport> xrefUpdaterReports = new ArrayList<XrefUpdaterReport>();
 
@@ -134,7 +134,7 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
         this.querySentToService = querySentToService;
     }
 
-    public Set<Protein> getProteins() {
+    public Set<String> getProteins() {
         return proteins;
     }
 
@@ -147,6 +147,10 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
     }
 
     public void addAllToProteins(Collection<Protein> proteins){
-        this.proteins.addAll(proteins);
+        for (Protein prot : proteins){
+            if (prot.getAc() != null){
+                this.proteins.add(prot.getAc());
+            }
+        }
     }
 }

@@ -385,7 +385,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Xrefs removed");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
-                    protCollectionToString(evt.getProteins(), true),
+                    protCollectionToString(evt.getProteins()),
                     String.valueOf(evt.getPrimaryProteins().size()),
                     String.valueOf(evt.getSecondaryProteins().size()),
                     protCollectionToString(evt.getPrimaryProteins(), true),
@@ -820,6 +820,26 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             if (additionalInfo != null && !additionalInfo.isEmpty()) {
                 sb.append("[").append(additionalInfo.get(protein.getAc()).size()).append("]");
             }
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        if (protCollection.isEmpty()) {
+            sb.append(EMPTY_VALUE);
+        }
+
+        return sb.toString();
+    }
+
+    private static String protCollectionToString(Collection<String> protCollection) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<String> iterator = protCollection.iterator(); iterator.hasNext();) {
+            String protein = iterator.next();
+
+            sb.append(protein);
 
             if (iterator.hasNext()) {
                 sb.append(", ");

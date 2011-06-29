@@ -331,7 +331,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     secondaryAcToRemove.add(prot);
 
                     // remove the protein from the proteins whcih can be updated. Will be updated later
-                    evt.getProteins().remove(prot);
+                    evt.getProteins().remove(prot.getAc());
                 }
                 else if ( uniprotProteins.size() > 1 ) {
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
@@ -396,7 +396,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                 secondaryAcToRemove.add(protTrans);
 
                 // remove the protein from the proteins whcih can be updated. Will be updated later
-                evt.getProteins().remove(prot);
+                evt.getProteins().remove(prot.getAc());
             }
         }
         transcripts.removeAll(secondaryAcToRemove);

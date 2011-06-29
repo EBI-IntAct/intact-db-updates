@@ -440,9 +440,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                         if (caseEvent != null){
                             // add each protein to the list of processed proteins
-                            for (Protein p : caseEvent.getProteins()){
-                                processedProteins.add(p.getAc());
-                            }
+                            processedProteins.addAll(caseEvent.getProteins());
                         }
                     }
                 }

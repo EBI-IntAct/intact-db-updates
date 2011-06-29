@@ -644,7 +644,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                 if (!hasFoundSpliceVariant){
                                     caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                    caseEvent.getProteins().add(fixedProtein.getProtein());
+                                    caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
 
                                     if (isIsoform){
                                         mergedTranscripts.add(fixedProtein);
@@ -667,7 +667,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                             if (!hasFoundChain){
                                 caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                caseEvent.getProteins().add(fixedProtein.getProtein());
+                                caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
 
                                 if (!isIsoform){
                                     mergedTranscripts.add(fixedProtein);
@@ -760,7 +760,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                     if (!hasFoundSpliceVariant){
                                         caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                        caseEvent.getProteins().add(fixedProtein.getProtein());
+                                        caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
                                     }
                                 }
                             }
@@ -779,7 +779,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                                 if (!hasFoundChain){
                                     caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                    caseEvent.getProteins().add(fixedProtein.getProtein());
+                                    caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
                                 }
                             }
                         }

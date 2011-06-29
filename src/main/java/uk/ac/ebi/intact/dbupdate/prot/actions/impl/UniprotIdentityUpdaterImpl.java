@@ -248,7 +248,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
 
                     if (!ProteinUtils.isFromUniprot(variant)){
                         primaryIsoforms.add(new ProteinTranscript(variant, null));
-                        evt.getProteins().add(variant);
+                        evt.getProteins().add(variant.getAc());
                     }
                     else if (uniprotId != null){
                         boolean hasFoundAc = false;
@@ -259,12 +259,12 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             if (sv.getPrimaryAc().equalsIgnoreCase(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 primaryIsoforms.add(new ProteinTranscript(variant, sv));
-                                evt.getProteins().add(variant);
+                                evt.getProteins().add(variant.getAc());
                             }
                             else if (variantAcs.contains(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 secondaryIsoforms.add(new ProteinTranscript(variant, sv));
-                                evt.getProteins().add(variant);
+                                evt.getProteins().add(variant.getAc());
                             }
                         }
 
@@ -316,7 +316,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
 
                     if (!ProteinUtils.isFromUniprot(variant)){
                         primaryChains.add(new ProteinTranscript(variant, null));
-                        evt.getProteins().add(variant);
+                        evt.getProteins().add(variant.getAc());
                     }
                     else if (uniprotId != null){
                         boolean hasFoundAc = false;
@@ -326,7 +326,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                             if (fc.getPrimaryAc().equalsIgnoreCase(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 primaryChains.add(new ProteinTranscript(variant, fc));
-                                evt.getProteins().add(variant);
+                                evt.getProteins().add(variant.getAc());
                             }
                         }
 

@@ -532,7 +532,7 @@ public class ProteinTools {
                 }
 
                 if (!hasFoundSpliceVariant){
-                    caseEvent.getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein.getAc());
                 }
             }
             else if (ProteinUtils.isFeatureChain(protein)){
@@ -548,14 +548,14 @@ public class ProteinTools {
                 }
 
                 if (!hasFoundChain){
-                    caseEvent.getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein.getAc());
                 }
             }
             else{
                 if (!caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
                     proteinsToDelete.add(protein);
 
-                    caseEvent.getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein.getAc());
                 }
                 else if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId()) && isPrimary){
                     proteinsToDelete.add(protein);
@@ -599,7 +599,7 @@ public class ProteinTools {
                     proteinsToDelete.add(proteinTranscript);
 
                     if (!hasFoundSpliceVariant){
-                        caseEvent.getProteins().remove(protein);
+                        caseEvent.getProteins().remove(protein.getAc());
                     }
                 }
             }
@@ -617,7 +617,7 @@ public class ProteinTools {
                 if (!hasFoundChain || isSpliceVariant){
                     proteinsToDelete.add(proteinTranscript);
                     if (!hasFoundChain){
-                        caseEvent.getProteins().remove(protein);
+                        caseEvent.getProteins().remove(protein.getAc());
                     }
                 }
             }
@@ -633,7 +633,7 @@ public class ProteinTools {
                     caseEvent.getPrimaryProteins().add(protein);
                 }
                 else {
-                    caseEvent.getProteins().remove(protein);
+                    caseEvent.getProteins().remove(protein.getAc());
                 }
             }
         }
