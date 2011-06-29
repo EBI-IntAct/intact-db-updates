@@ -58,42 +58,5 @@
         <property name="password" value=""/>
     </bean>
 
-    <!-- intact-update -->
-
-    <bean id="intactUpdateDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-        <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
-        <property name="url" value="jdbc:hsqldb:mem:intactupdate"/>
-        <property name="username" value="sa"/>
-        <property name="password" value=""/>
-    </bean>
-
-    <bean id="updateEntityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-        <property name="persistenceUnitName" value="intact-update"/>
-        <property name="dataSource" ref="intactUpdateDataSource"/>
-
-        <property name="jpaProperties">
-            <props>
-                <prop key="hibernate.generate_statistics">true</prop>
-                <prop key="hibernate.format_sql">false</prop>
-                <prop key="hibernate.hbm2ddl.auto">create-drop</prop>
-            </props>
-        </property>
-
-        <property name="jpaVendorAdapter">
-            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-                <property name="databasePlatform" value="org.hibernate.dialect.HSQLDialect"/>
-                <property name="showSql" value="false"/>
-                <property name="generateDdl" value="false"/>
-            </bean>
-        </property>
-    </bean>
-
-    <bean id="updateTransactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
-        <property name="entityManagerFactory" ref="updateEntityManagerFactory"/>
-        <property name="dataSource" ref="intactUpdateDataSource"/>
-
-        <qualifier value="update"/>
-    </bean>
-
 </beans>
 
