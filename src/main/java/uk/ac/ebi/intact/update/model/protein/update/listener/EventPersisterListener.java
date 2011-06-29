@@ -6,6 +6,7 @@ import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.InteractorAlias;
@@ -13,10 +14,7 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.update.*;
-import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithMessage;
+import uk.ac.ebi.intact.update.model.protein.update.events.*;
 
 import java.util.Collection;
 import java.util.Date;
@@ -129,8 +127,13 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        Protein protein = evt.getProtein();
 
+        SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(this.updateProcess, protein, evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceUpdateEvent.class).persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -156,6 +159,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
     }
 
@@ -200,7 +204,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
-    public void onProteinSequenceCaution(ProteinSequenceCautionEvent evt) throws ProcessorException {
+    public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
     }
 
     @Override
