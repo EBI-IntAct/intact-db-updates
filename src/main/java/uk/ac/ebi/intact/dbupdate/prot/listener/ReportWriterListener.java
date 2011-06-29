@@ -252,22 +252,45 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer.writeHeaderIfNecessary("Protein accession",
                     "Protein shortlabel",
                     "Protein taxId",
-                    "Xrefs",
-                    "Other messages");
+                    "Updated primary annotation",
+                    "Removed xref",
+                    "Added annotations");
 
+            String primaryRef = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : "-";
             StringBuilder xRefs = new StringBuilder();
+            StringBuilder annotations = new StringBuilder();
 
-            for (InteractorXref ref : protein.getXrefs()) {
+            if (evt.getDeletedXrefs() != null){
+                for (InteractorXref ref : evt.getDeletedXrefs()) {
 
-                String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
+                    String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
 
-                xRefs.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
+                    xRefs.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
+                }
             }
+            else {
+                xRefs.append("-");
+            }
+
+            if (evt.getAddedAnnotations() != null){
+                for (Annotation annotation : evt.getAddedAnnotations()) {
+
+                    String qual = (annotation.getCvTopic()!= null)? "("+ annotation.getCvTopic().getShortLabel()+")" : "";
+
+                    annotations.append(qual+":"+ (annotation.getAnnotationText() != null ? annotation.getAnnotationText() : "-"));
+                }
+            }
+            else {
+                annotations.append("-");
+            }
+
             String taxId = protein.getBioSource() != null ? protein.getBioSource().getTaxId() : "-";
             writer.writeColumnValues(protein.getAc(),
                     protein.getShortLabel(),
                     taxId,
+                    primaryRef,
                     xRefs.toString(),
+                    annotations.toString(),
                     evt.getMessage());
             writer.flush();
         } catch (IOException e) {
