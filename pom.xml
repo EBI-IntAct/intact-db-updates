@@ -68,9 +68,9 @@
         </dependency>
 
         <dependency>
-            <groupId>uk.ac.ebi.intact.tools</groupId>
-            <artifactId>protein-mapping</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>uk.ac.ebi.intact.dbupdate</groupId>
+            <artifactId>intact-proteins-update</artifactId>
+            <version>${pom.version}</version>
         </dependency>
 
         <!--spring-->

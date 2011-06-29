@@ -18,7 +18,6 @@ import java.util.List;
  * @version $Id$
  * @since <pre>21-May-2010</pre>
  */
-
 public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
