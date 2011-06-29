@@ -84,7 +84,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
-        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -201,7 +201,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
-        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -279,7 +279,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
         updater.createOrUpdateProtein(evt);
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
-        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
@@ -357,7 +357,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         Assert.assertEquals(1, evt.getPrimaryProteins().size());
         Assert.assertEquals(1, evt.getPrimaryIsoforms().size());
-        Assert.assertEquals(3, evt.getXrefUpdaterReports().size());
+        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());
