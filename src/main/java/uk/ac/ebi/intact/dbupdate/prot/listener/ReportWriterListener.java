@@ -36,6 +36,7 @@ import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
 import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
+import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.io.IOException;
@@ -385,7 +386,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Xrefs added",
                     "Xrefs removed",
                     "Aliases added",
-                    "Aliases removed");
+                    "Aliases removed",
+                    "Names updated");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
                     collectionToString(evt.getProteins()),
@@ -402,7 +404,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     xrefReportsAddedToString(evt.getXrefUpdaterReports()),
                     xrefReportsRemovedToString(evt.getXrefUpdaterReports()),
                     addedAliasReportsToString(evt.getAliasUpdaterReports()),
-                    removedAliasReportsToString(evt.getAliasUpdaterReports()));
+                    removedAliasReportsToString(evt.getAliasUpdaterReports()),
+                    nameReportsToString(evt.getNameUpdaterReports()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -872,6 +875,29 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         }
 
         if (xrefReports.isEmpty()) {
+            sb.append(EMPTY_VALUE);
+        }
+
+        return sb.toString();
+    }
+
+    private static String nameReportsToString(Collection<ProteinNameUpdateReport> nameReports) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<ProteinNameUpdateReport> iterator = nameReports.iterator(); iterator.hasNext();) {
+            ProteinNameUpdateReport report = iterator.next();
+
+            String shortlabel = report.getShortLabel() != null ? report.getShortLabel() : "not updated";
+            String fullName = report.getFullName() != null ? report.getFullName() : "not updated";
+
+            sb.append(report.getProtein()).append("[").append("ShortLabel : ").append(shortlabel).append("FullName : ").append(fullName).append("]");
+
+            if (iterator.hasNext()) {
+                sb.append("|");
+            }
+        }
+
+        if (nameReports.isEmpty()) {
             sb.append(EMPTY_VALUE);
         }
 

@@ -20,6 +20,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
+import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.util.*;
@@ -47,6 +48,7 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     private List<XrefUpdaterReport> xrefUpdaterReports = new ArrayList<XrefUpdaterReport>();
     private List<AliasUpdateReport> aliasUpdaterReports = new ArrayList<AliasUpdateReport>();
+    private List<ProteinNameUpdateReport> nameUpdateReports = new ArrayList<ProteinNameUpdateReport>();
 
     /**
      * The query sent to the UniprotService for protein update(ex : P12345).
@@ -154,6 +156,14 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     public void addAliasUpdaterReport(AliasUpdateReport report) {
         aliasUpdaterReports.add(report);
+    }
+
+    public List<ProteinNameUpdateReport> getNameUpdaterReports() {
+        return nameUpdateReports;
+    }
+
+    public void addNameUpdaterReport(ProteinNameUpdateReport report) {
+        nameUpdateReports.add(report);
     }
 
     public void addAllToProteins(Collection<Protein> proteins){

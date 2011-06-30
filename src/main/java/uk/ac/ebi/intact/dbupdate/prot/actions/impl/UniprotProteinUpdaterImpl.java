@@ -306,10 +306,35 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
             fullname = fullname.substring( 0, 250 );
         }
-        protein.setFullName( fullname );
 
-        // Shortlabel
-        protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
+        if (fullname != null && !fullname.equals(protein.getFullName())){
+            protein.setFullName( fullname );
+        }
+        else if (protein.getFullName() != null && !protein.getFullName().equals(fullname)){
+            protein.setFullName( fullname );
+        }
+        // no update done
+        else {
+            fullname = null;
+        }
+
+        String shortLabel = generateProteinShortlabel( uniprotProtein );
+
+        if (shortLabel != null && !shortLabel.equals(protein.getShortLabel())){
+            protein.setShortLabel(shortLabel);
+        }
+        else if (protein.getShortLabel() != null && !protein.getShortLabel().equals(shortLabel)){
+            protein.setShortLabel(shortLabel);
+        }
+        // no update done
+        else {
+            shortLabel = null;
+        }
+
+        if (shortLabel != null || fullname != null){
+            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(protein.getAc(), shortLabel, fullname);
+            evt.addNameUpdaterReport(nameReport);
+        }
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
@@ -532,15 +557,44 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             return false;
         }
 
-        transcript.setShortLabel( uniprotTranscript.getPrimaryAc().toLowerCase() );
+        String shortLabel = uniprotTranscript.getPrimaryAc().toLowerCase();
 
+        if (shortLabel != null && !shortLabel.equals(transcript.getShortLabel())){
+            transcript.setShortLabel(shortLabel);
+        }
+        else if (transcript.getShortLabel() != null && !transcript.getShortLabel().equals(shortLabel)){
+            transcript.setShortLabel(shortLabel);
+        }
+        // no update done
+        else {
+            shortLabel = null;
+        }
+
+        String fullName;
         // we have a feature chain
         if (uniprotTranscript.getDescription() != null){
-            transcript.setFullName(uniprotTranscript.getDescription());
+            fullName = uniprotTranscript.getDescription();
         }
         // we have a splice variant
         else {
-            transcript.setFullName( master.getFullName() );
+            fullName = master.getFullName();
+        }
+
+        if (fullName != null && !fullName.equals(transcript.getFullName())){
+            transcript.setFullName( fullName );
+        }
+        else if (transcript.getFullName() != null && !transcript.getFullName().equals(fullName)){
+            transcript.setFullName( fullName );
+        }
+        // no update done
+        else {
+            fullName = null;
+        }
+
+        // add a report if updated shortlabel or fullname
+        if (shortLabel != null || fullName != null){
+            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(transcript.getAc(), shortLabel, fullName);
+            evt.addNameUpdaterReport(nameReport);
         }
 
         // update all Xrefs
