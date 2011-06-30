@@ -86,6 +86,8 @@ public final class XrefUpdaterReport {
             String qual = (xref.getCvXrefQualifier() != null)? "("+xref.getCvXrefQualifier().getShortLabel()+")" : "";
 
             sb.append(xref.getCvDatabase().getShortLabel()+":"+xref.getPrimaryId()+qual);
+
+            i++;
         }
 
         return sb.toString();

@@ -128,7 +128,7 @@ public class AliasUpdaterUtils {
         Collection<InteractorAlias> toDelete = CollectionUtils.subtract( currentAliases, newAliases ); // current minus new
         Collection<InteractorAlias> toCreate = CollectionUtils.subtract( newAliases, currentAliases );
 
-        AliasUpdateReport report = new AliasUpdateReport(protein, toCreate, toDelete);
+        AliasUpdateReport report = new AliasUpdateReport(protein);
 
         Iterator<InteractorAlias> toDeleteIterator = toDelete.iterator();
         for ( InteractorAlias alias : toCreate ) {
@@ -136,9 +136,19 @@ public class AliasUpdaterUtils {
                 // in order to avoid wasting ACs, we overwrite attributes of an outdated xref.
                 InteractorAlias recycledAlias = ( InteractorAlias ) toDeleteIterator.next();
 
+                // add a copy of the deleted alias to the report
+                InteractorAlias copy = new InteractorAlias();
+                copy.setCvAliasType(recycledAlias.getCvAliasType());
+                copy.setName(recycledAlias.getName());
+
+                report.getRemovedAliases().add(copy);
+
                 // note: parent_ac was already set before as the object was persistent
                 recycledAlias.setName( alias.getName() );
                 recycledAlias.setCvAliasType( alias.getCvAliasType() );
+
+                // add the new alias to the report
+                report.getAddedAliases().add(recycledAlias);
 
                 context.getDaoFactory().getAliasDao(InteractorAlias.class).update( recycledAlias );
                 updated = true;
@@ -146,6 +156,8 @@ public class AliasUpdaterUtils {
             } else {
 
                 updated = updated | addNewAlias( protein, alias, context );
+
+                report.getAddedAliases().add(alias);
             }
         }
 
@@ -156,6 +168,8 @@ public class AliasUpdaterUtils {
             ProteinTools.deleteAlias(protein, context, alias, processor);
 
             //aliasDao.delete( alias );
+
+            report.getRemovedAliases().add(alias);
 
             updated = true;
         }

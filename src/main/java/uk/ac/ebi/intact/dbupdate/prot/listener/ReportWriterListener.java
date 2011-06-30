@@ -928,7 +928,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         for (Iterator<AliasUpdateReport> iterator = aliasReports.iterator(); iterator.hasNext();) {
             AliasUpdateReport report = iterator.next();
 
-            sb.append(report.getProtein()).append("[").append(collectionToString(report.getAddedAliases())).append("]");
+            sb.append(report.getProtein()).append("[").append(AliasUpdateReport.aliasesToString(report.getAddedAliases())).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");
@@ -948,7 +948,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         for (Iterator<AliasUpdateReport> iterator = aliasReports.iterator(); iterator.hasNext();) {
             AliasUpdateReport report = iterator.next();
 
-            sb.append(report.getProtein()).append("[").append(collectionToString(report.getRemovedAliases())).append("]");
+            sb.append(report.getProtein()).append("[").append(AliasUpdateReport.aliasesToString(report.getRemovedAliases())).append("]");
 
             if (iterator.hasNext()) {
                 sb.append("|");
