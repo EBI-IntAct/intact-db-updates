@@ -387,8 +387,24 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Xrefs removed",
                     "Aliases added",
                     "Aliases removed",
-                    "Names updated");
+                    "Names updated",
+                    "New annotations");
             String primaryId = evt.getProtein().getPrimaryAc();
+
+            StringBuffer buffer = new StringBuffer();
+            for (Map.Entry<String, Collection<Annotation>> entry : evt.getNewAnnotations().entrySet()) {
+
+                buffer.append(entry.getKey()).append(" [");
+
+                for (Annotation annotation : entry.getValue()){
+                    String qual = (annotation.getCvTopic()!= null)? "("+ annotation.getCvTopic().getShortLabel()+")" : "";
+
+                    buffer.append(qual+":"+ (annotation.getAnnotationText() != null ? annotation.getAnnotationText() : "-"));
+                    buffer.append(" ");
+                }
+                buffer.append(entry.getKey()).append("] ");
+            }
+
             writer.writeColumnValues(primaryId,
                     collectionToString(evt.getProteins()),
                     String.valueOf(evt.getPrimaryProteins().size()),
@@ -405,7 +421,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     xrefReportsRemovedToString(evt.getXrefUpdaterReports()),
                     addedAliasReportsToString(evt.getAliasUpdaterReports()),
                     removedAliasReportsToString(evt.getAliasUpdaterReports()),
-                    nameReportsToString(evt.getNameUpdaterReports()));
+                    nameReportsToString(evt.getNameUpdaterReports()),
+                    buffer.toString()
+                    );
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
