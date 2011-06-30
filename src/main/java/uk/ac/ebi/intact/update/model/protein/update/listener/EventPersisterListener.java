@@ -189,7 +189,14 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
+
+        Protein protein = evt.getProtein();
+
+        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, EventName.non_uniprot_protein, protein, evt.getMessage());
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
     }
 
     @Override
