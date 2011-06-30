@@ -618,6 +618,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // Update Note
         String note = uniprotTranscript.getNote();
+        Collection<Annotation> newAnnotations = new ArrayList<Annotation>(3);
+
         if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
             Institution owner = transcript.getOwner();
             DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
@@ -625,13 +627,35 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
 
             if (comment == null) {
-                comment = CvObjectUtils.createCvObject(owner, CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
+                comment = CvObjectUtils.createCvObject(owner, CvTopic.class, null, CvTopic.ISOFORM_COMMENT);
                 daoFactory.getCvObjectDao(CvTopic.class).persist(comment);
             }
 
-            Annotation annotation = new Annotation( owner, comment );
-            annotation.setAnnotationText( note );
-            AnnotationUpdaterUtils.addNewAnnotation( transcript, annotation, evt.getDataContext() );
+            boolean hasComment = false;
+
+            for (Annotation annot : transcript.getAnnotations()) {
+                if (CvTopic.ISOFORM_COMMENT.equals(annot.getCvTopic().getShortLabel())) {
+                    hasComment = true;
+
+                    if (!note.equalsIgnoreCase(annot.getAnnotationText())){
+                        annot.setAnnotationText(note);
+                        evt.getDataContext().getDaoFactory().getAnnotationDao().update(annot);
+
+                        // a new annotation has been added (updated in this case)
+                        newAnnotations.add(annot);
+                    }
+                }
+            }
+
+            if (!hasComment){
+                Annotation annotation = new Annotation( owner, comment );
+                annotation.setAnnotationText( note );
+
+                newAnnotations.add(annotation);
+
+                evt.getDataContext().getDaoFactory().getAnnotationDao().persist(annotation);
+                transcript.addAnnotation(annotation);
+            }
         }
 
         // in case the protin transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
@@ -662,13 +686,25 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             for (Annotation annot : transcript.getAnnotations()) {
                 if (CvTopic.CHAIN_SEQ_START.equals(annot.getCvTopic().getShortLabel())) {
                     hasStartPosition = true;
-                    annot.setAnnotationText(startToString);
-                    factory.getAnnotationDao().update(annot);
+
+                    if (!startToString.equalsIgnoreCase(annot.getAnnotationText())){
+                        annot.setAnnotationText(startToString);
+                        factory.getAnnotationDao().update(annot);
+
+                        // a new annotation has been added (updated in this case)
+                        newAnnotations.add(annot);
+                    }
                 }
                 else if (CvTopic.CHAIN_SEQ_END.equals(annot.getCvTopic().getShortLabel())) {
                     hasEndPosition = true;
-                    annot.setAnnotationText(endToString);
-                    factory.getAnnotationDao().update(annot);
+
+                    if (!endToString.equalsIgnoreCase(annot.getAnnotationText())){
+                        annot.setAnnotationText(endToString);
+                        factory.getAnnotationDao().update(annot);
+
+                        // a new annotation has been added (updated in this case)
+                        newAnnotations.add(annot);
+                    }
                 }
             }
 
@@ -685,6 +721,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 factory.getAnnotationDao().persist(start);
 
                 transcript.addAnnotation(start);
+
+                newAnnotations.add(start);
             }
             if (!hasEndPosition){
                 CvTopic endPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_END);
@@ -697,7 +735,14 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 factory.getAnnotationDao().persist(end);
 
                 transcript.addAnnotation(end);
+
+                newAnnotations.add(end);
             }
+        }
+
+        // write new annotations in the report
+        if (!newAnnotations.isEmpty()){
+            evt.addNewAnnotationReport(transcript.getAc(), newAnnotations);
         }
 
         // Persist changes

@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
@@ -49,6 +50,8 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
     private List<XrefUpdaterReport> xrefUpdaterReports = new ArrayList<XrefUpdaterReport>();
     private List<AliasUpdateReport> aliasUpdaterReports = new ArrayList<AliasUpdateReport>();
     private List<ProteinNameUpdateReport> nameUpdateReports = new ArrayList<ProteinNameUpdateReport>();
+
+    private Map<String, Collection<Annotation>> newAnnotations = new HashMap<String, Collection<Annotation>>();
 
     /**
      * The query sent to the UniprotService for protein update(ex : P12345).
@@ -164,6 +167,14 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
 
     public void addNameUpdaterReport(ProteinNameUpdateReport report) {
         nameUpdateReports.add(report);
+    }
+
+    public Map<String, Collection<Annotation>> getNewAnnotations() {
+        return newAnnotations;
+    }
+
+    public void addNewAnnotationReport(String ac, Collection<Annotation> annotations) {
+        newAnnotations.put(ac, annotations);
     }
 
     public void addAllToProteins(Collection<Protein> proteins){
