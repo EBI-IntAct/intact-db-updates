@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update;
 
-import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
@@ -35,7 +35,7 @@ public class UpdatedCrossReference extends HibernatePersistentImpl{
         this.parent = null;
     }
 
-    public UpdatedCrossReference(InteractorXref ref, UpdateStatus status){
+    public UpdatedCrossReference(Xref ref, UpdateStatus status){
 
         super();
         if (ref != null){

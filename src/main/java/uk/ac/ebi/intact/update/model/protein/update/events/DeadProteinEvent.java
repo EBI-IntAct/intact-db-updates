@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
 
@@ -46,11 +47,11 @@ public class DeadProteinEvent extends PersistentProteinEvent {
         this.uniprotReference = uniprotReference;
     }
 
-    public void setUniprotReference(InteractorXref xRef){
+    public void setUniprotReference(Xref xRef){
         if (xRef != null){
             this.uniprotReference = xRef.getPrimaryId();
 
-            Collection<InteractorXref> primaryRef = Arrays.asList(xRef);
+            Collection<Xref> primaryRef = Arrays.asList(xRef);
             addUpdatedReferencesFromInteractor(primaryRef, UpdateStatus.updated);
         }
     }

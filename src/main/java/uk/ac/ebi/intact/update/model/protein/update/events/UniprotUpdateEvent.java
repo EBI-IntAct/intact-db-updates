@@ -20,37 +20,55 @@ import javax.persistence.Entity;
 @DiscriminatorValue("UniprotUpdateEvent")
 public class UniprotUpdateEvent extends PersistentProteinEvent {
 
-    String shortLabel;
-    String fullName;
+    String updatedShortLabel;
+    String updatedFullName;
+    String uniprotEntry;
 
     public UniprotUpdateEvent(){
         super();
-        this.shortLabel = null;
-        this.fullName = null;
+        this.updatedShortLabel = null;
+        this.updatedFullName = null;
     }
 
-    public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String shortlabel, String fullname){
+    public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String shortlabel, String fullname, String uniprotEntry){
         super(updateProcess, EventName.uniprot_update, protein);
-        this.shortLabel = shortlabel;
-        this.fullName = fullname;
+        this.updatedShortLabel = shortlabel;
+        this.updatedFullName = fullname;
+        this.uniprotEntry = uniprotEntry;
+    }
+
+        public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String uniprotEntry){
+        super(updateProcess, EventName.uniprot_update, protein);
+        this.updatedShortLabel = null;
+        this.updatedFullName = null;
+        this.uniprotEntry = uniprotEntry;
     }
 
     @Column(name = "shortlabel")
-    public String getShortLabel() {
-        return shortLabel;
+    public String getUpdatedShortLabel() {
+        return updatedShortLabel;
     }
 
-    public void setShortLabel(String shortLabel) {
-        this.shortLabel = shortLabel;
+    public void setUpdatedShortLabel(String updatedShortLabel) {
+        this.updatedShortLabel = updatedShortLabel;
     }
 
     @Column(name = "fullname")
-    public String getFullName() {
-        return fullName;
+    public String getUpdatedFullName() {
+        return updatedFullName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setUpdatedFullName(String updatedFullName) {
+        this.updatedFullName = updatedFullName;
+    }
+
+    @Column(name = "uniprot")
+    public String getUniprotEntry() {
+        return uniprotEntry;
+    }
+
+    public void setUniprotEntry(String uniprot) {
+        this.uniprotEntry = uniprot;
     }
 
     @Override
@@ -61,21 +79,30 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
         final UniprotUpdateEvent event = ( UniprotUpdateEvent ) o;
 
-        if ( shortLabel != null ) {
-            if (!shortLabel.equals( event.getShortLabel())){
+        if ( updatedShortLabel != null ) {
+            if (!updatedShortLabel.equals( event.getUpdatedShortLabel())){
                 return false;
             }
         }
-        else if (event.getShortLabel()!= null){
+        else if (event.getUpdatedShortLabel()!= null){
             return false;
         }
 
-        if ( fullName != null ) {
-            if (!fullName.equals( event.getFullName())){
+        if ( updatedFullName != null ) {
+            if (!updatedFullName.equals( event.getUpdatedFullName())){
                 return false;
             }
         }
-        else if (event.getFullName()!= null){
+        else if (event.getUpdatedFullName()!= null){
+            return false;
+        }
+
+        if ( uniprotEntry != null ) {
+            if (!uniprotEntry.equals( event.getUniprotEntry())){
+                return false;
+            }
+        }
+        else if (event.getUniprotEntry()!= null){
             return false;
         }
 
@@ -95,12 +122,16 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
         code = 29 * code + super.hashCode();
 
-        if ( shortLabel != null ) {
-            code = 29 * code + shortLabel.hashCode();
+        if ( updatedShortLabel != null ) {
+            code = 29 * code + updatedShortLabel.hashCode();
         }
 
-        if ( fullName != null ) {
-            code = 29 * code + fullName.hashCode();
+        if ( updatedFullName != null ) {
+            code = 29 * code + updatedFullName.hashCode();
+        }
+
+        if ( uniprotEntry != null ) {
+            code = 29 * code + uniprotEntry.hashCode();
         }
 
         return code;
@@ -115,21 +146,30 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
         final UniprotUpdateEvent event = ( UniprotUpdateEvent ) o;
 
-        if ( shortLabel != null ) {
-            if (!shortLabel.equals( event.getShortLabel())){
+        if ( updatedShortLabel != null ) {
+            if (!updatedShortLabel.equals( event.getUpdatedShortLabel())){
                 return false;
             }
         }
-        else if (event.getShortLabel()!= null){
+        else if (event.getUpdatedShortLabel()!= null){
             return false;
         }
 
-        if ( fullName != null ) {
-            if (!fullName.equals( event.getFullName())){
+        if ( updatedFullName != null ) {
+            if (!updatedFullName.equals( event.getUpdatedFullName())){
                 return false;
             }
         }
-        else if (event.getFullName()!= null){
+        else if (event.getUpdatedFullName()!= null){
+            return false;
+        }
+
+        if ( uniprotEntry != null ) {
+            if (!uniprotEntry.equals( event.getUniprotEntry())){
+                return false;
+            }
+        }
+        else if (event.getUniprotEntry()!= null){
             return false;
         }
 
@@ -142,7 +182,7 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Uniprot update event : [ shortlabel = " + shortLabel != null ? shortLabel : "none" + ", fullname = " + fullName != null ? fullName : "none");
+        buffer.append("Uniprot update event : [ shortlabel = " + updatedShortLabel != null ? updatedShortLabel : "none" + ", fullname = " + updatedFullName != null ? updatedFullName : "none" + ", uniprot query = " + uniprotEntry != null ? uniprotEntry : "none");
 
         return buffer.toString();
     }

@@ -4,6 +4,7 @@ import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.*;
 
@@ -85,8 +86,8 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         }
     }
 
-    public void addUpdatedReferencesFromInteractor(Collection<InteractorXref> updatedRef, UpdateStatus status){
-        for (InteractorXref ref : updatedRef){
+    public void addUpdatedReferencesFromInteractor(Collection<Xref> updatedRef, UpdateStatus status){
+        for (Xref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
             if (this.updatedReferences.add(reference)){

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
@@ -15,6 +16,9 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.*;
+import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
+import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
+import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
 import java.util.Collection;
 import java.util.Date;
@@ -136,6 +140,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceUpdateEvent.class).persist(proteinEvt);
     }
 
+    @Override
     @Transactional( "update" )
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
@@ -161,6 +166,26 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
+
+        for (Protein prot : evt.getPrimaryProteins()){
+           processUpdatedProtein(prot, evt);
+        }
+
+        for (Protein prot : evt.getSecondaryProteins()){
+           processUpdatedProtein(prot, evt);
+        }
+
+        for (ProteinTranscript prot : evt.getPrimaryIsoforms()){
+           processUpdatedProtein(prot.getProtein(), evt);
+        }
+
+        for (ProteinTranscript prot : evt.getSecondaryIsoforms()){
+           processUpdatedProtein(prot.getProtein(), evt);
+        }
+
+        for (ProteinTranscript prot : evt.getPrimaryFeatureChains()){
+           processUpdatedProtein(prot.getProtein(), evt);
+        }
     }
 
     @Override
@@ -209,5 +234,46 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
     @Override
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
+    }
+
+    private void processUpdatedProtein(Protein protein, UpdateCaseEvent evt){
+
+        boolean needToBePersisted = false;
+
+        UniprotUpdateEvent proteinEvent = new UniprotUpdateEvent(this.updateProcess, protein, evt.getQuerySentToService());
+
+        if (evt.getNewAnnotations().containsKey(protein.getAc())){
+            needToBePersisted = true;
+
+            proteinEvent.addUpdatedAnnotationFromInteractor(evt.getNewAnnotations().get(protein.getAc()), UpdateStatus.added);
+        }
+
+        for (AliasUpdateReport report : evt.getAliasUpdaterReports()){
+            if (protein.getAc().equals(report.getProtein())){
+                needToBePersisted = true;
+            }
+        }
+
+        for (XrefUpdaterReport report : evt.getXrefUpdaterReports()){
+            if (protein.getAc().equals(report.getProtein())){
+                needToBePersisted = true;
+
+                proteinEvent.addUpdatedReferencesFromInteractor(report.getAddedXrefs(), UpdateStatus.added);
+                proteinEvent.addUpdatedReferencesFromInteractor(report.getRemovedXrefs(), UpdateStatus.deleted);
+            }
+        }
+
+        for (ProteinNameUpdateReport report : evt.getNameUpdaterReports()){
+            if (protein.getAc().equals(report.getProtein())){
+                needToBePersisted = true;
+
+                proteinEvent.setUpdatedShortLabel(report.getShortLabel());
+                proteinEvent.setUpdatedFullName(report.getFullName());
+            }
+        }
+
+        if (needToBePersisted){
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
+        }
     }
 }
