@@ -118,12 +118,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
             // no-uniprot-update protein to remove
             if (!ProteinUtils.isFromUniprot(protein)) {
 
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
-                evt.setMessage("no-uniprot-update");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireNonUniprotProteinFound(evt);
-                }
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
 
@@ -136,13 +130,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
             // no uniprot identity, it is a protein not from uniprot
             if (uniprotIdentities.size() == 0){
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
-
-                evt.setMessage("no uniprot identities");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireNonUniprotProteinFound(evt);
-                }
 
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
@@ -150,12 +137,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
             else if (uniprotIdentities.size() > 1){
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
-                evt.setMessage("several uniprot identities");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities, protein));
-                }
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getProteins().remove(protein.getAc());
                 proteinIterator.remove();
             }
         }
@@ -174,12 +157,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
             // no-uniprot-update protein to remove
             if (!ProteinUtils.isFromUniprot(protein)) {
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
-                evt.setMessage("no-uniprot-update");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireNonUniprotProteinFound(evt);
-                }
+
                 proteinIterator.remove();
 
                 // remove the protein from list of processed proteins. Will be processed later
@@ -191,27 +169,18 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
             // no uniprot identity, it is a protein not from uniprot
             if (uniprotIdentities.size() == 0){
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
 
-                evt.setMessage("no uniprot identities");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireNonUniprotProteinFound(evt);
-                }
                 proteinIterator.remove();
 
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
             }
             else if (uniprotIdentities.size() > 1){
-                ProteinEvent evt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), protein);
-                evt.setMessage("several uniprot identities");
 
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(ProteinTools.getAllUniprotIdentities(protein)), UpdateError.multi_uniprot_identities, protein));
-                }
                 proteinIterator.remove();
+
+                // remove the protein from list of processed proteins. Will be processed later
+                caseEvent.getProteins().remove(protein.getAc());
             }
         }
     }
