@@ -251,6 +251,9 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         for (AliasUpdateReport report : evt.getAliasUpdaterReports()){
             if (protein.getAc().equals(report.getProtein())){
                 needToBePersisted = true;
+
+                proteinEvent.addUpdatedAliasesFromInteractor(report.getAddedAliases(), UpdateStatus.added);
+                proteinEvent.addUpdatedAliasesFromInteractor(report.getRemovedAliases(), UpdateStatus.deleted);
             }
         }
 

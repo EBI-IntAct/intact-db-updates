@@ -1,8 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.model.InteractorAlias;
-import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Alias;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
@@ -157,8 +156,8 @@ public class PersistentProteinEvent extends HibernatePersistentImpl {
         }
     }
 
-    public void addUpdatedAliasesFromInteractor(Collection<InteractorAlias> updatedAlias, UpdateStatus status){
-        for (InteractorAlias a : updatedAlias){
+    public void addUpdatedAliasesFromInteractor(Collection<Alias> updatedAlias, UpdateStatus status){
+        for (Alias a : updatedAlias){
 
             UpdatedAlias alias = new UpdatedAlias(a, status);
 

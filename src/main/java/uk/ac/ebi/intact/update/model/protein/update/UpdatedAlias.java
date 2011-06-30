@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update;
 
-import uk.ac.ebi.intact.model.InteractorAlias;
+import uk.ac.ebi.intact.model.Alias;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
@@ -40,7 +40,7 @@ public class UpdatedAlias extends HibernatePersistentImpl {
         this.parent = null;
     }
 
-    public UpdatedAlias(InteractorAlias alias, UpdateStatus status){
+    public UpdatedAlias(Alias alias, UpdateStatus status){
         super();
         if (alias != null){
             type = alias.getCvAliasType() != null ? alias.getCvAliasType().getAc() : null;
