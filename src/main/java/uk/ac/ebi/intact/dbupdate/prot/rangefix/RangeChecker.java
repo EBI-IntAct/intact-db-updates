@@ -96,6 +96,8 @@ public class RangeChecker {
         if (!FeatureUtils.isABadRange(range, oldSequence)){
             Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
             oldRange.setFullSequence(range.getFullSequence());
+            oldRange.setUpStreamSequence(range.getUpStreamSequence());
+            oldRange.setDownStreamSequence(range.getDownStreamSequence());
 
             boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
 
