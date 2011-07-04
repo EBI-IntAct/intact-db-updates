@@ -472,8 +472,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Comp. AC",
                     "Prot. AC",
                     "Prot. Label",
-                    "Prot. Uniprot",
-                    "Message");
+                    "Prot. Uniprot");
             writer.writeColumnValues(updatedRange.getNewRange().getAc(),
                     updatedRange.getOldRange().toString(),
                     updatedRange.getNewRange().toString(),
@@ -484,8 +483,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     component.getAc(),
                     interactor.getAc(),
                     interactor.getShortLabel(),
-                    uniprotAc,
-                    dashIfNull(updatedRange.getMessage()));
+                    uniprotAc);
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);

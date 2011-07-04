@@ -27,7 +27,6 @@ public class UpdatedRange {
 
     private Range oldRange;
     private Range newRange;
-    private String message;
 
     public UpdatedRange(Range oldRange, Range newRange) {
         this(oldRange, newRange, null);
@@ -36,7 +35,6 @@ public class UpdatedRange {
     public UpdatedRange(Range oldRange, Range newRange, String message) {
         this.oldRange = oldRange;
         this.newRange = newRange;
-        this.message = message;
     }
 
     public Range getOldRange() {
@@ -45,14 +43,6 @@ public class UpdatedRange {
 
     public Range getNewRange() {
         return newRange;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public boolean isSequenceChanged() {
