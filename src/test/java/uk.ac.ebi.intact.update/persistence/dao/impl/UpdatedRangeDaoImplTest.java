@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.UpdatedRangeDao;
 
@@ -22,9 +22,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void create_updated_range(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         updatedRangeDao.persist(range);
 
@@ -36,9 +36,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void delete_updated_range(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         updatedRangeDao.persist(range);
 
@@ -50,9 +50,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         String rangeAc = range.getRangeAc();
         String componentAc = range.getComponentAc();
@@ -67,9 +67,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_processId_Date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         updatedRangeDao.persist(range);
 
@@ -94,9 +94,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createInvalidRange();
+        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
 
         Assert.assertEquals(1, range.getFeatureAnnotations().size());
 
@@ -107,9 +107,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac_process_id_and_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         String rangeAc = range.getRangeAc();
         String componentAc = range.getComponentAc();
@@ -132,9 +132,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createInvalidRange();
+        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
 
         Assert.assertEquals(1, range.getFeatureAnnotations().size());
 
@@ -154,9 +154,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_rangeAc_component_Ac_process_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createUpdatedRange();
+        PersistentUpdatedRange range = getMockBuilder().createUpdatedRange();
 
         String rangeAc = range.getRangeAc();
         String componentAc = range.getComponentAc();
@@ -181,9 +181,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void search_by_range_having_featureAnnotations_process_id_and_date(){
-        UpdatedRangeDao<UpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class);
+        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
-        UpdatedRange range = getMockBuilder().createInvalidRange();
+        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
 
         Assert.assertEquals(1, range.getFeatureAnnotations().size());
 

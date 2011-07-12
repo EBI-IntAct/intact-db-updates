@@ -9,13 +9,13 @@ import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.model.Annotation;
-import uk.ac.ebi.intact.model.InteractorAlias;
-import uk.ac.ebi.intact.model.InteractorXref;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.*;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
@@ -168,23 +168,23 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
 
         for (Protein prot : evt.getPrimaryProteins()){
-           processUpdatedProtein(prot, evt);
+            processUpdatedProtein(prot, evt);
         }
 
         for (Protein prot : evt.getSecondaryProteins()){
-           processUpdatedProtein(prot, evt);
+            processUpdatedProtein(prot, evt);
         }
 
         for (ProteinTranscript prot : evt.getPrimaryIsoforms()){
-           processUpdatedProtein(prot.getProtein(), evt);
+            processUpdatedProtein(prot.getProtein(), evt);
         }
 
         for (ProteinTranscript prot : evt.getSecondaryIsoforms()){
-           processUpdatedProtein(prot.getProtein(), evt);
+            processUpdatedProtein(prot.getProtein(), evt);
         }
 
         for (ProteinTranscript prot : evt.getPrimaryFeatureChains()){
-           processUpdatedProtein(prot.getProtein(), evt);
+            processUpdatedProtein(prot.getProtein(), evt);
         }
     }
 
@@ -200,7 +200,43 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
+        UpdatedRange updatedRange = evt.getUpdatedRange();
+
+        Range oldRange = updatedRange.getOldRange();
+        Range newRange = updatedRange.getNewRange();
+
+        // don't process updated ranges if old or new range are null
+        if (newRange != null && oldRange != null){
+            Feature feature = newRange.getFeature();
+
+            if (feature != null){
+                String featureAc = feature.getAc();
+                uk.ac.ebi.intact.model.Component component = feature.getComponent();
+
+                if (component != null){
+                    String componentAc = component.getAc();
+                    Interaction interaction = component.getInteraction();
+
+                    if (interaction != null){
+                        String interactionAc = interaction.getAc();
+
+                        String oldRangePositions = FeatureUtils.convertRangeIntoString(oldRange);
+                        String newRangePositions = FeatureUtils.convertRangeIntoString(newRange);
+
+                        Interactor interactor = component.getInteractor();
+
+                        if (interactor != null){
+                            String interactorAc = interactor.getAc();
+
+                            PersistentUpdatedRange persistentEvt = new PersistentUpdatedRange(this.updateProcess, componentAc, featureAc, interactionAc, interactorAc, newRange.getAc(), oldRange.getFullSequence(), newRange.getFullSequence(), oldRangePositions, newRangePositions);
+                            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override

@@ -15,7 +15,7 @@ import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
 import java.util.Date;
 
@@ -294,6 +294,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");
+        invalid.setFeatureAc("EBI-xxxxx5");
+        invalid.setInteractionAc("EBI-xxxxx6");
+        invalid.setProteinAc("EBI-xxxxx7");
         invalid.setFromStatus("EBI-xxxxxx3");
         invalid.setToStatus("EBI-xxxxxx4");
 
@@ -310,12 +313,15 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return invalid;
     }
 
-    public UpdatedRange createUpdatedRange(){
+    public PersistentUpdatedRange createUpdatedRange(){
 
-        UpdatedRange updated = new UpdatedRange();
+        PersistentUpdatedRange updated = new PersistentUpdatedRange();
 
         updated.setRangeAc("EBI-xxxxx1");
         updated.setComponentAc("EBI-xxxxx2");
+        updated.setFeatureAc("EBI-xxxxx5");
+        updated.setInteractionAc("EBI-xxxxx6");
+        updated.setProteinAc("EBI-xxxxx7");
 
         updated.setOldSequence("MAAM");
         updated.setNewSequence("MAAM");
@@ -331,6 +337,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");
+        invalid.setFeatureAc("EBI-xxxxx5");
+        invalid.setInteractionAc("EBI-xxxxx6");
+        invalid.setProteinAc("EBI-xxxxx7");
         invalid.setFromStatus("EBI-xxxxxx3");
         invalid.setToStatus("EBI-xxxxxx4");
 
@@ -353,6 +362,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");
+        invalid.setFeatureAc("EBI-xxxxx5");
+        invalid.setInteractionAc("EBI-xxxxx6");
+        invalid.setProteinAc("EBI-xxxxx7");
         invalid.setFromStatus("EBI-xxxxxx3");
         invalid.setToStatus("EBI-xxxxxx4");
 

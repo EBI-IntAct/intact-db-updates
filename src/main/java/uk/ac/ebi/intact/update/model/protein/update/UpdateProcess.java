@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.update;
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -24,20 +24,20 @@ public class UpdateProcess extends HibernatePersistentImpl{
     private Date date;
 
     private Collection<PersistentProteinEvent> events;
-    private Collection<UpdatedRange> rangeUpdates;
+    private Collection<PersistentUpdatedRange> rangeUpdates;
 
     public UpdateProcess(){
         setDate(new Date(System.currentTimeMillis()));
 
         this.events = new ArrayList<PersistentProteinEvent>();
-        this.rangeUpdates = new ArrayList<UpdatedRange>();
+        this.rangeUpdates = new ArrayList<PersistentUpdatedRange>();
     }
 
     public UpdateProcess(Date date){
         setDate(date);
 
         this.events = new ArrayList<PersistentProteinEvent>();
-        this.rangeUpdates = new ArrayList<UpdatedRange>();
+        this.rangeUpdates = new ArrayList<PersistentUpdatedRange>();
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
@@ -66,15 +66,15 @@ public class UpdateProcess extends HibernatePersistentImpl{
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedRange> getRangeUpdates() {
+    public Collection<PersistentUpdatedRange> getRangeUpdates() {
         return rangeUpdates;
     }
 
-    public void setRangeUpdates(Collection<UpdatedRange> rangeUpdates) {
+    public void setRangeUpdates(Collection<PersistentUpdatedRange> rangeUpdates) {
         this.rangeUpdates = rangeUpdates;
     }
 
-    public boolean addRangeUpdate(UpdatedRange up){
+    public boolean addRangeUpdate(PersistentUpdatedRange up){
         if (rangeUpdates.add(up)){
             up.setParent(this);
             return true;
@@ -83,7 +83,7 @@ public class UpdateProcess extends HibernatePersistentImpl{
         return false;
     }
 
-    public boolean removeRangeUpdate(UpdatedRange up){
+    public boolean removeRangeUpdate(PersistentUpdatedRange up){
         if (rangeUpdates.remove(up)){
             up.setParent(null);
             return true;

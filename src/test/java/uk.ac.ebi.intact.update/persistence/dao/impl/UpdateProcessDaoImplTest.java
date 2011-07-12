@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.UpdateProcessDao;
 
@@ -85,14 +85,14 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
         Assert.assertEquals(1, processDao.countAll());
         Assert.assertEquals(0, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
 
-        UpdatedRange range = getMockBuilder().createInvalidRange();
+        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
 
         process.addRangeUpdate(range);
 
         processDao.update(process);
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(1, getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
+        Assert.assertEquals(1, getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).countAll());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         UpdateProcess process = getMockBuilder().createUpdateProcess();
 
-        UpdatedRange range = getMockBuilder().createInvalidRange();
+        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
 
         process.addRangeUpdate(range);
 
@@ -114,7 +114,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         processDao.delete(process);
         Assert.assertEquals(0, processDao.countAll());
-        Assert.assertEquals(0, getUpdateDaoFactory().getUpdatedRangeDao(UpdatedRange.class).countAll());
+        Assert.assertEquals(0, getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).countAll());
         Assert.assertEquals(0, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
     }
 

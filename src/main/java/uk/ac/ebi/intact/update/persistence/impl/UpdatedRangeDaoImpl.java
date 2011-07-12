@@ -5,7 +5,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.UpdatedRangeDao;
 
 import javax.persistence.EntityManager;
@@ -22,10 +22,10 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoImpl<T> implements UpdatedRangeDao<T> {
+public class UpdatedRangeDaoImpl<T extends PersistentUpdatedRange> extends UpdateBaseDaoImpl<T> implements UpdatedRangeDao<T> {
 
     public UpdatedRangeDaoImpl() {
-        super((Class<T>) UpdatedRange.class, null);
+        super((Class<T>) PersistentUpdatedRange.class, null);
     }
 
     /**
@@ -33,7 +33,7 @@ public class UpdatedRangeDaoImpl<T extends UpdatedRange> extends UpdateBaseDaoIm
      * @param entityManager
      */
     public UpdatedRangeDaoImpl(EntityManager entityManager) {
-        super((Class<T>) UpdatedRange.class, entityManager);
+        super((Class<T>) PersistentUpdatedRange.class, entityManager);
     }
 
     @Override

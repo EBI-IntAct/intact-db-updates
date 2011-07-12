@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.UpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.impl.MappingReportDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.ProteinEventDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.UpdatedRangeDaoImpl;
@@ -110,7 +110,7 @@ public class UpdateDaoFactory implements Serializable{
      * @param <T>
      * @return the UpdatedRangeDao instance
      */
-    public <T extends UpdatedRange> UpdatedRangeDao<T> getUpdatedRangeDao( Class<T> entityType) {
+    public <T extends PersistentUpdatedRange> UpdatedRangeDao<T> getUpdatedRangeDao( Class<T> entityType) {
         UpdatedRangeDao updatedRangeDao = getBean(UpdatedRangeDaoImpl.class);
         updatedRangeDao.setEntityClass(entityType);
         return updatedRangeDao;

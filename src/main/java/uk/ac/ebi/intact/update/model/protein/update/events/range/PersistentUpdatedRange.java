@@ -20,9 +20,9 @@ import java.util.Collection;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
-@DiscriminatorValue("UpdatedRange")
+@DiscriminatorValue("PersistentUpdatedRange")
 @Table(name = "ia_updated_range")
-public class UpdatedRange extends HibernatePersistentImpl {
+public class PersistentUpdatedRange extends HibernatePersistentImpl {
     private String oldPositions;
     private String newPositions;
     private String oldSequence;
@@ -30,12 +30,16 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     private String rangeAc;
 
+    private String featureAc;
     private String componentAc;
+    private String interactionAc;
+    private String proteinAc;
+
     UpdateProcess updateProcess;
 
     Collection<UpdatedAnnotation> featureAnnotations;
 
-    public UpdatedRange (){
+    public PersistentUpdatedRange(){
         super();
         oldPositions = null;
         newPositions = null;
@@ -43,14 +47,20 @@ public class UpdatedRange extends HibernatePersistentImpl {
         this.componentAc = null;
         this.oldSequence = null;
         this.newSequence = null;
+        this.featureAc = null;
+        this.interactionAc = null;
+        this.proteinAc = null;
 
         this.featureAnnotations = new ArrayList<UpdatedAnnotation>();
     }
 
-    public UpdatedRange(UpdateProcess updateProcess, String componentAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
+    public PersistentUpdatedRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String proteinAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
         super();
         this.componentAc = componentAc;
         this.rangeAc = rangeAc;
+        this.featureAc = featureAc;
+        this.interactionAc = interactionAc;
+        this.proteinAc = proteinAc;
         this.oldPositions = oldRangePositions;
         this.newPositions = newRangePositions;
         this.updateProcess = updateProcess;
@@ -66,6 +76,33 @@ public class UpdatedRange extends HibernatePersistentImpl {
 
     public void setComponentAc(String componentAc) {
         this.componentAc = componentAc;
+    }
+
+    @Column(name="protein_ac", nullable=false)
+    public String getProteinAc() {
+        return proteinAc;
+    }
+
+    public void setProteinAc(String proteinAc) {
+        this.proteinAc = proteinAc;
+    }
+
+    @Column(name="feature_ac", nullable=false)
+    public String getFeatureAc() {
+        return featureAc;
+    }
+
+    public void setFeatureAc(String featureAc) {
+        this.featureAc = featureAc;
+    }
+
+    @Column(name="interaction_ac", nullable=false)
+    public String getInteractionAc() {
+        return interactionAc;
+    }
+
+    public void setInteractionAc(String interactionAc) {
+        this.interactionAc = interactionAc;
     }
 
     @ManyToOne
@@ -163,7 +200,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
             return false;
         }
 
-        final UpdatedRange range = ( UpdatedRange ) o;
+        final PersistentUpdatedRange range = (PersistentUpdatedRange) o;
 
         if ( rangeAc != null ) {
             if (!rangeAc.equals( range.getRangeAc() )){
@@ -269,7 +306,7 @@ public class UpdatedRange extends HibernatePersistentImpl {
             return false;
         }
 
-        final UpdatedRange range = ( UpdatedRange ) o;
+        final PersistentUpdatedRange range = (PersistentUpdatedRange) o;
 
         if ( rangeAc != null ) {
             if (!rangeAc.equals( range.getRangeAc() )){
