@@ -26,6 +26,7 @@ import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.*;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.meta.DbInfo;
@@ -399,7 +400,17 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         // if the protein must be deleted, delete it
         if (toDelete){
-            proteinDeleter.delete(processEvent);
+            boolean isDeletedFromDatabase = proteinDeleter.delete(processEvent);
+
+            if (isDeletedFromDatabase){
+                // log in 'deleted.csv'
+                fireOnDelete(processEvent);
+            }
+            else {
+                InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protToUpdate);
+                String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, protToUpdate, uniprot));
+            }
         }
         // the protein must not be deleted, update it
         else {
@@ -487,8 +498,19 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                 // delete these proteins
                 for (Protein p : protToDelete){
-                    ProteinEvent protEvent = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
-                    proteinDeleter.delete(protEvent);
+                    ProteinEvent protEvent = new ProteinEvent(this, caseEvent.getDataContext(), p, uniprotProtein, "Protein without interactions");
+
+                    boolean isDeletedFromDatabase = proteinDeleter.delete(protEvent);
+
+                    if (isDeletedFromDatabase){
+                        // log in 'deleted.csv'
+                        fireOnDelete(protEvent);
+                    }
+                    else {
+                        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(p);
+                        String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, uniprot));
+                    }
                 }
             }
 

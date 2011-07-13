@@ -65,13 +65,8 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
         }
 
         if (protein.getAc() == null) {
-            log.debug("Protein without AC, cannot be deleted");
-            if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, protein, evt.getUniprotIdentity()));
-            }
 
-            return false;
+            return true;
         }
 
         final boolean isProteinTranscript = isProteinTranscript(protein);
@@ -80,7 +75,8 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-        final Integer interactionCount = proteinDao.countInteractionsForInteractorWithAc( protein.getAc() );
+        // collect number of active instances
+        final Integer interactionCount = protein.getActiveInstances().size();
 
         // it is not a splice variant, not a feature chain but a protein
         if( !isProteinTranscript ) {
@@ -89,35 +85,35 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
             // check if the protein has splice variants/chains as they cannot be removed
 
             // Checking is any splice variant or feature chain is involved in interactions
-            boolean hasProteinTranscriptAttached = false;
+            boolean hasTranscriptInvolvedInInteractionsAttached = false;
             // splice variants
-            List<ProteinImpl> trasncripts = proteinDao.getSpliceVariants(protein);
+            List<ProteinImpl> transcripts = proteinDao.getSpliceVariants(protein);
             // feature chains
-            trasncripts.addAll(proteinDao.getProteinChains(protein));
+            transcripts.addAll(proteinDao.getProteinChains(protein));
 
-            for (Protein transcript : trasncripts) {
+            for (Protein transcript : transcripts) {
 
-                if (proteinDao.countInteractionsForInteractorWithAc(transcript.getAc()) > 0) {
-                    hasProteinTranscriptAttached = true;
+                if (transcript.getActiveInstances().size() > 0) {
+                    hasTranscriptInvolvedInInteractionsAttached = true;
                 } else if (isDeleteProteinTranscriptsWithoutInteractions()) {
                     if (log.isDebugEnabled()) log.debug("Protein transcripts for protein '"+protein.getShortLabel()+"' will be deleted: "+transcript.getAc());
-                    evt.setMessage("Protein transcript without interactions");
+                    evt.setMessage("Protein transcript without any interactions");
                 } else {
-                    hasProteinTranscriptAttached = true;
+                    hasTranscriptInvolvedInInteractionsAttached = true;
                 }
             }
 
             // if no splice variant/chain attached to that master either and it is not involved in interactions, then delete it.
-            if ( interactionCount == 0 && ! hasProteinTranscriptAttached) {
+            if ( interactionCount == 0 && ! hasTranscriptInvolvedInInteractionsAttached) {
                 if (log.isDebugEnabled()) log.debug("Protein '"+protein.getAc()+"' will be deleted as it doesn't have interaction and has no isoform/chain attached." );
-                evt.setMessage("Protein without interactions");
+                evt.setMessage("Protein without any interactions");
                 return true;
             }
 
         } else if ( isProteinTranscript && interactionCount == 0) {
 
             if (log.isDebugEnabled()) log.debug("Protein transcript will be deleted: "+protein.getAc());
-            evt.setMessage("Protein transcript without interactions");
+            evt.setMessage("Protein transcript without any interactions");
             return true;
 
         }
@@ -165,10 +161,8 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
         for (Protein p : protToInspect){
             if (p.getAc() == null) {
                 log.debug("Protein without AC, cannot be deleted");
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, evt.getQuerySentToService()));
-                }
+
+                protToDelete.add(p);
             }
             else {
 

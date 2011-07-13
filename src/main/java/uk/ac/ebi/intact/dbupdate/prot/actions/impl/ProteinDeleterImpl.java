@@ -19,7 +19,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinDeleter;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
@@ -41,25 +40,22 @@ public class ProteinDeleterImpl implements ProteinDeleter{
     /**
      * Delete the protein from the database
      * @param evt : contains the protein to delete
+     * @return true if the protein is deleted from the database, false otherwise
      * @throws ProcessorException
      */
-    public void delete(ProteinEvent evt) throws ProcessorException {
-        // log in 'deleted.csv'
-        if (evt.getSource() instanceof ProteinUpdateProcessor){
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnDelete(new ProteinEvent(processor, evt.getDataContext(), evt.getProtein(), evt.getMessage()));
-        }
+    public boolean delete(ProteinEvent evt) throws ProcessorException {
 
         // delete the protein
-        deleteProtein(evt.getProtein(), evt);        
+        return deleteProtein(evt.getProtein(), evt);
     }
 
     /**
      * Delete the protein if it is not already done
      * @param protein
      * @param evt
+     * @return true if the protein is deleted from the database, false otherwise
      */
-    private void deleteProtein(Protein protein, ProteinEvent evt) {
+    private boolean deleteProtein(Protein protein, ProteinEvent evt) {
         if (log.isDebugEnabled()) log.debug("Deleting protein: "+protein.getAc());
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
@@ -72,6 +68,8 @@ public class ProteinDeleterImpl implements ProteinDeleter{
             } else {
                 proteinDao.deleteByAc(protein.getAc());
             }
+            return true;
         }
+        return false;
     }
 }

@@ -16,7 +16,8 @@ public interface ProteinDeleter {
     /**
      * Delete the protein from the database
      * @param evt : contains the protein to delete
+     * @return true if the protein is deleted from the database, false otherwise
      * @throws ProcessorException
      */
-    public void delete(ProteinEvent evt) throws ProcessorException;
+    public boolean delete(ProteinEvent evt) throws ProcessorException;
 }
