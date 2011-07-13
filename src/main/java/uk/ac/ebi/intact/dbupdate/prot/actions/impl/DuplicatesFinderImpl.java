@@ -59,7 +59,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public DuplicatesFoundEvent findProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // list of protein duplicates
-        List<Protein> possibleDuplicates = new ArrayList<Protein>();
+        List<Protein> possibleDuplicates = new ArrayList<Protein>(evt.getPrimaryProteins().size() + evt.getSecondaryIsoforms().size());
 
         // add all primary proteins and secondary proteins
         possibleDuplicates.addAll(evt.getPrimaryProteins());
@@ -78,7 +78,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
             uniprotCrc64 = uniprotProtein.getCrc64();
 
             // in case of master protein, we merge the duplicates
-            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(),possibleDuplicates, uniprotSequence, uniprotCrc64);
+            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(), possibleDuplicates, uniprotSequence, uniprotCrc64);
             return duplEvt;
         }
 
@@ -99,7 +99,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public Collection<DuplicatesFoundEvent> findIsoformDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // the possible duplicates are both in the primary isoforms and secondary isoforms
-        List<ProteinTranscript> possibleDuplicates = new ArrayList<ProteinTranscript>();
+        List<ProteinTranscript> possibleDuplicates = new ArrayList<ProteinTranscript>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
 
         possibleDuplicates.addAll(evt.getPrimaryIsoforms());
         possibleDuplicates.addAll(evt.getSecondaryIsoforms());
@@ -120,9 +120,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public Collection<DuplicatesFoundEvent> findFeatureChainDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // the possible duplicates are in the list of primary feature chains
-        List<ProteinTranscript> possibleDuplicates = new ArrayList<ProteinTranscript>();
-
-        possibleDuplicates.addAll(evt.getPrimaryFeatureChains());
+        List<ProteinTranscript> possibleDuplicates = new ArrayList(evt.getPrimaryFeatureChains());
 
         return findProteinTranscriptDuplicates(possibleDuplicates, evt.getDataContext(), (ProteinProcessor) evt.getSource(), false);
 
@@ -208,11 +206,10 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
         if (possibleDuplicates.size() > 1) {
 
             // the collection containing all the possible duplicates
-            Collection<ProteinTranscript> totalProteins = new ArrayList<ProteinTranscript>();
-            totalProteins.addAll(possibleDuplicates);
+            Collection<ProteinTranscript> totalProteins = new ArrayList(possibleDuplicates);
 
             // the collection which will contain the duplicates of a same protein transcript
-            Collection<ProteinTranscript> duplicates = new ArrayList<ProteinTranscript>();
+            Collection<ProteinTranscript> duplicates = new ArrayList<ProteinTranscript>(possibleDuplicates.size());
 
             // while the list of possible duplicates has not been fully treated, we need to check the duplicates
             while (totalProteins.size() > 0){
@@ -237,7 +234,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                 duplicates.add(trans);
 
                 // extract the parents of this protein
-                Collection<InteractorXref> transcriptParent = Collections.EMPTY_LIST;
+                Collection<InteractorXref> transcriptParent;
 
                 // if splice variant, the isoform-parents
                 if (isSpliceVariant){
@@ -264,7 +261,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
 
                     // if both uniprot identities are identical or null, we may have a duplicate. Need to check the parents
                     if ((firstUniprotAc != null && secondUniprotAc != null && firstUniprotAc.equalsIgnoreCase(secondUniprotAc)) || (firstUniprotAc == null && secondUniprotAc == null)){
-                        Collection<InteractorXref> transcriptParents2 = Collections.EMPTY_LIST;
+                        Collection<InteractorXref> transcriptParents2;
 
                         if (isSpliceVariant){
                             transcriptParents2 = ProteinUtils.extractIsoformParentCrossReferencesFrom(proteinCompared);
@@ -294,7 +291,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     }
 
                     // list of duplicates
-                    Collection<Protein> duplicateToFix = new ArrayList<Protein>();
+                    Collection<Protein> duplicateToFix = new ArrayList<Protein>(duplicates.size());
 
                     for (ProteinTranscript t : duplicates){
                         duplicateToFix.add(t.getProtein());
