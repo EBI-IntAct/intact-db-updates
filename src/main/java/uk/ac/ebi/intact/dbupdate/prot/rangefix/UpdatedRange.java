@@ -16,6 +16,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
 /**
  * Represents an updated range and contains the old version and the new version of the Range.
@@ -27,14 +28,26 @@ public class UpdatedRange {
 
     private Range oldRange;
     private Range newRange;
+    private AnnotationUpdateReport updatedAnnotations;
+    private String featureAc;
+    private String componentAc;
+    private String proteinAc;
+    private String interactionAc;
+    private String rangeAc;
 
-    public UpdatedRange(Range oldRange, Range newRange) {
-        this(oldRange, newRange, null);
+    public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc) {
+        this(oldRange, newRange, rangeAc, featureAc, componentAc, proteinAc,interactionAc, null);
     }
 
-    public UpdatedRange(Range oldRange, Range newRange, String message) {
+    public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc, String message) {
         this.oldRange = oldRange;
         this.newRange = newRange;
+
+        this.rangeAc = rangeAc;
+        this.featureAc = featureAc;
+        this.componentAc = componentAc;
+        this.proteinAc = proteinAc;
+        this.interactionAc = interactionAc;
     }
 
     public Range getOldRange() {
@@ -58,6 +71,10 @@ public class UpdatedRange {
     }
 
     protected int rangeLength(Range range) {
+        if (range == null) {
+            return -1;
+        }
+
         if (range.getToIntervalEnd() == -1) {
             return -1;
         }
@@ -85,5 +102,33 @@ public class UpdatedRange {
         }
 
         return rseq;
+    }
+
+    public AnnotationUpdateReport getUpdatedAnnotations() {
+        return updatedAnnotations;
+    }
+
+    public void setUpdatedAnnotations(AnnotationUpdateReport updatedAnnotations) {
+        this.updatedAnnotations = updatedAnnotations;
+    }
+
+    public String getFeatureAc() {
+        return featureAc;
+    }
+
+    public String getComponentAc() {
+        return componentAc;
+    }
+
+    public String getInteractionAc() {
+        return interactionAc;
+    }
+
+    public String getProteinAc() {
+        return proteinAc;
+    }
+
+    public String getRangeAc() {
+        return rangeAc;
     }
 }

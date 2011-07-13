@@ -38,6 +38,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
+import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -134,8 +135,10 @@ public class RangeFixerImpl implements RangeFixer{
      * @param context
      * @return
      */
-    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor){
+    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor, RangeUpdateReport rangeReport){
         DaoFactory factory = context.getDaoFactory();
+
+        Map<String, AnnotationUpdateReport> annotationReport = rangeReport.getUpdatedAnnotations();
 
         // the annotations of a feature
         feature.getAnnotations().size();
@@ -178,6 +181,15 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // the range ac is not attached to this feature anymore, must delete the annotation
                 if (!existingRanges.containsKey(rangeAc)){
+
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 // the range ac still exists
@@ -188,6 +200,14 @@ public class RangeFixerImpl implements RangeFixer{
                     }
                     // the range is not undetermined anymore, meaning that the annotation is out of date and must be removed
                     else{
+                        if (annotationReport.containsKey(rangeAc)){
+                            annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                            annreport.getRemovedAnnotations().add(annotation);
+                            annotationReport.put(rangeAc, annreport);
+                        }
                         ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                 }
@@ -198,12 +218,28 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // the range ac is not attached to this feature anymore, must delete the annotation
                 if (!existingRanges.containsKey(rangeAc)){
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 // the range ac still exists
                 else {
                     // the range is not undetermined anymore, meaning that the annotation is out of date and must be removed
                     if (!existingRanges.get(rangeAc)){
+                        if (annotationReport.containsKey(rangeAc)){
+                            annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                            annreport.getRemovedAnnotations().add(annotation);
+                            annotationReport.put(rangeAc, annreport);
+                        }
                         ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     // if the map containing the features having range conflicts doesn't contains this range, create a new invalidFeatureReport
@@ -221,12 +257,28 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // the range ac is not attached to this feature anymore, must delete the annotation
                 if (!existingRanges.containsKey(rangeAc)){
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 // the range ac still exists
                 else {
                     // the range is not undetermined anymore, meaning that the annotation is out of date and must be removed
                     if (!existingRanges.get(rangeAc)){
+                        if (annotationReport.containsKey(rangeAc)){
+                            annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                            annreport.getRemovedAnnotations().add(annotation);
+                            annotationReport.put(rangeAc, annreport);
+                        }
                         ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     // it is not an invalid-range from the beginning, can be remapped eventually
@@ -253,12 +305,28 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // the range ac is not attached to this feature anymore, must delete the annotation
                 if (!existingRanges.containsKey(rangeAc)){
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
                 // the range ac still exists
                 else{
                     // the range is not undetermined anymore, meaning that the annotation is out of date and must be removed
                     if (!existingRanges.get(rangeAc)){
+                        if (annotationReport.containsKey(rangeAc)){
+                            annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                            annreport.getRemovedAnnotations().add(annotation);
+                            annotationReport.put(rangeAc, annreport);
+                        }
                         ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                     // add the sequence version to the proper feature report
@@ -282,6 +350,14 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // the range ac is not attached to this feature anymore, must delete the annotation
                 if (!existingRanges.containsKey(rangeAc)){
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
             }
@@ -300,8 +376,10 @@ public class RangeFixerImpl implements RangeFixer{
      * @param feature
      * @param context
      */
-    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor){
+    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor, RangeUpdateReport report){
         DaoFactory factory = context.getDaoFactory();
+
+        Map<String, AnnotationUpdateReport> annotationReport = report.getUpdatedAnnotations();
 
         // a collection containing the feature annotations
         Collection<Annotation> annotationsFeature = new ArrayList<Annotation>();
@@ -340,11 +418,27 @@ public class RangeFixerImpl implements RangeFixer{
                 if (existingInvalidRanges.containsKey(rangeAc)){
                     // the range is not undetermined anymore, meaning the range has been shifted successfully, the annotation must be deleted
                     if (!existingInvalidRanges.get(rangeAc)){
+                        if (annotationReport.containsKey(rangeAc)){
+                            annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                            annreport.getRemovedAnnotations().add(annotation);
+                            annotationReport.put(rangeAc, annreport);
+                        }
                         ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                     }
                 }
                 // delete the annotation
                 else {
+                    if (annotationReport.containsKey(rangeAc)){
+                        annotationReport.get(rangeAc).getRemovedAnnotations().add(annotation);
+                    }
+                    else {
+                        AnnotationUpdateReport annreport = new AnnotationUpdateReport(rangeAc);
+                        annreport.getRemovedAnnotations().add(annotation);
+                        annotationReport.put(rangeAc, annreport);
+                    }
                     ProteinTools.deleteAnnotation(feature, context, annotation, processor);
                 }
             }
@@ -403,11 +497,10 @@ public class RangeFixerImpl implements RangeFixer{
      * @param oldSequence
      * @param newSequence
      * @param range
-     * @param processor
      * @param context
      * @throws ProcessorException
      */
-    protected void shiftRange(String oldSequence, String newSequence, Range range, ProteinUpdateProcessor processor, DataContext context) throws ProcessorException {
+    protected UpdatedRange shiftRange(String oldSequence, String newSequence, Range range, DataContext context) throws ProcessorException {
 
         // oldsequence not null, new sequence not null, the range may have to be shifted
         if (oldSequence != null && newSequence != null) {
@@ -415,10 +508,7 @@ public class RangeFixerImpl implements RangeFixer{
             // shift the ranges whenever it is necessary (don't touch ranges impossible to shift)
             UpdatedRange updatedRange = checker.shiftFeatureRange(range, oldSequence, newSequence, context);
 
-            // fire the events for the range changes
-            if (updatedRange != null) {
-                processor.fireOnRangeChange(new RangeChangedEvent(context, updatedRange));
-            }
+            return updatedRange;
         }
         // TODO : caution?
         // old sequence null, new sequence not null, the range cannot be shifted but we can now extract a feature sequence
@@ -427,11 +517,10 @@ public class RangeFixerImpl implements RangeFixer{
             // extract feature sequence whenever it is necessary (don't touch ranges invalids with the new sequence)            
             UpdatedRange updatedRange = checker.prepareFeatureSequence(range, newSequence, context);
 
-            // fire the events for the range changes
-            if (updatedRange != null) {
-                processor.fireOnRangeChange(new RangeChangedEvent(context, updatedRange));
-            }
+            return updatedRange;
         }
+
+        return null;
     }
 
     /**
@@ -866,6 +955,8 @@ public class RangeFixerImpl implements RangeFixer{
         // create a range update report
         RangeUpdateReport report = new RangeUpdateReport();
 
+        Collection<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
+
         // oldsequence = protein sequence
         String oldSequence = protein.getSequence();
         // new sequence = uniprot sequence
@@ -877,13 +968,13 @@ public class RangeFixerImpl implements RangeFixer{
         for (Component component : components){
 
             // get the features
-            Collection<Feature> features = component.getBindingDomains();
+            Collection<Feature> features = component.getFeatures();
             // the list of invalid ranges attached to this feature
             Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
 
             for (Feature feature : features){
                 // collect previous reports about previous range conflicts
-                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor);
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor, report);
 
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){
@@ -898,7 +989,11 @@ public class RangeFixerImpl implements RangeFixer{
                         }
                         // the range can be shifted, shift it
                         else {
-                            shiftRange(oldSequence, uniprotSequence, r, processor, datacontext);
+                            UpdatedRange updated = shiftRange(oldSequence, uniprotSequence, r, datacontext);
+
+                            if (updated != null){
+                                updatedRanges.add(updated);
+                            }
                         }
                     }
                 }
@@ -947,7 +1042,11 @@ public class RangeFixerImpl implements RangeFixer{
                                     }
                                     // possible update it
                                     else {
-                                        shiftRange(oldSequenceFromUnisave, uniprotSequence, r, processor, datacontext);
+                                        UpdatedRange updated = shiftRange(oldSequenceFromUnisave, uniprotSequence, r, datacontext);
+
+                                        if (updated != null){
+                                            updatedRanges.add(updated);
+                                        }
                                     }
                                 }
                             }
@@ -955,11 +1054,28 @@ public class RangeFixerImpl implements RangeFixer{
                     }
 
                     // clean annotations features if necessary
-                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext, processor);
+                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext, processor, report);
                 }
 
                 if (!totalInvalidRanges.isEmpty()){
                     report.getInvalidComponents().put(component, totalInvalidRanges);
+                }
+
+                for (UpdatedRange range : updatedRanges){
+                    if (report.getUpdatedAnnotations().containsKey(range.getRangeAc())){
+                        range.setUpdatedAnnotations(report.getUpdatedAnnotations().get(range.getRangeAc()));
+                        report.getUpdatedAnnotations().remove(range.getRangeAc());
+                    }
+                    processor.fireOnRangeChange(new RangeChangedEvent(datacontext, range));
+                }
+
+                String interactionAc = component.getInteraction() != null ? component.getInteraction().getAc() : null;
+                for (Map.Entry<String, AnnotationUpdateReport> entry : report.getUpdatedAnnotations().entrySet()){
+
+                    UpdatedRange updatedRange = new UpdatedRange(null, null, entry.getKey(), feature.getAc(), component.getAc(), protein.getAc(), interactionAc);
+                    updatedRange.setUpdatedAnnotations(entry.getValue());
+
+                    processor.fireOnRangeChange(new RangeChangedEvent(datacontext, updatedRange));
                 }
             }
         }
@@ -994,7 +1110,7 @@ public class RangeFixerImpl implements RangeFixer{
 
             for (Feature feature : features){
                 // collect previous reports about previous range conflicts
-                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor);
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor, report);
 
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){

@@ -69,7 +69,26 @@ public class RangeChecker {
                     range.prepareSequence(newSequence);
                     context.getDaoFactory().getRangeDao().update(range);
 
-                    updatedRanges.add(new UpdatedRange(oldRange, range));
+                    Component component = feature.getComponent();
+                    String componentAc = null;
+                    String proteinAc = null;
+                    String interactionAc = null;
+
+                    if (component != null){
+                        componentAc = component.getAc();
+
+                        Interactor interactor = component.getInteractor();
+                        Interaction interaction = component.getInteraction();
+
+                        if (interactor != null){
+                            proteinAc = interactor.getAc();
+                        }
+                        if (interaction != null){
+                            interactionAc = interaction.getAc();
+                        }
+                    }
+
+                    updatedRanges.add(new UpdatedRange(oldRange, range, range.getAc(), feature.getAc(), componentAc, proteinAc, interactionAc));
                 }
             }
         }
@@ -108,7 +127,32 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                updatedRange = new UpdatedRange(oldRange, range);
+                Feature feature = range.getFeature();
+                String featureAc = null;
+                String componentAc = null;
+                String proteinAc = null;
+                String interactionAc = null;
+
+                if (feature != null){
+                    featureAc = feature.getAc();
+                    Component component = feature.getComponent();
+
+                    if (component != null){
+                        componentAc = component.getAc();
+
+                        Interactor interactor = component.getInteractor();
+                        Interaction interaction = component.getInteraction();
+
+                        if (interactor != null){
+                            proteinAc = interactor.getAc();
+                        }
+                        if (interaction != null){
+                            interactionAc = interaction.getAc();
+                        }
+                    }
+                }
+
+                updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
             }
         }
 
@@ -131,7 +175,26 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                updatedRanges.add(new UpdatedRange(oldRange, range));
+                Component component = feature.getComponent();
+                String componentAc = null;
+                String proteinAc = null;
+                String interactionAc = null;
+
+                if (component != null){
+                    componentAc = component.getAc();
+
+                    Interactor interactor = component.getInteractor();
+                    Interaction interaction = component.getInteraction();
+
+                    if (interactor != null){
+                        proteinAc = interactor.getAc();
+                    }
+                    if (interaction != null){
+                        interactionAc = interaction.getAc();
+                    }
+                }
+
+                updatedRanges.add(new UpdatedRange(oldRange, range, range.getAc(), feature.getAc(), componentAc, proteinAc, interactionAc));
             }
         }
 
@@ -156,14 +219,39 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
+                Feature feature = range.getFeature();
+                String featureAc = null;
+                String componentAc = null;
+                String proteinAc = null;
+                String interactionAc = null;
+
+                if (feature != null){
+                    featureAc = feature.getAc();
+                    Component component = feature.getComponent();
+
+                    if (component != null){
+                        componentAc = component.getAc();
+
+                        Interactor interactor = component.getInteractor();
+                        Interaction interaction = component.getInteraction();
+
+                        if (interactor != null){
+                            proteinAc = interactor.getAc();
+                        }
+                        if (interaction != null){
+                            interactionAc = interaction.getAc();
+                        }
+                    }
+                }
+
                 if (previousFeatureSequence == null && range.getFullSequence() == null){
-                     return null;
+                    return null;
                 }
                 else if ((previousFeatureSequence == null && range.getFullSequence() != null) || (previousFeatureSequence != null && range.getFullSequence() == null)){
-                     updatedRange = new UpdatedRange(oldRange, range);
+                    updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
                 }
                 else if (previousFeatureSequence.equals(range.getFullSequence())){
-                     updatedRange = new UpdatedRange(oldRange, range);
+                    updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
                 }
             }
         }
