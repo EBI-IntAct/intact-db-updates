@@ -1,14 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Protein;
-
-import java.util.Collection;
 
 /**
  * Interface for classes fixing protein duplicates
@@ -40,7 +34,7 @@ public interface DuplicatesFixer {
 
     public Protein fixAllProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException;
 
-    public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt) throws ProcessorException;
+    public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt, Protein masterProtein) throws ProcessorException;
 
     public DuplicatesFinder getDuplicatesFinder();
 

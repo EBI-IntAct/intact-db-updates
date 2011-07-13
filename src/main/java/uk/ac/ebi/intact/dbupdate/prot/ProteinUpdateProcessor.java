@@ -641,7 +641,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                         if (config.isFixDuplicates()){
                             if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
 
-                            duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent);
+                            duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent, masterProtein);
                         }
                     }
 

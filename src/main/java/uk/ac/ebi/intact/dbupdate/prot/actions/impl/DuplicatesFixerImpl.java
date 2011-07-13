@@ -28,6 +28,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 
 import java.util.*;
@@ -119,61 +120,53 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         return masterProtein;
     }
 
-    public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt) throws ProcessorException {
+    public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt, Protein masterProtein) throws ProcessorException {
 
-        if (evt.getPrimaryProteins().size() == 1){
-            Protein masterProtein = evt.getPrimaryProteins().iterator().next();
+        Collection<DuplicatesFoundEvent> duplicateEvents = duplicatesFinder.findIsoformDuplicates(evt);
 
-            if (evt.getPrimaryIsoforms().size() > 1){
-                Collection<DuplicatesFoundEvent> duplicateEvents = duplicatesFinder.findIsoformDuplicates(evt);
+        if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
+        Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
 
-                if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-                Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>();
+        for (DuplicatesFoundEvent duplEvt : duplicateEvents){
+            DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, true, mergedIsoforms);
 
-                for (DuplicatesFoundEvent duplEvt : duplicateEvents){
-                    DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, true, mergedIsoforms);
-
-                    if (report.getOriginalProtein() != null){
-                        mergedIsoforms.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
-                    }
-
-                    // log in 'duplicates.csv'
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProteinDuplicationFound(duplEvt);
-                    }
-                }
-
-                if (!mergedIsoforms.isEmpty()){
-                    evt.getPrimaryIsoforms().clear();
-                    evt.getPrimaryIsoforms().addAll(mergedIsoforms);
-                }
+            if (report.getOriginalProtein() != null){
+                mergedIsoforms.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
             }
 
-            if (evt.getPrimaryFeatureChains().size() > 1){
-                Collection<DuplicatesFoundEvent> duplicateEvents2 = duplicatesFinder.findFeatureChainDuplicates(evt);
-
-                if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-                Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>();
-
-                for (DuplicatesFoundEvent duplEvt : duplicateEvents2){
-                    DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
-                    if (report.getOriginalProtein() != null){
-                        mergedChains.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
-                    }
-
-                    // log in 'duplicates.csv'
-                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProteinDuplicationFound(duplEvt);
-                    }
-                }
-
-                if (!mergedChains.isEmpty()){
-                    evt.getPrimaryFeatureChains().clear();
-                    evt.getPrimaryFeatureChains().addAll(mergedChains);
-                }
+            // log in 'duplicates.csv'
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                processor.fireOnProteinDuplicationFound(duplEvt);
             }
+        }
+
+        if (!mergedIsoforms.isEmpty()){
+            evt.getPrimaryIsoforms().clear();
+            evt.getPrimaryIsoforms().addAll(mergedIsoforms);
+        }
+
+        Collection<DuplicatesFoundEvent> duplicateEvents2 = duplicatesFinder.findFeatureChainDuplicates(evt);
+
+        if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
+        Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>(evt.getPrimaryFeatureChains().size());
+
+        for (DuplicatesFoundEvent duplEvt : duplicateEvents2){
+            DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
+            if (report.getOriginalProtein() != null){
+                mergedChains.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+            }
+
+            // log in 'duplicates.csv'
+            if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                processor.fireOnProteinDuplicationFound(duplEvt);
+            }
+        }
+
+        if (!mergedChains.isEmpty()){
+            evt.getPrimaryFeatureChains().clear();
+            evt.getPrimaryFeatureChains().addAll(mergedChains);
         }
     }
 
@@ -193,10 +186,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         DuplicateReport report = new DuplicateReport();
 
         // the collection which will contain the duplicates having the same sequence
-        List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>();
+        List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>(duplicatesAsList.size());
 
         // the collection which will contain the duplicates having different sequences
-        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<Protein>();
+        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<Protein>(duplicatesAsList.size());
 
         // while the list of possible duplicates has not been fully treated, we need to check the duplicates
         while (duplicatesAsList.size() > 0){
@@ -222,6 +215,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     if (originalSequence.equalsIgnoreCase(sequenceToCompare)){
                         duplicatesHavingSameSequence.add(proteinCompared);
                     }
+                }
+                else if (originalSequence == null && sequenceToCompare == null){
+                    duplicatesHavingSameSequence.add(proteinCompared);
                 }
             }
 
@@ -554,7 +550,23 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * @param evt
      */
     private void deleteProtein(ProteinEvent evt) {
-        proteinDeleter.delete(evt);
+        boolean isDeletedFromDatabase = proteinDeleter.delete(evt);
+
+        if (isDeletedFromDatabase && evt.getSource() instanceof ProteinUpdateProcessor){
+            // log in 'deleted.csv'
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnDelete(evt);
+        }
+        else {
+
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(evt.getProtein());
+                String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(this, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, evt.getProtein(), uniprot));
+            }
+        }
     }
 
     public ProteinDeleter getProteinDeleter() {
