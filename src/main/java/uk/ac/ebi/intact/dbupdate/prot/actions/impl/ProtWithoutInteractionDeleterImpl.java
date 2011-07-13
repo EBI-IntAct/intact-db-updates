@@ -168,7 +168,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
 
                 ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-                final Integer interactionCount = proteinDao.countInteractionsForInteractorWithAc( p.getAc() );
+                final Integer interactionCount = p.getActiveInstances().size();
 
                 // check the number of interactions in which this protein is involved. If none,
                 // check if the protein has splice variants/chains as they cannot be removed
@@ -182,7 +182,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
 
                 for (Protein transcript : transcripts) {
 
-                    if (proteinDao.countInteractionsForInteractorWithAc(transcript.getAc()) > 0) {
+                    if (transcript.getActiveInstances().size() > 0) {
                         hasProteinTranscriptAttached = true;
                     } else if (isDeleteProteinTranscriptsWithoutInteractions()) {
                         if (log.isDebugEnabled()) log.debug("Protein transcripts for protein '"+p.getShortLabel()+"' will be deleted: "+transcript.getAc());
@@ -233,7 +233,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
             else {
                 ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-                final Integer interactionCount = proteinDao.countInteractionsForInteractorWithAc( p.getProtein().getAc() );
+                final Integer interactionCount = p.getProtein().getActiveInstances().size();
 
                 if ( interactionCount == 0) {
 
