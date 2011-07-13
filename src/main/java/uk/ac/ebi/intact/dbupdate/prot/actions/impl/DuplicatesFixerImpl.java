@@ -552,20 +552,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     private void deleteProtein(ProteinEvent evt) {
         boolean isDeletedFromDatabase = proteinDeleter.delete(evt);
 
-        if (isDeletedFromDatabase && evt.getSource() instanceof ProteinUpdateProcessor){
-            // log in 'deleted.csv'
+        if (!isDeletedFromDatabase && evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnDelete(evt);
-        }
-        else {
 
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(evt.getProtein());
-                String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-                processor.fireOnProcessErrorFound(new UpdateErrorEvent(this, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, evt.getProtein(), uniprot));
-            }
+            InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(evt.getProtein());
+            String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(this, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, evt.getProtein(), uniprot));
         }
     }
 

@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinDeleter;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
@@ -44,9 +45,16 @@ public class ProteinDeleterImpl implements ProteinDeleter{
      * @throws ProcessorException
      */
     public boolean delete(ProteinEvent evt) throws ProcessorException {
+        boolean isDeleted = deleteProtein(evt.getProtein(), evt);
+
+        if (isDeleted && evt.getSource() instanceof ProteinUpdateProcessor){
+            // log in 'deleted.csv'
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnDelete(evt);
+        }
 
         // delete the protein
-        return deleteProtein(evt.getProtein(), evt);
+        return isDeleted;
     }
 
     /**

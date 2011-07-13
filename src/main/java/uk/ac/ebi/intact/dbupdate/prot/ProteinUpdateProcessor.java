@@ -402,14 +402,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         if (toDelete){
             boolean isDeletedFromDatabase = proteinDeleter.delete(processEvent);
 
-            if (isDeletedFromDatabase){
-                // log in 'deleted.csv'
-                fireOnDelete(processEvent);
-            }
-            else {
+            if (!isDeletedFromDatabase){
                 InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protToUpdate);
                 String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
                 fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, protToUpdate, uniprot));
+
             }
         }
         // the protein must not be deleted, update it
@@ -502,14 +499,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                     boolean isDeletedFromDatabase = proteinDeleter.delete(protEvent);
 
-                    if (isDeletedFromDatabase){
-                        // log in 'deleted.csv'
-                        fireOnDelete(protEvent);
-                    }
-                    else {
-                        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(p);
-                        String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, uniprot));
+                    if (!isDeletedFromDatabase){
+
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, processEvent.getUniprotIdentity()));
+
                     }
                 }
             }
