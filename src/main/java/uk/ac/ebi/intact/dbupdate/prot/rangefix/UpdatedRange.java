@@ -15,7 +15,7 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
-import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
 /**
@@ -37,6 +37,62 @@ public class UpdatedRange {
 
     public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc) {
         this(oldRange, newRange, rangeAc, featureAc, componentAc, proteinAc,interactionAc, null);
+    }
+
+    public UpdatedRange(Range oldRange, Range newRange) {
+        this.oldRange = oldRange;
+        this.newRange = newRange;
+
+        if (newRange != null){
+            this.rangeAc = newRange.getAc();
+
+            Feature feature = newRange.getFeature();
+
+            if (feature != null){
+                this.featureAc = feature.getAc();
+
+                Component component = feature.getComponent();
+
+                if (component != null){
+                    this.componentAc = component.getAc();
+
+                    Interactor interactor = component.getInteractor();
+                    Interaction interaction = component.getInteraction();
+
+                    if (interactor != null){
+                        this.proteinAc = interactor.getAc();
+                    }
+                    else {
+                        this.proteinAc = null;
+                    }
+
+                    if (interaction != null){
+                        this.interactionAc = interaction.getAc();
+                    }
+                    else {
+                        this.interactionAc = null;
+                    }
+                }
+                else {
+                    this.componentAc = null;
+                    this.proteinAc = null;
+                    this.interactionAc = null;
+                }
+            }
+            else {
+                this.featureAc = null;
+                this.componentAc = null;
+                this.proteinAc = null;
+                this.interactionAc = null;
+            }
+        }
+        else {
+            this.rangeAc = null;
+            this.featureAc = null;
+            this.componentAc = null;
+            this.proteinAc = null;
+            this.interactionAc = null;
+        }
     }
 
     public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc, String message) {

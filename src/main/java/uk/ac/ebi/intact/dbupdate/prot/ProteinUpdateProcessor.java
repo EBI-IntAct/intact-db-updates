@@ -376,6 +376,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
         // the protein to update
         this.currentProtein = protToUpdate;
 
