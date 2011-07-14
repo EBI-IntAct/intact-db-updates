@@ -250,7 +250,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             StringBuilder annotations = new StringBuilder();
 
             if (evt.getDeletedXrefs() != null && !evt.getDeletedXrefs().isEmpty()){
-                for (InteractorXref ref : evt.getDeletedXrefs()) {
+                for (Xref ref : evt.getDeletedXrefs()) {
 
                     String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
 

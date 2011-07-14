@@ -70,10 +70,10 @@ public final class XrefUpdaterUtils {
     }
 
     public static XrefUpdaterReport updateAllProteinTranscriptXrefs( Protein protein,
-                                                    UniprotProteinTranscript uniprotTranscript,
-                                                    UniprotProtein uniprot,
-                                                    DataContext context,
-                                                    ProteinUpdateProcessor processor
+                                                                     UniprotProteinTranscript uniprotTranscript,
+                                                                     UniprotProtein uniprot,
+                                                                     DataContext context,
+                                                                     ProteinUpdateProcessor processor
     ) {
 
         List<Xref> deletedXrefs = new ArrayList<Xref>();
@@ -293,7 +293,7 @@ public final class XrefUpdaterUtils {
         return true;
     }
 
-    private static InteractorXref getOlderUniprotIdentity(List<InteractorXref> uniprotIdentities){
+    public static InteractorXref getOlderUniprotIdentity(List<InteractorXref> uniprotIdentities){
         if (uniprotIdentities.isEmpty()){
             return null;
         }
@@ -319,7 +319,11 @@ public final class XrefUpdaterUtils {
 
         if (original != null){
             for (InteractorXref ref : uniprotIdentities){
-                if (!ref.equals(original)){
+                if (ref.getPrimaryId() != null && ref.getPrimaryId().equalsIgnoreCase(original.getPrimaryId())){
+                    deletedDuplicate.add(ref);
+                    ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
+                }
+                else if (ref.getPrimaryId() == null && original.getPrimaryId() == null){
                     deletedDuplicate.add(ref);
                     ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
                 }
@@ -382,10 +386,10 @@ public final class XrefUpdaterUtils {
     }
 
     public static XrefUpdaterReport updateProteinTranscriptUniprotXrefs( Protein intactTranscript,
-                                                                                     UniprotProteinTranscript uniprotProteinTranscript,
-                                                                                     UniprotProtein uniprotProtein,
-                                                                                     DataContext context,
-                                                                                     ProteinUpdateProcessor processor) {
+                                                                         UniprotProteinTranscript uniprotProteinTranscript,
+                                                                         UniprotProtein uniprotProtein,
+                                                                         DataContext context,
+                                                                         ProteinUpdateProcessor processor) {
         XrefUpdaterReport reports = null;
 
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(intactTranscript);
