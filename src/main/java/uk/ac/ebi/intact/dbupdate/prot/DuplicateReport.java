@@ -19,7 +19,6 @@ import java.util.Map;
 
 public class DuplicateReport {
 
-    private Protein originalProtein;
     private UniprotProteinTranscript transcript;
     private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts;
     private String uniprotSequence;
@@ -32,20 +31,11 @@ public class DuplicateReport {
     private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
 
     public DuplicateReport(){
-        originalProtein = null;
         this.transcript = null;
         componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
         uniprotSequence = null;
         crc64 = null;
         hasShiftedRanges = false;
-    }
-
-    public Protein getOriginalProtein() {
-        return originalProtein;
-    }
-
-    public void setOriginalProtein(Protein originalProtein) {
-        this.originalProtein = originalProtein;
     }
 
     public Map<Protein, RangeUpdateReport> getComponentsWithFeatureConflicts() {

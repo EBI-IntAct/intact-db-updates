@@ -103,11 +103,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             DuplicateReport report = processDuplicatedProtein(evt, duplicateEvent);
 
             // the master protein is the result of the merge
-            if (report.getOriginalProtein() != null){
-                masterProtein = report.getOriginalProtein();
+            if (duplicateEvent.getReferenceProtein() != null){
+                masterProtein = duplicateEvent.getReferenceProtein();
 
-                // all the duplicated proteins have been fixed, clear the list of primary proteins to update and put only the master protein
+                // all the duplicated proteins have been fixed, clear the list of primary proteins and secondary proteins to update and put only the master protein
                 evt.getPrimaryProteins().clear();
+                evt.getSecondaryProteins().clear();
                 evt.getPrimaryProteins().add(masterProtein);
             }
 
@@ -131,8 +132,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         for (DuplicatesFoundEvent duplEvt : duplicateEvents){
             DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, true, mergedIsoforms);
 
-            if (report.getOriginalProtein() != null){
-                mergedIsoforms.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+            if (duplEvt.getReferenceProtein() != null){
+                mergedIsoforms.add(new ProteinTranscript(duplEvt.getReferenceProtein(), report.getTranscript()));
             }
 
             // log in 'duplicates.csv'
@@ -144,6 +145,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         if (!mergedIsoforms.isEmpty()){
             evt.getPrimaryIsoforms().clear();
+            evt.getSecondaryIsoforms().clear();
             evt.getPrimaryIsoforms().addAll(mergedIsoforms);
         }
 
@@ -154,8 +156,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         for (DuplicatesFoundEvent duplEvt : duplicateEvents2){
             DuplicateReport report = processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
-            if (report.getOriginalProtein() != null){
-                mergedChains.add(new ProteinTranscript(report.getOriginalProtein(), report.getTranscript()));
+            if (duplEvt.getReferenceProtein() != null){
+                mergedChains.add(new ProteinTranscript(duplEvt.getReferenceProtein(), report.getTranscript()));
             }
 
             // log in 'duplicates.csv'
@@ -267,7 +269,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt, true, report);
                 log.info( "The protein " + finalProt.getAc() + "has been kept as original protein.");
                 // we set the original protein in the report
-                report.setOriginalProtein(finalProt);
+                evt.setReferenceProtein(finalProt);
             }
             // we cannot merge because we don't have a uniprot sequence as reference for range shifting. Log in 'process_errors.csv'
             else {
@@ -280,7 +282,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
         // all the duplicates had the same sequence and have been merged. Set the original protein in the report
         else if (duplicatesHavingDifferentSequence.size() == 1){
-            report.setOriginalProtein(duplicatesHavingDifferentSequence.iterator().next());
+            evt.setReferenceProtein(duplicatesHavingDifferentSequence.iterator().next());
         }
 
         // return the report
@@ -359,7 +361,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         // set the protein kept from the merge
         evt.setReferenceProtein(originalProt);
 
-        report.setOriginalProtein(originalProt);
         report.setUniprotSequence(evt.getUniprotSequence());
         report.setCrc64(evt.getUniprotCrc64());
 
@@ -545,7 +546,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     private DuplicateReport processDuplicatedTranscript(UpdateCaseEvent caseEvent, DuplicatesFoundEvent duplEvt, Protein masterProtein, boolean isIsoform, Collection<ProteinTranscript> mergedTranscripts) {
         DuplicateReport report = fixProteinDuplicates(duplEvt);
 
-        String originalAc = report.getOriginalProtein().getAc();
+        String originalAc = duplEvt.getReferenceProtein().getAc();
 
         for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
             if (originalAc.equals(p.getProtein().getAc())){
@@ -573,7 +574,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
             for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
                 // the parent ac is the original protein ac if no master protein is given
-                String validParentAc = report.getOriginalProtein() != null ? report.getOriginalProtein().getAc() : entry.getKey().getAc();
+                String validParentAc = duplEvt.getReferenceProtein() != null ? duplEvt.getReferenceProtein().getAc() : entry.getKey().getAc();
 
                 if (masterProtein != null){
                     validParentAc = masterProtein.getAc();
@@ -582,8 +583,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 // we want to create a deprecated protein if the protein with range confilcts is a protein transcripts because unisave does not keep information about isoforms sequence versions
                 boolean enableCreationDeprecatedProtein = false;
 
-                if (report.getOriginalProtein() != null){
-                    if (report.getOriginalProtein().getAc().equalsIgnoreCase(entry.getKey().getAc())){
+                if (duplEvt.getReferenceProtein() != null){
+                    if (duplEvt.getReferenceProtein().getAc().equalsIgnoreCase(entry.getKey().getAc())){
                         enableCreationDeprecatedProtein = true;
                     }
                 }
@@ -673,27 +674,27 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
 
         // we have a valid original protein
-        if (report.getOriginalProtein() != null){
-            if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(report.getOriginalProtein().getSequence(), report.getUniprotSequence())){
-                String oldSequence = report.getOriginalProtein().getSequence();
+        if (duplEvt.getReferenceProtein() != null){
+            if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(duplEvt.getReferenceProtein().getSequence(), report.getUniprotSequence())){
+                String oldSequence = duplEvt.getReferenceProtein().getSequence();
 
-                log.debug( "sequence of "+report.getOriginalProtein().getAc()+" requires update." );
-                report.getOriginalProtein().setSequence( report.getUniprotSequence() );
+                log.debug( "sequence of "+duplEvt.getReferenceProtein().getAc()+" requires update." );
+                duplEvt.getReferenceProtein().setSequence( report.getUniprotSequence() );
 
                 // CRC64
                 String crc64 = report.getCrc64();
-                if ( report.getOriginalProtein().getCrc64() == null || !report.getOriginalProtein().getCrc64().equals( crc64 ) ) {
+                if ( duplEvt.getReferenceProtein().getCrc64() == null || !duplEvt.getReferenceProtein().getCrc64().equals( crc64 ) ) {
                     log.debug( "CRC64 requires update." );
-                    report.getOriginalProtein().setCrc64( crc64 );
+                    duplEvt.getReferenceProtein().setCrc64( crc64 );
                 }
 
-                caseEvent.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) report.getOriginalProtein());
+                caseEvent.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) duplEvt.getReferenceProtein());
 
                 if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                     double relativeConservation = computesRequenceConservation(oldSequence, report.getUniprotSequence());
 
-                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), report.getOriginalProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64(), relativeConservation));
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplEvt.getReferenceProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64(), relativeConservation));
                 }
             }
         }
@@ -712,9 +713,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 // if merge not successful, we create a deprecated protein for original protein
                 boolean enableCreationDeprecatedProtein = false;
 
-                if (report.getOriginalProtein() != null){
-                    validParentAc = report.getOriginalProtein().getAc();
-                    if (report.getOriginalProtein().getAc().equalsIgnoreCase(entry.getKey().getAc())){
+                if (duplicateEvent.getReferenceProtein() != null){
+                    validParentAc = duplicateEvent.getReferenceProtein().getAc();
+                    if (duplicateEvent.getReferenceProtein().getAc().equalsIgnoreCase(entry.getKey().getAc())){
                         enableCreationDeprecatedProtein = true;
                     }
                 }
@@ -785,27 +786,27 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             }
         }
 
-        if (report.getOriginalProtein() != null){
-            if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(report.getOriginalProtein().getSequence(), report.getUniprotSequence())){
-                String oldSequence = report.getOriginalProtein().getSequence();
+        if (duplicateEvent.getReferenceProtein() != null){
+            if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(duplicateEvent.getReferenceProtein().getSequence(), report.getUniprotSequence())){
+                String oldSequence = duplicateEvent.getReferenceProtein().getSequence();
 
-                log.debug( "sequence of "+report.getOriginalProtein().getAc()+" requires update." );
-                report.getOriginalProtein().setSequence( report.getUniprotSequence() );
+                log.debug( "sequence of "+duplicateEvent.getReferenceProtein().getAc()+" requires update." );
+                duplicateEvent.getReferenceProtein().setSequence( report.getUniprotSequence() );
 
                 // CRC64
                 String crc64 = report.getCrc64();
-                if ( report.getOriginalProtein().getCrc64() == null || !report.getOriginalProtein().getCrc64().equals( crc64 ) ) {
+                if ( duplicateEvent.getReferenceProtein().getCrc64() == null || !duplicateEvent.getReferenceProtein().getCrc64().equals( crc64 ) ) {
                     log.debug( "CRC64 requires update." );
-                    report.getOriginalProtein().setCrc64( crc64 );
+                    duplicateEvent.getReferenceProtein().setCrc64( crc64 );
                 }
 
-                caseEvent.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) report.getOriginalProtein());
+                caseEvent.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) duplicateEvent.getReferenceProtein());
 
                 if (caseEvent.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                     double relativeConservation = computesRequenceConservation(oldSequence, report.getUniprotSequence());
 
-                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), report.getOriginalProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64(), relativeConservation));
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplicateEvent.getReferenceProtein(), oldSequence, report.getUniprotSequence(), report.getCrc64(), relativeConservation));
                 }
             }
         }

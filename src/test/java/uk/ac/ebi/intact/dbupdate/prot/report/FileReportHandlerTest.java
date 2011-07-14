@@ -334,7 +334,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, countLinesInFile(invalidRangeFile)); // TODO can be changed later
         Assert.assertEquals(3, countLinesInFile(deadProteinFile));
         Assert.assertEquals(2, countLinesInFile(outOfDateProteinFile));
-        Assert.assertEquals(6, countLinesInFile(erroFile));
+        Assert.assertEquals(5, countLinesInFile(erroFile));
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
 
         getDataContext().commitTransaction(status2);
