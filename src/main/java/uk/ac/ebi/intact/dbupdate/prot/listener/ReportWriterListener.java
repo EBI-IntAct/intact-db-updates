@@ -18,7 +18,6 @@ package uk.ac.ebi.intact.dbupdate.prot.listener;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import uk.ac.ebi.intact.commons.util.Crc64;
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
@@ -64,32 +63,19 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         try {
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
-            duplicatedWriter.writeHeaderIfNecessary("Kept", "Total Active instances", "Duplicates", "Updated isoforms/feature chains", "moved interactions", "Added xrefs", "Added annotations");
+            duplicatedWriter.writeHeaderIfNecessary("Kept", "Uniprot Primary ac", "Total Active instances", "Duplicates", "Updated isoforms/feature chains", "moved interactions", "Added xrefs", "Added annotations");
             String protAc = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getAc() : "All. Impossible to merge";
             int activeInstanceNumber = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getActiveInstances().size() : 0;
 
-            DuplicateReport report = evt.getDuplicateReport();
-
-            if (report != null){
-                duplicatedWriter.writeColumnValues(protAc,
-                        String.valueOf(activeInstanceNumber),
-                        protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
-                        mapCollectionStringToString(report.getUpdatedTranscripts()),
-                        mapCollectionStringToString(report.getMovedInteractions()),
-                        mapCollectionXrefsToString(report.getAddedXRefs()),
-                        mapCollectionAnnotationsToString(report.getAddedAnnotations())
-                );
-            }
-            else{
-                duplicatedWriter.writeColumnValues(protAc,
-                        String.valueOf(activeInstanceNumber),
-                        protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
-                        "-",
-                        "-",
-                        "-",
-                        "-"
-                );
-            }
+            duplicatedWriter.writeColumnValues(protAc,
+                    evt.getPrimaryUniprotAc(),
+                    String.valueOf(activeInstanceNumber),
+                    protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
+                    mapCollectionStringToString(evt.getUpdatedTranscripts()),
+                    mapCollectionStringToString(evt.getMovedInteractions()),
+                    mapCollectionXrefsToString(evt.getAddedXRefs()),
+                    mapCollectionAnnotationsToString(evt.getAddedAnnotations())
+            );
 
             duplicatedWriter.flush();
         } catch (IOException e) {

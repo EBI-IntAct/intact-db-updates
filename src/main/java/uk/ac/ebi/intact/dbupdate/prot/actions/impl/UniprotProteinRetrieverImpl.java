@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
@@ -489,5 +490,56 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
     public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager) {
         this.proteinMappingManager = proteinMappingManager;
+    }
+
+    public static UniprotProteinTranscript findUniprotTranscript(String uniprotAc, UniprotProtein uniprot){
+
+        if (uniprot == null || uniprotAc == null){
+            return null;
+        }
+
+        for (UniprotProteinTranscript t : uniprot.getSpliceVariants()){
+            if (t.getPrimaryAc().equalsIgnoreCase(uniprotAc) || t.getSecondaryAcs().contains(uniprotAc)){
+                return t;
+            }
+        }
+
+        for (UniprotProteinTranscript t : uniprot.getFeatureChains()){
+            if (t.getPrimaryAc().equalsIgnoreCase(uniprotAc)){
+                return t;
+            }
+        }
+
+        return null;
+    }
+
+    public static UniprotProteinTranscript findUniprotSpliceVariant(String uniprotAc, UniprotProtein uniprot){
+
+        if (uniprot == null || uniprotAc == null){
+            return null;
+        }
+
+        for (UniprotProteinTranscript t : uniprot.getSpliceVariants()){
+            if (t.getPrimaryAc().equalsIgnoreCase(uniprotAc) || t.getSecondaryAcs().contains(uniprotAc)){
+                return t;
+            }
+        }
+
+        return null;
+    }
+
+    public static UniprotProteinTranscript findUniprotFeatureChain(String uniprotAc, UniprotProtein uniprot){
+
+        if (uniprot == null || uniprotAc == null){
+            return null;
+        }
+
+        for (UniprotProteinTranscript t : uniprot.getFeatureChains()){
+            if (t.getPrimaryAc().equalsIgnoreCase(uniprotAc)){
+                return t;
+            }
+        }
+
+        return null;
     }
 }

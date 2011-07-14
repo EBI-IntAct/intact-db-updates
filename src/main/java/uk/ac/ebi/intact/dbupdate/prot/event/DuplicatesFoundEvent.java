@@ -16,11 +16,15 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.util.AdditionalInfoMap;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Fired when duplicates are found
@@ -39,12 +43,20 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     private String uniprotCrc64;
 
-    private DuplicateReport duplicateReport;
+    private String primaryUniprotAc;
+
+    private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
+    private boolean hasShiftedRanges;
+
+    private Map<String, Collection<String>> movedInteractions = new HashMap<String, Collection<String>>();
+    private Map<String, Collection<String>> updatedTranscripts = new HashMap<String, Collection<String>>();
+    private Map<String, Collection<InteractorXref>> addedXRefs = new HashMap<String, Collection<InteractorXref>>();
+    private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
 
     /**
      * An event involving a list of proteins.
      */
-    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence, String uniprotCrc64) {
+    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence, String uniprotCrc64, String primaryAc) {
         super(source, dataContext, proteins);
 
         this.originalActiveInstancesCount = new AdditionalInfoMap<Integer>();
@@ -54,6 +66,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         }
         this.uniprotSequence = uniprotSequence;
         this.uniprotCrc64 = uniprotCrc64;
+        this.primaryUniprotAc = primaryAc;
     }
 
     public AdditionalInfoMap<Integer> getOriginalActiveInstancesCount() {
@@ -78,11 +91,55 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         return uniprotCrc64;
     }
 
-    public DuplicateReport getDuplicateReport() {
-        return duplicateReport;
+    public String getPrimaryUniprotAc() {
+        return primaryUniprotAc;
     }
 
-    public void setDuplicateReport(DuplicateReport duplicateReport) {
-        this.duplicateReport = duplicateReport;
+    public Map<Protein, RangeUpdateReport> getComponentsWithFeatureConflicts() {
+        return componentsWithFeatureConflicts;
+    }
+
+    public void setComponentsWithFeatureConflicts(Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts) {
+        this.componentsWithFeatureConflicts = componentsWithFeatureConflicts;
+    }
+
+    public boolean hasShiftedRanges() {
+        return hasShiftedRanges;
+    }
+
+    public void setHasShiftedRanges(boolean hasShiftedRanges) {
+        this.hasShiftedRanges = hasShiftedRanges;
+    }
+
+    public Map<String, Collection<String>> getMovedInteractions() {
+        return movedInteractions;
+    }
+
+    public void setMovedInteractions(Map<String, Collection<String>> movedInteractions) {
+        this.movedInteractions = movedInteractions;
+    }
+
+    public Map<String, Collection<String>> getUpdatedTranscripts() {
+        return updatedTranscripts;
+    }
+
+    public void setUpdatedTranscripts(Map<String, Collection<String>> updatedTranscripts) {
+        this.updatedTranscripts = updatedTranscripts;
+    }
+
+    public Map<String, Collection<InteractorXref>> getAddedXRefs() {
+        return addedXRefs;
+    }
+
+    public void setAddedXRefs(Map<String, Collection<InteractorXref>> addedXRefs) {
+        this.addedXRefs = addedXRefs;
+    }
+
+    public Map<String, Collection<Annotation>> getAddedAnnotations() {
+        return addedAnnotations;
+    }
+
+    public void setAddedAnnotations(Map<String, Collection<Annotation>> addedAnnotations) {
+        this.addedAnnotations = addedAnnotations;
     }
 }

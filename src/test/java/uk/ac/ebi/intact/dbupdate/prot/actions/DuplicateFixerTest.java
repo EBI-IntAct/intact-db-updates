@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
@@ -117,13 +116,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getProteinChains(primary).size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertNull(report.getTranscript());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
@@ -199,13 +197,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(2, primary.getActiveInstances().size());
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertNull(report.getTranscript());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
@@ -279,13 +276,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(2, primary.getActiveInstances().size());
         Assert.assertEquals(5, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertNull(report.getTranscript());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
@@ -369,12 +365,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, primary.getActiveInstances().size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
@@ -460,12 +456,12 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getProteinChains(primary).size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
@@ -527,17 +523,17 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, primary.getActiveInstances().size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(2, evt.getReferenceProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(uniprot.getSequence(), evt.getUniprotSequence());
         Assert.assertEquals(sequence, evt.getReferenceProtein().getSequence());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
@@ -614,19 +610,19 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertEquals(1, report.getComponentsWithFeatureConflicts().size());
+        Assert.assertEquals(1, evt.getComponentsWithFeatureConflicts().size());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(2, evt.getReferenceProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(uniprot.getSequence(), evt.getUniprotSequence());
         Assert.assertEquals(sequence, evt.getReferenceProtein().getSequence());
-        Assert.assertEquals(prot.getAc(), report.getComponentsWithFeatureConflicts().keySet().iterator().next().getAc());
+        Assert.assertEquals(prot.getAc(), evt.getComponentsWithFeatureConflicts().keySet().iterator().next().getAc());
         Assert.assertEquals(sequence2, prot.getSequence());
         Assert.assertEquals(1, prot.getActiveInstances().size());
         Assert.assertTrue(hasAnnotation(prot, null, CvTopic.NON_UNIPROT));
@@ -710,17 +706,17 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(),"P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertTrue(report.getComponentsWithFeatureConflicts().isEmpty());
+        Assert.assertTrue(evt.getComponentsWithFeatureConflicts().isEmpty());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(3,evt.getReferenceProtein().getActiveInstances().size());
-        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(uniprot.getSequence(), evt.getUniprotSequence());
         Assert.assertEquals(sequence, evt.getReferenceProtein().getSequence());
 
         for (Component c : interactionWithFeatures.getComponents()){
@@ -810,20 +806,20 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64());
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
 
-        DuplicateReport report = duplicateFixer.fixProteinDuplicates(evt);
+        duplicateFixer.fixProteinDuplicates(evt);
 
         Assert.assertNotNull(evt.getReferenceProtein());
-        Assert.assertEquals(1, report.getComponentsWithFeatureConflicts().size());
+        Assert.assertEquals(1, evt.getComponentsWithFeatureConflicts().size());
 
         Assert.assertEquals(primary.getAc(), evt.getReferenceProtein().getAc());
         Assert.assertNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(prot.getAc()));
         Assert.assertEquals(3, evt.getReferenceProtein().getActiveInstances().size()); // not moved yet because it has to be processed by out of date participant fixerfirst
-        Assert.assertEquals(uniprot.getSequence(), report.getUniprotSequence());
+        Assert.assertEquals(uniprot.getSequence(), evt.getUniprotSequence());
         Assert.assertEquals(sequence, evt.getReferenceProtein().getSequence());
 
-        Protein no_uniprot = report.getComponentsWithFeatureConflicts().keySet().iterator().next();
+        Protein no_uniprot = evt.getComponentsWithFeatureConflicts().keySet().iterator().next();
         Assert.assertEquals(sequence, no_uniprot.getSequence());
         Assert.assertEquals(3, no_uniprot.getActiveInstances().size()); // not moved yet because it has to be processed by out of date participant fixer first
         Assert.assertFalse(hasAnnotation(no_uniprot, null, CvTopic.NON_UNIPROT));

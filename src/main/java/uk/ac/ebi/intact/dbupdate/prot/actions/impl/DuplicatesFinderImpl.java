@@ -71,14 +71,11 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
             // get the uniprot proteins in case of range update
             UniprotProtein uniprotProtein = evt.getProtein();
 
-            String uniprotSequence = null;
-            String uniprotCrc64 = null;
-
-            uniprotSequence = uniprotProtein.getSequence();
-            uniprotCrc64 = uniprotProtein.getCrc64();
+            String uniprotSequence = uniprotProtein.getSequence();
+            String uniprotCrc64 = uniprotProtein.getCrc64();
 
             // in case of master protein, we merge the duplicates
-            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(), possibleDuplicates, uniprotSequence, uniprotCrc64);
+            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(), possibleDuplicates, uniprotSequence, uniprotCrc64, uniprotProtein.getPrimaryAc());
             return duplEvt;
         }
 
@@ -153,7 +150,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
         if (!realDuplicates.isEmpty()) {
             // fire a duplication event
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64));
+            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64, evt.getUniprotIdentity()));
         }
     }
 
@@ -285,9 +282,12 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     // set the uniprot sequence and CRC64 of the event
                     String uniprotSequence = null;
                     String uniprotCrc64 = null;
+                    String primaryAc = null;
+
                     if (transcript != null){
                         uniprotSequence = transcript.getSequence();
                         uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
+                        primaryAc = transcript.getPrimaryAc();
                     }
 
                     // list of duplicates
@@ -298,7 +298,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     }
 
                     // create the DuplicateFoundEvent and add it to the list of duplicateFoundEvent
-                    DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( processor,context,duplicateToFix, uniprotSequence, uniprotCrc64);
+                    DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( processor,context,duplicateToFix, uniprotSequence, uniprotCrc64, primaryAc);
                     duplicateEvents.add(duplEvt);
                 }
 
