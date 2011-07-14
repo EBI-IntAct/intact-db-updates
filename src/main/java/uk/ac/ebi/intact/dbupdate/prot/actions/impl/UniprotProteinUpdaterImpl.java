@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -628,7 +629,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             if (comment == null) {
                 comment = CvObjectUtils.createCvObject(owner, CvTopic.class, null, CvTopic.ISOFORM_COMMENT);
-                daoFactory.getCvObjectDao(CvTopic.class).persist(comment);
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(comment);
             }
 
             boolean hasComment = false;
@@ -715,7 +716,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                 if (startPosition == null){
                     startPosition = CvObjectUtils.createCvObject(transcript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_START);
-                    evt.getDataContext().getDaoFactory().getCvObjectDao(CvTopic.class).persist(startPosition);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(startPosition);
                 }
                 Annotation start = new Annotation(startPosition, startToString);
                 factory.getAnnotationDao().persist(start);
@@ -729,7 +730,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                 if (endPosition == null){
                     endPosition = CvObjectUtils.createCvObject(transcript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_END);
-                    evt.getDataContext().getDaoFactory().getCvObjectDao(CvTopic.class).persist(endPosition);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(endPosition);
                 }
                 Annotation end = new Annotation(endPosition, endToString);
                 factory.getAnnotationDao().persist(end);

@@ -20,10 +20,12 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
+import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +62,9 @@ public class RangeChecker {
                 Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
                 oldRange.setFullSequence(range.getFullSequence());
 
-                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
+                AnnotationUpdateReport report = new AnnotationUpdateReport(range.getAc());
+
+                boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context, report);
 
                 if (rangeShifted) {
                     if (log.isInfoEnabled())
@@ -118,7 +122,9 @@ public class RangeChecker {
             oldRange.setUpStreamSequence(range.getUpStreamSequence());
             oldRange.setDownStreamSequence(range.getDownStreamSequence());
 
-            boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context);
+            AnnotationUpdateReport report = new AnnotationUpdateReport(range.getAc());
+
+            boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context, report);
 
             if (rangeShifted) {
                 if (log.isInfoEnabled())
@@ -127,32 +133,8 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                Feature feature = range.getFeature();
-                String featureAc = null;
-                String componentAc = null;
-                String proteinAc = null;
-                String interactionAc = null;
-
-                if (feature != null){
-                    featureAc = feature.getAc();
-                    Component component = feature.getComponent();
-
-                    if (component != null){
-                        componentAc = component.getAc();
-
-                        Interactor interactor = component.getInteractor();
-                        Interaction interaction = component.getInteraction();
-
-                        if (interactor != null){
-                            proteinAc = interactor.getAc();
-                        }
-                        if (interaction != null){
-                            interactionAc = interaction.getAc();
-                        }
-                    }
-                }
-
-                updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
+                updatedRange = new UpdatedRange(oldRange, range);
+                updatedRange.setUpdatedAnnotations(report);
             }
         }
 
@@ -175,26 +157,7 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                Component component = feature.getComponent();
-                String componentAc = null;
-                String proteinAc = null;
-                String interactionAc = null;
-
-                if (component != null){
-                    componentAc = component.getAc();
-
-                    Interactor interactor = component.getInteractor();
-                    Interaction interaction = component.getInteraction();
-
-                    if (interactor != null){
-                        proteinAc = interactor.getAc();
-                    }
-                    if (interaction != null){
-                        interactionAc = interaction.getAc();
-                    }
-                }
-
-                updatedRanges.add(new UpdatedRange(oldRange, range, range.getAc(), feature.getAc(), componentAc, proteinAc, interactionAc));
+                updatedRanges.add(new UpdatedRange(oldRange, range));
             }
         }
 
@@ -219,39 +182,14 @@ public class RangeChecker {
                 range.prepareSequence(newSequence);
                 context.getDaoFactory().getRangeDao().update(range);
 
-                Feature feature = range.getFeature();
-                String featureAc = null;
-                String componentAc = null;
-                String proteinAc = null;
-                String interactionAc = null;
-
-                if (feature != null){
-                    featureAc = feature.getAc();
-                    Component component = feature.getComponent();
-
-                    if (component != null){
-                        componentAc = component.getAc();
-
-                        Interactor interactor = component.getInteractor();
-                        Interaction interaction = component.getInteraction();
-
-                        if (interactor != null){
-                            proteinAc = interactor.getAc();
-                        }
-                        if (interaction != null){
-                            interactionAc = interaction.getAc();
-                        }
-                    }
-                }
-
                 if (previousFeatureSequence == null && range.getFullSequence() == null){
                     return null;
                 }
                 else if ((previousFeatureSequence == null && range.getFullSequence() != null) || (previousFeatureSequence != null && range.getFullSequence() == null)){
-                    updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
+                    updatedRange = new UpdatedRange(oldRange, range);
                 }
                 else if (previousFeatureSequence.equals(range.getFullSequence())){
-                    updatedRange = new UpdatedRange(oldRange, range, range.getAc(), featureAc, componentAc, proteinAc, interactionAc);
+                    updatedRange = new UpdatedRange(oldRange, range);
                 }
             }
         }
@@ -267,7 +205,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context, AnnotationUpdateReport report) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -406,7 +344,7 @@ public class RangeChecker {
 
                 if (caution == null) {
                     caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-                    context.getDaoFactory().getCvObjectDao(CvTopic.class).persist(caution);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
                 }
 
                 Feature f = range.getFeature();
@@ -430,6 +368,8 @@ public class RangeChecker {
 
                         f.addAnnotation(cautionRange);
                         daoFactory.getFeatureDao().update(f);
+
+                        report.getAddedAnnotations().add(cautionRange);
                     }
                 }
                 else if (rangeShifted && wasNTerminal){
@@ -451,6 +391,8 @@ public class RangeChecker {
 
                         f.addAnnotation(cautionRange);
                         daoFactory.getFeatureDao().update(f);
+
+                        report.getAddedAnnotations().add(cautionRange);
                     }
                 }
             }
