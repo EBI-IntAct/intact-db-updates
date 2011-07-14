@@ -291,7 +291,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      */
     private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DataContext context, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts, ProteinUpdateProcessor processor) {
         for (ProteinTranscript p : proteinTranscripts){
-            if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts)){
+            if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts) && !protein.getAc().equals(p.getProtein().getAc())){
                 ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, context, processor);
                 return p;
             }

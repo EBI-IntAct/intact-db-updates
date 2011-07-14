@@ -18,6 +18,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
@@ -253,13 +254,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     // if we have feature range conflicts before the merge
                     if (!componentWithRangeConflicts.isEmpty()){
-                        // log in 'process_errors.csv'
-                        if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                            final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(),
-                                    "The protein " + p.getAc() + " contains " +
-                                            componentWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts, p));
-                        }
 
                         log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
                         // add this duplicate with the list of components with conflicts to the map of protein which couldn't be merged
@@ -306,13 +300,13 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         if (no_uniprot_update == null){
             no_uniprot_update = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, null, CvTopic.NON_UNIPROT);
-            factory.getCvObjectDao(CvTopic.class).persist(no_uniprot_update);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(no_uniprot_update);
         }
         CvTopic caution = factory.getCvObjectDao(CvTopic.class).getByPsiMiRef(CvTopic.CAUTION_MI_REF);
 
         if (caution == null) {
             caution = CvObjectUtils.createCvObject(protein.getOwner(), CvTopic.class, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
-            factory.getCvObjectDao(CvTopic.class).persist(caution);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(caution);
         }
 
         boolean has_no_uniprot_update = false;
@@ -360,7 +354,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     protected Protein merge(List<Protein> duplicates, Map<String, Collection<Component>> proteinsNeedingPartialMerge, DuplicatesFoundEvent evt, boolean isSequenceChanged, DuplicateReport report) {
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
-        // calculate the original protein
+        // calculate the original protein (the oldest is kept as original)
         Protein originalProt = calculateOriginalProtein(duplicates);
         // set the protein kept from the merge
         evt.setReferenceProtein(originalProt);
@@ -407,6 +401,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
         // before merging, we need to check the feature conflicts because the sequence needs to be updated
         else {
+            // even if the ranges were not shifted, the sequence has been updated
             report.setHasShiftedRanges(true);
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
@@ -418,12 +413,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 // don't process the original protein with itself
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
-                    // we have feature conflicts for this protein which cannot be merged
+                    // we have feature conflicts for this protein which cannot be merged and becomes deprecated
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                                 "The duplicate " + duplicate.getAc() + " cannot be merged with " +
                                         originalProt.getAc() + " because we have " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.impossible_merge, duplicate));
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts. The protein is now deprecated.", UpdateError.impossible_merge, duplicate));
                         // add no-uniprot-update and caution
                         Collection<Annotation> addedAnnotations = addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
@@ -473,41 +468,17 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     if (duplicate.getActiveInstances().isEmpty()) {
                         deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
                     }
+                    else {
+                        log.trace("The duplicate " + duplicate.getAc() + " still have " + duplicate.getActiveInstances().size() + " active instances and cannot be deleted.");
+                    }
                 }
                 else {
                     // if the original protein contains range conflict, we need to demerge it to keep the bad ranges attached to a no-uniprot-update protein
                     if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
                                 "The duplicate " + duplicate.getAc() + " has been kept as original protein but a new protein has been created with " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.feature_conflicts, duplicate));
-                        /*Collection<Component> componentsToFix = new ArrayList<Component>();
-                        componentsToFix.addAll(proteinsNeedingPartialMerge.get(originalProt.getAc()));
-
-                        // create a deprecated protein and attach interactions with range conflicts to this protein
-                        Protein protWithRangeConflicts = this.deprecatedParticipantFixer.createDeprecatedProtein(new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsToFix, originalProt, null, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, originalProt.getAc()), true).getProtein();
-
-                        // update the report to attach the component with range conflicts to the deprecated protein and not the original protein
-                        RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(originalProt);
-                        report.getComponentsWithFeatureConflicts().remove(originalProt);
-
-                        report.getComponentsWithFeatureConflicts().put(protWithRangeConflicts, rangeReport);*/
+                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.original_protein_feature_conflicts, duplicate));
                     }
-
-                    // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                    /*if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
-                        log.debug( "sequence of "+duplicate.getAc()+" requires update." );
-                        duplicate.setSequence( evt.getUniprotSequence() );
-
-                        // CRC64
-                        String crc64 = evt.getUniprotCrc64();
-                        if ( duplicate.getCrc64() == null || !duplicate.getCrc64().equals( crc64 ) ) {
-                            log.debug( "CRC64 requires update." );
-                            duplicate.setCrc64( crc64 );
-                        }
-
-                        factory.getProteinDao().update((ProteinImpl) duplicate);
-                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64()));
-                    }*/
                 }
             }
         }
@@ -555,9 +526,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         if (!isDeletedFromDatabase && evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(evt.getProtein());
-            String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(this, evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, evt.getProtein(), uniprot));
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(evt.getSource(), evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, evt.getProtein(), evt.getUniprotIdentity()));
         }
     }
 
@@ -600,14 +569,17 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             }
         }
 
+        // we had range conflicts during merge, we need to process them
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
             for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
+                // the parent ac is the original protein ac if no master protein is given
                 String validParentAc = report.getOriginalProtein() != null ? report.getOriginalProtein().getAc() : entry.getKey().getAc();
 
                 if (masterProtein != null){
                     validParentAc = masterProtein.getAc();
                 }
 
+                // we want to create a deprecated protein if the protein with range confilcts is a protein transcripts because unisave does not keep information about isoforms sequence versions
                 boolean enableCreationDeprecatedProtein = false;
 
                 if (report.getOriginalProtein() != null){
@@ -616,10 +588,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                 }
 
+                // try to fix the protein with range conflicts
                 OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
+                // protein has been fixed or a deprecated protein has been created
                 if (fixedProtein != null){
                     rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
@@ -627,54 +601,61 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         fixedProtein.setUniprotVariant(report.getTranscript());
                     }
 
-                    if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
-                        String ac = fixedProtein.getProtein().getAc();
+                    // if protein is deprecated, it means that the original protein had range conflicts, We don't need to add the deprecated protein to the list of proteins to update
+                    boolean isFromUniprot = ProteinUtils.isFromUniprot(fixedProtein.getProtein());
 
-                        if (ac != null){
-                            boolean hasFoundSpliceVariant = false;
+                    if (isFromUniprot){
+                        // we identified a new transcript (isoform)
+                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                            String ac = fixedProtein.getProtein().getAc();
 
-                            for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundSpliceVariant = true;
-                                }
-                            }
+                            if (ac != null){
+                                boolean hasFoundSpliceVariant = false;
 
-                            if (!hasFoundSpliceVariant){
-                                for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
+                                for (ProteinTranscript p : caseEvent.getPrimaryIsoforms()){
                                     if (ac.equals(p.getProtein().getAc())){
                                         hasFoundSpliceVariant = true;
                                     }
                                 }
 
                                 if (!hasFoundSpliceVariant){
-                                    caseEvent.getPrimaryIsoforms().add(fixedProtein);
-                                    caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
+                                    for (ProteinTranscript p : caseEvent.getSecondaryIsoforms()){
+                                        if (ac.equals(p.getProtein().getAc())){
+                                            hasFoundSpliceVariant = true;
+                                        }
+                                    }
 
-                                    if (isIsoform){
-                                        mergedTranscripts.add(fixedProtein);
+                                    if (!hasFoundSpliceVariant){
+                                        caseEvent.getPrimaryIsoforms().add(fixedProtein);
+                                        caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
+
+                                        if (isIsoform){
+                                            mergedTranscripts.add(fixedProtein);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
-                        String ac = fixedProtein.getProtein().getAc();
+                        // we identified a new feature chain
+                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                            String ac = fixedProtein.getProtein().getAc();
 
-                        if (ac != null){
-                            boolean hasFoundChain = false;
+                            if (ac != null){
+                                boolean hasFoundChain = false;
 
-                            for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
-                                if (ac.equals(p.getProtein().getAc())){
-                                    hasFoundChain = true;
+                                for (ProteinTranscript p : caseEvent.getPrimaryFeatureChains()){
+                                    if (ac.equals(p.getProtein().getAc())){
+                                        hasFoundChain = true;
+                                    }
                                 }
-                            }
 
-                            if (!hasFoundChain){
-                                caseEvent.getPrimaryFeatureChains().add(fixedProtein);
-                                caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
+                                if (!hasFoundChain){
+                                    caseEvent.getPrimaryFeatureChains().add(fixedProtein);
+                                    caseEvent.getProteins().add(fixedProtein.getProtein().getAc());
 
-                                if (!isIsoform){
-                                    mergedTranscripts.add(fixedProtein);
+                                    if (!isIsoform){
+                                        mergedTranscripts.add(fixedProtein);
+                                    }
                                 }
                             }
                         }
@@ -691,6 +672,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             }
         }
 
+        // we have a valid original protein
         if (report.getOriginalProtein() != null){
             if (report.hasShiftedRanges() && ProteinTools.isSequenceChanged(report.getOriginalProtein().getSequence(), report.getUniprotSequence())){
                 String oldSequence = report.getOriginalProtein().getSequence();
@@ -724,8 +706,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         if (!report.getComponentsWithFeatureConflicts().isEmpty()){
             for (Map.Entry<Protein, RangeUpdateReport> entry : report.getComponentsWithFeatureConflicts().entrySet()){
+                // the valid parent ac is the ac of the protein having range conflicts
                 String validParentAc = entry.getKey().getAc();
 
+                // if merge not successful, we create a deprecated protein for original protein
                 boolean enableCreationDeprecatedProtein = false;
 
                 if (report.getOriginalProtein() != null){
@@ -742,6 +726,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 if (fixedProtein != null){
                     rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
+                    // if uniprot variant is null, it means that a deprecated protein has been created because the protein with range conflicts is a master protein
                     if (fixedProtein.getUniprotVariant() != null){
                         if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
                             String ac = fixedProtein.getProtein().getAc();
