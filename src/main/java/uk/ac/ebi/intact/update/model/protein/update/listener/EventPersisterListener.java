@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.update.model.protein.update.listener;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.dbupdate.prot.DuplicateReport;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
@@ -67,17 +66,16 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Transactional( "update" )
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
 
-        DuplicateReport report = evt.getDuplicateReport();
-        Protein originalProtein = report.getOriginalProtein();
-        boolean sequenceUpdate = report.hasShiftedRanges();
+        Protein originalProtein = evt.getReferenceProtein();
+        boolean sequenceUpdate = evt.hasShiftedRanges();
 
         for (Protein duplicate : evt.getProteins()){
 
-            Collection<String> movedInteractions = report.getMovedInteractions().get(duplicate.getAc());
-            RangeUpdateReport rangeReport = report.getComponentsWithFeatureConflicts().get(duplicate);
-            Collection<Annotation> addedAnnotations = report.getAddedAnnotations().get(duplicate.getAc());
-            Collection<String> updatedTranscripts = report.getUpdatedTranscripts().get(duplicate.getAc());
-            Collection<InteractorXref> addedXrefs = report.getAddedXRefs().get(duplicate.getAc());
+            Collection<String> movedInteractions = evt.getMovedInteractions().get(duplicate.getAc());
+            RangeUpdateReport rangeReport = evt.getComponentsWithFeatureConflicts().get(duplicate);
+            Collection<Annotation> addedAnnotations = evt.getAddedAnnotations().get(duplicate.getAc());
+            Collection<String> updatedTranscripts = evt.getUpdatedTranscripts().get(duplicate.getAc());
+            Collection<InteractorXref> addedXrefs = evt.getAddedXRefs().get(duplicate.getAc());
 
             boolean isMergeSuccessful = (rangeReport == null);
 
@@ -231,6 +229,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                             String interactorAc = interactor.getAc();
 
                             PersistentUpdatedRange persistentEvt = new PersistentUpdatedRange(this.updateProcess, componentAc, featureAc, interactionAc, interactorAc, newRange.getAc(), oldRange.getFullSequence(), newRange.getFullSequence(), oldRangePositions, newRangePositions);
+
+
                             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
                         }
                     }
