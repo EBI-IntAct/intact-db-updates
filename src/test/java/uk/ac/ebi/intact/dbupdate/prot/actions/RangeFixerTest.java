@@ -156,7 +156,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, seVersionBefore.size());
 
         // fix invalid ranges
-        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, new InvalidRange(null, range, oldSequence, "different feature sequence")));
+        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, new InvalidRange(range, range, oldSequence, "different feature sequence")));
 
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]different feature sequence", invalid_range.getShortLabel()));
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]378-382", invalid_positions.getShortLabel()));

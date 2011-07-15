@@ -423,10 +423,6 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             if (!componentsWithRangeConflicts.isEmpty()){
 
-                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                        "The protein " + protein.getAc() + " contains " +
-                                componentsWithRangeConflicts.size() + " components with range conflicts.", UpdateError.feature_conflicts, protein, uniprotAc));
-
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
@@ -498,10 +494,6 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
 
             if (!componentsWithRangeConflicts.isEmpty()){
-
-                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                        "The protein " + protein.getAc() + " contains " +
-                                componentsWithRangeConflicts.size() + " components with invalid ranges.", UpdateError.feature_conflicts, protein, uniprotAc));
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 processor.fireOnOutOfDateParticipantFound(participantEvent);

@@ -660,16 +660,18 @@ public class RangeFixerImpl implements RangeFixer{
     public void fixOutOfDateRanges(InvalidRangeEvent evt){
         // get the range
         Range range = evt.getInvalidRange().getNewRange();
+        Range currentRange = evt.getInvalidRange().getOldRange();
 
         // the range is not null
-        if (range != null){
+        if (range != null && currentRange != null){
+            range.setAc(currentRange.getAc());
             // get the invalid positions
             String positions = convertPositionsToString(range);
             // get the sequence version
             int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
 
             // create a prefix for the annotation containing the range ac
-            String prefix = "["+range.getAc()+"]";
+            String prefix = "["+currentRange.getAc()+"]";
 
             // get the message
             String message = prefix +evt.getInvalidRange().getMessage();
@@ -678,7 +680,7 @@ public class RangeFixerImpl implements RangeFixer{
             String validSequence = prefix+evt.getInvalidRange().getUniprotAc()+","+validSequenceVersion;
 
             // get the feature
-            Feature feature = range.getFeature();
+            Feature feature = currentRange.getFeature();
 
             // if the feature is not null, we can fix the out of date range
             if (feature != null){
@@ -689,7 +691,7 @@ public class RangeFixerImpl implements RangeFixer{
 
                 if (invalid_caution == null) {
                     invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.rangeConflicts);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalid_caution);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalid_caution);
                 }
 
                 // invalid positions
@@ -698,7 +700,7 @@ public class RangeFixerImpl implements RangeFixer{
 
                 if (invalidPositions == null) {
                     invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.invalidPositions);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalidPositions);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalidPositions);
                 }
 
                 // sequence version
@@ -707,7 +709,7 @@ public class RangeFixerImpl implements RangeFixer{
 
                 if (sequenceVersion == null) {
                     sequenceVersion = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.sequenceVersion);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(sequenceVersion);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(sequenceVersion);
                 }
 
                 // annotations of the feature
@@ -784,7 +786,7 @@ public class RangeFixerImpl implements RangeFixer{
                 }
 
                 // set the range to undetermined
-                setRangeUndetermined(range, daoFactory);
+                setRangeUndetermined(currentRange, daoFactory);
 
                 // update feature
                 daoFactory.getFeatureDao().update(feature);
@@ -803,7 +805,7 @@ public class RangeFixerImpl implements RangeFixer{
 
         if (undetermined == null) {
             undetermined = CvObjectUtils.createCvObject(r.getOwner(), CvFuzzyType.class, CvFuzzyType.UNDETERMINED_MI_REF, CvFuzzyType.UNDETERMINED);
-            f.getCvObjectDao(CvFuzzyType.class).persist(undetermined);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(undetermined);
         }
 
         // set undetermined status
