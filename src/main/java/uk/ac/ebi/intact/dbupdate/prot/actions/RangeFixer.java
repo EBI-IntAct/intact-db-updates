@@ -23,13 +23,13 @@ public interface RangeFixer {
      * Fix invalid ranges from the beginning
      * @param evt
      */
-    public void fixInvalidRanges(InvalidRangeEvent evt);
+    public void fixInvalidRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor);
 
     /**
      * Fix valid ranges impossible to shift with the new uniprot sequence
      * @param evt
      */
-    public void fixOutOfDateRanges(InvalidRangeEvent evt);
+    public void fixOutOfDateRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor);
 
     /**
      * Fix invalid ranges and out of date ranges

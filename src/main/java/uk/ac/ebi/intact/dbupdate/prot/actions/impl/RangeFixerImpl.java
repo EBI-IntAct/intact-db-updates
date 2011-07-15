@@ -554,7 +554,7 @@ public class RangeFixerImpl implements RangeFixer{
      * Fix invalid ranges by adding annotations at the feature level and set the range to undetermined
      * @param evt
      */
-    public void fixInvalidRanges(InvalidRangeEvent evt){
+    public void fixInvalidRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor){
         // get the range
         Range range = evt.getInvalidRange().getOldRange();
         // get the invalid positions
@@ -572,6 +572,14 @@ public class RangeFixerImpl implements RangeFixer{
 
             // if the feature is not null, we can fix the invalid range
             if (feature != null){
+                InvalidRange invalidRange = evt.getInvalidRange();
+
+                AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
+                if (invalidRange.getUpdatedAnnotations() == null){
+                    annotationReport = new AnnotationUpdateReport(invalidRange.getRangeAc());
+                    invalidRange.setUpdatedAnnotations(annotationReport);
+                }
+
                 // get the invalid_caution from the DB or create it and persist it
                 final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
 
@@ -624,11 +632,15 @@ public class RangeFixerImpl implements RangeFixer{
                     daoFactory.getAnnotationDao().persist(cautionRange);
 
                     feature.addAnnotation(cautionRange);
+
+                    annotationReport.getAddedAnnotations().add(cautionRange);
                 }
                 // existing invalid range annotation : needs to be updated
                 else{
                     invalid.setAnnotationText(message);
                     daoFactory.getAnnotationDao().update(invalid);
+
+                    annotationReport.getAddedAnnotations().add(invalid);
                 }
 
                 // no invalid positions annotation : needs to be created
@@ -637,12 +649,17 @@ public class RangeFixerImpl implements RangeFixer{
                     daoFactory.getAnnotationDao().persist(invalidPosRange);
 
                     feature.addAnnotation(invalidPosRange);
+                    annotationReport.getAddedAnnotations().add(invalidPosRange);
                 }
                 // existing invalid positions annotation : needs to be updated
                 else{
                     pos.setAnnotationText(positions);
                     daoFactory.getAnnotationDao().update(pos);
+                    annotationReport.getAddedAnnotations().add(pos);
                 }
+
+                // fire the event
+                processor.fireOnInvalidRange(evt);
 
                 // set the range to undetermined
                 setRangeUndetermined(range, daoFactory);
@@ -657,7 +674,7 @@ public class RangeFixerImpl implements RangeFixer{
      * Fix out of date ranges by adding annotations at the feature level and set the range to undetermined
      * @param evt
      */
-    public void fixOutOfDateRanges(InvalidRangeEvent evt){
+    public void fixOutOfDateRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor){
         // get the range
         Range range = evt.getInvalidRange().getNewRange();
         Range currentRange = evt.getInvalidRange().getOldRange();
@@ -684,6 +701,13 @@ public class RangeFixerImpl implements RangeFixer{
 
             // if the feature is not null, we can fix the out of date range
             if (feature != null){
+                InvalidRange invalidRange = evt.getInvalidRange();
+                AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
+                if (annotationReport == null){
+                    annotationReport = new AnnotationUpdateReport(invalidRange.getRangeAc());
+                    invalidRange.setUpdatedAnnotations(annotationReport);
+                }
+
                 // get the invalid_caution from the DB or create it and persist it
                 final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
                 CvTopic invalid_caution = daoFactory
@@ -752,11 +776,13 @@ public class RangeFixerImpl implements RangeFixer{
                     daoFactory.getAnnotationDao().persist(cautionRange);
 
                     feature.addAnnotation(cautionRange);
+                    annotationReport.getAddedAnnotations().add(cautionRange);
                 }
                 // existing range conflict annotation : needs to be updated
                 else {
                     invalid.setAnnotationText(message);
                     daoFactory.getAnnotationDao().update(invalid);
+                    annotationReport.getAddedAnnotations().add(invalid);
                 }
 
                 // no invalid positions annotation : needs to be created
@@ -765,11 +791,13 @@ public class RangeFixerImpl implements RangeFixer{
                     daoFactory.getAnnotationDao().persist(invalidPosRange);
 
                     feature.addAnnotation(invalidPosRange);
+                    annotationReport.getAddedAnnotations().add(invalidPosRange);
                 }
                 // existing invalid positions annotation : needs to be updated
                 else {
                     pos.setAnnotationText(positions);
                     daoFactory.getAnnotationDao().update(pos);
+                    annotationReport.getAddedAnnotations().add(pos);
                 }
 
                 // no sequence version annotation : needs to be created because a valid sequence version exists for this range
@@ -778,12 +806,16 @@ public class RangeFixerImpl implements RangeFixer{
                     daoFactory.getAnnotationDao().persist(validSeqVersion);
 
                     feature.addAnnotation(validSeqVersion);
+                    annotationReport.getAddedAnnotations().add(validSeqVersion);
                 }
                 // existing sequence version annotation : needs to be updated because a valid sequence version exists for this range                
                 else if (sv != null && validSequenceVersion != -1 && evt.getInvalidRange().getUniprotAc() != null) {
                     sv.setAnnotationText(validSequence);
                     daoFactory.getAnnotationDao().update(sv);
+                    annotationReport.getAddedAnnotations().add(sv);
                 }
+
+                processor.fireOnOutOfDateRange(evt);
 
                 // set the range to undetermined
                 setRangeUndetermined(currentRange, daoFactory);
@@ -840,8 +872,7 @@ public class RangeFixerImpl implements RangeFixer{
                 // range is bad from the beginning, not after the range shifting : fix it
                 if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
                     InvalidRangeEvent invalidEvent = new InvalidRangeEvent(evt.getDataContext(), invalid);
-                    processor.fireOnInvalidRange(invalidEvent);
-                    fixInvalidRanges(invalidEvent);
+                    fixInvalidRanges(invalidEvent, processor);
                 }
                 // range is out of date fix it if necessary and enabled
                 else {
@@ -864,11 +895,13 @@ public class RangeFixerImpl implements RangeFixer{
 
                     // if the range is not undetermined yet, needs to be fixed. The old range is always the current range to update
                     if (!isInvalidRangeUndetermined(invalid.getOldRange())){
-                        processor.fireOnOutOfDateRange(invalidEvent);
 
                         // if no protein exists to remap the ranges to it and the option is enabled, fix out of date ranges
                         if (fixedProtein == null && fixOutOfDateRanges){
-                            fixOutOfDateRanges(invalidEvent);
+                            fixOutOfDateRanges(invalidEvent, processor);
+                        }
+                        else {
+                            processor.fireOnOutOfDateRange(invalidEvent);
                         }
                     }
                 }
@@ -1040,8 +1073,8 @@ public class RangeFixerImpl implements RangeFixer{
                                         invalid.setValidSequenceVersion(entry.getValue().getSequenceVersion());
                                         invalid.setUniprotAc(entry.getValue().getUniprotAc());
                                         InvalidRangeEvent invalidEvent = new InvalidRangeEvent(datacontext, invalid);
-                                        processor.fireOnOutOfDateRange(invalidEvent);
-                                        fixInvalidRanges(invalidEvent);
+
+                                        fixOutOfDateRanges(invalidEvent, processor);
                                         totalInvalidRanges.add(invalid);
                                     }
                                     // possible update it
