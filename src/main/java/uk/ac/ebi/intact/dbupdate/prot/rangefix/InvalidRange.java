@@ -32,22 +32,31 @@ public class InvalidRange extends UpdatedRange{
      */
     String message;
 
-    public InvalidRange(Range range, Range newRange, String sequence, String message) {
+    private String fromStatus;
+    private String toStatus;
+
+    public InvalidRange(Range range, Range newRange, String sequence, String message, String fromStatus, String toStatus) {
         super(range, newRange);
 
         this.sequence = sequence;
         this.message = message;
         this.validSequenceVersion = -1;
         this.uniprotAc = null;
+
+        this.fromStatus = fromStatus;
+        this.toStatus = toStatus;
     }
 
-    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion) {
+    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion, String fromStatus, String toStatus) {
         super(range, newRange);
 
         this.sequence = sequence;
         this.message = message;
         this.validSequenceVersion = sequenceVersion;
         this.uniprotAc = null;
+
+        this.fromStatus = fromStatus;
+        this.toStatus = toStatus;
     }
 
     public String getSequence() {
@@ -80,5 +89,21 @@ public class InvalidRange extends UpdatedRange{
 
     public void setUniprotAc(String uniprotAc) {
         this.uniprotAc = uniprotAc;
+    }
+
+    public String getToStatus() {
+        return toStatus;
+    }
+
+    public void setToStatus(String toStatus) {
+        this.toStatus = toStatus;
+    }
+
+    public String getFromStatus() {
+        return fromStatus;
+    }
+
+    public void setFromStatus(String fromStatus) {
+        this.fromStatus = fromStatus;
     }
 }

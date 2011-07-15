@@ -531,19 +531,28 @@ public class RangeChecker {
                 }
                 // the new full feature sequence is null but was not before shifting the ranges
                 else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
+                    String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                    String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
                     // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.");
+                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", fromStatus, toStatus);
                 }
             }
             // one position has been shifted but is not valid
             else {
+                String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
                 // we couldn't shift the ranges properly for one reason
-                invalidRange = new InvalidRange(range, clone, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.");
+                invalidRange = new InvalidRange(range, clone, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.", fromStatus, toStatus);
             }
         }
         else {
             if (FeatureUtils.isABadRange(clone, newSequence)){
-                invalidRange = new InvalidRange(range, clone, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.");
+                String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
+                invalidRange = new InvalidRange(range, clone, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.", fromStatus, toStatus);
             }
             else {
                 // we prepare the new feature sequence
@@ -559,8 +568,11 @@ public class RangeChecker {
                 }
                 // the new full feature sequence is null but was not before shifting the ranges
                 else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
+                    String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                    String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
                     // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.");
+                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", fromStatus, toStatus);
                 }
             }
         }
@@ -651,14 +663,20 @@ public class RangeChecker {
 
                 // check that the corrected positions are not overlapping because the start/end intervals are conserved
                 if (correctedFromIntervalEnd > correctedToIntervalStart || correctedFromIntervalEnd > newSequence.length() || correctedToIntervalStart < 1){
+                    String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                    String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
                     // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                    new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping with the new protein sequence.");
+                    new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping with the new protein sequence.", fromStatus, toStatus);
                 }
             }
             // we can't correct the positions of the ranges to have the conserved feature sequence
             else {
+                String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
                 // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                invalidRange = new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.");
+                invalidRange = new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", fromStatus, toStatus);
             }
         }
         return invalidRange;
@@ -728,22 +746,27 @@ public class RangeChecker {
                     }
                 }
                 else {
-                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
+                    String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                    String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
+                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
                     invalidRanges.add(invalid);
                 }
             }
             else {
                 String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+                String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
 
                 if (isABadRange != null){
-                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
+                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
                     invalidRanges.add(invalid);
                 }
                 else {
                     String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                     if (isABadRange2 != null){
-                        InvalidRange invalid = new InvalidRange(range, null, newSequence, isABadRange2);
+                        InvalidRange invalid = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus);
                         invalidRanges.add(invalid);
                     }
                 }
@@ -777,21 +800,26 @@ public class RangeChecker {
                 }
             }
             else {
-                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
+                String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+                String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
+
+                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
                 invalidRange = invalid;
             }
         }
         else {
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
+            String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+            String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
 
             if (isABadRange != null){
-                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange);
+                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
             }
             else {
                 String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                 if (isABadRange2 != null){
-                    invalidRange = new InvalidRange(range, null, newSequence, isABadRange2);
+                    invalidRange = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus);
                 }
             }
         }
@@ -806,11 +834,12 @@ public class RangeChecker {
 
 
         InvalidRange invalidRange = null;
-
+        String fromStatus = range.getFromCvFuzzyType() != null ? range.getFromCvFuzzyType().getShortLabel() : null;
+        String toStatus = range.getToCvFuzzyType() != null ? range.getToCvFuzzyType().getShortLabel() : null;
         if (oldSequence != null){
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
             if (isABadRange != null){
-                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
+                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
                 invalidRange = invalid;
             }
         }
@@ -818,7 +847,7 @@ public class RangeChecker {
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
             if (isABadRange != null){
-                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange);
+                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange, fromStatus, toStatus);
             }
         }
 
