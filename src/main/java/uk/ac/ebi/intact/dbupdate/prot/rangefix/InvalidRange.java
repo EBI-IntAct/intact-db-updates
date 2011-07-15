@@ -10,7 +10,7 @@ import uk.ac.ebi.intact.model.Range;
  * @since <pre>05-Aug-2010</pre>
  */
 
-public class InvalidRange {
+public class InvalidRange extends UpdatedRange{
 
     /**
      * The sequence of the protein
@@ -28,42 +28,24 @@ public class InvalidRange {
     String uniprotAc;
 
     /**
-     * The new range positions
-     */
-    String newRanges;
-
-    /**
-     * The invalid range
-     */
-    Range invalidRange;
-
-    /**
      * The message to add at the feature level
      */
     String message;
 
-    public InvalidRange(Range range, String sequence, String message) {
-        this.invalidRange = range;
+    public InvalidRange(Range range, Range newRange, String sequence, String message) {
+        super(range, newRange);
+
         this.sequence = sequence;
         this.message = message;
         this.validSequenceVersion = -1;
         this.uniprotAc = null;
     }
 
-    public InvalidRange(Range range, String sequence, String message, String newRanges) {
-        this.invalidRange = range;
-        this.sequence = sequence;
-        this.message = message;
-        this.newRanges = newRanges;
-        this.validSequenceVersion = -1;
-        this.uniprotAc = null;
-    }
+    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion) {
+        super(range, newRange);
 
-    public InvalidRange(Range range, String sequence, String message, String newRanges, int sequenceVersion) {
-        this.invalidRange = range;
         this.sequence = sequence;
         this.message = message;
-        this.newRanges = newRanges;
         this.validSequenceVersion = sequenceVersion;
         this.uniprotAc = null;
     }
@@ -76,28 +58,12 @@ public class InvalidRange {
         this.sequence = sequence;
     }
 
-    public Range getInvalidRange() {
-        return invalidRange;
-    }
-
-    public void setInvalidRange(Range invalidRange) {
-        this.invalidRange = invalidRange;
-    }
-
     public String getMessage() {
         return message;
     }
 
     public void setMessage(String message) {
         this.message = message;
-    }
-
-    public String getNewRanges() {
-        return newRanges;
-    }
-
-    public void setNewRanges(String newRanges) {
-        this.newRanges = newRanges;
     }
 
     public int getValidSequenceVersion() {

@@ -532,18 +532,18 @@ public class RangeChecker {
                 // the new full feature sequence is null but was not before shifting the ranges
                 else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                     // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                    invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
+                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.");
                 }
             }
             // one position has been shifted but is not valid
             else {
                 // we couldn't shift the ranges properly for one reason
-                invalidRange = new InvalidRange(range, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.", clone.toString());
+                invalidRange = new InvalidRange(range, clone, newSequence, "It was impossible to shift the feature ranges when the protein sequence has been updated.");
             }
         }
         else {
             if (FeatureUtils.isABadRange(clone, newSequence)){
-                invalidRange = new InvalidRange(range, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.", clone.toString());
+                invalidRange = new InvalidRange(range, clone, newSequence, "The ranges ("+clone.toString()+") are not valid anymore with the new uniprot sequence.");
             }
             else {
                 // we prepare the new feature sequence
@@ -560,7 +560,7 @@ public class RangeChecker {
                 // the new full feature sequence is null but was not before shifting the ranges
                 else if (newFullFeatureSequence == null && oldFullFeatureSequence != null){
                     // the new full sequence couldn't be computed, a problem occured : we can't shift the ranges
-                    invalidRange = new InvalidRange(range, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.", clone.toString());
+                    invalidRange = new InvalidRange(range, clone, newSequence, "The feature sequence for the ranges ("+clone.toString()+") cannot be computed.");
                 }
             }
         }
@@ -652,13 +652,13 @@ public class RangeChecker {
                 // check that the corrected positions are not overlapping because the start/end intervals are conserved
                 if (correctedFromIntervalEnd > correctedToIntervalStart || correctedFromIntervalEnd > newSequence.length() || correctedToIntervalStart < 1){
                     // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                    new InvalidRange(range, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping with the new protein sequence.", clone.toString());
+                    new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied because it is out of bound or overlapping with the new protein sequence.");
                 }
             }
             // we can't correct the positions of the ranges to have the conserved feature sequence
             else {
                 // the feature sequence has been changed, we need a curator to check this one, can't shift the ranges
-                invalidRange = new InvalidRange(range, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.", clone.toString());
+                invalidRange = new InvalidRange(range, clone, newSequence, "The shifted ranges ("+clone.toString()+") couldn't be applied as the new full feature sequence is different from the previous one.");
             }
         }
         return invalidRange;
@@ -728,7 +728,7 @@ public class RangeChecker {
                     }
                 }
                 else {
-                    InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
                     invalidRanges.add(invalid);
                 }
             }
@@ -736,14 +736,14 @@ public class RangeChecker {
                 String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
                 if (isABadRange != null){
-                    InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                    InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
                     invalidRanges.add(invalid);
                 }
                 else {
                     String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                     if (isABadRange2 != null){
-                        InvalidRange invalid = new InvalidRange(range, newSequence, isABadRange2);
+                        InvalidRange invalid = new InvalidRange(range, null, newSequence, isABadRange2);
                         invalidRanges.add(invalid);
                     }
                 }
@@ -777,7 +777,7 @@ public class RangeChecker {
                 }
             }
             else {
-                InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
                 invalidRange = invalid;
             }
         }
@@ -785,13 +785,13 @@ public class RangeChecker {
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
             if (isABadRange != null){
-                invalidRange = new InvalidRange(range, oldSequence, isABadRange);
+                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange);
             }
             else {
                 String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                 if (isABadRange2 != null){
-                    invalidRange = new InvalidRange(range, newSequence, isABadRange2);
+                    invalidRange = new InvalidRange(range, null, newSequence, isABadRange2);
                 }
             }
         }
@@ -810,7 +810,7 @@ public class RangeChecker {
         if (oldSequence != null){
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
             if (isABadRange != null){
-                InvalidRange invalid = new InvalidRange(range, oldSequence, isABadRange);
+                InvalidRange invalid = new InvalidRange(range, null, oldSequence, isABadRange);
                 invalidRange = invalid;
             }
         }
@@ -818,7 +818,7 @@ public class RangeChecker {
             String isABadRange = FeatureUtils.getBadRangeInfo(range, oldSequence);
 
             if (isABadRange != null){
-                invalidRange = new InvalidRange(range, oldSequence, isABadRange);
+                invalidRange = new InvalidRange(range, null, oldSequence, isABadRange);
             }
         }
 

@@ -302,8 +302,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("2..2-4..4", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("2..2-4..4", invalid.getNewRange());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -335,8 +335,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("4..4-6..6", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("4..4-6..6", invalid.getNewRange());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -368,8 +368,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("0..0-0..0", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("0..0-0..0", invalid.getNewRange());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -405,8 +405,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("0..0-1..1", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("0..0-1..1", invalid.getNewRange());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -440,8 +440,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals(null, invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals(null, invalid.getNewRange());
         Assert.assertEquals(oldSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -472,8 +472,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("6..6-0..0", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("6..6-0..0", invalid.getNewRange());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -530,8 +530,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidRanges.size());
 
         InvalidRange invalid = invalidRanges.iterator().next();
-        Assert.assertEquals(range.getAc(), invalid.getInvalidRange().getAc());
-        Assert.assertEquals("7..7-10..10", invalid.getNewRanges());
+        Assert.assertEquals(range.getAc(), invalid.getRangeAc());
+        Assert.assertEquals("7..7-10..10", invalid.getNewRange());
         Assert.assertEquals(true_sequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);

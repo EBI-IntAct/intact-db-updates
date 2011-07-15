@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
 import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.FeatureDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
@@ -555,9 +556,9 @@ public class RangeFixerImpl implements RangeFixer{
      */
     public void fixInvalidRanges(InvalidRangeEvent evt){
         // get the range
-        Range range = evt.getInvalidRange().getInvalidRange();
+        Range range = evt.getInvalidRange().getOldRange();
         // get the invalid positions
-        String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
+        String positions = convertPositionsToString(evt.getInvalidRange().getOldRange());
 
         // the range is not null
         if (range != null){
@@ -580,7 +581,7 @@ public class RangeFixerImpl implements RangeFixer{
 
                 if (invalid_caution == null) {
                     invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, CvTopic.INVALID_RANGE);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalid_caution);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalid_caution);
                 }
 
                 // invalid positions
@@ -589,7 +590,7 @@ public class RangeFixerImpl implements RangeFixer{
 
                 if (invalidPositions == null) {
                     invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.invalidPositions);
-                    daoFactory.getCvObjectDao(CvTopic.class).persist(invalidPositions);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalidPositions);
                 }
 
                 // the feature annotations
@@ -658,14 +659,15 @@ public class RangeFixerImpl implements RangeFixer{
      */
     public void fixOutOfDateRanges(InvalidRangeEvent evt){
         // get the range
-        Range range = evt.getInvalidRange().getInvalidRange();
-        // get the invalid positions
-        String positions = convertPositionsToString(evt.getInvalidRange().getInvalidRange());
-        // get the sequence version
-        int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
+        Range range = evt.getInvalidRange().getNewRange();
 
         // the range is not null
         if (range != null){
+            // get the invalid positions
+            String positions = convertPositionsToString(range);
+            // get the sequence version
+            int validSequenceVersion = evt.getInvalidRange().getValidSequenceVersion();
+
             // create a prefix for the annotation containing the range ac
             String prefix = "["+range.getAc()+"]";
 
@@ -858,8 +860,8 @@ public class RangeFixerImpl implements RangeFixer{
                     }
                     invalid.setUniprotAc(uniprotAc);
 
-                    // if the range is not undetermined yet, needs to be fixed
-                    if (!isInvalidRangeUndetermined(invalid.getInvalidRange())){
+                    // if the range is not undetermined yet, needs to be fixed. The old range is always the current range to update
+                    if (!isInvalidRangeUndetermined(invalid.getOldRange())){
                         processor.fireOnOutOfDateRange(invalidEvent);
 
                         // if no protein exists to remap the ranges to it and the option is enabled, fix out of date ranges

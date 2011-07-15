@@ -91,7 +91,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, invalidPosBefore.size());
 
         // fix invalid ranges
-        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(context, new InvalidRange(range, oldSequence, "out of bound")));
+        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(context, new InvalidRange(range, null, oldSequence, "out of bound")));
 
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]out of bound", invalid_range.getShortLabel()));
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]2-5", invalid_positions.getShortLabel()));
@@ -156,7 +156,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(0, seVersionBefore.size());
 
         // fix invalid ranges
-        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, new InvalidRange(range, oldSequence, "different feature sequence")));
+        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, new InvalidRange(null, range, oldSequence, "different feature sequence")));
 
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]different feature sequence", invalid_range.getShortLabel()));
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]378-382", invalid_positions.getShortLabel()));
@@ -214,7 +214,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         Assert.assertEquals(1, invalidPosBefore.size());
 
         // fix invalid ranges
-        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(getDataContext(), new InvalidRange(range, oldSequence, "out of bound")));
+        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(getDataContext(), new InvalidRange(range, null, oldSequence, "out of bound")));
 
         final Collection<Annotation> invalidAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
         Assert.assertEquals(1, invalidAfter.size());

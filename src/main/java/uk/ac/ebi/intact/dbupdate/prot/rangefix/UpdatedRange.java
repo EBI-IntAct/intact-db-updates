@@ -35,10 +35,6 @@ public class UpdatedRange {
     private String interactionAc;
     private String rangeAc;
 
-    public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc) {
-        this(oldRange, newRange, rangeAc, featureAc, componentAc, proteinAc,interactionAc, null);
-    }
-
     public UpdatedRange(Range oldRange, Range newRange) {
         this.oldRange = oldRange;
         this.newRange = newRange;
@@ -95,7 +91,7 @@ public class UpdatedRange {
         }
     }
 
-    public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc, String message) {
+    public UpdatedRange(Range oldRange, Range newRange, String rangeAc, String featureAc, String componentAc, String proteinAc, String interactionAc) {
         this.oldRange = oldRange;
         this.newRange = newRange;
 

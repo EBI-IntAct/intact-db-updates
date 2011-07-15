@@ -1026,7 +1026,7 @@ public class ProteinServiceImpl implements ProteinService {
 
     protected void invalidRangeFound(InvalidRange invalidRange) {
         if ( log.isDebugEnabled() ) {
-            log.debug( "Can't update a feature range " + invalidRange.getInvalidRange().toString());
+            log.debug( "Can't update a feature range " + invalidRange.getOldRange().toString());
         }
     }
 

@@ -484,19 +484,21 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Prot. AC",
                     "Prot. Label",
                     "Prot. Uniprot",
+                    "Interaction ac",
                     "Added annotations",
                     "Removed annotations");
-            writer.writeColumnValues(updatedRange.getNewRange().getAc(),
-                    oldRange,
-                    newRange,
+            writer.writeColumnValues(dashIfNull(rangeAc),
+                    dashIfNull(oldRange),
+                    dashIfNull(newRange),
                     booleanToYesNo(updatedRange.isRangeLengthChanged()),
                     booleanToYesNo(updatedRange.isSequenceChanged()),
-                    featureAc,
-                    featureLabel,
-                    componentAc,
-                    proteinAc,
-                    proteinLabel,
-                    uniprotAc,
+                    dashIfNull(featureAc),
+                    dashIfNull(featureLabel),
+                    dashIfNull(componentAc),
+                    dashIfNull(proteinAc),
+                    dashIfNull(proteinLabel),
+                    dashIfNull(uniprotAc),
+                    dashIfNull(interactionAc),
                     added.toString(),
                     removed.toString());
             writer.flush();
@@ -507,13 +509,40 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     @Override
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
-        InvalidRange outOfBoundRange = evt.getInvalidRange();
-        Feature feature = outOfBoundRange.getInvalidRange().getFeature();
-        Component component = feature.getComponent();
-        Interactor interactor = component.getInteractor();
+        InvalidRange updatedRange = evt.getInvalidRange();
 
-        final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
-        String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+        String uniprotAc = updatedRange.getUniprotAc();
+        String rangeAc = updatedRange.getRangeAc();
+        String featureAc = updatedRange.getFeatureAc();
+        String componentAc = updatedRange.getComponentAc();
+        String proteinAc = updatedRange.getProteinAc();
+        String interactionAc = updatedRange.getInteractionAc();
+        String featureLabel = EMPTY_VALUE;
+        String proteinLabel = EMPTY_VALUE;
+
+        String oldRange = EMPTY_VALUE;
+
+        if (updatedRange.getOldRange() != null){
+            Feature feature = updatedRange.getOldRange().getFeature();
+            Component component = feature.getComponent();
+            Interactor interactor = component.getInteractor();
+
+            final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
+            uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+            oldRange = updatedRange.getOldRange().toString();
+            featureLabel = feature.getShortLabel();
+            proteinLabel = interactor.getShortLabel();
+        }
+
+        StringBuffer added = new StringBuffer();
+        AnnotationUpdateReport a = updatedRange.getUpdatedAnnotations();
+
+        added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+
+        StringBuffer removed = new StringBuffer();
+        AnnotationUpdateReport a2 = updatedRange.getUpdatedAnnotations();
+
+        added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
 
         try {
             ReportWriter writer = reportHandler.getInvalidRangeWriter();
@@ -526,17 +555,23 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Prot. AC",
                     "Prot. Label",
                     "Prot. Uniprot",
-                    "Message");
-            writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
-                    outOfBoundRange.getInvalidRange().toString(),
-                    Integer.toString(outOfBoundRange.getSequence().length()),
-                    feature.getAc(),
-                    feature.getShortLabel(),
-                    component.getAc(),
-                    interactor.getAc(),
-                    interactor.getShortLabel(),
-                    uniprotAc,
-                    dashIfNull(outOfBoundRange.getMessage()));
+                    "Interaction ac",
+                    "Message",
+                    "Added annotations",
+                    "Removed annotations");
+            writer.writeColumnValues(dashIfNull(rangeAc),
+                    dashIfNull(oldRange),
+                    Integer.toString(updatedRange.getSequence().length()),
+                    dashIfNull(featureAc),
+                    dashIfNull(featureLabel),
+                    dashIfNull(componentAc),
+                    dashIfNull(proteinAc),
+                    dashIfNull(proteinLabel),
+                    dashIfNull(uniprotAc),
+                    dashIfNull(interactionAc),
+                    dashIfNull(updatedRange.getMessage()),
+                    added.toString(),
+                    removed.toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
@@ -545,13 +580,47 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     @Override
     public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
-        InvalidRange outOfBoundRange = evt.getInvalidRange();
-        Feature feature = outOfBoundRange.getInvalidRange().getFeature();
-        Component component = feature.getComponent();
-        Interactor interactor = component.getInteractor();
+        InvalidRange updatedRange = evt.getInvalidRange();
 
-        final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
-        String uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+        String uniprotAc = updatedRange.getUniprotAc();
+        String rangeAc = updatedRange.getRangeAc();
+        String featureAc = updatedRange.getFeatureAc();
+        String componentAc = updatedRange.getComponentAc();
+        String proteinAc = updatedRange.getProteinAc();
+        String interactionAc = updatedRange.getInteractionAc();
+        String featureLabel = EMPTY_VALUE;
+        String proteinLabel = EMPTY_VALUE;
+
+        String oldRange = EMPTY_VALUE;
+        String newRange = EMPTY_VALUE;
+
+        if (updatedRange.getOldRange() != null){
+            Feature feature = updatedRange.getOldRange().getFeature();
+            Component component = feature.getComponent();
+            Interactor interactor = component.getInteractor();
+
+            final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
+            uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
+            oldRange = updatedRange.getOldRange().toString();
+            featureLabel = feature.getShortLabel();
+            proteinLabel = interactor.getShortLabel();
+        }
+
+        if (updatedRange.getNewRange() != null){
+            newRange = updatedRange.getNewRange().toString();
+        }
+
+        StringBuffer added = new StringBuffer();
+        AnnotationUpdateReport a = updatedRange.getUpdatedAnnotations();
+
+        added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+
+        StringBuffer removed = new StringBuffer();
+        AnnotationUpdateReport a2 = updatedRange.getUpdatedAnnotations();
+
+        added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+
+        String sequenceLength = updatedRange.getSequence() != null ? Integer.toString(updatedRange.getSequence().length()) : EMPTY_VALUE;
 
         try {
             ReportWriter writer = reportHandler.getOutOfDateRangeWriter();
@@ -566,21 +635,25 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Comp. AC",
                     "Prot. AC",
                     "Prot. Label",
-                    "Prot. Uniprot",
-                    "Message");
-            writer.writeColumnValues(outOfBoundRange.getInvalidRange().getAc(),
-                    outOfBoundRange.getInvalidRange().toString(),
-                    dashIfNull(outOfBoundRange.getNewRanges()),
-                    Integer.toString(outOfBoundRange.getSequence().length()),
-                    dashIfNull(outOfBoundRange.getUniprotAc()),
-                    dashIfNull(Integer.toString(outOfBoundRange.getValidSequenceVersion())),
-                    feature.getAc(),
-                    feature.getShortLabel(),
-                    component.getAc(),
-                    interactor.getAc(),
-                    interactor.getShortLabel(),
-                    uniprotAc,
-                    dashIfNull(outOfBoundRange.getMessage()));
+                    "Interaction Ac",
+                    "Message",
+                    "Added annotations",
+                    "Removed annotations");
+            writer.writeColumnValues(dashIfNull(rangeAc),
+                    dashIfNull(oldRange),
+                    dashIfNull(newRange),
+                    dashIfNull(sequenceLength),
+                    dashIfNull(uniprotAc),
+                    dashIfNull(Integer.toString(updatedRange.getValidSequenceVersion())),
+                    dashIfNull(featureAc),
+                    dashIfNull(featureLabel),
+                    dashIfNull(componentAc),
+                    dashIfNull(proteinAc),
+                    dashIfNull(proteinLabel),
+                    dashIfNull(interactionAc),
+                    dashIfNull(updatedRange.getMessage()),
+                    added.toString(),
+                    removed.toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing update case to stream", e);
