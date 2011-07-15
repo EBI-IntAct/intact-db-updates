@@ -464,12 +464,16 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         StringBuffer added = new StringBuffer();
         AnnotationUpdateReport a = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        if (a != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        }
 
         StringBuffer removed = new StringBuffer();
         AnnotationUpdateReport a2 = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        if (a2 != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        }
 
         try {
             ReportWriter writer = reportHandler.getRangeChangedWriter();
@@ -537,12 +541,16 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         StringBuffer added = new StringBuffer();
         AnnotationUpdateReport a = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        if (a != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        }
 
         StringBuffer removed = new StringBuffer();
         AnnotationUpdateReport a2 = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        if (a2 != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        }
 
         try {
             ReportWriter writer = reportHandler.getInvalidRangeWriter();
@@ -613,12 +621,16 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         StringBuffer added = new StringBuffer();
         AnnotationUpdateReport a = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        if (a != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a.getAddedAnnotations()));
+        }
 
         StringBuffer removed = new StringBuffer();
         AnnotationUpdateReport a2 = updatedRange.getUpdatedAnnotations();
 
-        added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        if (a2 != null){
+            added.append(AnnotationUpdateReport.annotationsToString(a2.getRemovedAnnotations()));
+        }
 
         String sequenceLength = updatedRange.getSequence() != null ? Integer.toString(updatedRange.getSequence().length()) : EMPTY_VALUE;
 
