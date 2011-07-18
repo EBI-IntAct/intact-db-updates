@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.persistence.dao.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.UpdatedRangeDao;
@@ -30,7 +30,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         Assert.assertEquals(1, updatedRangeDao.countAll());
 
-        UpdatedRangeDao<InvalidRange> invalidRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(InvalidRange.class);
+        UpdatedRangeDao<PersistentInvalidRange> invalidRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentInvalidRange.class);
         Assert.assertEquals(0, invalidRangeDao.countAll());
     }
 

@@ -14,7 +14,7 @@ import uk.ac.ebi.intact.update.model.protein.update.*;
 import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
 import java.util.Date;
@@ -288,9 +288,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return process;
     }
 
-    public InvalidRange createInvalidRange(){
+    public PersistentInvalidRange createInvalidRange(){
 
-        InvalidRange invalid = new InvalidRange();
+        PersistentInvalidRange invalid = new PersistentInvalidRange();
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");
@@ -331,9 +331,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return updated;
     }
 
-    public InvalidRange createOutOfDateRangeWithoutSequenceVersion(){
+    public PersistentInvalidRange createOutOfDateRangeWithoutSequenceVersion(){
 
-        InvalidRange invalid = new InvalidRange();
+        PersistentInvalidRange invalid = new PersistentInvalidRange();
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");
@@ -356,9 +356,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return invalid;
     }
 
-    public InvalidRange createOutOfDateRangeWithSequenceVersion(){
+    public PersistentInvalidRange createOutOfDateRangeWithSequenceVersion(){
 
-        InvalidRange invalid = new InvalidRange();
+        PersistentInvalidRange invalid = new PersistentInvalidRange();
 
         invalid.setRangeAc("EBI-xxxxx1");
         invalid.setComponentAc("EBI-xxxxx2");

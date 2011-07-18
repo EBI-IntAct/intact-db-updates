@@ -16,15 +16,15 @@ import javax.persistence.Entity;
  */
 @Entity
 @DiscriminatorFormula("objclass")
-@DiscriminatorValue("InvalidRange")
-public class InvalidRange extends PersistentUpdatedRange {
+@DiscriminatorValue("PersistentInvalidRange")
+public class PersistentInvalidRange extends PersistentUpdatedRange {
 
     private String fromStatus;
     private String toStatus;
     private String errorMessage;
     private int sequenceVersion;
 
-    public InvalidRange(){
+    public PersistentInvalidRange(){
         super();
         fromStatus = null;
         toStatus = null;
@@ -32,15 +32,15 @@ public class InvalidRange extends PersistentUpdatedRange {
         this.sequenceVersion = -1;
     }
 
-    public InvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error, int sequenceVersion){
+    public PersistentInvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error){
         super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, null, oldPositions, null);
         this.errorMessage = error;
-        this.sequenceVersion = sequenceVersion;
+        this.sequenceVersion = -1;
         this.fromStatus = startStatus;
         this.toStatus = endStatus;
     }
 
-    public InvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
+    public PersistentInvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
         super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, newSequence, oldPositions, newPositions);
         this.errorMessage = error;
         this.sequenceVersion = sequenceVersion;
@@ -90,7 +90,7 @@ public class InvalidRange extends PersistentUpdatedRange {
             return false;
         }
 
-        final InvalidRange range = ( InvalidRange ) o;
+        final PersistentInvalidRange range = (PersistentInvalidRange) o;
 
         if ( fromStatus != null ) {
             if (!fromStatus.equals( range.getFromStatus() )){
@@ -163,7 +163,7 @@ public class InvalidRange extends PersistentUpdatedRange {
             return false;
         }
 
-        final InvalidRange range = ( InvalidRange ) o;
+        final PersistentInvalidRange range = (PersistentInvalidRange) o;
 
         if ( fromStatus != null ) {
             if (!fromStatus.equals( range.getFromStatus() )){

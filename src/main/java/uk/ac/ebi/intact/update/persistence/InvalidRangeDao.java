@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence;
 
-import uk.ac.ebi.intact.update.model.protein.update.events.range.InvalidRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 
 import java.util.Date;
 import java.util.List;
@@ -13,30 +13,30 @@ import java.util.List;
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface InvalidRangeDao extends UpdatedRangeDao<InvalidRange>{
+public interface InvalidRangeDao extends UpdatedRangeDao<PersistentInvalidRange>{
 
-    public List<InvalidRange> getAllInvalidRanges();
-    public List<InvalidRange> getAllOutOfDateRanges();
-    public List<InvalidRange> getAllOutOfDateRangesWithoutSequenceVersion();
-    public List<InvalidRange> getAllOutOfDateRangesWithSequenceVersion();
+    public List<PersistentInvalidRange> getAllInvalidRanges();
+    public List<PersistentInvalidRange> getAllOutOfDateRanges();
+    public List<PersistentInvalidRange> getAllOutOfDateRangesWithoutSequenceVersion();
+    public List<PersistentInvalidRange> getAllOutOfDateRangesWithSequenceVersion();
 
-    public List<InvalidRange> getInvalidRanges(long processId);
-    public List<InvalidRange> getOutOfDateRanges(long processId);
-    public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersion(long processId);
-    public List<InvalidRange> getOutOfDateRangesWithSequenceVersion(long processId);
+    public List<PersistentInvalidRange> getInvalidRanges(long processId);
+    public List<PersistentInvalidRange> getOutOfDateRanges(long processId);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithoutSequenceVersion(long processId);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithSequenceVersion(long processId);
 
-    public List<InvalidRange> getInvalidRanges(Date updateddate );
-    public List<InvalidRange> getOutOfDateRanges(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersion(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithSequenceVersion(Date updateddate);
+    public List<PersistentInvalidRange> getInvalidRanges(Date updateddate );
+    public List<PersistentInvalidRange> getOutOfDateRanges(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithoutSequenceVersion(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithSequenceVersion(Date updateddate);
 
-    public List<InvalidRange> getInvalidRangesBefore(Date updateddate );
-    public List<InvalidRange> getOutOfDateRangesBefore(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersionBefore(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithSequenceVersionBefore(Date updateddate);
+    public List<PersistentInvalidRange> getInvalidRangesBefore(Date updateddate );
+    public List<PersistentInvalidRange> getOutOfDateRangesBefore(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithoutSequenceVersionBefore(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithSequenceVersionBefore(Date updateddate);
 
-    public List<InvalidRange> getInvalidRangesAfter(Date updateddate );
-    public List<InvalidRange> getOutOfDateRangesAfter(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithoutSequenceVersionAfter(Date updateddate);
-    public List<InvalidRange> getOutOfDateRangesWithSequenceVersionAfter(Date updateddate);
+    public List<PersistentInvalidRange> getInvalidRangesAfter(Date updateddate );
+    public List<PersistentInvalidRange> getOutOfDateRangesAfter(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithoutSequenceVersionAfter(Date updateddate);
+    public List<PersistentInvalidRange> getOutOfDateRangesWithSequenceVersionAfter(Date updateddate);
 }
