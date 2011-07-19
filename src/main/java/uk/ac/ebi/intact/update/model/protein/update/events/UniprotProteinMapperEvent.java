@@ -3,7 +3,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 
@@ -25,7 +26,7 @@ public class UniprotProteinMapperEvent extends PersistentProteinEvent {
         super();
     }
 
-    public UniprotProteinMapperEvent(UpdateProcess process, EventName name, Protein protein, PersistentIdentificationResults identificationResults){
+    public UniprotProteinMapperEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein, PersistentIdentificationResults identificationResults){
         super(process, name, protein);
 
         this.identificationResults = identificationResults;

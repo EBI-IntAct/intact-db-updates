@@ -5,7 +5,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.persistence.UpdateProcessDao;
 
 import javax.persistence.EntityManager;
@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Default implementation of UpdateProcessDao
+ * Default implementation of ProteinUpdateProcessDao
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -22,31 +22,40 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdateProcessDaoImpl extends UpdateBaseDaoImpl<UpdateProcess> implements UpdateProcessDao {
+public class UpdateProcessDaoImpl<T extends UpdateProcessImpl> extends UpdateBaseDaoImpl<T> implements UpdateProcessDao<T> {
+
     public UpdateProcessDaoImpl() {
-        super(UpdateProcess.class);
+        super((Class<T>) UpdateProcessImpl.class);
     }
 
-    public UpdateProcessDaoImpl(EntityManager entityManager) {
-        super(UpdateProcess.class, entityManager);
+    public UpdateProcessDaoImpl(Class<T> entityClass) {
+        super(entityClass);
+    }
+
+    /**
+     * create a new PICRReportDaoImpl with entity manager
+     * @param entityManager
+     */
+    public UpdateProcessDaoImpl(Class<T> entityClass, EntityManager entityManager) {
+        super(entityClass, entityManager);
     }
 
     @Override
-    public List<UpdateProcess> getAllUpdateProcessesByDate(Date date) {
-        return getSession().createCriteria(UpdateProcess.class)
+    public List<T> getAllUpdateProcessesByDate(Date date) {
+        return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.lt("date", DateUtils.addDays(date, 1)))
                 .add(Restrictions.gt("date", DateUtils.addDays(date, -1))).list();
     }
 
     @Override
-    public List<UpdateProcess> getAllUpdateProcessesBeforeDate(Date date) {
-        return getSession().createCriteria(UpdateProcess.class)
+    public List<T> getAllUpdateProcessesBeforeDate(Date date) {
+        return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.le("date", date)).list();
     }
 
     @Override
-    public List<UpdateProcess> getAllUpdateProcessesAfterDate(Date date) {
-        return getSession().createCriteria(UpdateProcess.class)
+    public List<T> getAllUpdateProcessesAfterDate(Date date) {
+        return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.ge("date", date)).list();
     }
 }

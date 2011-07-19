@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
 import org.hibernate.annotations.DiscriminatorFormula;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -32,7 +32,7 @@ public class PersistentInvalidRange extends PersistentUpdatedRange {
         this.sequenceVersion = -1;
     }
 
-    public PersistentInvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error){
+    public PersistentInvalidRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error){
         super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, null, oldPositions, null);
         this.errorMessage = error;
         this.sequenceVersion = -1;
@@ -40,7 +40,7 @@ public class PersistentInvalidRange extends PersistentUpdatedRange {
         this.toStatus = endStatus;
     }
 
-    public PersistentInvalidRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
+    public PersistentInvalidRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
         super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, newSequence, oldPositions, newPositions);
         this.errorMessage = error;
         this.sequenceVersion = sequenceVersion;

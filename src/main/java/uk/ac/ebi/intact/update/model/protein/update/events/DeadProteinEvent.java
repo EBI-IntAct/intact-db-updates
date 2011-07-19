@@ -4,8 +4,9 @@ import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -32,8 +33,8 @@ public class DeadProteinEvent extends PersistentProteinEvent {
         this.uniprotReference = null;
     }
 
-    public DeadProteinEvent(UpdateProcess process, Protein protein, InteractorXref uniprotRef){
-        super(process, EventName.dead_protein, protein);
+    public DeadProteinEvent(ProteinUpdateProcess process, Protein protein, InteractorXref uniprotRef){
+        super(process, ProteinEventName.dead_protein, protein);
 
         setUniprotReference(uniprotRef);
     }
@@ -52,7 +53,7 @@ public class DeadProteinEvent extends PersistentProteinEvent {
             this.uniprotReference = xRef.getPrimaryId();
 
             Collection<Xref> primaryRef = Arrays.asList(xRef);
-            addUpdatedReferencesFromInteractor(primaryRef, UpdateStatus.updated);
+            addUpdatedReferencesFromXref(primaryRef, UpdateStatus.updated);
         }
     }
 

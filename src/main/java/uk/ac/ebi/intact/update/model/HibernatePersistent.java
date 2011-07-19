@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.update.model;
 
+import java.io.Serializable;
+
 /**
  * The interface to implement for the classes we want to persist
  *
@@ -8,7 +10,7 @@ package uk.ac.ebi.intact.update.model;
  * @since <pre>20-May-2010</pre>
  */
 
-public interface HibernatePersistent {
+public interface HibernatePersistent extends Serializable {
 
     /**
      *

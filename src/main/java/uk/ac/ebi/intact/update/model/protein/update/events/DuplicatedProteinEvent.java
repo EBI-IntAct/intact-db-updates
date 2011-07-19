@@ -3,7 +3,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -39,8 +40,8 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         updatedTranscripts = new ArrayList<String>();
     }
 
-    public DuplicatedProteinEvent(UpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
-        super(updateProcess, EventName.protein_duplicate, duplicatedProtein);
+    public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
+        super(updateProcess, ProteinEventName.protein_duplicate, duplicatedProtein);
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
         this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;

@@ -3,7 +3,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -29,8 +30,8 @@ public class DeletedComponentEvent extends PersistentProteinEvent {
         deletedComponents = new ArrayList<String>();
     }
 
-    public DeletedComponentEvent(UpdateProcess updateProcess, Protein protein){
-        super(updateProcess, EventName.deleted_component, protein);
+    public DeletedComponentEvent(ProteinUpdateProcess updateProcess, Protein protein){
+        super(updateProcess, ProteinEventName.deleted_component, protein);
 
         deletedComponents = new ArrayList<String>();
     }
@@ -82,7 +83,7 @@ public class DeletedComponentEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Deleted component event : [proteinAc = " + super.getProteinAc() + ", Number deleted components = " + this.deletedComponents.size());
+        buffer.append("Deleted component event : [proteinAc = " + super.getIntactObjectAc() + ", Number deleted components = " + this.deletedComponents.size());
 
         return buffer.toString();
     }

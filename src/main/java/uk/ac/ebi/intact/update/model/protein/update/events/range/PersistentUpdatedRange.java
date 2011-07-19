@@ -2,9 +2,9 @@ package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.update.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -35,9 +35,9 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
     private String interactionAc;
     private String proteinAc;
 
-    UpdateProcess updateProcess;
+    ProteinUpdateProcess updateProcess;
 
-    Collection<UpdatedAnnotation> featureAnnotations;
+    Collection<ProteinUpdateAnnotation> featureAnnotations;
 
     public PersistentUpdatedRange(){
         super();
@@ -51,10 +51,10 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
         this.interactionAc = null;
         this.proteinAc = null;
 
-        this.featureAnnotations = new ArrayList<UpdatedAnnotation>();
+        this.featureAnnotations = new ArrayList<ProteinUpdateAnnotation>();
     }
 
-    public PersistentUpdatedRange(UpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String proteinAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
+    public PersistentUpdatedRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String proteinAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
         super();
         this.componentAc = componentAc;
         this.rangeAc = rangeAc;
@@ -66,7 +66,7 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
         this.updateProcess = updateProcess;
         this.oldSequence = oldSequence;
         this.newSequence = newSequence;
-        this.featureAnnotations = new ArrayList<UpdatedAnnotation>();
+        this.featureAnnotations = new ArrayList<ProteinUpdateAnnotation>();
     }
 
     @Column(name="component_ac", nullable=false)
@@ -107,11 +107,11 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
 
     @ManyToOne
     @JoinColumn(name="parent_id")
-    public UpdateProcess getParent() {
+    public ProteinUpdateProcess getParent() {
         return this.updateProcess;
     }
 
-    public void setParent(UpdateProcess updateProcess) {
+    public void setParent(ProteinUpdateProcess updateProcess) {
         this.updateProcess = updateProcess;
     }
 
@@ -168,11 +168,11 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
             joinColumns = {@JoinColumn( name = "protein_event_id" )},
             inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
     )
-    public Collection<UpdatedAnnotation> getFeatureAnnotations() {
+    public Collection<ProteinUpdateAnnotation> getFeatureAnnotations() {
         return featureAnnotations;
     }
 
-    public void setFeatureAnnotations(Collection<UpdatedAnnotation> updatedAnnotations) {
+    public void setFeatureAnnotations(Collection<ProteinUpdateAnnotation> updatedAnnotations) {
         if (updatedAnnotations != null){
             this.featureAnnotations = updatedAnnotations;
         }
@@ -181,16 +181,16 @@ public class PersistentUpdatedRange extends HibernatePersistentImpl {
     public void addUpdatedAnnotationFromFeature(Collection<uk.ac.ebi.intact.model.Annotation> updatedAnn, UpdateStatus status){
         for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
 
-            UpdatedAnnotation annotation = new UpdatedAnnotation(a, status);
+            ProteinUpdateAnnotation annotation = new ProteinUpdateAnnotation(a, status);
             this.featureAnnotations.add(annotation);
         }
     }
 
-    public boolean addUpdatedAnnotation(UpdatedAnnotation ann){
+    public boolean addUpdatedAnnotation(ProteinUpdateAnnotation ann){
         return this.featureAnnotations.add(ann);
     }
 
-    public boolean removeUpdatedAnnotation(UpdatedAnnotation ann){
+    public boolean removeUpdatedAnnotation(ProteinUpdateAnnotation ann){
         return this.featureAnnotations.remove(ann);
     }
 

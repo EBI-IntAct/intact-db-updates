@@ -4,12 +4,17 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.persistence.impl.MappingReportDaoImpl;
-import uk.ac.ebi.intact.update.persistence.impl.ProteinEventDaoImpl;
-import uk.ac.ebi.intact.update.persistence.impl.UpdatedRangeDaoImpl;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateEventDaoImpl;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateProcessDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.*;
+import uk.ac.ebi.intact.update.persistence.protein.impl.MappingReportDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.impl.ProteinEventDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.impl.UpdatedRangeDaoImpl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -73,10 +78,11 @@ public class UpdateDaoFactory implements Serializable{
     private InvalidRangeDao invalidRangeDao;
 
     /**
-     * The ivalidRangeDao instance
+     * The proteinUpdateProcessDao instance
      */
     @Autowired
-    private UpdateProcessDao updateProcessDao;
+    private ProteinUpdateProcessDao proteinUpdateProcessDao;
+
 
     /**
      * Creates a UpdateDaoFactory
@@ -120,12 +126,18 @@ public class UpdateDaoFactory implements Serializable{
      *
      * @param entityType
      * @param <T>
-     * @return the ProteinEventDao instance
+     * @return the UpdateEventDao instance
      */
     public <T extends PersistentProteinEvent> ProteinEventDao<T> getProteinEventDao( Class<T> entityType) {
-        ProteinEventDao proteinEventDao = getBean(ProteinEventDaoImpl.class);
+        ProteinEventDao<T> proteinEventDao = getBean(ProteinEventDaoImpl.class);
         proteinEventDao.setEntityClass(entityType);
         return proteinEventDao;
+    }
+
+    public <T extends UpdateEvent> UpdateEventDao<T> getUpdateEventDao( Class<T> entityType) {
+        UpdateEventDao updateEventDao = getBean(UpdateEventDaoImpl.class);
+        updateEventDao.setEntityClass(entityType);
+        return updateEventDao;
     }
 
     /**
@@ -176,8 +188,20 @@ public class UpdateDaoFactory implements Serializable{
         return invalidRangeDao;
     }
 
-    public UpdateProcessDao getUpdateProcessDao() {
+   /**
+     *
+     * @param entityType
+     * @param <T>
+     * @return the UpdateEventDao instance
+     */
+    public <T extends UpdateProcessImpl> UpdateProcessDao<T> getUpdateProcessDao( Class<T> entityType) {
+        UpdateProcessDao<T> updateProcessDao = getBean(UpdateProcessDaoImpl.class);
+        updateProcessDao.setEntityClass(entityType);
+
         return updateProcessDao;
+    }
+    public ProteinUpdateProcessDao getProteinUpdateProcessDao() {
+        return proteinUpdateProcessDao;
     }
 
     /**

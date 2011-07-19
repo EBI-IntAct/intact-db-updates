@@ -4,16 +4,20 @@ import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
-import uk.ac.ebi.intact.update.model.protein.update.*;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
 import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.EventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
@@ -260,8 +264,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return report;
     }
 
-    public UpdatedAnnotation createInvalidRangeAnnotation(){
-        UpdatedAnnotation feature = new UpdatedAnnotation();
+    public ProteinUpdateAnnotation createInvalidRangeAnnotation(){
+        ProteinUpdateAnnotation feature = new ProteinUpdateAnnotation();
 
         feature.setTopic(invalidRangeAc);
         feature.setText("2..3-7..8");
@@ -270,8 +274,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return feature;
     }
 
-    public UpdatedAnnotation createOutOfDateRangeAnnotation(){
-        UpdatedAnnotation feature = new UpdatedAnnotation();
+    public ProteinUpdateAnnotation createOutOfDateRangeAnnotation(){
+        ProteinUpdateAnnotation feature = new ProteinUpdateAnnotation();
 
         feature.setTopic(outOfDateRangeAc);
         feature.setText("2-8");
@@ -280,8 +284,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return feature;
     }
 
-    public UpdateProcess createUpdateProcess(){
-        UpdateProcess process = new UpdateProcess();
+    public ProteinUpdateProcess createUpdateProcess(){
+        ProteinUpdateProcess process = new ProteinUpdateProcess();
 
         process.setDate(new Date(System.currentTimeMillis()));
 
@@ -381,8 +385,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return invalid;
     }
 
-    public UpdatedAnnotation createDefaultUpdatedAnnotation(){
-        UpdatedAnnotation ann = new UpdatedAnnotation();
+    public ProteinUpdateAnnotation createDefaultUpdatedAnnotation(){
+        ProteinUpdateAnnotation ann = new ProteinUpdateAnnotation();
 
         ann.setStatus(UpdateStatus.added);
         ann.setTopic("EBI-xxxxx6");
@@ -391,8 +395,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return ann;
     }
 
-    public UpdatedCrossReference createDefaultUpdatedCrossReference(){
-        UpdatedCrossReference ref = new UpdatedCrossReference();
+    public ProteinUpdateCrossReference createDefaultUpdatedCrossReference(){
+        ProteinUpdateCrossReference ref = new ProteinUpdateCrossReference();
 
         ref.setStatus(UpdateStatus.added);
         ref.setDatabase("EBI-xxxxx7");
@@ -402,8 +406,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return ref;
     }
 
-    public UpdatedAlias createDefaultUpdatedAlias(){
-        UpdatedAlias al = new UpdatedAlias();
+    public ProteinUpdateAlias createDefaultUpdatedAlias(){
+        ProteinUpdateAlias al = new ProteinUpdateAlias();
 
         al.setStatus(UpdateStatus.added);
         al.setName("GP2");
@@ -415,8 +419,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
     public PersistentProteinEvent createDefaultProteinEvent(){
         PersistentProteinEvent event = new PersistentProteinEvent();
 
-        event.setName(EventName.uniprot_update);
-        event.setProteinAc("EBI-xx10xx10xx");
+        event.setProteinEventName(ProteinEventName.uniprot_update);
+        event.setIntactObjectAc("EBI-xx10xx10xx");
 
         return event;
     }
@@ -434,8 +438,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
     public DeadProteinEvent createDefaultDeadProteinEvent(){
         DeadProteinEvent proteinEvent = new DeadProteinEvent();
 
-        proteinEvent.setName(EventName.dead_protein);
-        proteinEvent.setProteinAc("EBI-xxxxx10");
+        proteinEvent.setProteinEventName(ProteinEventName.dead_protein);
+        proteinEvent.setIntactObjectAc("EBI-xxxxx10");
         proteinEvent.setUniprotReference("P12345");
 
         return proteinEvent;

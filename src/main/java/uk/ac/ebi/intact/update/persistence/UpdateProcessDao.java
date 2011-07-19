@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.persistence;
 
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateProcess;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,9 +15,9 @@ import java.util.List;
  * @since <pre>15/03/11</pre>
  */
 
-public interface UpdateProcessDao extends UpdateBaseDao<UpdateProcess>, Serializable {
+public interface UpdateProcessDao<T extends UpdateProcess> extends UpdateBaseDao<T>, Serializable {
 
-    public List<UpdateProcess> getAllUpdateProcessesByDate(Date date);
-    public List<UpdateProcess> getAllUpdateProcessesBeforeDate(Date date);
-    public List<UpdateProcess> getAllUpdateProcessesAfterDate(Date date);
+    public List<T> getAllUpdateProcessesByDate(Date date);
+    public List<T> getAllUpdateProcessesBeforeDate(Date date);
+    public List<T> getAllUpdateProcessesAfterDate(Date date);
 }

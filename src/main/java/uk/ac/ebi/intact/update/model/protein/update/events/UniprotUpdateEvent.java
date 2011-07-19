@@ -2,7 +2,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -30,15 +31,15 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
         this.updatedFullName = null;
     }
 
-    public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String shortlabel, String fullname, String uniprotEntry){
-        super(updateProcess, EventName.uniprot_update, protein);
+    public UniprotUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String shortlabel, String fullname, String uniprotEntry){
+        super(updateProcess, ProteinEventName.uniprot_update, protein);
         this.updatedShortLabel = shortlabel;
         this.updatedFullName = fullname;
         this.uniprotEntry = uniprotEntry;
     }
 
-        public UniprotUpdateEvent(UpdateProcess updateProcess, Protein protein, String uniprotEntry){
-        super(updateProcess, EventName.uniprot_update, protein);
+        public UniprotUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotEntry){
+        super(updateProcess, ProteinEventName.uniprot_update, protein);
         this.updatedShortLabel = null;
         this.updatedFullName = null;
         this.uniprotEntry = uniprotEntry;

@@ -2,7 +2,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -30,8 +31,8 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
     }
 
-    public SecondaryProteinEvent(UpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc){
-        super(updateProcess, EventName.secondary_protein, protein);
+    public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc){
+        super(updateProcess, ProteinEventName.secondary_protein, protein);
         this.primaryAc = primaryAc;
         this.secondaryAc = secondaryAc;
     }

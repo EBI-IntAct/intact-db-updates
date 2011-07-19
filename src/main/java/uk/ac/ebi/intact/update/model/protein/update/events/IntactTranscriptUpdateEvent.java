@@ -3,7 +3,8 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.update.model.protein.update.UpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -28,8 +29,8 @@ public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
         super();
     }
 
-    public IntactTranscriptUpdateEvent(UpdateProcess updateProcess, Protein transcript, String message, String newParentAc ){
-        super(updateProcess, EventName.transcript_parent_update, transcript, message);
+    public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String message, String newParentAc ){
+        super(updateProcess, ProteinEventName.transcript_parent_update, transcript, message);
         this.newParentAc = newParentAc;
         this.message = message;
         this.oldParentAcs = new ArrayList<String>();
