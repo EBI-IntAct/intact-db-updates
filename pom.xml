@@ -11,7 +11,7 @@
     <artifactId>intact-update-model</artifactId>
     <version>2.1.3-SNAPSHOT</version>
 
-    <proteinEventName>IntAct Database Update :: intact-update-model</proteinEventName>
+    <name>IntAct Database Update :: intact-update-model</name>
     <description>Persistence model for intactProtein update</description>
 
     <properties>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.dbupdate</groupId>
             <artifactId>intact-proteins-update</artifactId>
-            <version>${pom.version}</version>
+            <version>${pom.parent.version}</version>
         </dependency>
 
         <!--spring-->
