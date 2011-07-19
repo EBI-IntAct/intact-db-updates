@@ -4,13 +4,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
-import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
+import uk.ac.ebi.intact.update.model.*;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.persistence.impl.UpdateEventDaoImpl;
-import uk.ac.ebi.intact.update.persistence.impl.UpdateProcessDaoImpl;
+import uk.ac.ebi.intact.update.persistence.impl.*;
 import uk.ac.ebi.intact.update.persistence.protein.*;
 import uk.ac.ebi.intact.update.persistence.protein.impl.MappingReportDaoImpl;
 import uk.ac.ebi.intact.update.persistence.protein.impl.ProteinEventDaoImpl;
@@ -200,8 +198,30 @@ public class UpdateDaoFactory implements Serializable{
 
         return updateProcessDao;
     }
+
     public ProteinUpdateProcessDao getProteinUpdateProcessDao() {
         return proteinUpdateProcessDao;
+    }
+
+    public <T extends UpdatedAnnotation> UpdatedAnnotationDao<T> getUpdatedAnnotationDao( Class<T> entityType) {
+        UpdatedAnnotationDao<T> updatedAnnotationDao = getBean(UpdatedAnnotationDaoImpl.class);
+        updatedAnnotationDao.setEntityClass(entityType);
+
+        return updatedAnnotationDao;
+    }
+
+    public <T extends UpdatedCrossReference> UpdatedCrossReferenceDao<T> getUpdatedAnnotationDao( Class<T> entityType) {
+        UpdatedCrossReferenceDao<T> updatedCrossReferenceDao = getBean(UpdatedCrossReferenceDaoImpl.class);
+        updatedCrossReferenceDao.setEntityClass(entityType);
+
+        return updatedCrossReferenceDao;
+    }
+
+    public <T extends UpdatedAlias> UpdatedAliasDao<T> getUpdatedAliasDao( Class<T> entityType) {
+        UpdatedAliasDao<T> updatedAliasDao = getBean(UpdatedAliasDaoImpl.class);
+        updatedAliasDao.setEntityClass(entityType);
+
+        return updatedAliasDao;
     }
 
     /**
