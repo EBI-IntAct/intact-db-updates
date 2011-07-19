@@ -127,7 +127,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
 
         if (proteinEventName == null && getName() != null){
             try{
-                this.proteinEventName = ProteinEventName.valueOf(getName());
+                this.proteinEventName = ProteinEventName.valueOf(getName().toLowerCase());
             }
             catch (Exception e) {
                 this.proteinEventName = ProteinEventName.none;
