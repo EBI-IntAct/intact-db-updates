@@ -53,7 +53,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, ProteinEventName.deleted_protein, protein, evt.getMessage());
+        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.deleted_protein, protein, evt.getUniprotIdentity());
+        proteinEvt.setMessage(evt.getMessage());
 
         // all aliases deleted
         for (InteractorAlias alias : protein.getAliases()){
@@ -68,7 +69,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.deleted));
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -151,7 +152,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, ProteinEventName.created_protein, protein, evt.getMessage());
+        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.created_protein, protein, evt.getUniprotIdentity());
+        proteinEvt.setMessage(evt.getMessage());
 
         // all aliases deleted
         for (InteractorAlias alias : protein.getAliases()){
@@ -166,7 +168,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.added));
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
 
     @Override
@@ -200,9 +202,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         Protein protein = evt.getProtein();
 
-        ProteinEventWithMessage proteinEvt = new ProteinEventWithMessage(this.updateProcess, ProteinEventName.non_uniprot_protein, protein, evt.getMessage());
+        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.non_uniprot_protein, protein);
+        proteinEvt.setMessage(evt.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(ProteinEventWithMessage.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
 
     @Override

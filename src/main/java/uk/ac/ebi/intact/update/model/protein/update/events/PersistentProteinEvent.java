@@ -30,10 +30,13 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
 
     String uniprotAc;
 
+    String message;
+
     public PersistentProteinEvent(){
         super();
         this.proteinEventName = null;
         this.uniprotAc = null;
+        this.message = null;
     }
 
     public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein){
@@ -47,6 +50,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         else {
             this.uniprotAc = null;
         }
+        this.message = null;
     }
 
     public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein, String uniprotAc){
@@ -54,6 +58,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         this.proteinEventName = name;
 
         this.uniprotAc = uniprotAc;
+        this.message = null;
     }
 
     public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, String proteinAc){
@@ -61,6 +66,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         this.proteinEventName = name;
 
         this.uniprotAc = null;
+        this.message = null;
     }
 
     public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, String proteinAc, String uniprotAc){
@@ -68,6 +74,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         this.proteinEventName = name;
 
         this.uniprotAc = uniprotAc;
+        this.message = null;
     }
 
     @Override
@@ -149,6 +156,24 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         return super.getParent();
     }
 
+    @Column(name = "message")
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    @Column(name = "uniprot_ac")
+    public String getUniprotAc() {
+        return uniprotAc;
+    }
+
+    public void setUniprotAc(String uniprotAc) {
+        this.uniprotAc = uniprotAc;
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
@@ -163,6 +188,24 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
             }
         }
         else if (event.getProteinEventName()!= null){
+            return false;
+        }
+
+        if ( message != null ) {
+            if (!message.equals( event.getMessage())){
+                return false;
+            }
+        }
+        else if (event.getMessage()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
             return false;
         }
 
@@ -186,6 +229,14 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
             code = 29 * code + proteinEventName.hashCode();
         }
 
+        if ( message != null ) {
+            code = 29 * code + message.hashCode();
+        }
+
+        if ( uniprotAc != null ) {
+            code = 29 * code + uniprotAc.hashCode();
+        }
+
         return code;
     }
 
@@ -207,6 +258,37 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
             return false;
         }
 
+        if ( message != null ) {
+            if (!message.equals( event.getMessage())){
+                return false;
+            }
+        }
+        else if (event.getMessage()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
         return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+
+        buffer.append(super.toString() + "\n");
+
+        buffer.append("Uniprot ac : " + uniprotAc != null ? uniprotAc : "none");
+        buffer.append("Message : " + message != null ? message : "none");
+        buffer.append(" \n");
+
+        return buffer.toString();
     }
 }

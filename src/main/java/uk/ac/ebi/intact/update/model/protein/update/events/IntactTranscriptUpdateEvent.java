@@ -20,20 +20,19 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("IntactTranscriptUpdateEvent")
-public class IntactTranscriptUpdateEvent extends ProteinEventWithMessage{
+public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
-    Collection<String> oldParentAcs;
-    String newParentAc;
+    private Collection<String> oldParentAcs = new ArrayList<String>();
+    private String newParentAc;
 
     public IntactTranscriptUpdateEvent(){
         super();
     }
 
-    public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String message, String newParentAc ){
-        super(updateProcess, ProteinEventName.transcript_parent_update, transcript, message);
+    public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String uniprotAc, String message, String newParentAc ){
+        super(updateProcess, ProteinEventName.transcript_parent_update, transcript, uniprotAc);
         this.newParentAc = newParentAc;
-        this.message = message;
-        this.oldParentAcs = new ArrayList<String>();
+        setMessage(message);
     }
 
     @ElementCollection

@@ -19,23 +19,19 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProcessErrorEvent")
-public class ProcessErrorEvent extends ProteinEventWithMessage{
+public class ProcessErrorEvent extends PersistentProteinEvent{
 
     private String type;
-
-    private String uniprotAc;
 
     public ProcessErrorEvent(){
         super();
         this.type = null;
-        this.message = null;
-        this.uniprotAc = null;
     }
 
-    public ProcessErrorEvent(ProteinUpdateProcess updateProcess, Protein protein, String type, String message, String uniprotAc ){
-        super(updateProcess, ProteinEventName.update_error, protein, message);
+    public ProcessErrorEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotAc, String type, String message ){
+        super(updateProcess, ProteinEventName.update_error, protein, uniprotAc);
         this.type = type;
-        this.uniprotAc = uniprotAc;
+        setMessage(message);
     }
 
     @Column(name = "error_type")
@@ -45,15 +41,6 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Column(name = "uniprot_ac")
-    public String getUniprotAc() {
-        return uniprotAc;
-    }
-
-    public void setUniprotAc(String uniprotAc) {
-        this.uniprotAc = uniprotAc;
     }
 
     @Override
@@ -70,15 +57,6 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
             }
         }
         else if (event.getType()!= null){
-            return false;
-        }
-
-        if ( uniprotAc != null ) {
-            if (!uniprotAc.equals( event.getUniprotAc())){
-                return false;
-            }
-        }
-        else if (event.getUniprotAc()!= null){
             return false;
         }
 
@@ -102,10 +80,6 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
             code = 29 * code + type.hashCode();
         }
 
-        if ( uniprotAc != null ) {
-            code = 29 * code + uniprotAc.hashCode();
-        }
-
         return code;
     }
 
@@ -127,15 +101,6 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
             return false;
         }
 
-        if ( uniprotAc != null ) {
-            if (!uniprotAc.equals( event.getUniprotAc())){
-                return false;
-            }
-        }
-        else if (event.getUniprotAc()!= null){
-            return false;
-        }
-
         return true;
     }
 
@@ -145,8 +110,7 @@ public class ProcessErrorEvent extends ProteinEventWithMessage{
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Process error event : [uniprot ac = " + uniprotAc != null ? uniprotAc : "none");
-        buffer.append("error type = "+type != null ? type : "none"+"] \n");
+        buffer.append("Process error event : [type= " + (type != null ? type : "none") + "]");
 
         return buffer.toString();
     }
