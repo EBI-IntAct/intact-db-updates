@@ -19,17 +19,17 @@ public abstract class UpdateProcessImpl<T extends UpdateEvent> extends Hibernate
 
     private Date date;
     private String userStamp;
-    private UpdateName updateName;
+    private UpdateProcessName updateName;
     protected Collection<T> updateEvents = new ArrayList<T>();
 
     public UpdateProcessImpl(){
         super();
         this.date = null;
         this.userStamp = null;
-        this.updateName = UpdateName.none;
+        this.updateName = UpdateProcessName.none;
     }
 
-    public UpdateProcessImpl(Date date, String userStamp, UpdateName updateName){
+    public UpdateProcessImpl(Date date, String userStamp, UpdateProcessName updateName){
         super();
         this.date = date;
         this.userStamp = userStamp;
@@ -52,7 +52,7 @@ public abstract class UpdateProcessImpl<T extends UpdateEvent> extends Hibernate
     @Override
     @Column(name = "name", nullable = false)
     @Enumerated(EnumType.STRING)
-    public UpdateName getUpdateName() {
+    public UpdateProcessName getUpdateName() {
         return this.updateName;
     }
 
@@ -66,7 +66,7 @@ public abstract class UpdateProcessImpl<T extends UpdateEvent> extends Hibernate
         this.date = date;
     }
 
-    public void setUpdateName(UpdateName updateName) {
+    public void setUpdateName(UpdateProcessName updateName) {
         this.updateName = updateName;
     }
 

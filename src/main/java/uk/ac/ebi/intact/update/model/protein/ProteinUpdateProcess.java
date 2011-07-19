@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.update.model.UpdateName;
+import uk.ac.ebi.intact.update.model.UpdateProcessName;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
@@ -27,12 +27,12 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
     public ProteinUpdateProcess(){
         super();
         setDate(new Date(System.currentTimeMillis()));
-        setUpdateName(UpdateName.protein_update);
+        setUpdateName(UpdateProcessName.protein_update);
         setUserStamp("PROTEIN_UPDATE_RUNNER");
     }
 
     public ProteinUpdateProcess(Date date, String userStamp){
-        super(date, userStamp, UpdateName.protein_update);
+        super(date, userStamp, UpdateProcessName.protein_update);
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )

@@ -28,7 +28,7 @@ public interface UpdateProcess<T extends UpdateEvent> extends HibernateUpdatePer
      *
      * @return the name of the update process
      */
-    public UpdateName getUpdateName();
+    public UpdateProcessName getUpdateName();
 
     /**
      *
