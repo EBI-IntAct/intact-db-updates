@@ -210,7 +210,7 @@ public class UpdateDaoFactory implements Serializable{
         return updatedAnnotationDao;
     }
 
-    public <T extends UpdatedCrossReference> UpdatedCrossReferenceDao<T> getUpdatedAnnotationDao( Class<T> entityType) {
+    public <T extends UpdatedCrossReference> UpdatedCrossReferenceDao<T> getUpdatedCrossReferenceDao( Class<T> entityType) {
         UpdatedCrossReferenceDao<T> updatedCrossReferenceDao = getBean(UpdatedCrossReferenceDaoImpl.class);
         updatedCrossReferenceDao.setEntityClass(entityType);
 
