@@ -123,7 +123,11 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        DeadProteinEvent proteinEvt = new DeadProteinEvent(this.updateProcess, protein, evt.getUniprotIdentityXref());
+        String identity = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : null;
+
+        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.dead_protein, protein, identity);
+
+        proteinEvt.addUpdatedXRef(new ProteinUpdateCrossReference(evt.getUniprotIdentityXref(), UpdateStatus.updated));
 
         // all xrefs deleted
         for (InteractorXref xref : evt.getDeletedXrefs()){
@@ -134,7 +138,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.added));
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DeadProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
 
     @Override

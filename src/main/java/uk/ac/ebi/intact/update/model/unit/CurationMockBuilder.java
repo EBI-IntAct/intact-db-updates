@@ -12,12 +12,11 @@ import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRRepor
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
-import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
@@ -435,12 +434,12 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return event;
     }
 
-    public DeadProteinEvent createDefaultDeadProteinEvent(){
-        DeadProteinEvent proteinEvent = new DeadProteinEvent();
+    public PersistentProteinEvent createDefaultDeadProteinEvent(){
+        PersistentProteinEvent proteinEvent = new PersistentProteinEvent();
 
         proteinEvent.setProteinEventName(ProteinEventName.dead_protein);
         proteinEvent.setIntactObjectAc("EBI-xxxxx10");
-        proteinEvent.setUniprotReference("P12345");
+        proteinEvent.setUniprotAc("P12345");
 
         return proteinEvent;
     }

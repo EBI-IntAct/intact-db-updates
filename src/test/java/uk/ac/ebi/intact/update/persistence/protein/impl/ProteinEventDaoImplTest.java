@@ -4,7 +4,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.protein.ProteinEventDao;
@@ -26,12 +25,12 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
 
         PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
-        DeadProteinEvent evt2 = getMockBuilder().createDefaultDeadProteinEvent();
+        PersistentProteinEvent evt2 = getMockBuilder().createDefaultDeadProteinEvent();
         eventDao.persist(evt);
         eventDao.persist(evt2);
 
         Assert.assertEquals(2, eventDao.countAll());
-        Assert.assertEquals(1, getUpdateDaoFactory().getProteinEventDao(DeadProteinEvent.class).countAll());
+        Assert.assertEquals(1, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).getAllProteinEventsByName(evt.getProteinEventName()).size());
     }
 
     @Test
