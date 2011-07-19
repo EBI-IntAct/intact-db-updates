@@ -13,7 +13,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "ia_protein_alias")
-public class UpdatedAlias extends HibernatePersistentImpl {
+public class UpdatedAlias extends HibernateUpdatePersistentImpl {
 
     private String type;
     private String name;

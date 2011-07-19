@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.update.events.range;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
@@ -22,7 +22,7 @@ import java.util.Collection;
 @DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
 @DiscriminatorValue("PersistentUpdatedRange")
 @Table(name = "ia_updated_range")
-public class PersistentUpdatedRange extends HibernatePersistentImpl {
+public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
     private String oldPositions;
     private String newPositions;
     private String oldSequence;

@@ -10,11 +10,11 @@ import javax.persistence.*;
  * @since <pre>19-Oct-2010</pre>
  */
 @MappedSuperclass
-public abstract class HibernatePersistentImpl implements HibernatePersistent {
+public abstract class HibernateUpdatePersistentImpl implements HibernateUpdatePersistent {
 
     private long id;
 
-    public HibernatePersistentImpl(){
+    public HibernateUpdatePersistentImpl(){
     }
     /**
      *
@@ -40,11 +40,11 @@ public abstract class HibernatePersistentImpl implements HibernatePersistent {
         if ( this == o ) {
             return true;
         }
-        if ( !( o instanceof HibernatePersistentImpl ) ) {
+        if ( !( o instanceof HibernateUpdatePersistentImpl) ) {
             return false;
         }
 
-        final HibernatePersistentImpl persistent = ( HibernatePersistentImpl ) o;
+        final HibernateUpdatePersistentImpl persistent = (HibernateUpdatePersistentImpl) o;
 
         if ( id != persistent.getId() ) {
             return false;
@@ -75,7 +75,7 @@ public abstract class HibernatePersistentImpl implements HibernatePersistent {
         if ( this == o ) {
             return true;
         }
-        if ( !( o instanceof HibernatePersistentImpl ) ) {
+        if ( !( o instanceof HibernateUpdatePersistentImpl) ) {
             return false;
         }
 

@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @MappedSuperclass
-public class UpdatedAnnotation extends HibernatePersistentImpl {
+public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
     private String topic;
     private String text;

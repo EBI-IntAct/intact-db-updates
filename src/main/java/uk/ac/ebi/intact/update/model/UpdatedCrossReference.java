@@ -12,7 +12,7 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @MappedSuperclass
-public class UpdatedCrossReference extends HibernatePersistentImpl{
+public class UpdatedCrossReference extends HibernateUpdatePersistentImpl {
 
     private String database;
     private String identifier;

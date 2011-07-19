@@ -5,7 +5,7 @@ import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 
 import javax.persistence.*;
@@ -26,7 +26,7 @@ import java.util.Set;
 @DiscriminatorColumn(name="objclass", discriminatorType= DiscriminatorType.STRING, length = 100)
 @DiscriminatorValue("PersistentMappingReport")
 @Table( name = "ia_mapping_report" )
-public class PersistentMappingReport extends HibernatePersistentImpl implements MappingReport {
+public class PersistentMappingReport extends HibernateUpdatePersistentImpl implements MappingReport {
 
     /**
      * the name of the action

@@ -15,7 +15,7 @@ import java.util.Date;
  * @since <pre>18/07/11</pre>
  */
 @MappedSuperclass
-public abstract class UpdateProcessImpl<T extends UpdateEvent> extends HibernatePersistentImpl implements UpdateProcess<T>{
+public abstract class UpdateProcessImpl<T extends UpdateEvent> extends HibernateUpdatePersistentImpl implements UpdateProcess<T>{
 
     private Date date;
     private String userStamp;

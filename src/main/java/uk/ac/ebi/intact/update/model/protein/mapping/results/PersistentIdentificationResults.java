@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 
 import javax.persistence.*;
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Entity
 @Table( name = "ia_mapping_result" )
-public class PersistentIdentificationResults extends HibernatePersistentImpl implements IdentificationResults<PersistentMappingReport>{
+public class PersistentIdentificationResults extends HibernateUpdatePersistentImpl implements IdentificationResults<PersistentMappingReport>{
 
     /**
      * the unique uniprot id identifying the protein

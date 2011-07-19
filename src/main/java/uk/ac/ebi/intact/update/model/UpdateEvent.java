@@ -18,7 +18,7 @@ import java.util.Collection;
  * @since <pre>18/07/11</pre>
  */
 @MappedSuperclass
-public abstract class UpdateEvent<T extends UpdatedAlias, X extends UpdatedCrossReference, A extends UpdatedAnnotation> extends HibernatePersistentImpl implements Serializable {
+public abstract class UpdateEvent<T extends UpdatedAlias, X extends UpdatedCrossReference, A extends UpdatedAnnotation> extends HibernateUpdatePersistentImpl implements Serializable {
 
     String name;
 

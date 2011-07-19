@@ -7,7 +7,7 @@ import org.hibernate.ejb.HibernateEntityManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import javax.persistence.EntityManager;
@@ -24,7 +24,7 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public abstract class UpdateBaseDaoImpl<T extends HibernatePersistentImpl> implements UpdateBaseDao<T> {
+public abstract class UpdateBaseDaoImpl<T extends HibernateUpdatePersistentImpl> implements UpdateBaseDao<T> {
 
     /**
      * The entity maneger

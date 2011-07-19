@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
 
 import javax.persistence.*;
@@ -18,7 +18,7 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "ia_picr_xrefs")
-public class PersistentPICRCrossReferences extends HibernatePersistentImpl implements PICRCrossReferences {
+public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl implements PICRCrossReferences {
 
     /**
      * The database name returned by PICR

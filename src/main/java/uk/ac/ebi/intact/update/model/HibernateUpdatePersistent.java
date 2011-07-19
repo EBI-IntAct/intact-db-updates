@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @since <pre>20-May-2010</pre>
  */
 
-public interface HibernatePersistent extends Serializable {
+public interface HibernateUpdatePersistent extends Serializable {
 
     /**
      *

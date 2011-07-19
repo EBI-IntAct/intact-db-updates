@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.mapping.results;
 import uk.ac.ebi.intact.bridges.ncbiblast.model.BlastProtein;
 import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.update.model.HibernatePersistentImpl;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 
 import javax.persistence.*;
@@ -17,7 +17,7 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "ia_blast_results")
-public class PersistentBlastResults extends HibernatePersistentImpl implements BlastResults{
+public class PersistentBlastResults extends HibernateUpdatePersistentImpl implements BlastResults{
 
     private BlastProtein blastProtein;
 
