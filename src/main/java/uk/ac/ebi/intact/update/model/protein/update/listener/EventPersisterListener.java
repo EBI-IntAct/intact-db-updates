@@ -6,7 +6,6 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
@@ -19,11 +18,13 @@ import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
-import uk.ac.ebi.intact.update.model.protein.update.events.*;
+import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.SequenceUpdateEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
-import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 
@@ -233,12 +234,12 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             PersistentUpdatedRange persistentEvt = new PersistentUpdatedRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, oldRange.getFullSequence(), newRange.getFullSequence(), oldRangePositions, newRangePositions);
 
-            AnnotationUpdateReport annotationReport = updatedRange.getUpdatedAnnotations();
+            /*AnnotationUpdateReport annotationReport = updatedRange.getUpdatedAnnotations();
 
             if (annotationReport != null){
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            }
+            }*/
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
         }
@@ -265,12 +266,12 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             PersistentInvalidRange persistentEvt = new PersistentInvalidRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, currentRange.getFullSequence(), null, fromStatus, toStatus, oldRangePositions, null, errorMessage, -1);
 
-            AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
+            /*AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
 
             if (annotationReport != null){
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            }
+            }*/
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
         }
@@ -301,12 +302,12 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             PersistentInvalidRange persistentEvt = new PersistentInvalidRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, currentRange.getFullSequence(), invalidNewRange.getFullSequence(), fromStatus, toStatus, oldRangePositions, newRangePositions, errorMessage, sequenceVersion);
 
-            AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
+            /*AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
 
             if (annotationReport != null){
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
                 persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            }
+            } */
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
         }
