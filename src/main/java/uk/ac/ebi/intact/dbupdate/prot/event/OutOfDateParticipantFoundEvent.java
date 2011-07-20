@@ -29,7 +29,7 @@ public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
         this.invalidRangeReport = invalidReport;
         this.proteinWithConflicts = protein;
         this.validParentAc = validParentAc;
-        this.remappedProteinAc = remappedProteinAc;
+        this.remappedProteinAc = null;
     }
 
     public Collection<Component> getComponentsToFix() {
