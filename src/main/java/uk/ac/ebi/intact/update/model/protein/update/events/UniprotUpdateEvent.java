@@ -23,7 +23,7 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
     String updatedShortLabel;
     String updatedFullName;
-    String uniprotEntry;
+    String uniprotQuery;
 
     public UniprotUpdateEvent(){
         super();
@@ -35,14 +35,14 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
         super(updateProcess, ProteinEventName.uniprot_update, protein);
         this.updatedShortLabel = shortlabel;
         this.updatedFullName = fullname;
-        this.uniprotEntry = uniprotEntry;
+        this.uniprotQuery = uniprotEntry;
     }
 
         public UniprotUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotEntry){
         super(updateProcess, ProteinEventName.uniprot_update, protein);
         this.updatedShortLabel = null;
         this.updatedFullName = null;
-        this.uniprotEntry = uniprotEntry;
+        this.uniprotQuery = uniprotEntry;
     }
 
     @Column(name = "shortlabel")
@@ -64,12 +64,12 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
     }
 
     @Column(name = "uniprot")
-    public String getUniprotEntry() {
-        return uniprotEntry;
+    public String getUniprotQuery() {
+        return uniprotQuery;
     }
 
-    public void setUniprotEntry(String uniprot) {
-        this.uniprotEntry = uniprot;
+    public void setUniprotQuery(String uniprot) {
+        this.uniprotQuery = uniprot;
     }
 
     @Override
@@ -98,12 +98,12 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
             return false;
         }
 
-        if ( uniprotEntry != null ) {
-            if (!uniprotEntry.equals( event.getUniprotEntry())){
+        if ( uniprotQuery != null ) {
+            if (!uniprotQuery.equals( event.getUniprotQuery())){
                 return false;
             }
         }
-        else if (event.getUniprotEntry()!= null){
+        else if (event.getUniprotQuery()!= null){
             return false;
         }
 
@@ -131,8 +131,8 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
             code = 29 * code + updatedFullName.hashCode();
         }
 
-        if ( uniprotEntry != null ) {
-            code = 29 * code + uniprotEntry.hashCode();
+        if ( uniprotQuery != null ) {
+            code = 29 * code + uniprotQuery.hashCode();
         }
 
         return code;
@@ -165,12 +165,12 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
             return false;
         }
 
-        if ( uniprotEntry != null ) {
-            if (!uniprotEntry.equals( event.getUniprotEntry())){
+        if ( uniprotQuery != null ) {
+            if (!uniprotQuery.equals( event.getUniprotQuery())){
                 return false;
             }
         }
-        else if (event.getUniprotEntry()!= null){
+        else if (event.getUniprotQuery()!= null){
             return false;
         }
 
@@ -183,7 +183,7 @@ public class UniprotUpdateEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Uniprot update event : [ shortlabel = " + updatedShortLabel != null ? updatedShortLabel : "none" + ", fullname = " + updatedFullName != null ? updatedFullName : "none" + ", uniprot query = " + uniprotEntry != null ? uniprotEntry : "none");
+        buffer.append("Uniprot update event : [ shortlabel = " + updatedShortLabel != null ? updatedShortLabel : "none" + ", fullname = " + updatedFullName != null ? updatedFullName : "none" + ", uniprot query = " + uniprotQuery != null ? uniprotQuery : "none");
 
         return buffer.toString();
     }
