@@ -3,8 +3,9 @@ package uk.ac.ebi.intact.update.persistence.protein.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.protein.UpdatedRangeDao;
 
@@ -73,8 +74,13 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         updatedRangeDao.persist(range);
 
+        UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
+        proteinEvent.addRangeUpdate(range);
+
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
+
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addRangeUpdate(range);
+        process.addEvent(proteinEvent);
 
         getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
@@ -93,19 +99,6 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
-    public void search_by_range_having_featureAnnotations(){
-        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
-
-        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
-
-        Assert.assertEquals(1, range.getFeatureAnnotations().size());
-
-        updatedRangeDao.persist(range);
-
-        Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesHavingUpdatedFeatureAnnotations().size());
-    }
-
-    @Test
     public void search_by_rangeAc_component_Ac_process_id_and_date(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -116,8 +109,13 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         updatedRangeDao.persist(range);
 
+        UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
+        proteinEvent.addRangeUpdate(range);
+
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
+
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addRangeUpdate(range);
+        process.addEvent(proteinEvent);
 
         getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
@@ -131,28 +129,6 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
-    public void search_by_range_having_featureAnnotations_date(){
-        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
-
-        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
-
-        Assert.assertEquals(1, range.getFeatureAnnotations().size());
-
-        updatedRangeDao.persist(range);
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addRangeUpdate(range);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
-
-        Long id = process.getId();
-        Date date = process.getDate();
-
-        Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesHavingUpdatedFeatureAnnotations(id).size());
-        Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesHavingUpdatedFeatureAnnotations(date).size());
-    }
-
-    @Test
     public void search_by_rangeAc_component_Ac_process_date(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -163,8 +139,13 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         updatedRangeDao.persist(range);
 
+        UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
+        proteinEvent.addRangeUpdate(range);
+
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
+
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addRangeUpdate(range);
+        process.addEvent(proteinEvent);
 
         getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
@@ -177,29 +158,5 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesByRangeAcAndAfterDate(rangeAc, oldDate).size());
         Assert.assertEquals(0, updatedRangeDao.getUpdatedRangesByComponentAcAndBeforeDate(componentAc, oldDate).size());
         Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesByComponentAcAndAfterDate(componentAc, oldDate).size());
-    }
-
-    @Test
-    public void search_by_range_having_featureAnnotations_process_id_and_date(){
-        UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
-
-        PersistentUpdatedRange range = getMockBuilder().createInvalidRange();
-
-        Assert.assertEquals(1, range.getFeatureAnnotations().size());
-
-        updatedRangeDao.persist(range);
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addRangeUpdate(range);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
-
-        Date date = process.getDate();
-
-        Date oldDate = new Date(1);
-        Assert.assertTrue(oldDate.before(date));
-
-        Assert.assertEquals(0, updatedRangeDao.getUpdatedRangesHavingUpdatedFeatureAnnotationsBefore(oldDate).size());
-        Assert.assertEquals(1, updatedRangeDao.getUpdatedRangesHavingUpdatedFeatureAnnotationsAfter(oldDate).size());
     }
 }

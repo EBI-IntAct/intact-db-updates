@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.update.model.*;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.impl.*;
 import uk.ac.ebi.intact.update.persistence.protein.*;
 import uk.ac.ebi.intact.update.persistence.protein.impl.MappingReportDaoImpl;

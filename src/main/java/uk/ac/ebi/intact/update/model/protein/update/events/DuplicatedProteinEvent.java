@@ -2,8 +2,12 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
+import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
@@ -29,6 +33,9 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
     private Collection<String> movedInteractions;
 
     private Collection<String> updatedTranscripts;
+
+    private Collection<FeatureUpdatedAnnotation> updatedFeatureAnnotations = new ArrayList<FeatureUpdatedAnnotation>();
+    private Collection<PersistentUpdatedRange> updatedRanges = new ArrayList<PersistentUpdatedRange>();
 
     public DuplicatedProteinEvent(){
         super();
@@ -103,6 +110,50 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         }
     }
 
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<FeatureUpdatedAnnotation> getUpdatedFeatureAnnotations(){
+        return updatedFeatureAnnotations;
+    }
+
+    public void addUpdatedFeatureAnnotationFromAnnotation(String featureAc, Collection<Annotation> updatedAnn, UpdateStatus status){
+        for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
+
+            FeatureUpdatedAnnotation annotation = new FeatureUpdatedAnnotation(featureAc, a, status);
+            this.updatedFeatureAnnotations.add(annotation);
+        }
+    }
+
+    public void setUpdatedFeatureAnnotations(Collection<FeatureUpdatedAnnotation> updatedFeatureAnnotations) {
+        this.updatedFeatureAnnotations = updatedFeatureAnnotations;
+    }
+
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<PersistentUpdatedRange> getUpdatedRanges(){
+        return updatedRanges;
+    }
+
+    public void setUpdatedRanges(Collection<PersistentUpdatedRange> updatedRanges) {
+        this.updatedRanges = updatedRanges;
+    }
+
+    public boolean addRangeUpdate(PersistentUpdatedRange up){
+        if (updatedRanges.add(up)){
+            up.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeRangeUpdate(PersistentUpdatedRange up){
+        if (updatedRanges.remove(up)){
+            up.setParent(null);
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
@@ -121,11 +172,11 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         }
 
         if (neededSequenceUpdate != event.isSequenceUpdate()){
-             return false;
+            return false;
         }
 
         if (isMergeSuccessful() != event.isMergeSuccessful()){
-             return false;
+            return false;
         }
 
         return true;
@@ -173,14 +224,22 @@ public class DuplicatedProteinEvent extends PersistentProteinEvent {
         }
 
         if (neededSequenceUpdate != event.isSequenceUpdate()){
-             return false;
+            return false;
         }
 
         if (isMergeSuccessful() != event.isMergeSuccessful()){
-             return false;
+            return false;
         }
 
         if (!CollectionUtils.isEqualCollection(this.movedInteractions, event.getMovedInteractions())){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(this.updatedFeatureAnnotations, event.getUpdatedFeatureAnnotations())){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(this.updatedRanges, event.getUpdatedRanges())){
             return false;
         }
 

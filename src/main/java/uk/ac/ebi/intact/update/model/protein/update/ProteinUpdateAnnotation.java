@@ -1,8 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein.update;
 
 import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
@@ -27,5 +29,12 @@ public class ProteinUpdateAnnotation extends UpdatedAnnotation {
 
     public ProteinUpdateAnnotation(Annotation annotation, UpdateStatus status){
         super(annotation, status);
+    }
+
+        @Override
+    @ManyToOne( targetEntity = PersistentProteinEvent.class )
+    @JoinColumn( name = "event_id" )
+    public UpdateEvent getParent() {
+        return super.getParent();
     }
 }

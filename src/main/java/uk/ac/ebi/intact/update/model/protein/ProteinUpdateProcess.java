@@ -1,14 +1,11 @@
 package uk.ac.ebi.intact.update.model.protein;
 
-import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.update.model.UpdateProcessName;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
+import uk.ac.ebi.intact.update.model.UpdateProcessName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.Date;
 
 /**
@@ -19,10 +16,8 @@ import java.util.Date;
  * @since <pre>14/03/11</pre>
  */
 @Entity
-@Table(name = "ia_update_process")
+@Table(name = "ia_protein_update_process")
 public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEvent>{
-
-    private Collection<PersistentUpdatedRange> rangeUpdates = new ArrayList<PersistentUpdatedRange>();
 
     public ProteinUpdateProcess(){
         super();
@@ -33,44 +28,5 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
 
     public ProteinUpdateProcess(Date date, String userStamp){
         super(date, userStamp, UpdateProcessName.protein_update);
-    }
-
-    @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<PersistentUpdatedRange> getRangeUpdates() {
-        return rangeUpdates;
-    }
-
-    public void setRangeUpdates(Collection<PersistentUpdatedRange> rangeUpdates) {
-        this.rangeUpdates = rangeUpdates;
-    }
-
-    public boolean addRangeUpdate(PersistentUpdatedRange up){
-        if (rangeUpdates.add(up)){
-            up.setParent(this);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean removeRangeUpdate(PersistentUpdatedRange up){
-        if (rangeUpdates.remove(up)){
-            up.setParent(null);
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean isIdenticalTo(Object o){
-
-        if (!super.isIdenticalTo(o)){
-            return false;
-        }
-
-        final ProteinUpdateProcess process = (ProteinUpdateProcess) o;
-
-        return CollectionUtils.isEqualCollection(rangeUpdates, process.getRangeUpdates());
     }
 }

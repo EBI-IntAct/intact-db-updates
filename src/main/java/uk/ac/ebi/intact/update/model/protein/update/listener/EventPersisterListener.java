@@ -7,10 +7,10 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
-import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.FeatureUtils;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.InteractorAlias;
+import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
@@ -22,8 +22,6 @@ import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEven
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.SequenceUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
@@ -216,101 +214,14 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-        UpdatedRange updatedRange = evt.getUpdatedRange();
-
-        Range oldRange = updatedRange.getOldRange();
-        Range newRange = updatedRange.getNewRange();
-
-        // don't process updated ranges if old or new range are null
-        if (newRange != null && oldRange != null){
-            String rangeAc = updatedRange.getRangeAc();
-            String featureAc = updatedRange.getFeatureAc();
-            String componentAc = updatedRange.getComponentAc();
-            String interactionAc = updatedRange.getInteractionAc();
-            String proteinAc = updatedRange.getProteinAc();
-
-            String oldRangePositions = FeatureUtils.convertRangeIntoString(oldRange);
-            String newRangePositions = FeatureUtils.convertRangeIntoString(newRange);
-
-            PersistentUpdatedRange persistentEvt = new PersistentUpdatedRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, oldRange.getFullSequence(), newRange.getFullSequence(), oldRangePositions, newRangePositions);
-
-            /*AnnotationUpdateReport annotationReport = updatedRange.getUpdatedAnnotations();
-
-            if (annotationReport != null){
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            }*/
-
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
-        }
     }
 
     @Override
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
-        InvalidRange invalidRange = evt.getInvalidRange();
-
-        Range currentRange = invalidRange.getOldRange();
-
-        // don't process updated ranges if old range is null
-        if (currentRange != null){
-            String rangeAc = invalidRange.getRangeAc();
-            String featureAc = invalidRange.getFeatureAc();
-            String componentAc = invalidRange.getComponentAc();
-            String interactionAc = invalidRange.getInteractionAc();
-            String proteinAc = invalidRange.getProteinAc();
-
-            String oldRangePositions = FeatureUtils.convertRangeIntoString(currentRange);
-            String errorMessage = invalidRange.getMessage();
-            String fromStatus = invalidRange.getFromStatus();
-            String toStatus = invalidRange.getToStatus();
-
-            PersistentInvalidRange persistentEvt = new PersistentInvalidRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, currentRange.getFullSequence(), null, fromStatus, toStatus, oldRangePositions, null, errorMessage, -1);
-
-            /*AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
-
-            if (annotationReport != null){
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            }*/
-
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
-        }
     }
 
     @Override
     public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
-        InvalidRange invalidRange = evt.getInvalidRange();
-
-        Range currentRange = invalidRange.getOldRange();
-        Range invalidNewRange = invalidRange.getNewRange();
-
-        // don't process updated ranges if old range is null
-        if (currentRange != null && invalidNewRange != null){
-            String rangeAc = invalidRange.getRangeAc();
-            String featureAc = invalidRange.getFeatureAc();
-            String componentAc = invalidRange.getComponentAc();
-            String interactionAc = invalidRange.getInteractionAc();
-            String proteinAc = invalidRange.getProteinAc();
-
-            String oldRangePositions = FeatureUtils.convertRangeIntoString(currentRange);
-            String newRangePositions = FeatureUtils.convertRangeIntoString(invalidNewRange);
-
-            String errorMessage = invalidRange.getMessage();
-            String fromStatus = invalidRange.getFromStatus();
-            String toStatus = invalidRange.getToStatus();
-            int sequenceVersion = invalidRange.getValidSequenceVersion();
-
-            PersistentInvalidRange persistentEvt = new PersistentInvalidRange(this.updateProcess, componentAc, featureAc, interactionAc, proteinAc, rangeAc, currentRange.getFullSequence(), invalidNewRange.getFullSequence(), fromStatus, toStatus, oldRangePositions, newRangePositions, errorMessage, sequenceVersion);
-
-            /*AnnotationUpdateReport annotationReport = invalidRange.getUpdatedAnnotations();
-
-            if (annotationReport != null){
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getAddedAnnotations(), UpdateStatus.added);
-                persistentEvt.addUpdatedAnnotationFromFeature(annotationReport.getRemovedAnnotations(), UpdateStatus.deleted);
-            } */
-
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).persist(persistentEvt);
-        }
     }
 
     @Override

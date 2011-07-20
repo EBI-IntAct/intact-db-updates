@@ -17,8 +17,9 @@ import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentInvalidRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
 
 import java.util.Date;
 
@@ -299,7 +300,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         invalid.setComponentAc("EBI-xxxxx2");
         invalid.setFeatureAc("EBI-xxxxx5");
         invalid.setInteractionAc("EBI-xxxxx6");
-        invalid.setProteinAc("EBI-xxxxx7");
         invalid.setFromStatus("EBI-xxxxxx3");
         invalid.setToStatus("EBI-xxxxxx4");
 
@@ -311,7 +311,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
         invalid.setErrorMessage("certain position cannot be a range");
 
-        invalid.addUpdatedAnnotation(createInvalidRangeAnnotation());
 
         return invalid;
     }
@@ -324,7 +323,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         updated.setComponentAc("EBI-xxxxx2");
         updated.setFeatureAc("EBI-xxxxx5");
         updated.setInteractionAc("EBI-xxxxx6");
-        updated.setProteinAc("EBI-xxxxx7");
 
         updated.setOldSequence("MAAM");
         updated.setNewSequence("MAAM");
@@ -332,31 +330,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         updated.setNewSequence("4-10");
 
         return updated;
-    }
-
-    public PersistentInvalidRange createOutOfDateRangeWithoutSequenceVersion(){
-
-        PersistentInvalidRange invalid = new PersistentInvalidRange();
-
-        invalid.setRangeAc("EBI-xxxxx1");
-        invalid.setComponentAc("EBI-xxxxx2");
-        invalid.setFeatureAc("EBI-xxxxx5");
-        invalid.setInteractionAc("EBI-xxxxx6");
-        invalid.setProteinAc("EBI-xxxxx7");
-        invalid.setFromStatus("EBI-xxxxxx3");
-        invalid.setToStatus("EBI-xxxxxx4");
-
-        invalid.setOldSequence("MAAM");
-        invalid.setNewSequence("SSPP");
-        invalid.setOldPositions("2-8");
-        invalid.setNewSequence("0-0");
-        invalid.setSequenceVersion(-1);
-
-        invalid.setErrorMessage("Out of date range");
-
-        invalid.addUpdatedAnnotation(createOutOfDateRangeAnnotation());
-
-        return invalid;
     }
 
     public PersistentInvalidRange createOutOfDateRangeWithSequenceVersion(){
@@ -367,7 +340,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         invalid.setComponentAc("EBI-xxxxx2");
         invalid.setFeatureAc("EBI-xxxxx5");
         invalid.setInteractionAc("EBI-xxxxx6");
-        invalid.setProteinAc("EBI-xxxxx7");
         invalid.setFromStatus("EBI-xxxxxx3");
         invalid.setToStatus("EBI-xxxxxx4");
 
@@ -378,8 +350,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
         invalid.setSequenceVersion(2);
 
         invalid.setErrorMessage("Out of date range");
-
-        invalid.addUpdatedAnnotation(createOutOfDateRangeAnnotation());
 
         return invalid;
     }
@@ -417,6 +387,15 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     public PersistentProteinEvent createDefaultProteinEvent(){
         PersistentProteinEvent event = new PersistentProteinEvent();
+
+        event.setProteinEventName(ProteinEventName.uniprot_update);
+        event.setIntactObjectAc("EBI-xx10xx10xx");
+
+        return event;
+    }
+
+        public UniprotUpdateEvent createDefaultUniprotProteinEvent(){
+        UniprotUpdateEvent event = new UniprotUpdateEvent();
 
         event.setProteinEventName(ProteinEventName.uniprot_update);
         event.setIntactObjectAc("EBI-xx10xx10xx");

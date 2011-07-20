@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.update.model.protein.update.events.range;
+package uk.ac.ebi.intact.update.model.protein.range;
 
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;

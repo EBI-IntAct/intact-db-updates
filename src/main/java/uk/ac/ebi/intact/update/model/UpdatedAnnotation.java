@@ -16,7 +16,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
     private String topic;
     private String text;
-
+    private UpdateEvent parent;
     private UpdateStatus status;
 
     public UpdatedAnnotation(){
@@ -24,6 +24,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
         this.topic = null;
         this.text = null;
         this.status = UpdateStatus.none;
+        this.parent = null;
     }
 
     public UpdatedAnnotation(String topic, String text, UpdateStatus status){
@@ -31,6 +32,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
         this.topic = topic;
         this.text = text;
         this.status = status != null ? status : UpdateStatus.none;
+        this.parent = null;
     }
 
     public UpdatedAnnotation(Annotation annotation, UpdateStatus status){
@@ -46,6 +48,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
             this.text = null;
         }
         this.status = status != null ? status : UpdateStatus.none;
+        this.parent = null;
     }
 
     @Column(name="topic_ac", nullable = false)
@@ -74,6 +77,15 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
     public void setStatus(UpdateStatus status) {
         this.status = status;
+    }
+
+    @Transient
+    public UpdateEvent getParent() {
+        return parent;
+    }
+
+    public void setParent(UpdateEvent parent) {
+        this.parent = parent;
     }
 
     @Override

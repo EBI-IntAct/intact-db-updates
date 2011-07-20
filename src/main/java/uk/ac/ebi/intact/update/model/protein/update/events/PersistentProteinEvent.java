@@ -94,12 +94,7 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
     }
 
     @Override
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinTable(
-            name = "ia_event2updated_annotations",
-            joinColumns = {@JoinColumn( name = "protein_event_id" )},
-            inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
-    )
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<ProteinUpdateAnnotation> getUpdatedAnnotations(){
         return super.getUpdatedAnnotations();
     }
@@ -108,7 +103,9 @@ public class PersistentProteinEvent extends UpdateEvent<ProteinUpdateAlias, Prot
         for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
 
             ProteinUpdateAnnotation annotation = new ProteinUpdateAnnotation(a, status);
-            this.updatedAnnotations.add(annotation);
+            if(this.updatedAnnotations.add(annotation)){
+                annotation.setParent(this);
+            }
         }
     }
 
