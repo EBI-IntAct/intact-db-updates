@@ -22,6 +22,7 @@ import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
@@ -48,56 +49,42 @@ public class RangeChecker {
      * @param newSequence The new sequence
      * @return a collection that contains the ranges that have been updated
      */
-    public Collection<UpdatedRange> shiftFeatureRanges(Feature feature, String oldSequence, String newSequence, DataContext context) {
+    public void shiftFeatureRanges(Feature feature, String oldSequence, String newSequence, DataContext context, RangeUpdateReport report) {
         if (feature == null) throw new NullPointerException("Feature was null");
         if (oldSequence == null) throw new NullPointerException("Old sequence was null");
         if (newSequence == null) throw new NullPointerException("New sequence was null");
 
         List<Diff> diffs = DiffUtils.diff(oldSequence, newSequence);
 
-        List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
-
         for (Range range : feature.getRanges()) {
             if (!FeatureUtils.isABadRange(range, oldSequence)){
                 Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
                 oldRange.setFullSequence(range.getFullSequence());
 
-                AnnotationUpdateReport report = new AnnotationUpdateReport(range.getAc());
-
                 boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context, report);
+
+                UpdatedRange updatedRange;
 
                 if (rangeShifted) {
                     if (log.isInfoEnabled())
-                        log.info("Range shifted from " + oldRange.toString() + " to " + range.toString() + ": " + logInfo(range));
+                        log.info("Range shifted from " + oldRange + " to " + range + ": " + logInfo(range));
 
                     range.prepareSequence(newSequence);
                     context.getDaoFactory().getRangeDao().update(range);
 
-                    Component component = feature.getComponent();
-                    String componentAc = null;
-                    String proteinAc = null;
-                    String interactionAc = null;
+                    updatedRange = new UpdatedRange(oldRange, range);
 
-                    if (component != null){
-                        componentAc = component.getAc();
-
-                        Interactor interactor = component.getInteractor();
-                        Interaction interaction = component.getInteraction();
-
-                        if (interactor != null){
-                            proteinAc = interactor.getAc();
-                        }
-                        if (interaction != null){
-                            interactionAc = interaction.getAc();
-                        }
+                    if (report.getShiftedRanges().containsKey(updatedRange.getProteinAc())){
+                        report.getShiftedRanges().get(updatedRange.getProteinAc()).add(updatedRange);
                     }
-
-                    updatedRanges.add(new UpdatedRange(oldRange, range, range.getAc(), feature.getAc(), componentAc, proteinAc, interactionAc));
+                    else{
+                        Collection<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
+                        updatedRanges.add(updatedRange);
+                        report.getShiftedRanges().put(updatedRange.getProteinAc(), updatedRanges);
+                    }
                 }
             }
         }
-
-        return updatedRanges;
     }
 
     /**
@@ -107,7 +94,7 @@ public class RangeChecker {
      * @param newSequence The new sequence
      * @return a collection that contains the ranges that have been updated
      */
-    public UpdatedRange shiftFeatureRange(Range range, String oldSequence, String newSequence, DataContext context) {
+    public void shiftFeatureRange(Range range, String oldSequence, String newSequence, DataContext context, RangeUpdateReport report) {
         if (range == null) throw new NullPointerException("Range was null");
         if (oldSequence == null) throw new NullPointerException("Old sequence was null");
         if (newSequence == null) throw new NullPointerException("New sequence was null");
@@ -122,8 +109,6 @@ public class RangeChecker {
             oldRange.setUpStreamSequence(range.getUpStreamSequence());
             oldRange.setDownStreamSequence(range.getDownStreamSequence());
 
-            AnnotationUpdateReport report = new AnnotationUpdateReport(range.getAc());
-
             boolean rangeShifted = shiftRange(diffs, range, oldSequence, newSequence, context, report);
 
             if (rangeShifted) {
@@ -134,11 +119,17 @@ public class RangeChecker {
                 context.getDaoFactory().getRangeDao().update(range);
 
                 updatedRange = new UpdatedRange(oldRange, range);
-                updatedRange.setUpdatedAnnotations(report);
+
+                if (report.getShiftedRanges().containsKey(updatedRange.getProteinAc())){
+                    report.getShiftedRanges().get(updatedRange.getProteinAc()).add(updatedRange);
+                }
+                else{
+                    Collection<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
+                    updatedRanges.add(updatedRange);
+                    report.getShiftedRanges().put(updatedRange.getProteinAc(), updatedRanges);
+                }
             }
         }
-
-        return updatedRange;
     }
 
     public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence, DataContext context) {
@@ -205,7 +196,7 @@ public class RangeChecker {
      * @param newSequence
      * @return
      */
-    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context, AnnotationUpdateReport report) {
+    protected boolean shiftRange(List<Diff> diffs, Range range, String oldSequence, String newSequence, DataContext context, RangeUpdateReport report) {
         // to know if we have shifted a position
         boolean rangeShifted = false;
         // to know if it is possible to shift the start positions of the range
@@ -369,7 +360,14 @@ public class RangeChecker {
                         f.addAnnotation(cautionRange);
                         daoFactory.getFeatureDao().update(f);
 
-                        report.getAddedAnnotations().add(cautionRange);
+                        if (report.getUpdatedFeatureAnnotations().containsKey(f.getAc())){
+                            report.getUpdatedFeatureAnnotations().get(f.getAc()).getAddedAnnotations().add(cautionRange);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport();
+                            annreport.getAddedAnnotations().add(cautionRange);
+                            report.getUpdatedFeatureAnnotations().put(f.getAc(), annreport);
+                        }
                     }
                 }
                 else if (rangeShifted && wasNTerminal){
@@ -392,7 +390,14 @@ public class RangeChecker {
                         f.addAnnotation(cautionRange);
                         daoFactory.getFeatureDao().update(f);
 
-                        report.getAddedAnnotations().add(cautionRange);
+                        if (report.getUpdatedFeatureAnnotations().containsKey(f.getAc())){
+                            report.getUpdatedFeatureAnnotations().get(f.getAc()).getAddedAnnotations().add(cautionRange);
+                        }
+                        else {
+                            AnnotationUpdateReport annreport = new AnnotationUpdateReport();
+                            annreport.getAddedAnnotations().add(cautionRange);
+                            report.getUpdatedFeatureAnnotations().put(f.getAc(), annreport);
+                        }
                     }
                 }
             }

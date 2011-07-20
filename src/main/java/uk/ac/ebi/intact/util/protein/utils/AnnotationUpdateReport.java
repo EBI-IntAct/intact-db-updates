@@ -15,17 +15,9 @@ import java.util.Collection;
 
 public class AnnotationUpdateReport {
 
-    private String range;
     private Collection<Annotation> addedAnnotations = new ArrayList<Annotation>();
     private Collection<Annotation> removedAnnotations = new ArrayList<Annotation>();
-
-    public AnnotationUpdateReport(String range){
-        this.range = range;
-    }
-
-    public String getRange() {
-        return range;
-    }
+    private Collection<Annotation> updatedAnnotations = new ArrayList<Annotation>();
 
     public Collection<Annotation> getAddedAnnotations() {
         return addedAnnotations;
@@ -33,6 +25,10 @@ public class AnnotationUpdateReport {
 
     public Collection<Annotation> getRemovedAnnotations() {
         return removedAnnotations;
+    }
+
+    public Collection<Annotation> getUpdatedAnnotations() {
+        return updatedAnnotations;
     }
 
     public static String annotationsToString(Collection<Annotation> annotations) {

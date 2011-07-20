@@ -17,6 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -57,6 +58,8 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
      * The query sent to the UniprotService for protein update(ex : P12345).
      */
     private String querySentToService;
+
+    private Map<String, RangeUpdateReport> updatedRanges = new HashMap<String, RangeUpdateReport>();
 
     /**
      * An event thrown when a specific case is found during update
@@ -183,5 +186,9 @@ public class UpdateCaseEvent extends EventObject implements ProteinProcessorEven
                 this.proteins.add(prot.getAc());
             }
         }
+    }
+
+    public Map<String, RangeUpdateReport> getUpdatedRanges() {
+        return updatedRanges;
     }
 }

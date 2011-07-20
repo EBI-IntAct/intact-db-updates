@@ -23,6 +23,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -90,8 +91,13 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> invalidPosBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
         Assert.assertEquals(0, invalidPosBefore.size());
 
+        InvalidRange invalidRange = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain");
+
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
+        rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRange));
+
         // fix invalid ranges
-        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(context, new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain")), new ProteinUpdateProcessor());
+        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(context, invalidRange, rangeReport), new ProteinUpdateProcessor());
 
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]out of bound", invalid_range.getShortLabel()));
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]2-5", invalid_positions.getShortLabel()));
@@ -155,10 +161,15 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> seVersionBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(sequence_version));
         Assert.assertEquals(0, seVersionBefore.size());
 
-        // fix invalid ranges
-        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, new InvalidRange(range, range, oldSequence, "different feature sequence", "certain", "certain")), new ProteinUpdateProcessor());
+        InvalidRange invalidRange = new InvalidRange(range, range, oldSequence, "out of bound", "certain", "certain");
 
-        Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]different feature sequence", invalid_range.getShortLabel()));
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
+        rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRange));
+
+        // fix invalid ranges
+        rangeFixer.fixOutOfDateRanges(new InvalidRangeEvent(context, invalidRange, rangeReport), new ProteinUpdateProcessor());
+
+        Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]out of bound", invalid_range.getShortLabel()));
         Assert.assertTrue(hasAnnotation(feature, "["+range.getAc()+"]378-382", invalid_positions.getShortLabel()));
         Assert.assertFalse(hasAnnotation(feature, "["+range.getAc()+"]2", sequence_version.getShortLabel()));
         Assert.assertTrue(range.getFromCvFuzzyType().isUndetermined());
@@ -213,8 +224,13 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> invalidPosBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalidPositions));
         Assert.assertEquals(1, invalidPosBefore.size());
 
+        InvalidRange invalidRangeEvt = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain");
+
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
+        rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRangeEvt));
+
         // fix invalid ranges
-        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(getDataContext(), new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain")), new ProteinUpdateProcessor());
+        rangeFixer.fixInvalidRanges(new InvalidRangeEvent(getDataContext(), invalidRangeEvt, rangeReport), new ProteinUpdateProcessor());
 
         final Collection<Annotation> invalidAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
         Assert.assertEquals(1, invalidAfter.size());

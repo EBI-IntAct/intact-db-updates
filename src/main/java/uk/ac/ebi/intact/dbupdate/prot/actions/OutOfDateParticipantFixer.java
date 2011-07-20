@@ -44,8 +44,7 @@ public interface OutOfDateParticipantFixer {
     /**
      *
      * @param evt : contains protein having range conflicts, the list of components affected by range conflicts and the parent ac if a protein transcript need to be created
-     * @param fireEventListeners : to know if we want to fire an OutOfDateParticipantEvent
      * @return the created deprecated protein
      */
-    public ProteinTranscript createDeprecatedProtein(OutOfDateParticipantFoundEvent evt, boolean fireEventListeners);
+    public ProteinTranscript createDeprecatedProtein(OutOfDateParticipantFoundEvent evt);
 }

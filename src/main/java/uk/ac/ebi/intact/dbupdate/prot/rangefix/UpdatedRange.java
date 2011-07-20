@@ -16,7 +16,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
 /**
  * Represents an updated range and contains the old version and the new version of the Range.
@@ -28,7 +27,6 @@ public class UpdatedRange {
 
     private Range oldRange;
     private Range newRange;
-    private AnnotationUpdateReport updatedAnnotations;
     private String featureAc;
     private String componentAc;
     private String proteinAc;
@@ -154,14 +152,6 @@ public class UpdatedRange {
         }
 
         return rseq;
-    }
-
-    public AnnotationUpdateReport getUpdatedAnnotations() {
-        return updatedAnnotations;
-    }
-
-    public void setUpdatedAnnotations(AnnotationUpdateReport updatedAnnotations) {
-        this.updatedAnnotations = updatedAnnotations;
     }
 
     public String getFeatureAc() {

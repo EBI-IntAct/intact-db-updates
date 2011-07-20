@@ -253,6 +253,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 for (Protein p : duplicatesHavingDifferentSequence){
                     // update the ranges with the new uniprot sequence for each duplicate
                     RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
+                    evt.getUpdatedRanges().put(p.getAc(), rangeReport);
                     // get the list of components with feature range conflicts
                     Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
 
@@ -562,7 +563,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 }
 
                 // try to fix the protein with range conflicts
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
+                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), caseEvent.getProtein(), entry.getValue(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
@@ -686,7 +687,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                 }
 
-                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getValue().getInvalidComponents().keySet(), entry.getKey(), caseEvent.getProtein(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
+                OutOfDateParticipantFoundEvent participantEvt = new OutOfDateParticipantFoundEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), caseEvent.getProtein(), entry.getValue(), caseEvent.getPrimaryIsoforms(), caseEvent.getSecondaryIsoforms(), caseEvent.getPrimaryFeatureChains(), validParentAc);
 
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 

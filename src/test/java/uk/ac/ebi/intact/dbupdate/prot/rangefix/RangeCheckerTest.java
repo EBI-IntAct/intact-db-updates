@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
@@ -85,8 +86,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext());
-        Assert.assertEquals(0, updatedRanges.size());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
@@ -120,8 +123,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext());
-        Assert.assertEquals(0, updatedRanges.size());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
@@ -156,8 +161,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext());
-        Assert.assertEquals(0, updatedRanges.size());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
@@ -193,8 +200,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence,IntactContext.getCurrentInstance().getDataContext());
-        Assert.assertEquals(0, updatedRanges.size());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
@@ -229,8 +238,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
 
         getCorePersister().saveOrUpdate(feature);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext());
-        Assert.assertEquals(0, updatedRanges.size());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(0, range.getFromIntervalStart());
         Assert.assertEquals(0, range.getFromIntervalEnd());
@@ -264,9 +275,10 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         String rangeSeq = oldSequence.substring(range.getFromIntervalStart()-1, range.getToIntervalEnd());
         Assert.assertEquals("BCD", rangeSeq);
 
-        final Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence,IntactContext.getCurrentInstance().getDataContext());
+        RangeUpdateReport report = new RangeUpdateReport();
 
-        Assert.assertTrue(updatedRanges.isEmpty());
+        rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(0, report.getShiftedRanges().size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
         Assert.assertEquals(2, range.getFromIntervalEnd());
@@ -327,8 +339,15 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         Assert.assertEquals(oldFeatureSequence, range.getFullSequence());
 
         // Update the ranges
-        Collection<UpdatedRange> updatedRanges = rangeChecker.shiftFeatureRanges(feature, previousSequence, true_sequence, IntactContext.getCurrentInstance().getDataContext());
+        RangeUpdateReport report = new RangeUpdateReport();
+
+        rangeChecker.shiftFeatureRanges(feature, previousSequence, true_sequence, IntactContext.getCurrentInstance().getDataContext(), report);
+        Assert.assertEquals(1, report.getShiftedRanges().size());
+
+        Collection<UpdatedRange> updatedRanges = report.getShiftedRanges().get(feature.getComponent().getInteractor().getAc());
+        Assert.assertNotNull(updatedRanges);
         Assert.assertEquals(1, updatedRanges.size());
+
         Assert.assertEquals(range.getAc(), updatedRanges.iterator().next().getNewRange().getAc());
         Assert.assertFalse(hasAnnotation(feature, null, CvTopic.CAUTION));
 

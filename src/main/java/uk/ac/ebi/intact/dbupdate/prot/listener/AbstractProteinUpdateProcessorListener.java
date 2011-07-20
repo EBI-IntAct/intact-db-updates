@@ -55,6 +55,7 @@ public abstract class AbstractProteinUpdateProcessorListener implements ProteinU
         // nothing
     }
 
+    @Deprecated
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
         // nothing
     }

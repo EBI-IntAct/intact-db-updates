@@ -34,6 +34,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter updateCasesWriter;
     private ReportWriter sequenceChangedWriter;
     private ReportWriter rangeChangedWriter;
+    private ReportWriter featureChangedWriter;
     private ReportWriter invalidRangeWriter;
     private ReportWriter outOfDateRangeWriter;
     private ReportWriter deadProteinWriter;
@@ -61,6 +62,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.updateCasesWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "update_cases.csv")));
         this.sequenceChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed.fasta")));
         this.rangeChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "range_changed.csv")));
+        this.featureChangedWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "feature_changed.csv")));
         this.invalidRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_range.csv")));
         this.outOfDateRangeWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "out_of_date_range.csv")));
         this.deadProteinWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "dead_proteins.csv")));
@@ -151,6 +153,10 @@ public class FileReportHandler implements UpdateReportHandler{
         return this.deletedComponentWriter;
     }
 
+    @Override
+    public ReportWriter getFeatureChangedWriter() throws IOException {
+        return this.featureChangedWriter;
+    }
 
     public void close() throws IOException {
         this.duplicatesWriter.close();
@@ -160,6 +166,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.updateCasesWriter.close();
         this.sequenceChangedWriter.close();
         this.rangeChangedWriter.close();
+        this.featureChangedWriter.close();
         this.invalidRangeWriter.close();
         this.outOfDateRangeWriter.close();
         this.deadProteinWriter.close();

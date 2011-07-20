@@ -2,11 +2,11 @@ package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -19,29 +19,24 @@ import java.util.Collections;
  */
 
 public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
-    private Collection<Component> componentsToFix = new ArrayList<Component>();
+    private RangeUpdateReport invalidRangeReport;
     private Protein proteinWithConflicts;
     String validParentAc;
+    String remappedProteinAc;
 
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Collection<Component> components, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
+    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, RangeUpdateReport invalidReport, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
         super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains, null);
-        this.componentsToFix = components;
+        this.invalidRangeReport = invalidReport;
         this.proteinWithConflicts = protein;
         this.validParentAc = validParentAc;
-    }
-
-    public OutOfDateParticipantFoundEvent(Object source, DataContext dataContext, Protein protein, UniprotProtein uniprotProtein, Collection<ProteinTranscript> primaryIsoforms, Collection<ProteinTranscript> secondaryIsoforms, Collection<ProteinTranscript> primaryFeatureChains, String validParentAc) {
-        super(source, dataContext, uniprotProtein, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoforms, secondaryIsoforms, primaryFeatureChains, null);
-        this.proteinWithConflicts = protein;
-        this.validParentAc = validParentAc;
+        this.remappedProteinAc = remappedProteinAc;
     }
 
     public Collection<Component> getComponentsToFix() {
-        return componentsToFix;
-    }
-
-    public void addComponentToFix(Component component){
-        this.componentsToFix.add(component);
+        if (this.invalidRangeReport != null){
+           return this.invalidRangeReport.getInvalidComponents().keySet();
+        }
+        return Collections.EMPTY_LIST;
     }
 
     public Protein getProteinWithConflicts() {
@@ -50,5 +45,17 @@ public class OutOfDateParticipantFoundEvent extends UpdateCaseEvent{
 
     public String getValidParentAc() {
         return validParentAc;
+    }
+
+    public RangeUpdateReport getInvalidRangeReport() {
+        return invalidRangeReport;
+    }
+
+    public String getRemappedProteinAc() {
+        return remappedProteinAc;
+    }
+
+    public void setRemappedProteinAc(String remappedProteinAc) {
+        this.remappedProteinAc = remappedProteinAc;
     }
 }

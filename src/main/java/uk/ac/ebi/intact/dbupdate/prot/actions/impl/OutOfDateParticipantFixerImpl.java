@@ -188,6 +188,9 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
             processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), transcriptIntact, "The protein is a feature chain created because of feature ranges impossible to remap to the canonical sequence in uniprot."));
+
+            evt.setRemappedProteinAc(transcriptIntact.getAc());
+            processor.fireOnOutOfDateParticipantFound(evt);
         }
 
         // return the new ProteinTranscript
@@ -201,13 +204,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @return
      */
     public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant){
-
-        // log in 'out_of_date_participant.csv'
-        if (evt.getSource() instanceof ProteinUpdateProcessor){
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-            processor.fireOnOutOfDateParticipantFound(evt);
-        }
 
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
@@ -245,6 +241,13 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
+                        evt.setRemappedProteinAc(intactMatch.getProtein().getAc());
+                        // log in 'out_of_date_participant.csv'
+                        if (evt.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                            processor.fireOnOutOfDateParticipantFound(evt);
+                        }
                         return intactMatch;
                     }
 
@@ -257,6 +260,12 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
+                        // log in 'out_of_date_participant.csv'
+                        if (evt.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                            evt.setRemappedProteinAc(intactMatch.getProtein().getAc());
+                            processor.fireOnOutOfDateParticipantFound(evt);
+                        }
                         return intactMatch;
                     }
 
@@ -274,7 +283,15 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
         // if no uniprot transcript has the same sequence and creating deprecated proteins is enabled, we create a deprecated protein, otherwise return null
         if (createDeprecatedParticipant){
-            return createDeprecatedProtein(evt, false);
+            return createDeprecatedProtein(evt);
+        }
+        else {
+            // log in 'out_of_date_participant.csv'
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                processor.fireOnOutOfDateParticipantFound(evt);
+            }
         }
 
         return null;
@@ -303,19 +320,10 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
     /**
      *
      * @param evt : evt containing proteins having feature conflicts and components with the feature conflicts
-     * @param fireEventListeners
      * @return  a deprecated protein (associated with no transcript)
      */
-    public ProteinTranscript createDeprecatedProtein(OutOfDateParticipantFoundEvent evt, boolean fireEventListeners){
+    public ProteinTranscript createDeprecatedProtein(OutOfDateParticipantFoundEvent evt){
 
-        // if it is enabled, will log in 'out_of_date_participant.csv'
-        if (fireEventListeners){
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-
-                processor.fireOnOutOfDateParticipantFound(evt);
-            }
-        }
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
         // move the components with range conflicts to the deprecated protein
@@ -346,6 +354,9 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
             processor.fireOnProteinCreated(protEvt);
             processor.fireNonUniprotProteinFound(protEvt);
+
+            evt.setRemappedProteinAc(noUniprotUpdate.getAc());
+            processor.fireOnOutOfDateParticipantFound(evt);
         }
 
         return new ProteinTranscript(noUniprotUpdate, null);

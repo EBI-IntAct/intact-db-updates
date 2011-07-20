@@ -40,6 +40,7 @@ public interface ProteinUpdateProcessorListener extends EventListener {
 
     void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException;
 
+    @Deprecated
     void onRangeChanged(RangeChangedEvent evt) throws ProcessorException;
 
     void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException;

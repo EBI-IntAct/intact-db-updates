@@ -419,11 +419,11 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
 
             RangeUpdateReport report =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
-            Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
+            evt.getUpdatedRanges().put(protein.getAc(), report);
 
-            if (!componentsWithRangeConflicts.isEmpty()){
+            if (!report.getInvalidComponents().isEmpty()){
 
-                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
+                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
 
                 if (fixedProtein != null){
@@ -469,7 +469,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 }
                 // no unisave sequence for splice variants and feature chains so if we have conflicts, it is better to create a no-uniprot protein with the sequence of the moment
                 else if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
-                    fixedProtein = participantFixer.createDeprecatedProtein(participantEvent, true);
+                    fixedProtein = participantFixer.createDeprecatedProtein(participantEvent);
                     rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, false);
                 }
                 else{
@@ -491,11 +491,10 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         else{
 
             RangeUpdateReport report =  rangeFixer.updateOnlyInvalidRanges(protein, processor, evt.getDataContext());
-            Collection<Component> componentsWithRangeConflicts = report.getInvalidComponents().keySet();
 
-            if (!componentsWithRangeConflicts.isEmpty()){
+            if (!report.getInvalidComponents().isEmpty()){
 
-                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), componentsWithRangeConflicts, protein, evt.getProtein(), evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
+                OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 processor.fireOnOutOfDateParticipantFound(participantEvent);
 
                 rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, null, processor, true);

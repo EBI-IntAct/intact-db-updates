@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.model.*;
@@ -80,7 +81,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
         Interaction interactionToMove = getMockBuilder().createInteraction(primary, random2);
 
-        Collection<Component> componentsToFix = new ArrayList<Component>();
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
 
         for (Component c : interactionPrimary.getComponents()){
             c.getBindingDomains().clear();
@@ -89,7 +90,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
             c.getBindingDomains().clear();
 
             if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFix.add(c);
+                rangeReport.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -101,9 +102,9 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(2, primary.getActiveInstances().size());
 
         // create deprecated participant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFix, primary, uniprot, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primary, uniprot, rangeReport, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.createDeprecatedProtein(evt, false);
+        ProteinTranscript proteinTranscript = participantFixer.createDeprecatedProtein(evt);
 
         Assert.assertNotNull(proteinTranscript);
         Assert.assertNull(proteinTranscript.getUniprotVariant());
@@ -142,7 +143,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
         Interaction interactionToMove = getMockBuilder().createInteraction(primary, random2);
 
-        Collection<Component> componentsToFix = new ArrayList<Component>();
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
 
         for (Component c : interactionPrimary.getComponents()){
             c.getBindingDomains().clear();
@@ -151,7 +152,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
             c.getBindingDomains().clear();
 
             if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFix.add(c);
+                rangeReport.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -163,7 +164,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(2, primary.getActiveInstances().size());
 
         // create deprecated participant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFix, primary, uniprot, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primary, uniprot, rangeReport, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
 
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, false);
 
@@ -198,7 +199,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionPrimary = getMockBuilder().createInteraction(primary, random1);
         Interaction interactionToMove = getMockBuilder().createInteraction(primary, random2);
 
-        Collection<Component> componentsToFix = new ArrayList<Component>();
+        RangeUpdateReport rangeReport = new RangeUpdateReport();
 
         for (Component c : interactionPrimary.getComponents()){
             c.getBindingDomains().clear();
@@ -207,7 +208,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
             c.getBindingDomains().clear();
 
             if (primary.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFix.add(c);
+                rangeReport.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -219,7 +220,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(2, primary.getActiveInstances().size());
 
         // create deprecated participant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFix, primary, uniprot, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primary, uniprot, rangeReport, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
 
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
 
@@ -276,21 +277,21 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionIsoform = getMockBuilder().createInteraction(primaryIsoform, random1);
         Interaction interactionChain = getMockBuilder().createInteraction(primaryChain, random2);
 
-        Collection<Component> componentsToFixIsoform = new ArrayList<Component>();
-        Collection<Component> componentsToFixChain = new ArrayList<Component>();
+        RangeUpdateReport reportIsoform = new RangeUpdateReport();
+        RangeUpdateReport reportChain = new RangeUpdateReport();
 
         for (Component c : interactionIsoform.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryIsoform.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixIsoform.add(c);
+                reportIsoform.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
         for (Component c : interactionChain.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryChain.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixChain.add(c);
+                reportChain.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -303,7 +304,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
 
         // create splice variant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixIsoform, primaryIsoform, uniprot, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoform.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoform.getAc());
 
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
 
@@ -321,7 +322,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(variant.getSequence(), proteinTranscript.getProtein().getSequence());
 
         // create feature chain
-        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixChain, primaryChain, uniprot, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChain.getAc());
+        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChain.getAc());
 
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
 
@@ -397,21 +398,21 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
         primaryChains.add(new ProteinTranscript(featureChain, chain));
 
-        Collection<Component> componentsToFixIsoform = new ArrayList<Component>();
-        Collection<Component> componentsToFixChain = new ArrayList<Component>();
+        RangeUpdateReport reportIsoform = new RangeUpdateReport();
+        RangeUpdateReport reportChain = new RangeUpdateReport();
 
         for (Component c : interactionIsoform.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryIsoform.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixIsoform.add(c);
+                reportIsoform.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
         for (Component c : interactionChain.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryChain.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixChain.add(c);
+                reportChain.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -424,7 +425,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
 
         // create splice variant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixIsoform, primaryIsoform, uniprot, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
 
@@ -438,7 +439,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(7, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         // create feature chain
-        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixChain, primaryChain, uniprot, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
+        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
 
@@ -511,21 +512,21 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
         primaryChains.add(new ProteinTranscript(featureChain, chain));
 
-        Collection<Component> componentsToFixIsoform = new ArrayList<Component>();
-        Collection<Component> componentsToFixChain = new ArrayList<Component>();
+        RangeUpdateReport reportIsoform = new RangeUpdateReport();
+        RangeUpdateReport reportChain = new RangeUpdateReport();
 
         for (Component c : interactionIsoform.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryIsoform.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixIsoform.add(c);
+                reportIsoform.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
         for (Component c : interactionChain.getComponents()){
             c.getBindingDomains().clear();
 
             if (primaryChain.getAc().equalsIgnoreCase(c.getInteractor().getAc())){
-                componentsToFixChain.add(c);
+                reportChain.getInvalidComponents().put(c, Collections.EMPTY_LIST);
             }
         }
 
@@ -538,7 +539,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
 
         // create splice variant
-        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixIsoform, primaryIsoform, uniprot, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
+        OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
 
@@ -557,7 +558,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Assert.assertEquals(variant.getSequence(), proteinTranscript.getProtein().getSequence());
 
         // create feature chain
-        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), componentsToFixChain, primaryChain, uniprot, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
+        OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
 

@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 
 /**
@@ -22,9 +23,12 @@ public class InvalidRangeEvent implements ProteinProcessorEvent {
      */
     private InvalidRange invalidRange;
 
-    public InvalidRangeEvent(DataContext dataContext, InvalidRange range) {
+    private RangeUpdateReport rangeReport;
+
+    public InvalidRangeEvent(DataContext dataContext, InvalidRange range, RangeUpdateReport report) {
         this.dataContext = dataContext;
         this.invalidRange = range;
+        this.rangeReport = report;
     }
     public DataContext getDataContext() {
         return this.dataContext;
@@ -32,5 +36,9 @@ public class InvalidRangeEvent implements ProteinProcessorEvent {
 
     public InvalidRange getInvalidRange() {
         return invalidRange;
+    }
+
+    public RangeUpdateReport getRangeReport() {
+        return rangeReport;
     }
 }

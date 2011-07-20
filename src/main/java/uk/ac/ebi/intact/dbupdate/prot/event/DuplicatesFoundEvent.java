@@ -53,6 +53,8 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
     private Map<String, Collection<InteractorXref>> addedXRefs = new HashMap<String, Collection<InteractorXref>>();
     private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
 
+    private Map<String, RangeUpdateReport> updatedRanges = new HashMap<String, RangeUpdateReport>();
+
     /**
      * An event involving a list of proteins.
      */
@@ -141,5 +143,9 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     public void setAddedAnnotations(Map<String, Collection<Annotation>> addedAnnotations) {
         this.addedAnnotations = addedAnnotations;
+    }
+
+    public Map<String, RangeUpdateReport> getUpdatedRanges() {
+        return updatedRanges;
     }
 }
