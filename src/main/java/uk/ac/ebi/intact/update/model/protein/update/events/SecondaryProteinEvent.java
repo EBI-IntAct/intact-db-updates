@@ -21,38 +21,26 @@ import javax.persistence.Entity;
 @DiscriminatorValue("SecondaryProteinEvent")
 public class SecondaryProteinEvent extends PersistentProteinEvent {
 
-    String secondaryAc;
-    String primaryAc;
+    String updatedPrimaryAc;
 
     public SecondaryProteinEvent(){
         super();
-        this.secondaryAc = null;
-        this.primaryAc = null;
+        this.updatedPrimaryAc = null;
 
     }
 
-    public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String secondaryAc, String primaryAc){
-        super(updateProcess, ProteinEventName.secondary_protein, protein);
-        this.primaryAc = primaryAc;
-        this.secondaryAc = secondaryAc;
+    public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String originalUniprotAc, String updatedPrimaryAc){
+        super(updateProcess, ProteinEventName.secondary_protein, protein, originalUniprotAc);
+        this.updatedPrimaryAc = updatedPrimaryAc;
     }
 
-    @Column(name = "secondary_ac")
-    public String getSecondaryAc() {
-        return secondaryAc;
+    @Column(name = "updated_primary_ac")
+    public String getUpdatedPrimaryAc() {
+        return updatedPrimaryAc;
     }
 
-    public void setSecondaryAc(String secondaryAc) {
-        this.secondaryAc = secondaryAc;
-    }
-
-    @Column(name = "primary_ac")
-    public String getPrimaryAc() {
-        return primaryAc;
-    }
-
-    public void setPrimaryAc(String primaryAc) {
-        this.primaryAc = primaryAc;
+    public void setUpdatedPrimaryAc(String updatedAc) {
+        this.updatedPrimaryAc = updatedAc;
     }
 
     @Override
@@ -63,21 +51,12 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         final SecondaryProteinEvent event = ( SecondaryProteinEvent ) o;
 
-        if ( primaryAc != null ) {
-            if (!primaryAc.equals( event.getPrimaryAc())){
+        if ( updatedPrimaryAc != null ) {
+            if (!updatedPrimaryAc.equals( event.getUpdatedPrimaryAc())){
                 return false;
             }
         }
-        else if (event.getPrimaryAc()!= null){
-            return false;
-        }
-
-        if ( secondaryAc != null ) {
-            if (!secondaryAc.equals( event.getSecondaryAc())){
-                return false;
-            }
-        }
-        else if (event.getSecondaryAc()!= null){
+        else if (event.getUpdatedPrimaryAc()!= null){
             return false;
         }
 
@@ -97,12 +76,8 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         code = 29 * code + super.hashCode();
 
-        if ( primaryAc != null ) {
-            code = 29 * code + primaryAc.hashCode();
-        }
-
-        if ( secondaryAc != null ) {
-            code = 29 * code + secondaryAc.hashCode();
+        if ( updatedPrimaryAc != null ) {
+            code = 29 * code + updatedPrimaryAc.hashCode();
         }
 
         return code;
@@ -117,21 +92,12 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         final SecondaryProteinEvent event = ( SecondaryProteinEvent ) o;
 
-        if ( primaryAc != null ) {
-            if (!primaryAc.equals( event.getPrimaryAc())){
+        if ( updatedPrimaryAc != null ) {
+            if (!updatedPrimaryAc.equals( event.getUpdatedPrimaryAc())){
                 return false;
             }
         }
-        else if (event.getPrimaryAc()!= null){
-            return false;
-        }
-
-        if ( secondaryAc != null ) {
-            if (!secondaryAc.equals( event.getSecondaryAc())){
-                return false;
-            }
-        }
-        else if (event.getSecondaryAc()!= null){
+        else if (event.getUpdatedPrimaryAc()!= null){
             return false;
         }
 
@@ -144,7 +110,7 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Secondary proteinAc event : [ primary ac = " + primaryAc != null ? primaryAc : "none" + ", secondary ac = "+ secondaryAc != null ? secondaryAc : "none");
+        buffer.append("Secondary proteinAc event : [ updated primary ac = " + updatedPrimaryAc != null ? updatedPrimaryAc : "none");
 
         return buffer.toString();
     }
