@@ -113,7 +113,7 @@ public class RangeChecker3Test extends IntactBasicTestCase {
         RangeUpdateReport report = new RangeUpdateReport();
 
         rangeChecker.shiftFeatureRanges(feature, oldSequence, newSequence, IntactContext.getCurrentInstance().getDataContext(), report);
-        Assert.assertEquals(1, report.getShiftedRanges().size());
+        Assert.assertEquals(0, report.getShiftedRanges().size()); // not shifted because it is only the downstream sequence which is updated.
 
         Assert.assertEquals(2, range.getFromIntervalStart());
         Assert.assertEquals(2, range.getFromIntervalEnd());
