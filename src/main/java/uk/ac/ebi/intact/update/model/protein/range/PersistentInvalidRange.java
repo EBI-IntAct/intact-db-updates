@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
 import org.hibernate.annotations.DiscriminatorFormula;
-import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithRangeUpdate;
 
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -32,16 +32,16 @@ public class PersistentInvalidRange extends PersistentUpdatedRange {
         this.sequenceVersion = -1;
     }
 
-    public PersistentInvalidRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error){
-        super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, null, oldPositions, null);
+    public PersistentInvalidRange(ProteinEventWithRangeUpdate event, String componentAc, String featureAc, String interactionAc,String rangeAc, String oldSequence, String startStatus, String endStatus, String oldPositions, String error){
+        super(event, componentAc, featureAc, interactionAc, rangeAc, oldSequence, null, oldPositions, null);
         this.errorMessage = error;
         this.sequenceVersion = -1;
         this.fromStatus = startStatus;
         this.toStatus = endStatus;
     }
 
-    public PersistentInvalidRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String interactorAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
-        super(updateProcess, componentAc, featureAc, interactionAc, interactorAc, rangeAc, oldSequence, newSequence, oldPositions, newPositions);
+    public PersistentInvalidRange(ProteinEventWithRangeUpdate event, String componentAc, String featureAc, String interactionAc, String rangeAc, String oldSequence, String newSequence, String startStatus, String endStatus, String oldPositions, String newPositions, String error, int sequenceVersion){
+        super(event, componentAc, featureAc, interactionAc, rangeAc, oldSequence, newSequence, oldPositions, newPositions);
         this.errorMessage = error;
         this.sequenceVersion = sequenceVersion;
         this.fromStatus = startStatus;

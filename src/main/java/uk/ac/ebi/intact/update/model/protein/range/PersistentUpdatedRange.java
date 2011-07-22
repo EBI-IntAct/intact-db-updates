@@ -1,14 +1,9 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
-import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
-import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithRangeUpdate;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Represents an update of feature ranges
@@ -33,11 +28,8 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
     private String featureAc;
     private String componentAc;
     private String interactionAc;
-    private String proteinAc;
 
-    ProteinUpdateProcess updateProcess;
-
-    Collection<ProteinUpdateAnnotation> featureAnnotations;
+    private ProteinEventWithRangeUpdate parent;
 
     public PersistentUpdatedRange(){
         super();
@@ -49,24 +41,19 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
         this.newSequence = null;
         this.featureAc = null;
         this.interactionAc = null;
-        this.proteinAc = null;
-
-        this.featureAnnotations = new ArrayList<ProteinUpdateAnnotation>();
     }
 
-    public PersistentUpdatedRange(ProteinUpdateProcess updateProcess, String componentAc, String featureAc, String interactionAc, String proteinAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
+    public PersistentUpdatedRange(ProteinEventWithRangeUpdate proteinEvent, String componentAc, String featureAc, String interactionAc, String rangeAc, String oldSequence, String newSequence, String oldRangePositions, String newRangePositions){
         super();
         this.componentAc = componentAc;
         this.rangeAc = rangeAc;
         this.featureAc = featureAc;
         this.interactionAc = interactionAc;
-        this.proteinAc = proteinAc;
         this.oldPositions = oldRangePositions;
         this.newPositions = newRangePositions;
-        this.updateProcess = updateProcess;
+        this.parent = proteinEvent;
         this.oldSequence = oldSequence;
         this.newSequence = newSequence;
-        this.featureAnnotations = new ArrayList<ProteinUpdateAnnotation>();
     }
 
     @Column(name="component_ac", nullable=false)
@@ -76,15 +63,6 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
 
     public void setComponentAc(String componentAc) {
         this.componentAc = componentAc;
-    }
-
-    @Column(name="protein_ac", nullable=false)
-    public String getProteinAc() {
-        return proteinAc;
-    }
-
-    public void setProteinAc(String proteinAc) {
-        this.proteinAc = proteinAc;
     }
 
     @Column(name="feature_ac", nullable=false)
@@ -107,12 +85,12 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
 
     @ManyToOne
     @JoinColumn(name="parent_id")
-    public ProteinUpdateProcess getParent() {
-        return this.updateProcess;
+    public ProteinEventWithRangeUpdate getParent() {
+        return this.parent;
     }
 
-    public void setParent(ProteinUpdateProcess updateProcess) {
-        this.updateProcess = updateProcess;
+    public void setParent(ProteinEventWithRangeUpdate proteinEvent) {
+        this.parent = proteinEvent;
     }
 
     @Column( name = "old_positions", nullable = false)
@@ -162,38 +140,6 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
         this.newSequence = updatedSequence;
     }
 
-    @ManyToMany (cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH})
-    @JoinTable(
-            name = "ia_range_update2updated_annotations",
-            joinColumns = {@JoinColumn( name = "protein_event_id" )},
-            inverseJoinColumns = {@JoinColumn( name = "updated_annotation_id" )}
-    )
-    public Collection<ProteinUpdateAnnotation> getFeatureAnnotations() {
-        return featureAnnotations;
-    }
-
-    public void setFeatureAnnotations(Collection<ProteinUpdateAnnotation> updatedAnnotations) {
-        if (updatedAnnotations != null){
-            this.featureAnnotations = updatedAnnotations;
-        }
-    }
-
-    public void addUpdatedAnnotationFromFeature(Collection<uk.ac.ebi.intact.model.Annotation> updatedAnn, UpdateStatus status){
-        for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
-
-            ProteinUpdateAnnotation annotation = new ProteinUpdateAnnotation(a, status);
-            this.featureAnnotations.add(annotation);
-        }
-    }
-
-    public boolean addUpdatedAnnotation(ProteinUpdateAnnotation ann){
-        return this.featureAnnotations.add(ann);
-    }
-
-    public boolean removeUpdatedAnnotation(ProteinUpdateAnnotation ann){
-        return this.featureAnnotations.remove(ann);
-    }
-
     @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
@@ -213,6 +159,24 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
 
         if ( componentAc != null ) {
             if (!componentAc.equals( range.getComponentAc() )){
+                return false;
+            }
+        }
+        else if (range.getComponentAc()!= null){
+            return false;
+        }
+
+        if ( featureAc != null ) {
+            if (!featureAc.equals( range.getFeatureAc() )){
+                return false;
+            }
+        }
+        else if (range.getFeatureAc()!= null){
+            return false;
+        }
+
+        if ( interactionAc != null ) {
+            if (!interactionAc.equals( range.getInteractionAc())){
                 return false;
             }
         }
@@ -280,6 +244,14 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
             code = 29 * code + componentAc.hashCode();
         }
 
+        if ( featureAc != null ) {
+            code = 29 * code + featureAc.hashCode();
+        }
+
+        if ( interactionAc != null ) {
+            code = 29 * code + interactionAc.hashCode();
+        }
+
         if ( oldPositions != null ) {
             code = 29 * code + oldPositions.hashCode();
         }
@@ -326,6 +298,24 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
             return false;
         }
 
+        if ( featureAc != null ) {
+            if (!featureAc.equals( range.getFeatureAc() )){
+                return false;
+            }
+        }
+        else if (range.getFeatureAc()!= null){
+            return false;
+        }
+
+        if ( interactionAc != null ) {
+            if (!interactionAc.equals( range.getInteractionAc())){
+                return false;
+            }
+        }
+        else if (range.getComponentAc()!= null){
+            return false;
+        }
+
         if ( oldPositions != null ) {
             if (!oldPositions.equals( range.getOldPositions()) ){
                 return false;
@@ -362,7 +352,7 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
             return false;
         }
 
-        return CollectionUtils.isEqualCollection(featureAnnotations, range.getFeatureAnnotations());
+        return true;
     }
 
     @Override
@@ -373,6 +363,12 @@ public class PersistentUpdatedRange extends HibernateUpdatePersistentImpl {
         buffer.append("] \n");
 
         buffer.append("Component : [" + componentAc != null ? componentAc : "");
+        buffer.append("] \n");
+
+        buffer.append("Feature : [" + featureAc != null ? featureAc : "");
+        buffer.append("] \n");
+
+        buffer.append("Interaction : [" + interactionAc != null ? interactionAc : "");
         buffer.append("] \n");
 
         if (oldPositions != null){
