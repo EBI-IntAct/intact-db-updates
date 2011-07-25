@@ -20,22 +20,25 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("OutOfDateParticipantEvent")
-public class OutOfDateParticipantEvent extends PersistentProteinEvent {
+public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate {
 
     private Collection<String> componentsWithFeatureConflicts;
     private String remapped_protein;
+    private String remapped_parent;
 
     public OutOfDateParticipantEvent(){
         super();
         this.componentsWithFeatureConflicts = new ArrayList<String>();
         this.remapped_protein = null;
+        this.remapped_parent = null;
 
     }
 
-    public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, Protein fixedProtein){
+    public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, Protein fixedProtein, String remapped_parent){
         super(updateProcess, ProteinEventName.participant_with_feature_conflicts, protein);
         this.componentsWithFeatureConflicts = new ArrayList<String>();
         this.remapped_protein = fixedProtein != null ? fixedProtein.getAc() : null;
+        this.remapped_parent = remapped_parent;
     }
 
     @ElementCollection
@@ -60,6 +63,15 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
         this.remapped_protein = remapped_protein;
     }
 
+    @Column(name="remapped_parent_ac")
+    public String getRemapped_parent() {
+        return remapped_parent;
+    }
+
+    public void setRemapped_parent(String remapped_protein) {
+        this.remapped_parent = remapped_protein;
+    }
+
     @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
@@ -74,6 +86,15 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
             }
         }
         else if (event.getRemapped_protein()!= null){
+            return false;
+        }
+
+        if ( remapped_parent != null ) {
+            if (!remapped_parent.equals( event.getRemapped_parent())){
+                return false;
+            }
+        }
+        else if (event.getRemapped_parent()!= null){
             return false;
         }
 
@@ -97,6 +118,10 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
             code = 29 * code + remapped_protein.hashCode();
         }
 
+        if ( remapped_parent!= null ) {
+            code = 29 * code + remapped_parent.hashCode();
+        }
+
         return code;
     }
 
@@ -118,6 +143,15 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
             return false;
         }
 
+        if ( remapped_parent != null ) {
+            if (!remapped_parent.equals( event.getRemapped_parent())){
+                return false;
+            }
+        }
+        else if (event.getRemapped_parent()!= null){
+            return false;
+        }
+
         return CollectionUtils.isEqualCollection(componentsWithFeatureConflicts, event.getComponentsWithFeatureConflicts());
     }
 
@@ -127,8 +161,8 @@ public class OutOfDateParticipantEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Out of date participant event : [Remapped proteinAc ac = " + remapped_protein != null ? remapped_protein : "none");
-        buffer.append("] \n");
+        buffer.append("Out of date participant event : [Remapped proteinAc ac = " + (remapped_protein != null ? remapped_protein : "none"));
+        buffer.append(", remapped parent ac = "+(remapped_protein != null ? remapped_protein : "none")+"] \n");
 
         return buffer.toString();
     }
