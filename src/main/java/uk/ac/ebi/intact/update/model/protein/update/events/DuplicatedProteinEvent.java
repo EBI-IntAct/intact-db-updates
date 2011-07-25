@@ -20,7 +20,7 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("DuplicatedProteinEvent")
-public class DuplicatedProteinEvent extends ProteinEventWithRangeUpdate {
+public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
 
     private String originalProtein;
     private boolean neededSequenceUpdate;

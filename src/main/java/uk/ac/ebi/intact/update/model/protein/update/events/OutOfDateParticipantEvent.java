@@ -1,13 +1,12 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -20,15 +19,13 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("OutOfDateParticipantEvent")
-public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate {
+public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<PersistentInvalidRange> {
 
-    private Collection<String> componentsWithFeatureConflicts;
     private String remapped_protein;
     private String remapped_parent;
 
     public OutOfDateParticipantEvent(){
         super();
-        this.componentsWithFeatureConflicts = new ArrayList<String>();
         this.remapped_protein = null;
         this.remapped_parent = null;
 
@@ -36,22 +33,25 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate {
 
     public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, Protein fixedProtein, String remapped_parent){
         super(updateProcess, ProteinEventName.participant_with_feature_conflicts, protein);
-        this.componentsWithFeatureConflicts = new ArrayList<String>();
         this.remapped_protein = fixedProtein != null ? fixedProtein.getAc() : null;
         this.remapped_parent = remapped_parent;
     }
 
-    @ElementCollection
-    @CollectionTable(name="ia_component_conflicts", joinColumns=@JoinColumn(name="event_id"))
-    @Column(name="component_ac")
-    public Collection<String> getComponentsWithFeatureConflicts() {
-        return componentsWithFeatureConflicts;
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<PersistentInvalidRange> getInvalidRanges(){
+        return super.getUpdatedRanges();
     }
 
-    public void setComponentsWithFeatureConflicts(Collection<String> componentsWithFeatureConflicts) {
-        if (componentsWithFeatureConflicts != null){
-            this.componentsWithFeatureConflicts = componentsWithFeatureConflicts;
-        }
+    public void setInvalidRanges(Collection<PersistentInvalidRange> updatedRanges) {
+        super.setUpdatedRanges(updatedRanges);
+    }
+
+    public boolean addInvalidRange(PersistentInvalidRange up){
+        return super.addRangeUpdate(up);
+    }
+
+    public boolean removeInvalidRange(PersistentInvalidRange up){
+        return super.removeRangeUpdate(up);
     }
 
     @Column(name="remapped_protein_ac")
@@ -152,7 +152,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate {
             return false;
         }
 
-        return CollectionUtils.isEqualCollection(componentsWithFeatureConflicts, event.getComponentsWithFeatureConflicts());
+        return true;
     }
 
     @Override

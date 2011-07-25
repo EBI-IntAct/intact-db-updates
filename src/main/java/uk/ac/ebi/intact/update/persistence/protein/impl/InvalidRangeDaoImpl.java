@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.persistence.protein.InvalidRangeDao;
 
+import javax.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 
@@ -22,6 +23,18 @@ import java.util.List;
 @Transactional(readOnly = true)
 @Lazy
 public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<PersistentInvalidRange> implements InvalidRangeDao {
+
+    public InvalidRangeDaoImpl() {
+        super(PersistentInvalidRange.class, null);
+    }
+
+    /**
+     * create a new PICRReportDaoImpl with entity manager
+     * @param entityManager
+     */
+    public InvalidRangeDaoImpl(EntityManager entityManager) {
+        super(PersistentInvalidRange.class, entityManager);
+    }
 
     @Override
     public List<PersistentInvalidRange> getAllInvalidRanges() {

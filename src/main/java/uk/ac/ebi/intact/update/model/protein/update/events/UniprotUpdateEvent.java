@@ -19,7 +19,7 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("UniprotUpdateEvent")
-public class UniprotUpdateEvent extends ProteinEventWithRangeUpdate {
+public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
 
     private String updatedShortLabel;
     private String updatedFullName;

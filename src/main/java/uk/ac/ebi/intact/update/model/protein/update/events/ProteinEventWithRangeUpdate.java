@@ -7,13 +7,10 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
-import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
-import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,10 +24,10 @@ import java.util.Collection;
 @Entity
 @DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProteinEventWithRangeUpdate")
-public abstract class ProteinEventWithRangeUpdate extends PersistentProteinEvent {
+public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange> extends PersistentProteinEvent {
 
     private Collection<FeatureUpdatedAnnotation> updatedFeatureAnnotations = new ArrayList<FeatureUpdatedAnnotation>();
-    private Collection<PersistentUpdatedRange> updatedRanges = new ArrayList<PersistentUpdatedRange>();
+    private Collection<T> updatedRanges = new ArrayList<T>();
 
     public ProteinEventWithRangeUpdate() {
         super();
@@ -69,16 +66,16 @@ public abstract class ProteinEventWithRangeUpdate extends PersistentProteinEvent
         this.updatedFeatureAnnotations = updatedFeatureAnnotations;
     }
 
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<PersistentUpdatedRange> getUpdatedRanges(){
+    @Transient
+    public Collection<T> getUpdatedRanges(){
         return updatedRanges;
     }
 
-    public void setUpdatedRanges(Collection<PersistentUpdatedRange> updatedRanges) {
+    public void setUpdatedRanges(Collection<T> updatedRanges) {
         this.updatedRanges = updatedRanges;
     }
 
-    public boolean addRangeUpdate(PersistentUpdatedRange up){
+    public boolean addRangeUpdate(T up){
         if (updatedRanges.add(up)){
             up.setParent(this);
             return true;
@@ -87,7 +84,7 @@ public abstract class ProteinEventWithRangeUpdate extends PersistentProteinEvent
         return false;
     }
 
-    public boolean removeRangeUpdate(PersistentUpdatedRange up){
+    public boolean removeRangeUpdate(T up){
         if (updatedRanges.remove(up)){
             up.setParent(null);
             return true;

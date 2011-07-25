@@ -18,6 +18,7 @@ import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
+import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
 
@@ -394,10 +395,19 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return event;
     }
 
-        public UniprotUpdateEvent createDefaultUniprotProteinEvent(){
+    public UniprotUpdateEvent createDefaultUniprotProteinEvent(){
         UniprotUpdateEvent event = new UniprotUpdateEvent();
 
         event.setProteinEventName(ProteinEventName.uniprot_update);
+        event.setIntactObjectAc("EBI-xx10xx10xx");
+
+        return event;
+    }
+
+    public OutOfDateParticipantEvent createOutOfDateParticipantProcess(){
+        OutOfDateParticipantEvent event = new OutOfDateParticipantEvent();
+
+        event.setProteinEventName(ProteinEventName.participant_with_feature_conflicts);
         event.setIntactObjectAc("EBI-xx10xx10xx");
 
         return event;

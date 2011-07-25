@@ -1,11 +1,9 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
-import org.hibernate.annotations.DiscriminatorFormula;
+import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithRangeUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import javax.persistence.*;
 
 /**
  * Class for invalid ranges found during the protein update
@@ -15,9 +13,8 @@ import javax.persistence.Entity;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
-@DiscriminatorValue("PersistentInvalidRange")
-public class PersistentInvalidRange extends PersistentUpdatedRange {
+@Table(name = "ia_invalid_range")
+public class PersistentInvalidRange extends AbstractUpdatedRange {
 
     private String fromStatus;
     private String toStatus;
@@ -46,6 +43,12 @@ public class PersistentInvalidRange extends PersistentUpdatedRange {
         this.sequenceVersion = sequenceVersion;
         this.fromStatus = startStatus;
         this.toStatus = endStatus;
+    }
+
+    @ManyToOne(targetEntity = OutOfDateParticipantEvent.class)
+    @JoinColumn(name="parent_id")
+    public ProteinEventWithRangeUpdate getParent() {
+        return super.getParent();
     }
 
     @Column(name = "from_range_status")
@@ -212,7 +215,7 @@ public class PersistentInvalidRange extends PersistentUpdatedRange {
         buffer.append(" \n");
 
         if (errorMessage != null){
-           buffer.append("Error message : " + errorMessage);
+            buffer.append("Error message : " + errorMessage);
         }
 
         return buffer.toString();

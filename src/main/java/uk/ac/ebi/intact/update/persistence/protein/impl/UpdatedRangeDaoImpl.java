@@ -5,9 +5,9 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.persistence.protein.UpdatedRangeDao;
+import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.UpdatedRangeDao;
 
 import javax.persistence.EntityManager;
 import java.util.Date;
@@ -23,18 +23,23 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdatedRangeDaoImpl<T extends PersistentUpdatedRange> extends UpdateBaseDaoImpl<T> implements UpdatedRangeDao<T> {
+public class UpdatedRangeDaoImpl<T extends AbstractUpdatedRange> extends UpdateBaseDaoImpl<T> implements UpdatedRangeDao<T> {
 
     public UpdatedRangeDaoImpl() {
-        super((Class<T>) PersistentUpdatedRange.class, null);
+        super((Class<T>) AbstractUpdatedRange.class);
+    }
+
+    public UpdatedRangeDaoImpl(Class<T> entityClass) {
+        super(entityClass, null);
     }
 
     /**
      * create a new PICRReportDaoImpl with entity manager
+     * @param entityClass
      * @param entityManager
      */
-    public UpdatedRangeDaoImpl(EntityManager entityManager) {
-        super((Class<T>) PersistentUpdatedRange.class, entityManager);
+    public UpdatedRangeDaoImpl(Class<T> entityClass, EntityManager entityManager) {
+        super(entityClass, entityManager);
     }
 
     @Override

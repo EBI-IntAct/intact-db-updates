@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
-import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
+import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.io.Serializable;
@@ -15,7 +15,7 @@ import java.util.List;
  * @since <pre>02-Dec-2010</pre>
  */
 
-public interface UpdatedRangeDao<T extends PersistentUpdatedRange> extends UpdateBaseDao<T>, Serializable {
+public interface UpdatedRangeDao<T extends AbstractUpdatedRange> extends UpdateBaseDao<T>, Serializable {
 
     public List<T> getUpdatedRangesByRangeAc(String rangeAc);
     public List<T> getUpdatedRangesByComponentAc(String componentAc);
