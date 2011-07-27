@@ -84,10 +84,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 for (RangeUpdateReport rangeReport : evt.getUpdatedRanges().values()){
                     logFeatureChanged(rangeReport);
 
-                    for (Collection<UpdatedRange> updatedRanges : rangeReport.getShiftedRanges().values()){
-                        for (UpdatedRange updatedRange : updatedRanges){
-                            logRangeChanged(updatedRange);
-                        }
+                    for (UpdatedRange updatedRange : rangeReport.getShiftedRanges()){
+                        logRangeChanged(updatedRange);
                     }
                 }
             }
@@ -423,10 +421,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 for (RangeUpdateReport rangeReport : evt.getUpdatedRanges().values()){
                     logFeatureChanged(rangeReport);
 
-                    for (Collection<UpdatedRange> updatedRanges : rangeReport.getShiftedRanges().values()){
-                        for (UpdatedRange updatedRange : updatedRanges){
-                            logRangeChanged(updatedRange);
-                        }
+                    for (UpdatedRange updatedRange : rangeReport.getShiftedRanges()){
+                        logRangeChanged(updatedRange);
                     }
                 }
             }

@@ -74,14 +74,7 @@ public class RangeChecker {
 
                     updatedRange = new UpdatedRange(oldRange, range);
 
-                    if (report.getShiftedRanges().containsKey(updatedRange.getProteinAc())){
-                        report.getShiftedRanges().get(updatedRange.getProteinAc()).add(updatedRange);
-                    }
-                    else{
-                        Collection<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
-                        updatedRanges.add(updatedRange);
-                        report.getShiftedRanges().put(updatedRange.getProteinAc(), updatedRanges);
-                    }
+                    report.getShiftedRanges().add(updatedRange);
                 }
             }
         }
@@ -120,14 +113,7 @@ public class RangeChecker {
 
                 updatedRange = new UpdatedRange(oldRange, range);
 
-                if (report.getShiftedRanges().containsKey(updatedRange.getProteinAc())){
-                    report.getShiftedRanges().get(updatedRange.getProteinAc()).add(updatedRange);
-                }
-                else{
-                    Collection<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
-                    updatedRanges.add(updatedRange);
-                    report.getShiftedRanges().put(updatedRange.getProteinAc(), updatedRanges);
-                }
+                report.getShiftedRanges().add(updatedRange);
             }
         }
     }

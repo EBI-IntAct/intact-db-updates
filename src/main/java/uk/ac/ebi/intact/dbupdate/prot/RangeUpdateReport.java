@@ -5,6 +5,7 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class RangeUpdateReport {
 
     private Map<Component, Collection<InvalidRange>> invalidComponents = new HashMap<Component, Collection<InvalidRange>>();
     private Map<String, AnnotationUpdateReport> updatedFeatureAnnotations = new HashMap<String, AnnotationUpdateReport>();
-    private Map<String, Collection<UpdatedRange>> shiftedRanges = new HashMap<String, Collection<UpdatedRange>>();
+    private Collection<UpdatedRange> shiftedRanges = new ArrayList<UpdatedRange>();
 
     public Map<Component, Collection<InvalidRange>> getInvalidComponents() {
         return invalidComponents;
@@ -31,7 +32,7 @@ public class RangeUpdateReport {
         return updatedFeatureAnnotations;
     }
 
-    public Map<String, Collection<UpdatedRange>> getShiftedRanges() {
+    public Collection<UpdatedRange> getShiftedRanges() {
         return shiftedRanges;
     }
 }

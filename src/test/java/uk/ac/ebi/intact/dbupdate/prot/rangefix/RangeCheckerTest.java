@@ -344,7 +344,7 @@ public class RangeCheckerTest extends IntactBasicTestCase {
         rangeChecker.shiftFeatureRanges(feature, previousSequence, true_sequence, IntactContext.getCurrentInstance().getDataContext(), report);
         Assert.assertEquals(1, report.getShiftedRanges().size());
 
-        Collection<UpdatedRange> updatedRanges = report.getShiftedRanges().get(feature.getComponent().getInteractor().getAc());
+        Collection<UpdatedRange> updatedRanges = report.getShiftedRanges();
         Assert.assertNotNull(updatedRanges);
         Assert.assertEquals(1, updatedRanges.size());
 
