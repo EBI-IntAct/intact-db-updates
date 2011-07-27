@@ -381,7 +381,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     // update the protein transcripts if necessary
                     Collection<String> updatedTranscripts = ProteinTools.updateProteinTranscripts(factory, originalProt, duplicate);
 
-                    evt.getAddedXRefs().put(originalProt.getAc(), addedXRef);
+                    evt.getMovedXrefs().put(duplicate.getAc(), addedXRef);
                     evt.getUpdatedTranscripts().put(duplicate.getAc(), updatedTranscripts);
 
                     // update the duplicate
@@ -445,7 +445,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                         // the duplicate will be deleted, add intact secondary references
                         Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
-                        evt.getAddedXRefs().put(originalProt.getAc(), addedXRef);
+                        evt.getMovedXrefs().put(duplicate.getAc(), addedXRef);
 
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){

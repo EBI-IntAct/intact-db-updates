@@ -64,7 +64,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
         try {
             ReportWriter duplicatedWriter = reportHandler.getDuplicatedWriter();
-            duplicatedWriter.writeHeaderIfNecessary("Kept", "Uniprot Primary ac", "Total Active instances", "Duplicates", "Updated isoforms/feature chains", "moved interactions", "Added xrefs", "Added annotations");
+            duplicatedWriter.writeHeaderIfNecessary("Kept", "Uniprot Primary ac", "Total Active instances", "Duplicates", "Updated isoforms/feature chains", "moved interactions", "Moved xrefs", "Added annotations");
             String protAc = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getAc() : "All. Impossible to merge";
             int activeInstanceNumber = evt.getReferenceProtein() != null ? evt.getReferenceProtein().getActiveInstances().size() : 0;
 
@@ -74,7 +74,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
                     mapCollectionStringToString(evt.getUpdatedTranscripts()),
                     mapCollectionStringToString(evt.getMovedInteractions()),
-                    mapCollectionXrefsToString(evt.getAddedXRefs()),
+                    mapCollectionXrefsToString(evt.getMovedXrefs()),
                     mapCollectionAnnotationsToString(evt.getAddedAnnotations())
             );
 

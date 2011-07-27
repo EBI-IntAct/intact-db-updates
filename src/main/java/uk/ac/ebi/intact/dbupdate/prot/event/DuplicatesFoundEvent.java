@@ -50,7 +50,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     private Map<String, Collection<String>> movedInteractions = new HashMap<String, Collection<String>>();
     private Map<String, Collection<String>> updatedTranscripts = new HashMap<String, Collection<String>>();
-    private Map<String, Collection<InteractorXref>> addedXRefs = new HashMap<String, Collection<InteractorXref>>();
+    private Map<String, Collection<InteractorXref>> movedXrefs = new HashMap<String, Collection<InteractorXref>>();
     private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
 
     private Map<String, RangeUpdateReport> updatedRanges = new HashMap<String, RangeUpdateReport>();
@@ -129,12 +129,12 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         this.updatedTranscripts = updatedTranscripts;
     }
 
-    public Map<String, Collection<InteractorXref>> getAddedXRefs() {
-        return addedXRefs;
+    public Map<String, Collection<InteractorXref>> getMovedXrefs() {
+        return movedXrefs;
     }
 
-    public void setAddedXRefs(Map<String, Collection<InteractorXref>> addedXRefs) {
-        this.addedXRefs = addedXRefs;
+    public void setMovedXrefs(Map<String, Collection<InteractorXref>> movedXrefs) {
+        this.movedXrefs = movedXrefs;
     }
 
     public Map<String, Collection<Annotation>> getAddedAnnotations() {
