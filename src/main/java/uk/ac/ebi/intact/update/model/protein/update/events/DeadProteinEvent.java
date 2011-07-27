@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
+import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
@@ -51,7 +52,7 @@ public class DeadProteinEvent extends PersistentProteinEvent {
         return this.deletedReferences;
     }
 
-    public void addDeletedReferencesFromXref(Collection<Xref> updatedRef){
+    public void addDeletedReferencesFromXref(Collection<InteractorXref> updatedRef){
         for (Xref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, UpdateStatus.deleted);

@@ -94,37 +94,46 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                 duplicatedEvent.addMovedReferencesFromXref(movedXrefs);
             }
 
-            if (rangeReport != null){
-                Map<String, AnnotationUpdateReport> featureReport = rangeReport.getUpdatedFeatureAnnotations();
+            collectRangeUpdateEvents(rangeReport, duplicatedEvent);
 
-                for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
-                    String featureAc = entry.getKey();
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
+        }
+    }
 
-                    if (!entry.getValue().getAddedAnnotations().isEmpty()){
-                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
-                    }
-                    if (!entry.getValue().getRemovedAnnotations().isEmpty()){
-                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
-                    }
-                    if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
-                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
-                    }
+    /**
+     * Append all range events to the protein event to persist
+     * @param rangeReport
+     * @param duplicatedEvent
+     */
+    private void collectRangeUpdateEvents(RangeUpdateReport rangeReport, ProteinEventWithShiftedRanges duplicatedEvent) {
+        if (rangeReport != null){
+            Map<String, AnnotationUpdateReport> featureReport = rangeReport.getUpdatedFeatureAnnotations();
+
+            for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
+                String featureAc = entry.getKey();
+
+                if (!entry.getValue().getAddedAnnotations().isEmpty()){
+                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
                 }
-
-                Collection<UpdatedRange> shiftedRanges = rangeReport.getShiftedRanges();
-                for (UpdatedRange updated : shiftedRanges){
-                    String oldSequence = updated.getOldRange() != null ? updated.getOldRange().getFullSequence() : null;
-                    String newSequence = updated.getNewRange() != null ? updated.getNewRange().getFullSequence() : null;
-
-                    String oldPositions = updated.getOldRange() != null ? FeatureUtils.convertRangeIntoString(updated.getOldRange()) : null;
-                    String newPositions = updated.getNewRange() != null ? FeatureUtils.convertRangeIntoString(updated.getNewRange()) : null;
-
-                    PersistentUpdatedRange persistentRange = new PersistentUpdatedRange(duplicatedEvent, updated.getComponentAc(), updated.getFeatureAc(), updated.getInteractionAc(), updated.getRangeAc(), oldSequence, newSequence, oldPositions, newPositions);
-                    duplicatedEvent.addRangeUpdate(persistentRange);
+                if (!entry.getValue().getRemovedAnnotations().isEmpty()){
+                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
+                }
+                if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
+                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
                 }
             }
 
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
+            Collection<UpdatedRange> shiftedRanges = rangeReport.getShiftedRanges();
+            for (UpdatedRange updated : shiftedRanges){
+                String oldSequence = updated.getOldRange() != null ? updated.getOldRange().getFullSequence() : null;
+                String newSequence = updated.getNewRange() != null ? updated.getNewRange().getFullSequence() : null;
+
+                String oldPositions = updated.getOldRange() != null ? FeatureUtils.convertRangeIntoString(updated.getOldRange()) : null;
+                String newPositions = updated.getNewRange() != null ? FeatureUtils.convertRangeIntoString(updated.getNewRange()) : null;
+
+                PersistentUpdatedRange persistentRange = new PersistentUpdatedRange(duplicatedEvent, updated.getComponentAc(), updated.getFeatureAc(), updated.getInteractionAc(), updated.getRangeAc(), oldSequence, newSequence, oldPositions, newPositions);
+                duplicatedEvent.addRangeUpdate(persistentRange);
+            }
         }
     }
 
@@ -134,8 +143,13 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         Protein protein = evt.getProtein();
 
         String identity = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : null;
+        Collection<InteractorXref> deletedXrefs = evt.getDeletedXrefs();
 
-        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.dead_protein, protein, identity);
+        DeadProteinEvent proteinEvt = new DeadProteinEvent(this.updateProcess, protein, identity);
+
+        if (deletedXrefs != null && !deletedXrefs.isEmpty()){
+            proteinEvt.addDeletedReferencesFromXref(deletedXrefs);
+        }
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
@@ -187,27 +201,28 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
-    @Transactional( "update" )
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
-
         // no need to keep this information in the database
     }
 
     @Override
-    @Transactional( "update" )
     public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
+        // the listener does not take into account this event as it is taken into account when processing onDuplicateFound events and onUpdateCase events
     }
 
     @Override
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
+        // the listener does not take into account this event as it is taken into account when processing onOutOfDateParticipant events
     }
 
     @Override
     public void onOutOfDateRange(InvalidRangeEvent evt) throws ProcessorException {
+        // the listener does not take into account this event as it is taken into account when processing onOutOfDateParticipant events
     }
 
     @Override
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
+
     }
 
     @Override
@@ -275,6 +290,14 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                 proteinEvent.setUpdatedShortLabel(report.getShortLabel());
                 proteinEvent.setUpdatedFullName(report.getFullName());
             }
+        }
+
+        RangeUpdateReport rangeReport = evt.getUpdatedRanges().get(protein.getAc());
+
+        if (rangeReport != null){
+            needToBePersisted = true;
+
+            collectRangeUpdateEvents(rangeReport, proteinEvent);
         }
 
         if (needToBePersisted){
