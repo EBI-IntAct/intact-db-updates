@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.util.protein;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -106,7 +107,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     ////////////////////
     // Tests
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_CDC42_CANFA() throws Exception {
 
         ProteinService service = buildProteinService();
@@ -259,7 +261,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_spliceVariant() throws Exception {
 
 
@@ -315,7 +318,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_update_CDC42_CANFA() throws Exception {
 
 
@@ -399,7 +403,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_sequenceUpdate() throws ProteinServiceException, IntactTransactionException {
 
         FlexibleMockUniprotService uniprotService = new FlexibleMockUniprotService();
@@ -458,7 +463,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_intact1_uniprot0() throws Exception{
 
 
@@ -505,7 +511,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
 
     }
 
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_intact0_uniprot0() throws Exception{
 
 
@@ -535,7 +542,8 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     /**
      * Test that the protein xref and the protein are udpated when : countPrimary == 0 && countSecondary == 1
      */
-    @Test 
+    @Test
+    @Ignore
     public void retrieve_primaryCount0_secondaryCount1() throws Exception{
 
         /*----------------------------------------------------------
