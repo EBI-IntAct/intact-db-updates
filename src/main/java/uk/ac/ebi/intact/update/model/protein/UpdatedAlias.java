@@ -1,72 +1,78 @@
-package uk.ac.ebi.intact.update.model;
+package uk.ac.ebi.intact.update.model.protein;
 
-import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.Alias;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
 /**
- * ProteinUpdateAnnotation of a protein
+ * ProteinUpdateAlias of a protein
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>28-Oct-2010</pre>
  */
-@MappedSuperclass
-public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
+@Entity
+@Table(name = "ia_protein_updated_alias")
+public class UpdatedAlias extends HibernateUpdatePersistentImpl {
 
-    private String topic;
-    private String text;
+    private String type;
+    private String name;
+
     private UpdateEvent parent;
+
     private UpdateStatus status;
 
-    public UpdatedAnnotation(){
+    public UpdatedAlias(){
         super();
-        this.topic = null;
-        this.text = null;
+        this.name = null;
+        this.type = null;
         this.status = UpdateStatus.none;
         this.parent = null;
     }
 
-    public UpdatedAnnotation(String topic, String text, UpdateStatus status){
+    public UpdatedAlias(String type, String name, UpdateStatus status){
         super();
-        this.topic = topic;
-        this.text = text;
+        this.name = name;
+        this.type = type;
         this.status = status != null ? status : UpdateStatus.none;
         this.parent = null;
     }
 
-    public UpdatedAnnotation(Annotation annotation, UpdateStatus status){
+    public UpdatedAlias(Alias alias, UpdateStatus status){
         super();
-        if (annotation != null){
+        if (alias != null){
+            type = alias.getCvAliasType() != null ? alias.getCvAliasType().getAc() : null;
 
-            topic = annotation.getCvTopic() != null ? annotation.getCvTopic().getAc() : null;
-
-            this.text = annotation.getAnnotationText();
+            this.name = alias.getName();
         }
         else {
-            this.topic = null;
-            this.text = null;
+            this.type = null;
+            this.name = null;
         }
         this.status = status != null ? status : UpdateStatus.none;
         this.parent = null;
     }
 
-    @Column(name="topic_ac", nullable = false)
-    public String getTopic() {
-        return topic;
+    @Column(name="type_ac", nullable = false)
+    public String getType() {
+        return type;
     }
 
-    public void setTopic(String topic) {
-        this.topic = topic;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    @Column(name = "text", nullable = true)
-    public String getText() {
-        return text;
+    @Column(name = "name", nullable = false)
+    public String getName() {
+        return name;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Column(name = "status", nullable = false)
@@ -79,7 +85,8 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
         this.status = status;
     }
 
-    @Transient
+    @ManyToOne( targetEntity = PersistentProteinEvent.class )
+    @JoinColumn( name = "event_id" )
     public UpdateEvent getParent() {
         return parent;
     }
@@ -94,23 +101,23 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
             return false;
         }
 
-        final UpdatedAnnotation updated = ( UpdatedAnnotation ) o;
+        final UpdatedAlias updated = ( UpdatedAlias ) o;
 
-        if ( topic != null ) {
-            if (!topic.equals( updated.getTopic())){
+        if ( type != null ) {
+            if (!type.equals( updated.getType())){
                 return false;
             }
         }
-        else if (updated.getTopic()!= null){
+        else if (updated.getType()!= null){
             return false;
         }
 
-        if ( text != null ) {
-            if (!text.equals( updated.getText())){
+        if ( name != null ) {
+            if (!name.equals( updated.getName())){
                 return false;
             }
         }
-        else if (updated.getText()!= null){
+        else if (updated.getName()!= null){
             return false;
         }
 
@@ -139,12 +146,12 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
         code = 29 * code + super.hashCode();
 
-        if ( topic != null ) {
-            code = 29 * code + topic.hashCode();
+        if ( type != null ) {
+            code = 29 * code + type.hashCode();
         }
 
-        if ( text != null ) {
-            code = 29 * code + text.hashCode();
+        if ( name != null ) {
+            code = 29 * code + name.hashCode();
         }
 
         if ( status != null ) {
@@ -161,23 +168,23 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
             return false;
         }
 
-        final UpdatedAnnotation updated = ( UpdatedAnnotation ) o;
+        final UpdatedAlias updated = ( UpdatedAlias ) o;
 
-        if ( topic != null ) {
-            if (!topic.equals( updated.getTopic())){
+        if ( type != null ) {
+            if (!type.equals( updated.getType())){
                 return false;
             }
         }
-        else if (updated.getTopic()!= null){
+        else if (updated.getType()!= null){
             return false;
         }
 
-        if ( text != null ) {
-            if (!text.equals( updated.getText())){
+        if ( name != null ) {
+            if (!name.equals( updated.getName())){
                 return false;
             }
         }
-        else if (updated.getText()!= null){
+        else if (updated.getName()!= null){
             return false;
         }
 
@@ -199,7 +206,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Annotation : [ topic = " + topic != null ? topic : "none" + ", text = " + text != null ? text : "none" + ", status = " + status != null ? status.toString() : "none");
+        buffer.append("Alias : [ type = " + type != null ? type : "none" + ", name = " + name != null ? name : "none" + ", status = " + status != null ? status.toString() : "none");
 
         return buffer.toString();
     }

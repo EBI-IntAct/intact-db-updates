@@ -41,7 +41,18 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
     @Override
     public List<T> getAllProteinEventsByNameAndProteinAc(ProteinEventName name, String proteinAc) {
         return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name.toString()))
-                .add(Restrictions.eq("intactObjectAc", proteinAc)).list();
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
+    }
+
+    @Override
+    public List<T> getAllUpdateEventsByProteinAc(String intactObjectAc) {
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+    }
+
+    @Override
+    public List<T> getAllUpdateEventsByNameAndProteinAc(String name, String intactObjectAc) {
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
     }
 
     @Override
@@ -56,7 +67,23 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("name", name.toString()))
-                .add(Restrictions.eq("intactObjectAc", proteinAc))
+                .add(Restrictions.eq("proteinAc", proteinAc))
+                .add(Restrictions.eq("p.id", processId)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByProteinAcAndProcessId(String intactObjectAc, long processId) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).add(Restrictions.eq("p.id", processId)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByNameAndProteinAc(String name, String intactObjectAc, long processId) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", intactObjectAc))
                 .add(Restrictions.eq("p.id", processId)).list();
     }
 
@@ -76,7 +103,26 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
                 .add(Restrictions.lt("p.date", DateUtils.addDays(date, 1)))
                 .add(Restrictions.gt("p.date", DateUtils.addDays(date, -1)))
                 .add(Restrictions.eq("name", name.toString()))
-                .add(Restrictions.eq("intactObjectAc", proteinAc)).list();
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByProteinAcAndDate(String intactObjectAc, Date updatedDate) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByNameAndProteinAc(String name, String intactObjectAc, Date date) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.lt("p.date", DateUtils.addDays(date, 1)))
+                .add(Restrictions.gt("p.date", DateUtils.addDays(date, -1)))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
     }
 
     @Override
@@ -93,7 +139,24 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
                 .createAlias("parent", "p")
                 .add(Restrictions.le("p.date", date))
                 .add(Restrictions.eq("name", name.toString()))
-                .add(Restrictions.eq("intactObjectAc", proteinAc)).list();
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByProteinAcBeforeDate(String intactObjectAc, Date updatedDate) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.le("p.date", updatedDate))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByNameAndProteinAcBefore(String name, String intactObjectAc, Date date) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.le("p.date", date))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
     }
 
     @Override
@@ -110,6 +173,23 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
                 .createAlias("parent", "p")
                 .add(Restrictions.ge("p.date", date))
                 .add(Restrictions.eq("name", name.toString()))
-                .add(Restrictions.eq("intactObjectAc", proteinAc)).list();
+                .add(Restrictions.eq("proteinAc", proteinAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByProteinAcAfterDate(String intactObjectAc, Date updatedDate) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.ge("p.date", updatedDate))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+    }
+
+    @Override
+    public List<T> getUpdateEventsByNameAndProteinAcAfter(String name, String intactObjectAc, Date date) {
+        return getSession().createCriteria(getEntityClass())
+                .createAlias("parent", "p")
+                .add(Restrictions.ge("p.date", date))
+                .add(Restrictions.eq("name", name))
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
     }
 }

@@ -1,6 +1,10 @@
-package uk.ac.ebi.intact.update.model;
+package uk.ac.ebi.intact.update.model.protein;
 
 import uk.ac.ebi.intact.model.Xref;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
@@ -11,7 +15,8 @@ import javax.persistence.*;
  * @version $Id$
  * @since <pre>28-Oct-2010</pre>
  */
-@MappedSuperclass
+@Entity
+@Table(name = "ia_protein_updated_xref")
 public class UpdatedCrossReference extends HibernateUpdatePersistentImpl {
 
     private String database;
@@ -90,7 +95,8 @@ public class UpdatedCrossReference extends HibernateUpdatePersistentImpl {
         this.status = status;
     }
 
-    @Transient
+    @ManyToOne( targetEntity = PersistentProteinEvent.class )
+    @JoinColumn( name = "event_id" )
     public UpdateEvent getParent() {
         return parent;
     }

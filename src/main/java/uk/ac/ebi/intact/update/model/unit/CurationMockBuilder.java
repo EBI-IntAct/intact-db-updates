@@ -5,7 +5,10 @@ import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.actions.status.Status;
 import uk.ac.ebi.intact.protein.mapping.actions.status.StatusLabel;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
+import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
@@ -15,9 +18,6 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCross
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAlias;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateAnnotation;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinUpdateCrossReference;
 import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
@@ -365,8 +365,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return ann;
     }
 
-    public ProteinUpdateCrossReference createDefaultUpdatedCrossReference(){
-        ProteinUpdateCrossReference ref = new ProteinUpdateCrossReference();
+    public UpdatedCrossReference createDefaultUpdatedCrossReference(){
+        UpdatedCrossReference ref = new UpdatedCrossReference();
 
         ref.setStatus(UpdateStatus.added);
         ref.setDatabase("EBI-xxxxx7");
@@ -376,8 +376,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return ref;
     }
 
-    public ProteinUpdateAlias createDefaultUpdatedAlias(){
-        ProteinUpdateAlias al = new ProteinUpdateAlias();
+    public UpdatedAlias createDefaultUpdatedAlias(){
+        UpdatedAlias al = new UpdatedAlias();
 
         al.setStatus(UpdateStatus.added);
         al.setName("GP2");
@@ -390,7 +390,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
         PersistentProteinEvent event = new PersistentProteinEvent();
 
         event.setProteinEventName(ProteinEventName.uniprot_update);
-        event.setIntactObjectAc("EBI-xx10xx10xx");
+        event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
     }
@@ -399,7 +399,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
         UniprotUpdateEvent event = new UniprotUpdateEvent();
 
         event.setProteinEventName(ProteinEventName.uniprot_update);
-        event.setIntactObjectAc("EBI-xx10xx10xx");
+        event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
     }
@@ -408,7 +408,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
         OutOfDateParticipantEvent event = new OutOfDateParticipantEvent();
 
         event.setProteinEventName(ProteinEventName.participant_with_feature_conflicts);
-        event.setIntactObjectAc("EBI-xx10xx10xx");
+        event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
     }
@@ -427,7 +427,7 @@ public class CurationMockBuilder extends IntactMockBuilder {
         PersistentProteinEvent proteinEvent = new PersistentProteinEvent();
 
         proteinEvent.setProteinEventName(ProteinEventName.dead_protein);
-        proteinEvent.setIntactObjectAc("EBI-xxxxx10");
+        proteinEvent.setProteinAc("EBI-xxxxx10");
         proteinEvent.setUniprotAc("P12345");
 
         return proteinEvent;

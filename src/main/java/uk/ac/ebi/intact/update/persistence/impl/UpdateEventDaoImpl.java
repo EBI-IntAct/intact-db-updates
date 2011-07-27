@@ -37,11 +37,6 @@ public class UpdateEventDaoImpl<T extends UpdateEvent> extends UpdateBaseDaoImpl
     }
 
     @Override
-    public List<T> getAllUpdateEventsByIntactAc(String intactObjectAc) {
-        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
     public List<T> getAllUpdateEventsByProcessId(long processId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).list();
@@ -56,32 +51,10 @@ public class UpdateEventDaoImpl<T extends UpdateEvent> extends UpdateBaseDaoImpl
     }
 
     @Override
-    public List<T> getAllUpdateEventsByNameAndIntactAc(String name, String proteinAc) {
-        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name))
-                .add(Restrictions.eq("proteinAc", proteinAc)).list();
-    }
-
-    @Override
     public List<T> getUpdateEventsByNameAndProcessId(String name, long processId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("name", name)).add(Restrictions.eq("p.id", processId)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByIntactAcAndProcessId(String intactObjectAc, long processId) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).add(Restrictions.eq("p.id", processId)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameAndIntactAc(String name, String proteinAc, long processId) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.eq("name", name))
-                .add(Restrictions.eq("intactObjectAc", proteinAc))
-                .add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
@@ -94,25 +67,6 @@ public class UpdateEventDaoImpl<T extends UpdateEvent> extends UpdateBaseDaoImpl
     }
 
     @Override
-    public List<T> getUpdateEventsByIntactAcAndDate(String intactObjectAc, Date updatedDate) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
-                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameAndIntactAc(String name, String intactObjectAc, Date date) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.lt("p.date", DateUtils.addDays(date, 1)))
-                .add(Restrictions.gt("p.date", DateUtils.addDays(date, -1)))
-                .add(Restrictions.eq("name", name))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
     public List<T> getUpdateEventsByNameBeforeDate(String name, Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
@@ -121,44 +75,10 @@ public class UpdateEventDaoImpl<T extends UpdateEvent> extends UpdateBaseDaoImpl
     }
 
     @Override
-    public List<T> getUpdateEventsByIntactAcBeforeDate(String intactObjectAc, Date updatedDate) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.le("p.date", updatedDate))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameAndIntactAcBefore(String name, String intactObjectAc, Date date) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.le("p.date", date))
-                .add(Restrictions.eq("name", name))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
     public List<T> getUpdateEventsByNameAfterDate(String name, Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.ge("p.date", updatedDate))
                 .add(Restrictions.eq("name", name)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByIntactAcAfterDate(String intactObjectAc, Date updatedDate) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.ge("p.date", updatedDate))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameAndIntactAcAfter(String name, String intactObjectAc, Date date) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.ge("p.date", date))
-                .add(Restrictions.eq("name", name))
-                .add(Restrictions.eq("intactObjectAc", intactObjectAc)).list();
     }
 }

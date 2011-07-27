@@ -1,74 +1,75 @@
-package uk.ac.ebi.intact.update.model;
+package uk.ac.ebi.intact.update.model.protein;
 
-import uk.ac.ebi.intact.model.Alias;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
+import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
 
 import javax.persistence.*;
 
 /**
- * ProteinUpdateAlias of a protein
+ * ProteinUpdateAnnotation of a protein
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>28-Oct-2010</pre>
  */
-@Entity
-@Table(name = "ia_protein_alias")
-public class UpdatedAlias extends HibernateUpdatePersistentImpl {
+@MappedSuperclass
+public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
-    private String type;
-    private String name;
-
+    private String topic;
+    private String text;
     private UpdateEvent parent;
-
     private UpdateStatus status;
 
-    public UpdatedAlias(){
+    public UpdatedAnnotation(){
         super();
-        this.name = null;
-        this.type = null;
+        this.topic = null;
+        this.text = null;
         this.status = UpdateStatus.none;
         this.parent = null;
     }
 
-    public UpdatedAlias(String type, String name, UpdateStatus status){
+    public UpdatedAnnotation(String topic, String text, UpdateStatus status){
         super();
-        this.name = name;
-        this.type = type;
+        this.topic = topic;
+        this.text = text;
         this.status = status != null ? status : UpdateStatus.none;
         this.parent = null;
     }
 
-    public UpdatedAlias(Alias alias, UpdateStatus status){
+    public UpdatedAnnotation(Annotation annotation, UpdateStatus status){
         super();
-        if (alias != null){
-            type = alias.getCvAliasType() != null ? alias.getCvAliasType().getAc() : null;
+        if (annotation != null){
 
-            this.name = alias.getName();
+            topic = annotation.getCvTopic() != null ? annotation.getCvTopic().getAc() : null;
+
+            this.text = annotation.getAnnotationText();
         }
         else {
-            this.type = null;
-            this.name = null;
+            this.topic = null;
+            this.text = null;
         }
         this.status = status != null ? status : UpdateStatus.none;
         this.parent = null;
     }
 
-    @Column(name="type_ac", nullable = false)
-    public String getType() {
-        return type;
+    @Column(name="topic_ac", nullable = false)
+    public String getTopic() {
+        return topic;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 
-    @Column(name = "name", nullable = false)
-    public String getName() {
-        return name;
+    @Column(name = "text", nullable = true)
+    public String getText() {
+        return text;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setText(String text) {
+        this.text = text;
     }
 
     @Column(name = "status", nullable = false)
@@ -96,23 +97,23 @@ public class UpdatedAlias extends HibernateUpdatePersistentImpl {
             return false;
         }
 
-        final UpdatedAlias updated = ( UpdatedAlias ) o;
+        final UpdatedAnnotation updated = ( UpdatedAnnotation ) o;
 
-        if ( type != null ) {
-            if (!type.equals( updated.getType())){
+        if ( topic != null ) {
+            if (!topic.equals( updated.getTopic())){
                 return false;
             }
         }
-        else if (updated.getType()!= null){
+        else if (updated.getTopic()!= null){
             return false;
         }
 
-        if ( name != null ) {
-            if (!name.equals( updated.getName())){
+        if ( text != null ) {
+            if (!text.equals( updated.getText())){
                 return false;
             }
         }
-        else if (updated.getName()!= null){
+        else if (updated.getText()!= null){
             return false;
         }
 
@@ -141,12 +142,12 @@ public class UpdatedAlias extends HibernateUpdatePersistentImpl {
 
         code = 29 * code + super.hashCode();
 
-        if ( type != null ) {
-            code = 29 * code + type.hashCode();
+        if ( topic != null ) {
+            code = 29 * code + topic.hashCode();
         }
 
-        if ( name != null ) {
-            code = 29 * code + name.hashCode();
+        if ( text != null ) {
+            code = 29 * code + text.hashCode();
         }
 
         if ( status != null ) {
@@ -163,23 +164,23 @@ public class UpdatedAlias extends HibernateUpdatePersistentImpl {
             return false;
         }
 
-        final UpdatedAlias updated = ( UpdatedAlias ) o;
+        final UpdatedAnnotation updated = ( UpdatedAnnotation ) o;
 
-        if ( type != null ) {
-            if (!type.equals( updated.getType())){
+        if ( topic != null ) {
+            if (!topic.equals( updated.getTopic())){
                 return false;
             }
         }
-        else if (updated.getType()!= null){
+        else if (updated.getTopic()!= null){
             return false;
         }
 
-        if ( name != null ) {
-            if (!name.equals( updated.getName())){
+        if ( text != null ) {
+            if (!text.equals( updated.getText())){
                 return false;
             }
         }
-        else if (updated.getName()!= null){
+        else if (updated.getText()!= null){
             return false;
         }
 
@@ -201,7 +202,7 @@ public class UpdatedAlias extends HibernateUpdatePersistentImpl {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Alias : [ type = " + type != null ? type : "none" + ", name = " + name != null ? name : "none" + ", status = " + status != null ? status.toString() : "none");
+        buffer.append("Annotation : [ topic = " + topic != null ? topic : "none" + ", text = " + text != null ? text : "none" + ", status = " + status != null ? status.toString() : "none");
 
         return buffer.toString();
     }

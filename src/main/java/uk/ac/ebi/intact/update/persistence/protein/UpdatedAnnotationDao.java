@@ -1,7 +1,8 @@
-package uk.ac.ebi.intact.update.persistence;
+package uk.ac.ebi.intact.update.persistence.protein;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
 import java.util.Collection;
 
@@ -13,7 +14,7 @@ import java.util.Collection;
  * @since <pre>19/07/11</pre>
  */
 @Mockable
-public interface UpdatedAnnotationDao<T extends UpdatedAnnotation> extends UpdateBaseDao<T>{
+public interface UpdatedAnnotationDao<T extends UpdatedAnnotation> extends UpdateBaseDao<T> {
 
     Collection<T> getDeletedAnnotationFor(Long eventId);
     Collection<T> getUpdatedAnnotationFor(Long eventId);

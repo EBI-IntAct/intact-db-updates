@@ -1,17 +1,18 @@
-package uk.ac.ebi.intact.update.persistence.impl;
+package uk.ac.ebi.intact.update.persistence.protein.impl;
 
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.UpdatedAnnotation;
-import uk.ac.ebi.intact.update.persistence.UpdatedAnnotationDao;
+import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.UpdatedAliasDao;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
 
 /**
- * Dao implementation for UpdatedAnnotation
+ * Dao implementation for UpdatedAlias
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -19,17 +20,17 @@ import java.util.Collection;
  */
 @Repository
 @Transactional(readOnly = true)
-public class UpdatedAnnotationDaoImpl<T extends UpdatedAnnotation> extends UpdateBaseDaoImpl<T> implements UpdatedAnnotationDao<T>{
-    public UpdatedAnnotationDaoImpl() {
-        super((Class<T>) UpdatedAnnotation.class);
+public class UpdatedAliasDaoImpl extends UpdateBaseDaoImpl<UpdatedAlias> implements UpdatedAliasDao {
+    public UpdatedAliasDaoImpl() {
+        super(UpdatedAlias.class);
     }
 
-    public UpdatedAnnotationDaoImpl(Class<T> entityClass, EntityManager entityManager) {
-        super(entityClass, entityManager);
+    public UpdatedAliasDaoImpl(EntityManager entityManager) {
+        super(UpdatedAlias.class, entityManager);
     }
 
     @Override
-    public Collection<T> getDeletedAnnotationFor(Long eventId) {
+    public Collection<UpdatedAlias> getDeletedAliasesFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.deleted))
@@ -37,7 +38,7 @@ public class UpdatedAnnotationDaoImpl<T extends UpdatedAnnotation> extends Updat
     }
 
     @Override
-    public Collection<T> getUpdatedAnnotationFor(Long eventId) {
+    public Collection<UpdatedAlias> getUpdatedAliasesFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.updated))
@@ -45,7 +46,7 @@ public class UpdatedAnnotationDaoImpl<T extends UpdatedAnnotation> extends Updat
     }
 
     @Override
-    public Collection<T> getAddedAnnotationFor(Long eventId) {
+    public Collection<UpdatedAlias> getAddedAliasesFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.added))

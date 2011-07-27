@@ -1,9 +1,9 @@
-package uk.ac.ebi.intact.update.model.protein.update;
+package uk.ac.ebi.intact.update.model.protein;
 
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.update.model.UpdateEvent;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.*;

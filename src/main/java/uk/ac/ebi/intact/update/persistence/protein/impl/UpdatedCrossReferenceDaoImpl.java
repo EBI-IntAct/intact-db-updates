@@ -1,11 +1,12 @@
-package uk.ac.ebi.intact.update.persistence.impl;
+package uk.ac.ebi.intact.update.persistence.protein.impl;
 
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.UpdatedCrossReference;
-import uk.ac.ebi.intact.update.persistence.UpdatedCrossReferenceDao;
+import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
+import uk.ac.ebi.intact.update.persistence.impl.UpdateBaseDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.UpdatedCrossReferenceDao;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -19,17 +20,17 @@ import java.util.Collection;
  */
 @Repository
 @Transactional(readOnly = true)
-public class UpdatedCrossReferenceDaoImpl<T extends UpdatedCrossReference> extends UpdateBaseDaoImpl<T> implements UpdatedCrossReferenceDao<T> {
+public class UpdatedCrossReferenceDaoImpl extends UpdateBaseDaoImpl<UpdatedCrossReference> implements UpdatedCrossReferenceDao {
     public UpdatedCrossReferenceDaoImpl() {
-        super((Class<T>) UpdatedCrossReference.class);
+        super(UpdatedCrossReference.class);
     }
 
-    public UpdatedCrossReferenceDaoImpl(Class<T> entityClass, EntityManager entityManager) {
-        super(entityClass, entityManager);
+    public UpdatedCrossReferenceDaoImpl(EntityManager entityManager) {
+        super(UpdatedCrossReference.class, entityManager);
     }
 
     @Override
-    public Collection<T> getDeletedXrefsFor(Long eventId) {
+    public Collection<UpdatedCrossReference> getDeletedXrefsFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.deleted))
@@ -37,7 +38,7 @@ public class UpdatedCrossReferenceDaoImpl<T extends UpdatedCrossReference> exten
     }
 
     @Override
-    public Collection<T> getUpdatedXrefsFor(Long eventId) {
+    public Collection<UpdatedCrossReference> getUpdatedXrefsFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.updated))
@@ -45,7 +46,7 @@ public class UpdatedCrossReferenceDaoImpl<T extends UpdatedCrossReference> exten
     }
 
     @Override
-    public Collection<T> getAddedXrefsFor(Long eventId) {
+    public Collection<UpdatedCrossReference> getAddedXrefsFor(Long eventId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.eq("status", UpdateStatus.added))

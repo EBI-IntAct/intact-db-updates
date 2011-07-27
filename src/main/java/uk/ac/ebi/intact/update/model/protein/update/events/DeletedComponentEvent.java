@@ -83,7 +83,7 @@ public class DeletedComponentEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Deleted component event : [proteinAc = " + super.getIntactObjectAc() + ", Number deleted components = " + this.deletedComponents.size());
+        buffer.append("Deleted component event : [proteinAc = " + super.getProteinAc() + ", Number deleted components = " + this.deletedComponents.size());
 
         return buffer.toString();
     }
