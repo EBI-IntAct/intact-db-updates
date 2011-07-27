@@ -8,7 +8,6 @@ import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 import java.util.ArrayList;

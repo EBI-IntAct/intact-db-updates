@@ -6,22 +6,15 @@ import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.Annotation;
-import uk.ac.ebi.intact.model.InteractorAlias;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
-import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.SequenceUpdateEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.*;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
@@ -55,19 +48,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.deleted_protein, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
-        // all aliases deleted
-        for (InteractorAlias alias : protein.getAliases()){
-            proteinEvt.addUpdatedAlias(new UpdatedAlias(alias, UpdateStatus.deleted));
-        }
-        // all xrefs deleted
-        for (InteractorXref xref : protein.getXrefs()){
-            proteinEvt.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.deleted));
-        }
-        // all annotations deleted
-        for (Annotation annotation : protein.getAnnotations()){
-            proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.deleted));
-        }
-
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
 
@@ -99,20 +79,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                 duplicatedEvent.getUpdatedTranscripts().addAll(updatedTranscripts);
             }
 
-            // added annotations
-            if (addedAnnotations != null){
-                for (Annotation annotation : addedAnnotations){
-                    duplicatedEvent.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.added));
-                }
-            }
-
-            // added xrefs
-            if (addedXrefs != null){
-                for (InteractorXref xref : addedXrefs){
-                    duplicatedEvent.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.added));
-                }
-            }
-
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
         }
     }
@@ -125,17 +91,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         String identity = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : null;
 
         PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.dead_protein, protein, identity);
-
-        proteinEvt.addUpdatedXRef(new UpdatedCrossReference(evt.getUniprotIdentityXref(), UpdateStatus.updated));
-
-        // all xrefs deleted
-        for (InteractorXref xref : evt.getDeletedXrefs()){
-            proteinEvt.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.deleted));
-        }
-        // all annotations deleted
-        for (Annotation annotation : evt.getAddedAnnotations()){
-            proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.added));
-        }
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
@@ -157,19 +112,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.created_protein, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
-
-        // all aliases deleted
-        for (InteractorAlias alias : protein.getAliases()){
-            proteinEvt.addUpdatedAlias(new UpdatedAlias(alias, UpdateStatus.added));
-        }
-        // all xrefs deleted
-        for (InteractorXref xref : protein.getXrefs()){
-            proteinEvt.addUpdatedXRef(new UpdatedCrossReference(xref, UpdateStatus.added));
-        }
-        // all annotations deleted
-        for (Annotation annotation : protein.getAnnotations()){
-            proteinEvt.addUpdatedAnnotation(new ProteinUpdateAnnotation(annotation, UpdateStatus.added));
-        }
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
     }
@@ -203,12 +145,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Transactional( "update" )
     public void onNonUniprotProteinFound(ProteinEvent evt) throws ProcessorException {
 
-        Protein protein = evt.getProtein();
-
-        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.non_uniprot_protein, protein);
-        proteinEvt.setMessage(evt.getMessage());
-
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
+        // no need to keep this information in the database
     }
 
     @Override

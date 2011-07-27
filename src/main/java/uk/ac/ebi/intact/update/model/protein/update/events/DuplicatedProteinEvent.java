@@ -3,8 +3,10 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.Xref;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
+import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -26,18 +28,18 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     private boolean neededSequenceUpdate;
     private boolean wasMergeSuccessful;
 
-    private Collection<String> movedInteractions;
+    private Collection<String> movedInteractions = new ArrayList<String>();
 
-    private Collection<String> updatedTranscripts;
+    private Collection<String> updatedTranscripts = new ArrayList<String>();
+
+    private Collection<UpdatedCrossReference> movedReferences = new ArrayList<UpdatedCrossReference>();
+
 
     public DuplicatedProteinEvent(){
         super();
         this.originalProtein = null;
         neededSequenceUpdate = false;
         wasMergeSuccessful = false;
-
-        movedInteractions = new ArrayList<String>();
-        updatedTranscripts = new ArrayList<String>();
     }
 
     public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
@@ -45,9 +47,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
         this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;
-
-        movedInteractions = new ArrayList<String>();
-        updatedTranscripts = new ArrayList<String>();
     }
 
     @Column(name="original_protein_ac")
@@ -101,6 +100,45 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         if (updatedTranscripts != null){
             this.updatedTranscripts = updatedTranscripts;
         }
+    }
+
+        @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<UpdatedCrossReference> getMovedReferences() {
+        return this.movedReferences;
+    }
+
+    public void addMovedReferencesFromXref(Collection<Xref> updatedRef){
+        for (Xref ref : updatedRef){
+
+            UpdatedCrossReference reference = new UpdatedCrossReference(ref, UpdateStatus.deleted);
+            if (this.movedReferences.add(reference)){
+                reference.setParent(this);
+            }
+        }
+    }
+
+    public void setMovedReferences(Collection<UpdatedCrossReference> updatedReferences) {
+        if (updatedReferences != null){
+            this.movedReferences = updatedReferences;
+        }
+    }
+
+    public boolean addMovedXRef(UpdatedCrossReference xref){
+        if (this.movedReferences.add(xref)){
+            xref.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeMovedXRef(UpdatedCrossReference xref){
+        if (this.movedReferences.remove(xref)){
+            xref.setParent(null);
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -181,6 +219,10 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         }
 
         if (!CollectionUtils.isEqualCollection(this.movedInteractions, event.getMovedInteractions())){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(this.movedReferences, event.getMovedReferences())){
             return false;
         }
 

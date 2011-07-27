@@ -4,7 +4,6 @@ import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
 import java.util.Collection;

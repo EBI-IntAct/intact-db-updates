@@ -17,7 +17,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentific
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
@@ -413,8 +413,8 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return event;
     }
 
-    public PersistentProteinEvent createDefaultProteinEventWithCollection(){
-        PersistentProteinEvent event = createDefaultProteinEvent();
+    public UniprotUpdateEvent createDefaultProteinEventWithCollection(){
+        UniprotUpdateEvent event = createDefaultUniprotProteinEvent();
 
         event.addUpdatedAnnotation(createDefaultUpdatedAnnotation());
         event.addUpdatedAlias(createDefaultUpdatedAlias());

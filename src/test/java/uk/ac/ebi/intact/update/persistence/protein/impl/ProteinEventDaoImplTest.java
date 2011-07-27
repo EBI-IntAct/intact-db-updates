@@ -3,8 +3,9 @@ package uk.ac.ebi.intact.update.persistence.protein.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.protein.ProteinEventDao;
 
@@ -35,14 +36,14 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void updated_protein_event(){
-        ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
+        ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
-        PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEventWithCollection();
+        UniprotUpdateEvent evt = getMockBuilder().createDefaultProteinEventWithCollection();
         eventDao.persist(evt);
 
         Assert.assertEquals(1, eventDao.countAll());
 
-        PersistentProteinEvent evt2 = eventDao.getById(evt.getId());
+        UniprotUpdateEvent evt2 = eventDao.getById(evt.getId());
         Assert.assertEquals(1, evt2.getUpdatedAliases().size());
         Assert.assertEquals(1, evt2.getUpdatedAnnotations().size());
         Assert.assertEquals(1, evt2.getUpdatedReferences().size());
@@ -53,7 +54,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
         eventDao.update(evt);
 
-        PersistentProteinEvent evt3 = eventDao.getById(evt.getId());
+        UniprotUpdateEvent evt3 = eventDao.getById(evt.getId());
         Assert.assertEquals(0, evt3.getUpdatedAliases().size());
         Assert.assertEquals(0, evt3.getUpdatedAnnotations().size());
         Assert.assertEquals(0, evt3.getUpdatedReferences().size());
@@ -84,7 +85,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
         Assert.assertEquals(1, eventDao.getAllProteinEventsByName(name).size());
         Assert.assertEquals(1, eventDao.getAllUpdateEventsByProteinAc(proteinAc).size());
-        Assert.assertEquals(0, eventDao.getAllProteinEventsByName(ProteinEventName.non_uniprot_protein).size());
+        Assert.assertEquals(0, eventDao.getAllProteinEventsByName(ProteinEventName.deleted_protein).size());
         Assert.assertEquals(0, eventDao.getAllUpdateEventsByProteinAc("EBI").size());
         Assert.assertEquals(1, eventDao.getAllProteinEventsByNameAndProteinAc(name, proteinAc).size());
     }

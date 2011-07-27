@@ -1,20 +1,13 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.model.UpdateEvent;
 import uk.ac.ebi.intact.update.model.UpdateProcess;
-import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
-import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * The super class which represents an event of a proteinAc update
@@ -37,10 +30,6 @@ public class PersistentProteinEvent extends UpdateEvent {
     String message;
 
     String proteinAc;
-
-    protected Collection<UpdatedCrossReference> updatedReferences = new ArrayList<UpdatedCrossReference>();
-    protected Collection<ProteinUpdateAnnotation> updatedAnnotations = new ArrayList<ProteinUpdateAnnotation>();
-    protected Collection<UpdatedAlias> updatedAliases = new ArrayList<UpdatedAlias>();
 
     public PersistentProteinEvent(){
         super();
@@ -89,124 +78,6 @@ public class PersistentProteinEvent extends UpdateEvent {
 
         this.uniprotAc = uniprotAc;
         this.message = null;
-    }
-
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedCrossReference> getUpdatedReferences() {
-        return this.updatedReferences;
-    }
-
-    public void addUpdatedReferencesFromXref(Collection<Xref> updatedRef, UpdateStatus status){
-        for (Xref ref : updatedRef){
-
-            UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
-            if (this.updatedReferences.add(reference)){
-                reference.setParent(this);
-            }
-        }
-    }
-
-    public void setUpdatedAnnotations(Collection<ProteinUpdateAnnotation> updatedAnnotations) {
-        if (updatedAnnotations != null){
-            this.updatedAnnotations = updatedAnnotations;
-        }
-    }
-
-    public void setUpdatedAliases(Collection<UpdatedAlias> updatedAliases) {
-        if (updatedAliases != null){
-            this.updatedAliases = updatedAliases;
-        }
-    }
-
-    public void setUpdatedReferences(Collection<UpdatedCrossReference> updatedReferences) {
-        if (updatedReferences != null){
-            this.updatedReferences = updatedReferences;
-        }
-    }
-
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<ProteinUpdateAnnotation> getUpdatedAnnotations(){
-        return this.updatedAnnotations;
-    }
-
-    public void addUpdatedAnnotationFromAnnotation(Collection<Annotation> updatedAnn, UpdateStatus status){
-        for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
-
-            ProteinUpdateAnnotation annotation = new ProteinUpdateAnnotation(a, status);
-            if(this.updatedAnnotations.add(annotation)){
-                annotation.setParent(this);
-            }
-        }
-    }
-
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedAlias> getUpdatedAliases(){
-        return this.updatedAliases;
-    }
-
-    public void addUpdatedAliasesFromAlias(Collection<Alias> updatedAlias, UpdateStatus status){
-        for (Alias a : updatedAlias){
-
-            UpdatedAlias alias = new UpdatedAlias(a, status);
-
-            if (this.updatedAliases.add(alias)){
-                alias.setParent(this);
-            }
-        }
-    }
-
-    public boolean addUpdatedXRef(UpdatedCrossReference xref){
-        if (this.updatedReferences.add(xref)){
-            xref.setParent(this);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean removeUpdatedXRef(UpdatedCrossReference xref){
-        if (this.updatedReferences.remove(xref)){
-            xref.setParent(null);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean addUpdatedAnnotation(ProteinUpdateAnnotation ann){
-        if (this.updatedAnnotations.add(ann)){
-            ann.setParent(this);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean removeUpdatedAnnotation(ProteinUpdateAnnotation ann){
-        if (this.updatedAnnotations.remove(ann)){
-            ann.setParent(null);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean addUpdatedAlias(UpdatedAlias alias){
-        if (this.updatedAliases.add(alias)){
-            alias.setParent(this);
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean removeAlias(UpdatedAlias alias){
-        if (this.updatedAliases.remove(alias)){
-            alias.setParent(null);
-            return true;
-        }
-
-        return false;
     }
 
     @Transient
@@ -387,15 +258,7 @@ public class PersistentProteinEvent extends UpdateEvent {
             return false;
         }
 
-        if (!CollectionUtils.isEqualCollection(updatedAliases, event.getUpdatedAliases())){
-            return false;
-        }
-
-        if (!CollectionUtils.isEqualCollection(updatedAnnotations, event.getUpdatedAnnotations())){
-            return false;
-        }
-
-        return CollectionUtils.isEqualCollection(updatedReferences, event.getUpdatedReferences());
+        return true;
     }
 
     @Override

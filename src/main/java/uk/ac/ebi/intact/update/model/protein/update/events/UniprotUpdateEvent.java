@@ -1,13 +1,20 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
+import uk.ac.ebi.intact.model.Alias;
+import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.Xref;
+import uk.ac.ebi.intact.update.model.UpdateStatus;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
+import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
+import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Event for the basic update of a uniprot proteinAc
@@ -24,6 +31,10 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
     private String updatedShortLabel;
     private String updatedFullName;
     private String uniprotQuery;
+
+    private Collection<UpdatedCrossReference> updatedReferences = new ArrayList<UpdatedCrossReference>();
+    private Collection<ProteinUpdateAnnotation> updatedAnnotations = new ArrayList<ProteinUpdateAnnotation>();
+    private Collection<UpdatedAlias> updatedAliases = new ArrayList<UpdatedAlias>();
 
     public UniprotUpdateEvent(){
         super();
@@ -110,6 +121,125 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
         return true;
     }
 
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<UpdatedCrossReference> getUpdatedReferences() {
+        return this.updatedReferences;
+    }
+
+    public void addUpdatedReferencesFromXref(Collection<Xref> updatedRef, UpdateStatus status){
+        for (Xref ref : updatedRef){
+
+            UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
+            if (this.updatedReferences.add(reference)){
+                reference.setParent(this);
+            }
+        }
+    }
+
+    public void setUpdatedAnnotations(Collection<ProteinUpdateAnnotation> updatedAnnotations) {
+        if (updatedAnnotations != null){
+            this.updatedAnnotations = updatedAnnotations;
+        }
+    }
+
+    public void setUpdatedAliases(Collection<UpdatedAlias> updatedAliases) {
+        if (updatedAliases != null){
+            this.updatedAliases = updatedAliases;
+        }
+    }
+
+    public void setUpdatedReferences(Collection<UpdatedCrossReference> updatedReferences) {
+        if (updatedReferences != null){
+            this.updatedReferences = updatedReferences;
+        }
+    }
+
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<ProteinUpdateAnnotation> getUpdatedAnnotations(){
+        return this.updatedAnnotations;
+    }
+
+    public void addUpdatedAnnotationFromAnnotation(Collection<Annotation> updatedAnn, UpdateStatus status){
+        for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
+
+            ProteinUpdateAnnotation annotation = new ProteinUpdateAnnotation(a, status);
+            if(this.updatedAnnotations.add(annotation)){
+                annotation.setParent(this);
+            }
+        }
+    }
+
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<UpdatedAlias> getUpdatedAliases(){
+        return this.updatedAliases;
+    }
+
+    public void addUpdatedAliasesFromAlias(Collection<Alias> updatedAlias, UpdateStatus status){
+        for (Alias a : updatedAlias){
+
+            UpdatedAlias alias = new UpdatedAlias(a, status);
+
+            if (this.updatedAliases.add(alias)){
+                alias.setParent(this);
+            }
+        }
+    }
+
+    public boolean addUpdatedXRef(UpdatedCrossReference xref){
+        if (this.updatedReferences.add(xref)){
+            xref.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeUpdatedXRef(UpdatedCrossReference xref){
+        if (this.updatedReferences.remove(xref)){
+            xref.setParent(null);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean addUpdatedAnnotation(ProteinUpdateAnnotation ann){
+        if (this.updatedAnnotations.add(ann)){
+            ann.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeUpdatedAnnotation(ProteinUpdateAnnotation ann){
+        if (this.updatedAnnotations.remove(ann)){
+            ann.setParent(null);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean addUpdatedAlias(UpdatedAlias alias){
+        if (this.updatedAliases.add(alias)){
+            alias.setParent(this);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeAlias(UpdatedAlias alias){
+        if (this.updatedAliases.remove(alias)){
+            alias.setParent(null);
+            return true;
+        }
+
+        return false;
+    }
+
+
     /**
      * This class overwrites equals. To ensure proper functioning of HashTable,
      * hashCode must be overwritten, too.
@@ -174,7 +304,15 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
             return false;
         }
 
-        return true;
+        if (!CollectionUtils.isEqualCollection(updatedAliases, event.getUpdatedAliases())){
+            return false;
+        }
+
+        if (!CollectionUtils.isEqualCollection(updatedAnnotations, event.getUpdatedAnnotations())){
+            return false;
+        }
+
+        return CollectionUtils.isEqualCollection(updatedReferences, event.getUpdatedReferences());
     }
 
     @Override

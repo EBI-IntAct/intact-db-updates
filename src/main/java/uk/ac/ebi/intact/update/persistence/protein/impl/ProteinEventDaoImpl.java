@@ -5,7 +5,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.ProteinEventName;
+import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateEventDaoImpl;
 import uk.ac.ebi.intact.update.persistence.protein.ProteinEventDao;
