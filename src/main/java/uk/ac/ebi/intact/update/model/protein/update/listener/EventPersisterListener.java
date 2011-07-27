@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -15,6 +16,7 @@ import uk.ac.ebi.intact.model.util.FeatureUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.*;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
@@ -223,6 +225,50 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
 
+        String remappedProteinAc = evt.getRemappedProteinAc();
+        String remappedParentAc = evt.getValidParentAc();
+        Protein currentProteinHavingConflicts = evt.getProteinWithConflicts();
+
+        RangeUpdateReport invalidRanges = evt.getInvalidRangeReport();
+
+        OutOfDateParticipantEvent protEvt = new OutOfDateParticipantEvent(this.updateProcess, currentProteinHavingConflicts, remappedProteinAc, remappedParentAc);
+
+        if (invalidRanges != null){
+            Map<String, AnnotationUpdateReport> featureReport = invalidRanges.getUpdatedFeatureAnnotations();
+
+            for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
+                String featureAc = entry.getKey();
+
+                if (!entry.getValue().getAddedAnnotations().isEmpty()){
+                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
+                }
+                if (!entry.getValue().getRemovedAnnotations().isEmpty()){
+                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
+                }
+                if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
+                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
+                }
+            }
+
+            Map<uk.ac.ebi.intact.model.Component, Collection<InvalidRange>> invalidComponents = invalidRanges.getInvalidComponents();
+
+            for (Map.Entry<uk.ac.ebi.intact.model.Component, Collection<InvalidRange>> entry : invalidComponents.entrySet()){
+                Collection<InvalidRange> invalidRangesList = entry.getValue();
+
+                for (InvalidRange inv : invalidRangesList){
+                    String oldSequence = inv.getOldRange() != null ? inv.getOldRange().getFullSequence() : null;
+                    String newSequence = inv.getNewRange() != null ? inv.getNewRange().getFullSequence() : null;
+
+                    String oldPositions = inv.getOldRange() != null ? FeatureUtils.convertRangeIntoString(inv.getOldRange()) : null;
+                    String newPositions = inv.getNewRange() != null ? FeatureUtils.convertRangeIntoString(inv.getNewRange()) : null;
+
+                    PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, inv.getFromStatus(), inv.getToStatus(), newSequence, oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());
+                    protEvt.addInvalidRange(persistentRange);
+                }
+            }
+        }
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(protEvt);
     }
 
     @Override

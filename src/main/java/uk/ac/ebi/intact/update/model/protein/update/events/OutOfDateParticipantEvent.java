@@ -30,9 +30,9 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
     }
 
-    public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, Protein fixedProtein, String remapped_parent){
+    public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, String fixedProtein, String remapped_parent){
         super(updateProcess, ProteinEventName.participant_with_feature_conflicts, protein);
-        this.remapped_protein = fixedProtein != null ? fixedProtein.getAc() : null;
+        this.remapped_protein = fixedProtein;
         this.remapped_parent = remapped_parent;
     }
 
