@@ -360,19 +360,16 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @param evt
      */
     public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
+        if (evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+            processor.fireOnSecondaryAcsFound(evt);
+        }
+
         if (evt.getSecondaryProteins().size() > 0){
             updateSecondaryAcsForProteins(evt);
         }
         if (evt.getSecondaryIsoforms().size() > 0){
             updateSecondaryAcsForIsoforms(evt);
-        }
-
-        if (evt.getSource() instanceof ProteinUpdateProcessor){
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnSecondaryAcsFound(evt);
-        }
-        else {
-            throw new ProcessorException("The proteinProcessor should be of type ProteinUpdateProcessor but is of type " + evt.getSource().getClass().getName());
         }
     }
 
@@ -425,5 +422,5 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         }
 
         evt.getSecondaryIsoforms().clear();
-    }    
+    }
 }
