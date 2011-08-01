@@ -172,13 +172,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
         try {
             ReportWriter transcriptWithSameSequenceWriter = reportHandler.getTranscriptWithSameSequenceWriter();
-            String uniprotAc = evt.getUniprotProtein() != null ? evt.getUniprotProtein().getPrimaryAc() : "-";
-            transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "protein shortlabel", "Uniprot ac", "Transcript ac", "sequence");
+            String uniprotAc = evt.getCurrentUniprotAc() != null ? evt.getCurrentUniprotAc() : "-";
+            transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "protein shortlabel", "Uniprot ac", "Transcript ac");
             transcriptWithSameSequenceWriter.writeColumnValues(evt.getProtein().getAc(),
                     evt.getProtein().getShortLabel(),
                     uniprotAc,
-                    evt.getUniprotTranscriptAc(),
-                    evt.getProtein().getSequence());
+                    evt.getUniprotTranscriptAc());
             transcriptWithSameSequenceWriter.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing protein to stream", e);
