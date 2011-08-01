@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
@@ -223,6 +224,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
 
         String remappedProteinAc = evt.getRemappedProteinAc();
@@ -276,7 +278,35 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
+
+        Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
+        Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
+
+        String uniprotPrimaryAc = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : evt.getQuerySentToService();
+
+        for (Protein prot : secondaryProteins){
+
+            InteractorXref originalSecondary = ProteinUtils.getUniprotXref(prot);
+            String originalAc = originalSecondary != null ? originalSecondary.getPrimaryId() : null;
+
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
+
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SecondaryProteinEvent.class).persist(protEvt);
+        }
+
+        for (ProteinTranscript protTrans : secondaryIsoforms){
+
+            Protein prot = protTrans.getProtein();
+
+            InteractorXref originalSecondary = ProteinUtils.getUniprotXref(prot);
+            String originalAc = originalSecondary != null ? originalSecondary.getPrimaryId() : null;
+
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
+
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SecondaryProteinEvent.class).persist(protEvt);
+        }
     }
 
     @Override
