@@ -24,7 +24,10 @@ import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.listener.*;
+import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
+import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -32,13 +35,15 @@ import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.meta.DbInfo;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Updates the database proteins using the latest information from UniProt.
@@ -542,20 +547,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             // if there are some duplicates and we can fix them, merge them
             if (caseEvent.getPrimaryProteins().size() > 1){
-                // for each primary protein, if one uniprot transcript has the exact same sequence, log it because
-                // can be useful in case of merge problems
-                for (Protein prot : caseEvent.getPrimaryProteins()){
-                    // the sequence of the protein must be not null
-                    if (prot.getSequence() != null){
-                        // get a uniprot transcript (which doesn't have the canonical sequence) which has the exact same sequence of the protein before updating it
-                        UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), caseEvent.getProtein());
-
-                        // if the uniprot transcript exists, log it
-                        if (transcriptsWithSameSequence != null){
-                            fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(this, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
-                        }
-                    }
-                }
 
                 // if fixing protein duplicate is enabled, fix them
                 if (config.isFixDuplicates()){
@@ -611,24 +602,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                     //protein transcript duplicates to merge
                     if (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1){
-
-                        Collection<ProteinTranscript> proteinTranscript = new ArrayList(caseEvent.getPrimaryIsoforms());
-                        proteinTranscript.addAll(caseEvent.getPrimaryFeatureChains());
-
-                        // for each primary transcript, if one uniprot transcript has the exact same sequence and is not the uniprot transcript it has been remapped to, log it because
-                        // can be useful in case of merge problems
-                        for (ProteinTranscript trans : proteinTranscript){
-                            Protein prot = trans.getProtein();
-
-                            if (prot.getSequence() != null){
-                                UniprotProteinTranscript transcriptsWithSameSequence = participantFixer.findTranscriptsWithIdenticalSequence(prot.getSequence(), trans.getUniprotVariant(), caseEvent.getProtein());
-
-                                // if the uniprot transcript exists, log it
-                                if (transcriptsWithSameSequence != null){
-                                    fireOnProteinTranscriptWithSameSequence(new ProteinTranscriptWithSameSequenceEvent(this, caseEvent.getDataContext(), prot, uniprotProtein, transcriptsWithSameSequence.getPrimaryAc()));
-                                }
-                            }
-                        }
 
                         // fixing duplicates is enabled
                         if (config.isFixDuplicates()){
