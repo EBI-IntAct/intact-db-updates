@@ -11,5 +11,5 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 public enum ProteinEventName {
 
     dead_protein, uniprot_update, deleted_protein, created_protein, update_error, secondary_protein, protein_duplicate,
-    participant_with_feature_conflicts, transcript_parent_update, deleted_component, updated_sequence, none
+    participant_with_feature_conflicts, transcript_parent_update, deleted_component, updated_sequence, protein_remapping, none
 }

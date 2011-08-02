@@ -17,6 +17,7 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.protein.update.events.*;
@@ -342,11 +343,20 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException {
+
+        if (evt.getResult() instanceof PersistentIdentificationResults){
+            PersistentIdentificationResults result = (PersistentIdentificationResults) evt.getResult();
+
+            Protein protein = evt.getProtein();
+
+            UniprotProteinMapperEvent protEvt = new UniprotProteinMapperEvent(this.updateProcess, protein, result);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(UniprotProteinMapperEvent.class).persist(protEvt);
+        }
     }
 
     @Override
-    @Transactional( "update" )
     public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        // do nothing. The sequence update releative conservation is kept in the database anyway with onProteinSequenceChanged event
     }
 
     @Override

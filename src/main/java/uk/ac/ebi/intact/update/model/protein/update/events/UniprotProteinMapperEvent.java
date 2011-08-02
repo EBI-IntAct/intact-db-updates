@@ -25,8 +25,8 @@ public class UniprotProteinMapperEvent extends PersistentProteinEvent {
         super();
     }
 
-    public UniprotProteinMapperEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein, PersistentIdentificationResults identificationResults){
-        super(process, name, protein);
+    public UniprotProteinMapperEvent(ProteinUpdateProcess process, Protein protein, PersistentIdentificationResults identificationResults){
+        super(process, ProteinEventName.protein_remapping, protein);
 
         this.identificationResults = identificationResults;
     }
