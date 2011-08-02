@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.feature;
 
 import uk.ac.ebi.intact.model.Annotation;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
@@ -48,7 +48,7 @@ public class FeatureUpdatedAnnotation extends UpdatedAnnotation {
     @Override
     @ManyToOne( targetEntity = PersistentProteinEvent.class )
     @JoinColumn( name = "event_id" )
-    public UpdateEvent getParent() {
+    public UpdateEventImpl getParent() {
         return super.getParent();
     }
 }

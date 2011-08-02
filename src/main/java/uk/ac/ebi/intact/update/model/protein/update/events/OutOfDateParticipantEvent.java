@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
@@ -16,7 +15,6 @@ import java.util.Collection;
  * @since <pre>25-Nov-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("OutOfDateParticipantEvent")
 public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<PersistentInvalidRange> {
 

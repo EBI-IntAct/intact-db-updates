@@ -10,7 +10,7 @@ import java.util.Date;
  * @version $Id$
  * @since <pre>18/07/11</pre>
  */
-public interface UpdateProcess<T extends UpdateEvent> extends HibernateUpdatePersistent {
+public interface UpdateProcess<T extends UpdateEventImpl> extends HibernateUpdatePersistent {
 
     /**
      *

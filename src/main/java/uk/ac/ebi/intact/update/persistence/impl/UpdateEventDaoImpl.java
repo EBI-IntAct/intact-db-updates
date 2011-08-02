@@ -5,7 +5,7 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.persistence.UpdateEventDao;
 
 import javax.persistence.EntityManager;
@@ -22,9 +22,9 @@ import java.util.List;
 @Repository
 @Transactional(readOnly = true)
 @Lazy
-public class UpdateEventDaoImpl<T extends UpdateEvent> extends UpdateBaseDaoImpl<T> implements UpdateEventDao<T> {
+public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDaoImpl<T> implements UpdateEventDao<T> {
     public UpdateEventDaoImpl() {
-        super((Class<T>) UpdateEvent.class);
+        super((Class<T>) UpdateEventImpl.class);
     }
 
     public UpdateEventDaoImpl(Class<T> entityClass, EntityManager entityManager) {

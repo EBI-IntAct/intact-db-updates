@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Alias;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
@@ -24,7 +23,6 @@ import java.util.Collection;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("UniprotUpdateEvent")
 public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
 

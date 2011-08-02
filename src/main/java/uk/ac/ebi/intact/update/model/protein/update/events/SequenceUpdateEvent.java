@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 
@@ -17,7 +16,6 @@ import javax.persistence.Lob;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("SequenceUpdateEvent")
 public class SequenceUpdateEvent extends PersistentProteinEvent {
 

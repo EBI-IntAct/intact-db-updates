@@ -1,11 +1,13 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.Collection;
 
 /**
@@ -16,7 +18,6 @@ import java.util.Collection;
  * @since <pre>25/07/11</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProteinEventWithShiftedRanges")
 public abstract class ProteinEventWithShiftedRanges extends ProteinEventWithRangeUpdate<PersistentUpdatedRange> {
 

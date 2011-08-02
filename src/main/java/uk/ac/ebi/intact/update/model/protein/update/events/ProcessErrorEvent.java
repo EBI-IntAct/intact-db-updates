@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 
@@ -16,7 +15,6 @@ import javax.persistence.Entity;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProcessErrorEvent")
 public class ProcessErrorEvent extends PersistentProteinEvent{
 

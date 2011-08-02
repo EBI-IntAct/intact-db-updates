@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.persistence;
 
-import uk.ac.ebi.intact.update.model.UpdateEvent;
 import uk.ac.ebi.intact.update.model.UpdateProcess;
 
 import java.io.Serializable;

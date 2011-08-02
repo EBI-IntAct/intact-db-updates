@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
@@ -142,7 +142,7 @@ public class UpdateDaoFactory implements Serializable{
         return proteinEventDao;
     }
 
-    public <T extends UpdateEvent> UpdateEventDao<T> getUpdateEventDao( Class<T> entityType) {
+    public <T extends UpdateEventImpl> UpdateEventDao<T> getUpdateEventDao( Class<T> entityType) {
         UpdateEventDao updateEventDao = getBean(UpdateEventDaoImpl.class);
         updateEventDao.setEntityClass(entityType);
         return updateEventDao;

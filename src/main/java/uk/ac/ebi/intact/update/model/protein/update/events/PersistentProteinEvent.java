@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.update.events;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 
@@ -21,7 +21,7 @@ import javax.persistence.*;
 @DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
 @DiscriminatorValue("PersistentProteinEvent")
 @Table(name = "ia_protein_event")
-public class PersistentProteinEvent extends UpdateEvent {
+public class PersistentProteinEvent extends UpdateEventImpl {
 
     ProteinEventName proteinEventName;
 

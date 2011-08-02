@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.update.model.protein;
 
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
-import uk.ac.ebi.intact.update.model.UpdateEvent;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 
 import javax.persistence.*;
@@ -19,7 +19,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
     private String topic;
     private String text;
-    private UpdateEvent parent;
+    private UpdateEventImpl parent;
     private UpdateStatus status;
 
     public UpdatedAnnotation(){
@@ -83,11 +83,11 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
     }
 
     @Transient
-    public UpdateEvent getParent() {
+    public UpdateEventImpl getParent() {
         return parent;
     }
 
-    public void setParent(UpdateEvent parent) {
+    public void setParent(UpdateEventImpl parent) {
         this.parent = parent;
     }
 

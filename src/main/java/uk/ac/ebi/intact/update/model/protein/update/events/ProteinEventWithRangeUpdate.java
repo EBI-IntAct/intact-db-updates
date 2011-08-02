@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
@@ -21,7 +20,6 @@ import java.util.Collection;
  * @since <pre>22/07/11</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("ProteinEventWithRangeUpdate")
 public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange> extends PersistentProteinEvent {
 
