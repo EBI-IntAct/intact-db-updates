@@ -172,7 +172,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
         try {
             ReportWriter transcriptWithSameSequenceWriter = reportHandler.getTranscriptWithSameSequenceWriter();
-            String uniprotAc = evt.getCurrentUniprotAc() != null ? evt.getCurrentUniprotAc() : "-";
+            String uniprotAc = evt.getUniprotIdentity() != null ? evt.getUniprotIdentity() : "-";
             transcriptWithSameSequenceWriter.writeHeaderIfNecessary("protein ac", "protein shortlabel", "Uniprot ac", "Transcript ac");
             transcriptWithSameSequenceWriter.writeColumnValues(evt.getProtein().getAc(),
                     evt.getProtein().getShortLabel(),

@@ -14,19 +14,14 @@ import uk.ac.ebi.intact.model.Protein;
 public class ProteinTranscriptWithSameSequenceEvent extends ProteinEvent{
 
     private String uniprotTranscriptAc;
-    private String currentUniprotAc;
 
     public ProteinTranscriptWithSameSequenceEvent(Object source, DataContext dataContext, Protein protein, String currentAc, String transcriptAc) {
         super(source, dataContext, protein);
         this.uniprotTranscriptAc = transcriptAc;
-        this.currentUniprotAc = currentAc;
+        setUniprotIdentity(currentAc);
     }
 
     public String getUniprotTranscriptAc() {
         return uniprotTranscriptAc;
-    }
-
-    public String getCurrentUniprotAc() {
-        return currentUniprotAc;
     }
 }

@@ -23,7 +23,8 @@ public class InvalidIntactParentFoundEvent extends ProteinEvent{
      * @throws IllegalArgumentException if source is null.
      */
     public InvalidIntactParentFoundEvent(Object source, DataContext context, Protein protein, String uniprot, String oldParentsAcs, String parents) {
-        super(source, context, protein, uniprot);
+        super(source, context, protein);
+        setUniprotIdentity(uniprot);
         this.newParentsAc = parents;
         this.oldParentAc = oldParentsAcs;
     }
