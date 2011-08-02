@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein;
 
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
-import uk.ac.ebi.intact.update.model.UpdateProcessName;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.Entity;
@@ -22,11 +21,10 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
     public ProteinUpdateProcess(){
         super();
         setDate(new Date(System.currentTimeMillis()));
-        setUpdateName(UpdateProcessName.protein_update);
         setUserStamp("PROTEIN_UPDATE_RUNNER");
     }
 
     public ProteinUpdateProcess(Date date, String userStamp){
-        super(date, userStamp, UpdateProcessName.protein_update);
+        super(date, userStamp);
     }
 }

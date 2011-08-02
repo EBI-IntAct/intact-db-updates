@@ -19,21 +19,18 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
 
     private Date date;
     private String userStamp;
-    private UpdateProcessName updateName;
     protected Collection<T> updateEvents = new ArrayList<T>();
 
     public UpdateProcessImpl(){
         super();
         this.date = null;
         this.userStamp = null;
-        this.updateName = UpdateProcessName.none;
     }
 
-    public UpdateProcessImpl(Date date, String userStamp, UpdateProcessName updateName){
+    public UpdateProcessImpl(Date date, String userStamp){
         super();
         this.date = date;
         this.userStamp = userStamp;
-        this.updateName = updateName;
     }
 
     @Override
@@ -50,13 +47,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
     }
 
     @Override
-    @Column(name = "name", nullable = false)
-    @Enumerated(EnumType.STRING)
-    public UpdateProcessName getUpdateName() {
-        return this.updateName;
-    }
-
-    @Override
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<T> getUpdateEvents() {
         return this.updateEvents;
@@ -64,10 +54,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
 
     public void setDate(Date date) {
         this.date = date;
-    }
-
-    public void setUpdateName(UpdateProcessName updateName) {
-        this.updateName = updateName;
     }
 
     public void setUserStamp(String userStamp) {
@@ -101,15 +87,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
             }
         }
         else if (process.getUserStamp()!= null){
-            return false;
-        }
-
-        if ( updateName != null ) {
-            if (!updateName.equals( process.getUpdateName())){
-                return false;
-            }
-        }
-        else if (process.getUpdateName()!= null){
             return false;
         }
 
@@ -153,10 +130,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
             code = 29 * code + userStamp.hashCode();
         }
 
-        if ( updateName != null ) {
-            code = 29 * code + updateName.hashCode();
-        }
-
         return code;
     }
 
@@ -187,15 +160,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
             return false;
         }
 
-        if ( updateName != null ) {
-            if (!updateName.equals( process.getUpdateName())){
-                return false;
-            }
-        }
-        else if (process.getUpdateName()!= null){
-            return false;
-        }
-
         if (!CollectionUtils.isEqualCollection(updateEvents, process.getUpdateEvents())){
             return false;
         }
@@ -207,7 +171,7 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
     public String toString() {
         StringBuffer buffer = new StringBuffer();
 
-        buffer.append("Update process : [ date = " + date != null ? date.toString() : "none" + ", name = "+updateName != null ? updateName.toString() : "none"+", userstamp = "+userStamp != null ? userStamp : "none"+"] \n");
+        buffer.append("Update process : [ date = " + date != null ? date.toString() : "none" + ", userstamp = "+userStamp != null ? userStamp : "none"+"] \n");
 
         return buffer.toString();
     }

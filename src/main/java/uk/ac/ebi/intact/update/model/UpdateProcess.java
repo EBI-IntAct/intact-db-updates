@@ -26,12 +26,6 @@ public interface UpdateProcess<T extends UpdateEventImpl> extends HibernateUpdat
 
     /**
      *
-     * @return the name of the update process
-     */
-    public UpdateProcessName getUpdateName();
-
-    /**
-     *
      * @return the collection of update events which occurred during the update process
      */
     public Collection<T> getUpdateEvents();
