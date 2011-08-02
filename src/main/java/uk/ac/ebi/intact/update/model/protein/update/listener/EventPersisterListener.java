@@ -362,6 +362,19 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
+
+        Protein protein = evt.getProtein();
+        String uniprot = evt.getUniprotIdentity();
+
+        Collection<uk.ac.ebi.intact.model.Component> deletedComponents = evt.getDeletedComponents();
+
+        uk.ac.ebi.intact.update.model.protein.update.events.DeletedComponentEvent protEvt = new uk.ac.ebi.intact.update.model.protein.update.events.DeletedComponentEvent(this.updateProcess, protein, uniprot);
+
+        for (uk.ac.ebi.intact.model.Component c : deletedComponents){
+            protEvt.getDeletedComponents().add(c.getAc());
+        }
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(uk.ac.ebi.intact.update.model.protein.update.events.DeletedComponentEvent.class).persist(protEvt);
     }
 
     private void processUpdatedProtein(Protein protein, UpdateCaseEvent evt){

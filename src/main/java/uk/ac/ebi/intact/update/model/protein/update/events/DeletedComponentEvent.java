@@ -29,8 +29,8 @@ public class DeletedComponentEvent extends PersistentProteinEvent {
         deletedComponents = new ArrayList<String>();
     }
 
-    public DeletedComponentEvent(ProteinUpdateProcess updateProcess, Protein protein){
-        super(updateProcess, ProteinEventName.deleted_component, protein);
+    public DeletedComponentEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprot){
+        super(updateProcess, ProteinEventName.deleted_component, protein, uniprot);
 
         deletedComponents = new ArrayList<String>();
     }
