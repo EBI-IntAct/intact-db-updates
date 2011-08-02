@@ -486,7 +486,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 protein.setCrc64( crc64 );
             }
 
-            sequenceChanged(protein, sequence, oldSequence, uniprotCrC64, evt.getDataContext());
+            sequenceChanged(protein, uniprotAc, sequence, oldSequence, uniprotCrC64, evt.getDataContext());
         }
         else{
 
@@ -745,13 +745,13 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         return true;
     }
 
-    private void sequenceChanged(Protein protein, String newSequence, String oldSequence, String crc64, DataContext context) {
+    private void sequenceChanged(Protein protein, String uniprot, String newSequence, String oldSequence, String crc64, DataContext context) {
         double relativeConservation = 0;
 
         if (oldSequence != null && newSequence != null){
             relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
         }
-        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, oldSequence, newSequence, crc64, relativeConservation));
+        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, uniprot, oldSequence, newSequence, crc64, relativeConservation));
     }
 
     private void proteinCreated(Protein protein, DataContext context, String message) {

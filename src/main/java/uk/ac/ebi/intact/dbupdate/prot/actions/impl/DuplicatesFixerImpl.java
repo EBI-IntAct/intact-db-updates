@@ -433,7 +433,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                         double relativeConservation = computesRequenceConservation(sequence, evt.getUniprotSequence());
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
+                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getPrimaryUniprotAc(), evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
 
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
@@ -450,7 +450,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
                         if (ProteinTools.isSequenceChanged(sequence, evt.getUniprotSequence())){
                             double relativeConservation = computesRequenceConservation(sequence, evt.getUniprotSequence());
-                            processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
+                            processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getPrimaryUniprotAc(), evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
                         }
                     }
 
@@ -663,7 +663,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                     double relativeConservation = computesRequenceConservation(oldSequence, duplEvt.getUniprotSequence());
 
-                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplEvt.getReferenceProtein(), oldSequence, duplEvt.getUniprotSequence(), duplEvt.getUniprotCrc64(), relativeConservation));
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplEvt.getReferenceProtein(), duplEvt.getPrimaryUniprotAc(), oldSequence, duplEvt.getUniprotSequence(), duplEvt.getUniprotCrc64(), relativeConservation));
                 }
             }
         }
@@ -773,7 +773,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) caseEvent.getSource();
                     double relativeConservation = computesRequenceConservation(oldSequence, duplicateEvent.getUniprotSequence());
 
-                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplicateEvent.getReferenceProtein(), oldSequence, duplicateEvent.getUniprotSequence(), duplicateEvent.getUniprotCrc64(), relativeConservation));
+                    processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, caseEvent.getDataContext(), duplicateEvent.getReferenceProtein(), duplicateEvent.getPrimaryUniprotAc(), oldSequence, duplicateEvent.getUniprotSequence(), duplicateEvent.getUniprotCrc64(), relativeConservation));
                 }
             }
         }

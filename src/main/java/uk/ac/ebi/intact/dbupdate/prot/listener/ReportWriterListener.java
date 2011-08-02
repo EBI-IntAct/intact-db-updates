@@ -202,10 +202,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         final Protein protein = evt.getProtein();
         try {
             final ReportWriter writer = reportHandler.getSequenceChangedWriter();
+            String primaryId = evt.getUniprotIdentity() != null ? evt.getUniprotIdentity() : getPrimaryIdString(protein);
             if (evt.getOldSequence() != null) {
                 writer.writeLine(">"+ protein.getAc()+"|OLD|"+
                         protein.getShortLabel()+"|"+
-                        getPrimaryIdString(protein)
+                        primaryId
                         +"|CRC:"+ Crc64.getCrc64(evt.getOldSequence())+
                         "|Length:"+evt.getOldSequence().length());
                 writer.writeLine(insertNewLinesIfNecessary(evt.getOldSequence(), 80));
@@ -863,12 +864,14 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer = reportHandler.getSequenceChangedCautionWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
                     "Relative conservation",
+                    "uniprot ac",
                     "Old sequence",
                     "New sequence");
 
             if (evt.getProtein() != null){
                 writer.writeColumnValues(dashIfNull(evt.getProtein().getAc()),
                         Double.toString(evt.getRelativeConservation()),
+                        dashIfNull(evt.getUniprotIdentity()),
                         dashIfNull(evt.getOldSequence()),
                         dashIfNull(evt.getNewSequence()));
                 writer.flush();

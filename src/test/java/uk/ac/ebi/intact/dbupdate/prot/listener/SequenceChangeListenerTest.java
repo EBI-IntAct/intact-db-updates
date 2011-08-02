@@ -69,7 +69,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());
@@ -100,7 +100,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -132,7 +132,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
     }
@@ -164,7 +164,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -197,7 +197,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(1, cautionsAfter.size());
@@ -228,7 +228,7 @@ public class SequenceChangeListenerTest extends IntactBasicTestCase {
         double relativeConservation = ProteinTools.calculateSequenceConservation(oldSequence, newSequence);
 
         listener.onProteinSequenceChanged(new ProteinSequenceChangeEvent(new ProteinUpdateProcessor(), getDataContext(),
-                prot, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
+                prot, null, oldSequence, newSequence, Crc64.getCrc64(newSequence), relativeConservation));
 
         final Collection<Annotation> cautionsAfter = AnnotatedObjectUtils.findAnnotationsByCvTopic(prot, Collections.singleton(caution));
         Assert.assertEquals(0, cautionsAfter.size());
