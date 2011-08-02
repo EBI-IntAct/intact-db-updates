@@ -16,9 +16,10 @@ public class DeletedComponentEvent extends ProteinEvent{
 
     private Component component;
 
-    public DeletedComponentEvent(Object source, DataContext dataContext, Protein protein, Component component) {
+    public DeletedComponentEvent(Object source, DataContext dataContext, Protein protein, String uniprot, Component component) {
         super(source, dataContext, protein);
         this.component = component;
+        setUniprotIdentity(uniprot);
     }
 
     public Component getComponent() {

@@ -180,8 +180,9 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         InteractorXref parent = new InteractorXref(owner, db, parentXrefAc, qualifierParent);
         transcriptIntact.addXref(parent);
 
+        String primaryAc = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : null;
         // move the components having range conflicts
-        ComponentTools.moveComponents(transcriptIntact, proteinWithConflicts, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), componentsToFix);
+        ComponentTools.moveComponents(transcriptIntact, proteinWithConflicts, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), componentsToFix, primaryAc);
 
         // log in 'created.csv'
         if (evt.getSource() instanceof ProteinUpdateProcessor){
@@ -309,7 +310,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
     private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DataContext context, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts, ProteinUpdateProcessor processor) {
         for (ProteinTranscript p : proteinTranscripts){
             if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts) && !protein.getAc().equals(p.getProtein().getAc())){
-                ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, context, processor);
+                ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, context, processor, possibleMatch.getPrimaryAc());
                 return p;
             }
         }

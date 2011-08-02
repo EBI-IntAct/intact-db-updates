@@ -286,7 +286,7 @@ public class ComponentTools {
         interactionDao.update((InteractionImpl) interaction);
     }
 
-    public static void moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove) {
+    public static void moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
         for (Component component : componentsToMove) {
@@ -304,7 +304,7 @@ public class ComponentTools {
                         ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
                         factory.getComponentDao().delete(component);
 
-                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, context, sourceProtein, component));
+                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, context, sourceProtein, uniprot, component));
 
                     }
                     else {

@@ -33,9 +33,9 @@ public class ProteinTools {
 
     private ProteinTools() {}
 
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context, ProteinUpdateProcessor processor) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
         for (Protein sourceProtein : sourceProteins) {
-            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context, processor);
+            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context, processor, primaryUniprot);
         }
     }
 
@@ -44,11 +44,11 @@ public class ProteinTools {
      * @param destinationProtein : protein where to move the interactions
      * @param sourceProtein : the protein for what we want to move the interactions
      */
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor) {
+    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
         DaoFactory factory = context.getDaoFactory();
 
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
-        ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove);
+        ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove, primaryUniprot);
     }
 
     /**

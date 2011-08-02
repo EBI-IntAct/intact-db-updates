@@ -373,7 +373,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     reportMovedInteraction(duplicate, duplicate.getActiveInstances(), evt);
 
                     // move the interactions
-                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
+                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), evt.getPrimaryUniprotAc());
 
                     // add the intact secondary references
                     Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
@@ -427,7 +427,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // report the interactions to move before moving them
                         reportMovedInteraction(duplicate, componentToMove, evt);
                         // move components without conflicts
-                        ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove);
+                        ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
 
                         evt.getAddedAnnotations().put(duplicate.getAc(), addedAnnotations);
 
@@ -441,7 +441,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // report the interactions to move before moving them
                         reportMovedInteraction(duplicate, duplicate.getActiveInstances(), evt);
                         // move the interactions
-                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor);
+                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor, evt.getPrimaryUniprotAc());
 
                         // the duplicate will be deleted, add intact secondary references
                         Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
