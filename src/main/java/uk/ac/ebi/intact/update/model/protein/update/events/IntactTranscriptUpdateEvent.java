@@ -1,13 +1,12 @@
 package uk.ac.ebi.intact.update.model.protein.update.events;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 
 /**
  * Event for isoforms and feature chains with necessity to update the parent cross reference
@@ -21,28 +20,28 @@ import java.util.Collection;
 @DiscriminatorValue("IntactTranscriptUpdateEvent")
 public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
-    private Collection<String> oldParentAcs = new ArrayList<String>();
+    private String oldParentAc;
     private String newParentAc;
 
     public IntactTranscriptUpdateEvent(){
         super();
+        this.newParentAc = null;
+        this.oldParentAc = null;
     }
 
-    public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String uniprotAc, String message, String newParentAc ){
+    public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String uniprotAc, String oldParentAc, String newParentAc ){
         super(updateProcess, ProteinEventName.transcript_parent_update, transcript, uniprotAc);
         this.newParentAc = newParentAc;
-        setMessage(message);
+        this.oldParentAc = oldParentAc;
     }
 
-    @ElementCollection
-    @JoinTable(name = "ia_event2old_parent", joinColumns = @JoinColumn(name="event_id"))
     @Column(name = "old_parent")
-    public Collection<String> getOldParentAcs() {
-        return oldParentAcs;
+    public String getOldParentAc() {
+        return oldParentAc;
     }
 
-    public void setOldParentAcs(Collection<String> oldParentAcs) {
-        this.oldParentAcs = oldParentAcs;
+    public void setOldParentAc(String oldParentAc) {
+        this.oldParentAc = oldParentAc;
     }
 
     @Column(name = "new_parent")
@@ -71,6 +70,15 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
             return false;
         }
 
+        if ( oldParentAc != null ) {
+            if (!oldParentAc.equals( event.getOldParentAc() )){
+                return false;
+            }
+        }
+        else if (event.getOldParentAc()!= null){
+            return false;
+        }
+
         return true;
     }
 
@@ -89,6 +97,10 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
         if ( newParentAc != null ) {
             code = 29 * code + newParentAc.hashCode();
+        }
+
+        if ( oldParentAc != null ) {
+            code = 29 * code + oldParentAc.hashCode();
         }
 
         return code;
@@ -112,7 +124,16 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
             return false;
         }
 
-        return CollectionUtils.isEqualCollection(oldParentAcs, event.getOldParentAcs());
+        if ( oldParentAc != null ) {
+            if (!oldParentAc.equals( event.getOldParentAc() )){
+                return false;
+            }
+        }
+        else if (event.getOldParentAc()!= null){
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -121,7 +142,7 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Intact transcript update event : [New parent ac = " + newParentAc != null ? newParentAc : "none");
+        buffer.append("Intact transcript update event : [New parent ac = " + (newParentAc != null ? newParentAc : "none") + "Old parent ac = " + (oldParentAc != null ? oldParentAc : "none"));
         buffer.append("] \n");
 
         return buffer.toString();

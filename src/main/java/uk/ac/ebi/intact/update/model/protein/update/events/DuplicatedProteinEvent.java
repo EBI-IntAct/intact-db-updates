@@ -43,8 +43,8 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         wasMergeSuccessful = false;
     }
 
-    public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
-        super(updateProcess, ProteinEventName.protein_duplicate, duplicatedProtein);
+    public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, String uniprotAc, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
+        super(updateProcess, ProteinEventName.protein_duplicate, duplicatedProtein, uniprotAc);
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
         this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;

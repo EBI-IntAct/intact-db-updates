@@ -78,10 +78,11 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             Collection<String> updatedTranscripts = evt.getUpdatedTranscripts().get(duplicate.getAc());
             Collection<InteractorXref> movedXrefs = evt.getMovedXrefs().get(duplicate.getAc());
             RangeUpdateReport rangeReport = evt.getUpdatedRanges().get(duplicate.getAc());
+            String uniprotAc = evt.getPrimaryUniprotAc();
 
             boolean isMergeSuccessful = (invalidRangeReport == null);
 
-            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, originalProtein, sequenceUpdate, isMergeSuccessful);
+            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, originalProtein, uniprotAc, sequenceUpdate, isMergeSuccessful);
 
             // add the moved interactions
             if (movedInteractions != null){
@@ -162,7 +163,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(this.updateProcess, protein, evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
+        SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(this.updateProcess, protein, evt.getUniprotIdentity(), evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceUpdateEvent.class).persist(proteinEvt);
     }
@@ -232,8 +233,9 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         Protein currentProteinHavingConflicts = evt.getProteinWithConflicts();
 
         RangeUpdateReport invalidRanges = evt.getInvalidRangeReport();
+        String uniprotId = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : null;
 
-        OutOfDateParticipantEvent protEvt = new OutOfDateParticipantEvent(this.updateProcess, currentProteinHavingConflicts, remappedProteinAc, remappedParentAc);
+        OutOfDateParticipantEvent protEvt = new OutOfDateParticipantEvent(this.updateProcess, currentProteinHavingConflicts, uniprotId, remappedProteinAc, remappedParentAc);
 
         if (invalidRanges != null){
             Map<String, AnnotationUpdateReport> featureReport = invalidRanges.getUpdatedFeatureAnnotations();
@@ -313,7 +315,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Transactional( "update" )
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
 
-        String currentAc = evt.getCurrentUniprotAc();
+        String currentAc = evt.getUniprotIdentity();
         String transcriptAc = evt.getUniprotTranscriptAc();
         Protein protein = evt.getProtein();
 
@@ -325,17 +327,30 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException {
+
+        Protein protein = evt.getProtein();
+        String newParentAc = evt.getNewParentAc();
+        String oldParentAc = evt.getNewParentAc();
+        String uniprotAc= evt.getUniprotIdentity();
+
+        IntactTranscriptUpdateEvent protEvt = new IntactTranscriptUpdateEvent(this.updateProcess, protein, uniprotAc, oldParentAc, newParentAc);
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(IntactTranscriptUpdateEvent.class).persist(protEvt);
+
     }
 
     @Override
+    @Transactional( "update" )
     public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException {
     }
 
     @Override
+    @Transactional( "update" )
     public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
     }
 
     @Override
+    @Transactional( "update" )
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
     }
 
