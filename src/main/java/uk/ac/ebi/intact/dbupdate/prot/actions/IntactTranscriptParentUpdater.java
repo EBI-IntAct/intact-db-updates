@@ -40,8 +40,9 @@ public interface IntactTranscriptParentUpdater {
      * Create an intact parent xref for a list of protein transcripts matching a single uniprot entry. Remove all out of date parent xRef
      * @param transcripts
      * @param masterProtein
+     * @param uniprotAc ac
      * @param context
      * @param processor
      */
-    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, DataContext context, ProteinUpdateProcessor processor);
+    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, String uniprotAc, DataContext context, ProteinUpdateProcessor processor);
 }

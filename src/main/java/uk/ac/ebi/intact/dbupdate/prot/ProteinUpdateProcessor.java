@@ -597,7 +597,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 if (canUpdateProteinTranscript){
                     // add first a parent xref for all the protein transcripts without parent xref if it is necessary
                     if (!transcriptToReview.isEmpty()){
-                        parentUpdater.createParentXRefs(transcriptToReview, masterProtein, caseEvent.getDataContext(), this);
+                        parentUpdater.createParentXRefs(transcriptToReview, masterProtein, uniprotProtein.getPrimaryAc(), caseEvent.getDataContext(), this);
                     }
 
                     //protein transcript duplicates to merge

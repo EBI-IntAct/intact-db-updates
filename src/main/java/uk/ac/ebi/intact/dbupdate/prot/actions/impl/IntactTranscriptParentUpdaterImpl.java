@@ -146,7 +146,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getUniprotIdentity(), parent.getPrimaryId(), parentAc);
                                     processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                                 parent.setPrimaryId(parentAc);
@@ -309,7 +309,9 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
+                                    String uniprot = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : evt.getQuerySentToService();
+
+                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, uniprot, parent.getPrimaryId(), parentAc);
                                     processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                             }
@@ -371,7 +373,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
      * @param context
      * @param processor
      */
-    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, DataContext context, ProteinUpdateProcessor processor){
+    public void createParentXRefs(List<Protein> transcripts, Protein masterProtein, String uniprot, DataContext context, ProteinUpdateProcessor processor){
         DaoFactory factory = context.getDaoFactory();
 
         if (masterProtein != null){
@@ -426,7 +428,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 if (CvXrefQualifier.ISOFORM_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier()) || CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier())){
                                     if (!ref.getPrimaryId().equals(masterAc)){
                                         // fire an invalidIntactParent event for each invalid parent xref
-                                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, ref.getPrimaryId(), masterAc);
+                                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, uniprot, ref.getPrimaryId(), masterAc);
                                         processor.fireOnInvalidIntactParentFound(invalidEvent);
 
                                         ProteinTools.deleteInteractorXRef(t, context, ref, processor);
