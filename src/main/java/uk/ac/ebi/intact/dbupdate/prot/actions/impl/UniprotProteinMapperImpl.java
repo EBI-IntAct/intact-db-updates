@@ -156,7 +156,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
+                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), protein, context, result, evt.getMessage()));
                     }
 
                     DaoFactory factory = evt.getDataContext().getDaoFactory();
@@ -243,7 +243,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), context, result, evt.getMessage()));
+                        processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), protein, context, result, evt.getMessage()));
                     }
 
                 } catch (StrategyException e) {
