@@ -310,10 +310,20 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
+
+        String currentAc = evt.getCurrentUniprotAc();
+        String transcriptAc = evt.getUniprotTranscriptAc();
+        Protein protein = evt.getProtein();
+
+        SequenceIdenticalToTranscriptEvent protEvt = new SequenceIdenticalToTranscriptEvent(this.updateProcess, protein, currentAc, transcriptAc);
+
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceIdenticalToTranscriptEvent.class).persist(protEvt);
     }
 
     @Override
+    @Transactional( "update" )
     public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException {
     }
 
