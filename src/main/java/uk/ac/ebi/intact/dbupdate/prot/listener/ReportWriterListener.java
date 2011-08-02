@@ -761,22 +761,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer = reportHandler.getIntactParentWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
                     "Old parent Ac",
-                    "Number of parents",
-                    "parents xrefs");
-            int numberParent = evt.getParents() != null ? evt.getParents().size() : 0;
-            StringBuilder xRefs = new StringBuilder();
-
-            for (String ref : evt.getParents()) {
-
-                String qual = (ref != null)? "("+ref+")" : "";
-
-                xRefs.append(qual);
-            }
+                    "New parent Ac");
 
             writer.writeColumnValues(evt.getProtein().getAc(),
                     dashIfNull(evt.getOldParentAc()),
-                    Integer.toString(numberParent),
-                    xRefs.toString());
+                    dashIfNull(evt.getNewParentAc()));
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing invalid intact parents to stream", e);

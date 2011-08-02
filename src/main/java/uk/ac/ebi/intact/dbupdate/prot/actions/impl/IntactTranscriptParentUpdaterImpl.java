@@ -58,9 +58,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
         // collect the feature chain parents
         Collection<InteractorXref> chainParentXRefs = ProteinUtils.extractChainParentCrossReferencesFrom(protein);
 
-        // list of parents acs
-        Collection<String> parentAc = new ArrayList<String>();
-
         // the protein does ahave at least one parent xref
         if (!isoformParentXRefs.isEmpty() || !chainParentXRefs.isEmpty()){
             // if the protein has both isoform parent xrefs and chain parent xrefs, it is an error which will be logged in 'process_erros.csv'
@@ -100,9 +97,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                             processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                     ") which refers to itself. It is not valid and will be remapped."
                                     , UpdateError.invalid_parent_xref, protein));
-
-                            InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                            processor.fireOnInvalidIntactParentFound(invalidEvent);
                         }
                         transcriptsToReview.add(protein);
                     }
@@ -141,9 +135,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
                                             , UpdateError.dead_parent_xref, protein));
-
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                                 transcriptsToReview.add(protein);
                             }
@@ -151,14 +142,14 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                             // update the parent xref and log in 'invalid_parent.csv'
                             else if (remappedParents.size() == 1){
 
-                                parentAc.add(remappedParents.iterator().next().getAc());
+                                String parentAc = remappedParents.iterator().next().getAc();
                                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
                                     InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
                                     processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
-                                parent.setPrimaryId(remappedParents.iterator().next().getAc());
+                                parent.setPrimaryId(parentAc);
                                 xRefDao.update(parent);
                             }
                             // we have more than one protein having the parent ac as intact-secondary.
@@ -166,18 +157,11 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                             else {
                                 canBeUpdated = false;
 
-                                for (Protein p : remappedParents){
-                                    parentAc.add(p.getAc());
-                                }
-
                                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
                                             , UpdateError.several_intact_parents, protein));
-
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                             }
                         }
@@ -189,8 +173,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                             ") which refers to another protein transcript. It is not valid and will be remapped."
                                             , UpdateError.invalid_parent_xref, protein));
 
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                                 transcriptsToReview.add(protein);
                             }
@@ -233,9 +215,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
             // get all possible parent xrefs
             Collection<InteractorXref> isoformParentXRefs = ProteinUtils.extractIsoformParentCrossReferencesFrom(protein);
             Collection<InteractorXref> chainParentXRefs = ProteinUtils.extractChainParentCrossReferencesFrom(protein);
-
-            // list of parent acs for one protein
-            Collection<String> parentAc = new ArrayList<String>();
 
             // the protein has both isoform and feature chain parents, it is an error.
             // the protein is removed from the proteins to update
@@ -282,9 +261,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                             processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                     ") which refers to itself. It is not valid and will be remapped."
                                     , UpdateError.invalid_parent_xref, protein));
-
-                            InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                            processor.fireOnInvalidIntactParentFound(invalidEvent);
                         }
 
                         if (!proteinWithoutParents.contains(protein)){
@@ -318,9 +294,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and no other proteins in intact refers to it as intact-secondary."
                                             , UpdateError.dead_parent_xref, protein, evt.getQuerySentToService()));
-
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
 
                                 if (!proteinWithoutParents.contains(protein)){
@@ -328,7 +301,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 }
                             }
                             else if (remappedParents.size() == 1){
-                                parentAc.add(remappedParents.iterator().next().getAc());
+                                String parentAc = remappedParents.iterator().next().getAc();
 
                                 parent.setPrimaryId(remappedParents.iterator().next().getAc());
                                 xRefDao.update(parent);
@@ -341,18 +314,12 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                 }
                             }
                             else {
-                                for (Protein p2 : remappedParents){
-                                    parentAc.add(p2.getAc());
-                                }
 
                                 if (evt.getSource() instanceof ProteinUpdateProcessor ){
                                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which doesn't exist in Intact anymore and for which the ac is the intact-secondary ac of "+remappedParents.size()+" other proteins."
                                             , UpdateError.several_intact_parents, protein, evt.getQuerySentToService()));
-
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
 
                                 if (!transcriptToDelete.contains(p)){
@@ -367,9 +334,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                                     processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The protein transcript " + protein.getAc() + " has a parent protein (" + parent.getPrimaryId() + "" +
                                             ") which refers to another protein transcript. It is not valid and will be remapped."
                                             , UpdateError.invalid_parent_xref, protein));
-
-                                    InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(evt.getSource(), evt.getDataContext(), protein, parent.getPrimaryId(), parentAc);
-                                    processor.fireOnInvalidIntactParentFound(invalidEvent);
                                 }
                                 if (!proteinWithoutParents.contains(protein)){
                                     proteinWithoutParents.add(protein);
@@ -421,9 +385,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                     factory.getCvObjectDao(CvDatabase.class).saveOrUpdate(db);
                 }
 
-                Collection<String> parentAcs = new ArrayList<String> (1);
-                parentAcs.add(masterAc);
-
                 for (Protein t : transcripts){
                     InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(t);
 
@@ -449,8 +410,6 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                     InteractorXref parent = new InteractorXref(t.getOwner(), db, masterAc, parentXRef);
 
                     if (!t.getXrefs().contains(parent)){
-                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, null, parentAcs);
-                        processor.fireOnInvalidIntactParentFound(invalidEvent);
 
                         factory.getXrefDao(InteractorXref.class).persist(parent);
                         t.addXref(parent);
@@ -466,6 +425,10 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                             if (ref.getCvXrefQualifier() != null){
                                 if (CvXrefQualifier.ISOFORM_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier()) || CvXrefQualifier.CHAIN_PARENT_MI_REF.equals(ref.getCvXrefQualifier().getIdentifier())){
                                     if (!ref.getPrimaryId().equals(masterAc)){
+                                        // fire an invalidIntactParent event for each invalid parent xref
+                                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, ref.getPrimaryId(), masterAc);
+                                        processor.fireOnInvalidIntactParentFound(invalidEvent);
+
                                         ProteinTools.deleteInteractorXRef(t, context, ref, processor);
                                     }
                                 }
