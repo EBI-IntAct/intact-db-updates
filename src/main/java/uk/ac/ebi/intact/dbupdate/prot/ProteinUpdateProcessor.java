@@ -627,7 +627,26 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             }
 
             // log in updated.csv
-            fireOnUpdateCase(caseEvent);
+            boolean hasBeenUpdated = false;
+            if (!caseEvent.getNameUpdaterReports().isEmpty()){
+               hasBeenUpdated = true;
+            }
+            else if (!caseEvent.getAliasUpdaterReports().isEmpty()){
+                hasBeenUpdated = true;
+            }
+            else if (!caseEvent.getXrefUpdaterReports().isEmpty()){
+                hasBeenUpdated = true;
+            }
+            else if (!caseEvent.getNewAnnotations().isEmpty()){
+                hasBeenUpdated = true;
+            }
+            else if (!caseEvent.getUpdatedRanges().isEmpty()){
+                hasBeenUpdated = true;
+            }
+
+            if (hasBeenUpdated){
+                fireOnUpdateCase(caseEvent);
+            }
 
             return caseEvent;
         }
