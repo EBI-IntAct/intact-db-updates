@@ -107,7 +107,7 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
 
     @Override
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Deleted the component " + evt.getComponent().getAc() + " involving duplicated protein " + evt.getProtein().getAc() + " for the interaction " + evt.getComponent().getInteraction().getAc());
+        if (log.isDebugEnabled()) log.debug("Deleted "+evt.getDeletedComponents().size()+" component(s) involving duplicated protein " + evt.getProtein().getAc() );
     }
 
 }

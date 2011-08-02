@@ -4,6 +4,9 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.model.Component;
 import uk.ac.ebi.intact.model.Protein;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Event for deleted components
  *
@@ -14,15 +17,18 @@ import uk.ac.ebi.intact.model.Protein;
 
 public class DeletedComponentEvent extends ProteinEvent{
 
-    private Component component;
+    private Collection<Component> deletedComponents;
 
-    public DeletedComponentEvent(Object source, DataContext dataContext, Protein protein, String uniprot, Component component) {
+    public DeletedComponentEvent(Object source, DataContext dataContext, Protein protein, String uniprot, Collection<Component> deletedComponents) {
         super(source, dataContext, protein);
-        this.component = component;
+        this.deletedComponents = deletedComponents;
         setUniprotIdentity(uniprot);
     }
 
-    public Component getComponent() {
-        return component;
+    public Collection<Component> getDeletedComponents() {
+        if (deletedComponents == null){
+            return Collections.EMPTY_LIST;
+        }
+        return deletedComponents;
     }
 }

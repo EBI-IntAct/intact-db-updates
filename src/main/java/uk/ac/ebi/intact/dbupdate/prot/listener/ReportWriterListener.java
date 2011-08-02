@@ -889,15 +889,26 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer = reportHandler.getDeletedComponentWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
                     "Uniprot Ac",
-                    "Component AC",
-                    "Interaction Ac");
+                    "Deleted Components");
 
-            if (evt.getProtein() != null && evt.getComponent() != null){
-                String interactionAc = evt.getComponent().getInteraction() != null ? evt.getComponent().getInteraction().getAc() : "-";
+            if (evt.getProtein() != null && !evt.getDeletedComponents().isEmpty()){
+                StringBuffer comp = new StringBuffer();
+
+                int i = 0;
+                for (Component component : evt.getDeletedComponents()){
+                    String interactionAc = component.getInteraction() != null ? component.getInteraction().getAc() : "-";
+
+                    comp.append("Participant " + component.getAc() + "[interaction = "+interactionAc+"]");
+
+                    if (i < evt.getDeletedComponents().size()){
+                        comp.append(",");
+                    }
+
+                    i++;
+                }
                 writer.writeColumnValues(dashIfNull(evt.getProtein().getAc()),
                         dashIfNull(evt.getUniprotIdentity()),
-                        dashIfNull(evt.getComponent().getAc()),
-                        dashIfNull(interactionAc));
+                        comp.toString());
                 writer.flush();
             }
 

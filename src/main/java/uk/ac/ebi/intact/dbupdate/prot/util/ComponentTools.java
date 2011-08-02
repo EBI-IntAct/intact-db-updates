@@ -289,6 +289,8 @@ public class ComponentTools {
     public static void moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
+        Collection<Component> deletedComponents = new ArrayList<Component>(sourceProtein.getActiveInstances());
+
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);
 
@@ -301,10 +303,10 @@ public class ComponentTools {
                                 "Interactions involving the protein " + sourceProtein.getAc() + " has been moved to " + destinationProtein.getAc() +
                                         " which is already an interactor of the interaction " + interaction.getAc() + ". The duplicated component " + component.getAc() + " will be deleted.", UpdateError.duplicated_components, sourceProtein));
 
+                        deletedComponents.add(component);
+
                         ComponentTools.addCautionDuplicatedComponent(destinationProtein, sourceProtein, interaction, context);
                         factory.getComponentDao().delete(component);
-
-                        processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, context, sourceProtein, uniprot, component));
 
                     }
                     else {
@@ -327,6 +329,11 @@ public class ComponentTools {
                 destinationProtein.addActiveInstance(component);
                 factory.getComponentDao().update(component);
             }
+        }
+
+        if (!deletedComponents.isEmpty()){
+            processor.fireOnDeletedComponent(new DeletedComponentEvent(processor, context, sourceProtein, uniprot, deletedComponents));
+
         }
 
         factory.getProteinDao().update((ProteinImpl) sourceProtein);
