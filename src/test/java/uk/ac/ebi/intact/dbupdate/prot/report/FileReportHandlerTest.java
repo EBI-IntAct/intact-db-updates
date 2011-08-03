@@ -328,7 +328,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, countLinesInFile(deletedFile));
         Assert.assertEquals(0, countLinesInFile(createdFile));
         Assert.assertEquals(3, countLinesInFile(nonUniprotFile));
-        Assert.assertEquals(6, countLinesInFile(updateCasesFile));
+        Assert.assertEquals(5, countLinesInFile(updateCasesFile));
         //Assert.assertEquals(5, countLinesInFile(sequenceChangedFile));
         Assert.assertEquals(0, countLinesInFile(rangeChangedFile));
         Assert.assertEquals(0, countLinesInFile(invalidRangeFile)); // TODO can be changed later
