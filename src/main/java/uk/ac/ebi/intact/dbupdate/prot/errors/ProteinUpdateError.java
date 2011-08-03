@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Interface for errors found during protein update
  *
@@ -12,7 +10,6 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 
 public interface ProteinUpdateError {
 
-    public UpdateError getUpdateErrorName();
     public String getErrorMessage();
     public String getProteinAc();
 }

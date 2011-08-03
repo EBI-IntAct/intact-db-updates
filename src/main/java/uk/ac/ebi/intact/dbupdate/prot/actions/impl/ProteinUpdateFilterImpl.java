@@ -137,6 +137,10 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 proteinIterator.remove();
             }
             else if (uniprotIdentities.size() > 1){
+                if (caseEvent.getSource() instanceof ProteinUpdateProcessor) {
+                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) caseEvent.getSource();
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, caseEvent.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities, protein));
+                }
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
                 proteinIterator.remove();
@@ -203,7 +207,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         // process all the proteins for this uniprot entry
-         processListOfProteins(primaryProteins, evt);
+        processListOfProteins(primaryProteins, evt);
         processListOfProteins(secondaryProteins, evt);
         processListOfProteinsTranscript(primaryIsoforms, evt, true);
         processListOfProteinsTranscript(secondaryIsoforms, evt, true);
