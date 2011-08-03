@@ -23,7 +23,7 @@ import java.util.Collection;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorValue("UniprotUpdateEvent")
+@DiscriminatorValue("uniprot_update")
 public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
 
     private String updatedShortLabel;
@@ -41,14 +41,14 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
     }
 
     public UniprotUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String shortlabel, String fullname, String uniprotEntry){
-        super(updateProcess, ProteinEventName.uniprot_update, protein);
+        super(updateProcess, protein);
         this.updatedShortLabel = shortlabel;
         this.updatedFullName = fullname;
         this.uniprotQuery = uniprotEntry;
     }
 
     public UniprotUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotEntry){
-        super(updateProcess, ProteinEventName.uniprot_update, protein);
+        super(updateProcess, protein);
         this.updatedShortLabel = null;
         this.updatedFullName = null;
         this.uniprotQuery = uniprotEntry;

@@ -60,10 +60,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.deleted_protein, protein, evt.getUniprotIdentity());
+        DeletedProteinEvent proteinEvt = new DeletedProteinEvent(this.updateProcess, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DeletedProteinEvent.class).persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -174,10 +174,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        PersistentProteinEvent proteinEvt = new PersistentProteinEvent(this.updateProcess, ProteinEventName.created_protein, protein, evt.getUniprotIdentity());
+        CreatedProteinEvent proteinEvt = new CreatedProteinEvent(this.updateProcess, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(CreatedProteinEvent.class).persist(proteinEvt);
     }
 
     @Override

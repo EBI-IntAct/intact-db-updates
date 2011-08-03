@@ -15,7 +15,7 @@ import javax.persistence.Entity;
  * @since <pre>25-Nov-2010</pre>
  */
 @Entity
-@DiscriminatorValue("SecondaryProteinEvent")
+@DiscriminatorValue("secondary_protein")
 public class SecondaryProteinEvent extends PersistentProteinEvent {
 
     String updatedPrimaryAc;
@@ -27,7 +27,7 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
     }
 
     public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String originalUniprotAc, String updatedPrimaryAc){
-        super(updateProcess, ProteinEventName.secondary_protein, protein, originalUniprotAc);
+        super(updateProcess,protein, originalUniprotAc);
         this.updatedPrimaryAc = updatedPrimaryAc;
     }
 

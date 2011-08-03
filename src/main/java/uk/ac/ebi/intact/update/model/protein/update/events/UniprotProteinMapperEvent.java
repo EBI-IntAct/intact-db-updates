@@ -14,7 +14,7 @@ import javax.persistence.*;
  * @since <pre>16/03/11</pre>
  */
 @Entity
-@DiscriminatorValue("UniprotProteinMapperEvent")
+@DiscriminatorValue("protein_mapping")
 public class UniprotProteinMapperEvent extends PersistentProteinEvent {
 
     PersistentIdentificationResults identificationResults;
@@ -24,7 +24,7 @@ public class UniprotProteinMapperEvent extends PersistentProteinEvent {
     }
 
     public UniprotProteinMapperEvent(ProteinUpdateProcess process, Protein protein, PersistentIdentificationResults identificationResults){
-        super(process, ProteinEventName.protein_remapping, protein);
+        super(process, protein);
 
         this.identificationResults = identificationResults;
     }

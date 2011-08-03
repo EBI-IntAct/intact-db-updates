@@ -23,7 +23,7 @@ import java.util.Collection;
  * @since <pre>27/07/11</pre>
  */
 @Entity
-@DiscriminatorValue("DeadProteinEvent")
+@DiscriminatorValue("dead_protein")
 public class DeadProteinEvent extends PersistentProteinEvent {
 
     private Collection<UpdatedCrossReference> deletedReferences = new ArrayList<UpdatedCrossReference>();
@@ -33,19 +33,19 @@ public class DeadProteinEvent extends PersistentProteinEvent {
     }
 
     public DeadProteinEvent(ProteinUpdateProcess process, Protein protein) {
-        super(process, ProteinEventName.dead_protein, protein);
+        super(process, protein);
     }
 
     public DeadProteinEvent(ProteinUpdateProcess process, Protein protein, String uniprotAc) {
-        super(process, ProteinEventName.dead_protein, protein, uniprotAc);    //To change body of overridden methods use File | Settings | File Templates.
+        super(process, protein, uniprotAc);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     public DeadProteinEvent(ProteinUpdateProcess process, String proteinAc) {
-        super(process, ProteinEventName.dead_protein, proteinAc);    //To change body of overridden methods use File | Settings | File Templates.
+        super(process, proteinAc);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     public DeadProteinEvent(ProteinUpdateProcess process, String proteinAc, String uniprotAc) {
-        super(process, ProteinEventName.dead_protein, proteinAc, uniprotAc);    //To change body of overridden methods use File | Settings | File Templates.
+        super(process, proteinAc, uniprotAc);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )

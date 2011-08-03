@@ -15,7 +15,7 @@ import javax.persistence.Entity;
  * @since <pre>01/08/11</pre>
  */
 @Entity
-@DiscriminatorValue("SequenceIdenticalToTranscriptEvent")
+@DiscriminatorValue("transcript_with_identical_sequence")
 public class SequenceIdenticalToTranscriptEvent extends PersistentProteinEvent {
 
     private String matchingUniprotTranscript;
@@ -27,7 +27,7 @@ public class SequenceIdenticalToTranscriptEvent extends PersistentProteinEvent {
     }
 
     public SequenceIdenticalToTranscriptEvent(ProteinUpdateProcess updateProcess, Protein protein, String originalUniprotAc, String matchingTranscriptAc){
-        super(updateProcess, ProteinEventName.secondary_protein, protein, originalUniprotAc);
+        super(updateProcess, protein, originalUniprotAc);
         this.matchingUniprotTranscript = matchingTranscriptAc;
     }
 

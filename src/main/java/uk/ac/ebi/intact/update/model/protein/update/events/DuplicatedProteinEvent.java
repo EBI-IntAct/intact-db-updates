@@ -20,7 +20,7 @@ import java.util.Collection;
  * @since <pre>25-Nov-2010</pre>
  */
 @Entity
-@DiscriminatorValue("DuplicatedProteinEvent")
+@DiscriminatorValue("duplicated_protein")
 public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
 
     private String originalProtein;
@@ -42,7 +42,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     }
 
     public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, String uniprotAc, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
-        super(updateProcess, ProteinEventName.protein_duplicate, duplicatedProtein, uniprotAc);
+        super(updateProcess, duplicatedProtein, uniprotAc);
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
         this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;

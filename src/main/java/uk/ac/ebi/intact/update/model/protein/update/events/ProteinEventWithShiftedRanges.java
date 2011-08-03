@@ -5,7 +5,6 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 
 import javax.persistence.CascadeType;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.Collection;
@@ -18,27 +17,26 @@ import java.util.Collection;
  * @since <pre>25/07/11</pre>
  */
 @Entity
-@DiscriminatorValue("ProteinEventWithShiftedRanges")
 public abstract class ProteinEventWithShiftedRanges extends ProteinEventWithRangeUpdate<PersistentUpdatedRange> {
 
     public ProteinEventWithShiftedRanges() {
         super();
     }
 
-    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, ProteinEventName name, Protein protein) {
-        super(process, name, protein);
+    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, Protein protein) {
+        super(process, protein);
     }
 
-    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, ProteinEventName name, Protein protein, String uniprotAc) {
-        super(process, name, protein, uniprotAc);
+    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, Protein protein, String uniprotAc) {
+        super(process, protein, uniprotAc);
     }
 
-    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, ProteinEventName name, String proteinAc) {
-        super(process, name, proteinAc);
+    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, String proteinAc) {
+        super(process, proteinAc);
     }
 
-    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, ProteinEventName name, String proteinAc, String uniprotAc) {
-        super(process, name, proteinAc, uniprotAc);
+    public ProteinEventWithShiftedRanges(ProteinUpdateProcess process, String proteinAc, String uniprotAc) {
+        super(process, proteinAc, uniprotAc);
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )

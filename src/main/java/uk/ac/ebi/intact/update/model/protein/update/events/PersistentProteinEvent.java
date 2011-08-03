@@ -18,12 +18,9 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="objclass", discriminatorType=DiscriminatorType.STRING)
-@DiscriminatorValue("PersistentProteinEvent")
+@DiscriminatorColumn(name="type", discriminatorType=DiscriminatorType.STRING)
 @Table(name = "ia_protein_event")
-public class PersistentProteinEvent extends UpdateEventImpl {
-
-    ProteinEventName proteinEventName;
+public abstract class PersistentProteinEvent extends UpdateEventImpl {
 
     String uniprotAc;
 
@@ -33,14 +30,12 @@ public class PersistentProteinEvent extends UpdateEventImpl {
 
     public PersistentProteinEvent(){
         super();
-        this.proteinEventName = null;
         this.uniprotAc = null;
         this.message = null;
     }
 
-    public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein){
-        super(process, name.toString());
-        this.proteinEventName = name;
+    public PersistentProteinEvent(ProteinUpdateProcess process, Protein protein){
+        super(process);
         this.proteinAc = protein != null ? protein.getAc() : null;
 
         InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
@@ -53,51 +48,28 @@ public class PersistentProteinEvent extends UpdateEventImpl {
         this.message = null;
     }
 
-    public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, Protein protein, String uniprotAc){
-        super(process, name.toString());
-        this.proteinEventName = name;
+    public PersistentProteinEvent(ProteinUpdateProcess process, Protein protein, String uniprotAc){
+        super(process);
         this.proteinAc = protein != null ? protein.getAc() : null;
 
         this.uniprotAc = uniprotAc;
         this.message = null;
     }
 
-    public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, String proteinAc){
-        super(process, name.toString());
-        this.proteinEventName = name;
+    public PersistentProteinEvent(ProteinUpdateProcess process, String proteinAc){
+        super(process);
         this.proteinAc = proteinAc;
 
         this.uniprotAc = null;
         this.message = null;
     }
 
-    public PersistentProteinEvent(ProteinUpdateProcess process, ProteinEventName name, String proteinAc, String uniprotAc){
-        super(process, name.toString());
-        this.proteinEventName = name;
+    public PersistentProteinEvent(ProteinUpdateProcess process, String proteinAc, String uniprotAc){
+        super(process);
         this.proteinAc = proteinAc;
 
         this.uniprotAc = uniprotAc;
         this.message = null;
-    }
-
-    @Transient
-    public ProteinEventName getProteinEventName() {
-
-        if (proteinEventName == null && getName() != null){
-            try{
-                this.proteinEventName = ProteinEventName.valueOf(getName().toLowerCase());
-            }
-            catch (Exception e) {
-                this.proteinEventName = ProteinEventName.none;
-            }
-        }
-
-        return proteinEventName;
-    }
-
-    public void setProteinEventName(ProteinEventName proteinEventName) {
-        this.proteinEventName = proteinEventName;
-        setName(proteinEventName.toString());
     }
 
     @Column(name="protein_ac", nullable = false)
@@ -142,15 +114,6 @@ public class PersistentProteinEvent extends UpdateEventImpl {
 
         final PersistentProteinEvent event = (PersistentProteinEvent) o;
 
-        if ( proteinEventName != null ) {
-            if (!proteinEventName.equals( event.getProteinEventName())){
-                return false;
-            }
-        }
-        else if (event.getProteinEventName()!= null){
-            return false;
-        }
-
         if ( message != null ) {
             if (!message.equals( event.getMessage())){
                 return false;
@@ -194,10 +157,6 @@ public class PersistentProteinEvent extends UpdateEventImpl {
 
         code = 29 * code + super.hashCode();
 
-        if ( proteinEventName != null ) {
-            code = 29 * code + proteinEventName.hashCode();
-        }
-
         if ( message != null ) {
             code = 29 * code + message.hashCode();
         }
@@ -221,15 +180,6 @@ public class PersistentProteinEvent extends UpdateEventImpl {
         }
 
         final PersistentProteinEvent event = (PersistentProteinEvent) o;
-
-        if ( proteinEventName != null ) {
-            if (!proteinEventName.equals( event.getProteinEventName())){
-                return false;
-            }
-        }
-        else if (event.getProteinEventName()!= null){
-            return false;
-        }
 
         if ( message != null ) {
             if (!message.equals( event.getMessage())){

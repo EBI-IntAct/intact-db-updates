@@ -15,7 +15,7 @@ import java.util.Collection;
  * @since <pre>25-Nov-2010</pre>
  */
 @Entity
-@DiscriminatorValue("OutOfDateParticipantEvent")
+@DiscriminatorValue("out_of_date_participant")
 public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<PersistentInvalidRange> {
 
     private String remapped_protein;
@@ -29,7 +29,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
     }
 
     public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotAc, String fixedProtein, String remapped_parent){
-        super(updateProcess, ProteinEventName.participant_with_feature_conflicts, protein, uniprotAc);
+        super(updateProcess, protein, uniprotAc);
         this.remapped_protein = fixedProtein;
         this.remapped_parent = remapped_parent;
     }

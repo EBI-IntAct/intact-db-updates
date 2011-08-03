@@ -15,7 +15,7 @@ import javax.persistence.Entity;
  * @since <pre>11/03/11</pre>
  */
 @Entity
-@DiscriminatorValue("IntactTranscriptUpdateEvent")
+@DiscriminatorValue("transcript_update")
 public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
     private String oldParentAc;
@@ -28,7 +28,7 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
     }
 
     public IntactTranscriptUpdateEvent(ProteinUpdateProcess updateProcess, Protein transcript, String uniprotAc, String oldParentAc, String newParentAc ){
-        super(updateProcess, ProteinEventName.transcript_parent_update, transcript, uniprotAc);
+        super(updateProcess, transcript, uniprotAc);
         this.newParentAc = newParentAc;
         this.oldParentAc = oldParentAc;
     }

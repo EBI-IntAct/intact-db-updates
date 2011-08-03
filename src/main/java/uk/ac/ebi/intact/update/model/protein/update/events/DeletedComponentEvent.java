@@ -16,7 +16,7 @@ import java.util.Collection;
  * @since <pre>27/06/11</pre>
  */
 @Entity
-@DiscriminatorValue("DeletedComponentEvent")
+@DiscriminatorValue("deleted_component")
 public class DeletedComponentEvent extends PersistentProteinEvent {
 
     private Collection<String> deletedComponents;
@@ -28,7 +28,7 @@ public class DeletedComponentEvent extends PersistentProteinEvent {
     }
 
     public DeletedComponentEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprot){
-        super(updateProcess, ProteinEventName.deleted_component, protein, uniprot);
+        super(updateProcess, protein, uniprot);
 
         deletedComponents = new ArrayList<String>();
     }

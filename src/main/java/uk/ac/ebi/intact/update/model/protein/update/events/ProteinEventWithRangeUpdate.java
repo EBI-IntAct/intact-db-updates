@@ -20,7 +20,6 @@ import java.util.Collection;
  * @since <pre>22/07/11</pre>
  */
 @Entity
-@DiscriminatorValue("ProteinEventWithRangeUpdate")
 public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange> extends PersistentProteinEvent {
 
     private Collection<FeatureUpdatedAnnotation> updatedFeatureAnnotations = new ArrayList<FeatureUpdatedAnnotation>();
@@ -30,20 +29,20 @@ public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange
         super();
     }
 
-    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, ProteinEventName name, Protein protein) {
-        super(process, name, protein);
+    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, Protein protein) {
+        super(process, protein);
     }
 
-    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, ProteinEventName name, Protein protein, String uniprotAc) {
-        super(process, name, protein, uniprotAc);
+    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, Protein protein, String uniprotAc) {
+        super(process, protein, uniprotAc);
     }
 
-    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, ProteinEventName name, String proteinAc) {
-        super(process, name, proteinAc);
+    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, String proteinAc) {
+        super(process, proteinAc);
     }
 
-    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, ProteinEventName name, String proteinAc, String uniprotAc) {
-        super(process, name, proteinAc, uniprotAc);
+    public ProteinEventWithRangeUpdate(ProteinUpdateProcess process, String proteinAc, String uniprotAc) {
+        super(process, proteinAc, uniprotAc);
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )

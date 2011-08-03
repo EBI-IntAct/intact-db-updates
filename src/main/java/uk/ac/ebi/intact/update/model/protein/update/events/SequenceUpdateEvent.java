@@ -16,7 +16,7 @@ import javax.persistence.Lob;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorValue("SequenceUpdateEvent")
+@DiscriminatorValue("sequence_update")
 public class SequenceUpdateEvent extends PersistentProteinEvent {
 
     private String newSequence;
@@ -32,7 +32,7 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
     }
 
     public SequenceUpdateEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprot, String newSequence, String oldSequence, double relativeConservation){
-        super(updateProcess, ProteinEventName.updated_sequence, protein, uniprot);
+        super(updateProcess, protein, uniprot);
         this.newSequence = newSequence;
         this.relativeConservation = relativeConservation;
         this.oldSequence = oldSequence;

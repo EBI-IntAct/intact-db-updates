@@ -16,15 +16,10 @@ import java.util.List;
 
 public interface UpdateEventDao<T extends UpdateEventImpl> extends UpdateBaseDao<T>, Serializable {
 
-    List<T> getAllUpdateEventsByName(String name);
     List<T> getAllUpdateEventsByProcessId(long processId);
     List<T> getAllUpdateEventsByDate(Date updatedDate);
 
-    List<T> getUpdateEventsByNameAndProcessId(String name, long processId);
+    List<T> getUpdateEventsBeforeDate(Date updatedDate);
 
-    List<T> getUpdateEventsByNameAndDate(String name, Date updatedDate);
-
-    List<T> getUpdateEventsByNameBeforeDate(String name, Date updatedDate);
-
-    List<T> getUpdateEventsByNameAfterDate(String name, Date updatedDate);
+    List<T> getUpdateEventsAfterDate(Date updatedDate);
 }

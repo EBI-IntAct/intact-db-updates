@@ -32,6 +32,11 @@ public class PersistentBlastReport extends PersistentMappingReport implements Bl
      */
     protected String querySequence;
 
+    public PersistentBlastReport(){
+        super();
+        this.querySequence = null;
+    }
+
     /**
      * Create a new PersistentBlastReport
      * @param name : the name of the action

@@ -26,7 +26,7 @@ public class ProcessErrorEvent extends PersistentProteinEvent{
     }
 
     public ProcessErrorEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotAc, String type, String message ){
-        super(updateProcess, ProteinEventName.update_error, protein, uniprotAc);
+        super(updateProcess, protein, uniprotAc);
         this.type = type;
         setMessage(message);
     }

@@ -28,6 +28,9 @@ public class PersistentPICRReport extends PersistentMappingReport implements PIC
      */
     private Set<PersistentPICRCrossReferences> crossReferences = new HashSet<PersistentPICRCrossReferences>();
 
+    public PersistentPICRReport() {
+        super();
+    }
     /**
      * Create a new PersistentPICRReport
      * @param name : name of the action
@@ -75,10 +78,10 @@ public class PersistentPICRReport extends PersistentMappingReport implements PIC
      * @param refs : the PICRCrossReference instance to add
      */
     public void addPICRCrossReference(PersistentPICRCrossReferences refs){
-         if (refs != null){
-             refs.setPicrReport(this);
+        if (refs != null){
+            refs.setPicrReport(this);
             this.crossReferences.add(refs);
-         }
+        }
     }
 
     /**

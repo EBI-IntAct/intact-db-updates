@@ -32,11 +32,6 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
     }
 
     @Override
-    public List<T> getAllUpdateEventsByName(String name) {
-        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("name", name)).list();
-    }
-
-    @Override
     public List<T> getAllUpdateEventsByProcessId(long processId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).list();
@@ -51,34 +46,16 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
     }
 
     @Override
-    public List<T> getUpdateEventsByNameAndProcessId(String name, long processId) {
+    public List<T> getUpdateEventsBeforeDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
-                .add(Restrictions.eq("name", name)).add(Restrictions.eq("p.id", processId)).list();
+                .add(Restrictions.le("p.date", updatedDate)).list();
     }
 
     @Override
-    public List<T> getUpdateEventsByNameAndDate(String name, Date updatedDate) {
+    public List<T> getUpdateEventsAfterDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
-                .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
-                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
-                .add(Restrictions.eq("name", name)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameBeforeDate(String name, Date updatedDate) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.le("p.date", updatedDate))
-                .add(Restrictions.eq("name", name)).list();
-    }
-
-    @Override
-    public List<T> getUpdateEventsByNameAfterDate(String name, Date updatedDate) {
-        return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
-                .add(Restrictions.ge("p.date", updatedDate))
-                .add(Restrictions.eq("name", name)).list();
+                .add(Restrictions.ge("p.date", updatedDate)).list();
     }
 }

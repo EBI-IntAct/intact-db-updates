@@ -58,6 +58,9 @@ public class PersistentMappingReport extends HibernateUpdatePersistentImpl imple
      */
     protected PersistentIdentificationResults updateResult;
 
+    public PersistentMappingReport(){
+        this.name = null;
+    }
     /**
      * Create a new report for an action with a specific name
      * @param name the naem of the action

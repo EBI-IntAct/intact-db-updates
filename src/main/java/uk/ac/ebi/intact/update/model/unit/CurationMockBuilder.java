@@ -17,10 +17,7 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentific
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventName;
-import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.UniprotUpdateEvent;
+import uk.ac.ebi.intact.update.model.protein.update.events.*;
 
 import java.util.Date;
 
@@ -386,10 +383,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return al;
     }
 
-    public PersistentProteinEvent createDefaultProteinEvent(){
-        PersistentProteinEvent event = new PersistentProteinEvent();
+    public UniprotUpdateEvent createDefaultProteinEvent(){
+        UniprotUpdateEvent event = new UniprotUpdateEvent();
 
-        event.setProteinEventName(ProteinEventName.uniprot_update);
         event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
@@ -398,7 +394,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
     public UniprotUpdateEvent createDefaultUniprotProteinEvent(){
         UniprotUpdateEvent event = new UniprotUpdateEvent();
 
-        event.setProteinEventName(ProteinEventName.uniprot_update);
         event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
@@ -407,7 +402,6 @@ public class CurationMockBuilder extends IntactMockBuilder {
     public OutOfDateParticipantEvent createOutOfDateParticipantProcess(){
         OutOfDateParticipantEvent event = new OutOfDateParticipantEvent();
 
-        event.setProteinEventName(ProteinEventName.participant_with_feature_conflicts);
         event.setProteinAc("EBI-xx10xx10xx");
 
         return event;
@@ -423,10 +417,9 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return event;
     }
 
-    public PersistentProteinEvent createDefaultDeadProteinEvent(){
-        PersistentProteinEvent proteinEvent = new PersistentProteinEvent();
+    public DeadProteinEvent createDefaultDeadProteinEvent(){
+        DeadProteinEvent proteinEvent = new DeadProteinEvent();
 
-        proteinEvent.setProteinEventName(ProteinEventName.dead_protein);
         proteinEvent.setProteinAc("EBI-xxxxx10");
         proteinEvent.setUniprotAc("P12345");
 
