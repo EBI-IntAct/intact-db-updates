@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +19,11 @@ public class MultiUniprotIdentities extends DefaultProteinUpdateError {
     protected Set<String> uniprotIdentities = new HashSet<String>();
 
     public MultiUniprotIdentities(String proteinAc) {
-        super(null, proteinAc);
+        super(UpdateError.multi_uniprot_identities, null, proteinAc);
+    }
+
+    public MultiUniprotIdentities(String proteinAc, UpdateError errorLabel) {
+        super(errorLabel, null, proteinAc);
     }
 
     public Set<String> getUniprotIdentities() {

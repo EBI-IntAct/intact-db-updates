@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 /**
  * Error for protein transcript which cannot be found in the uniprot entry of the parent protein
  *
@@ -14,7 +16,7 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
     private String masterIntactAc;
 
     public NonExistingProteinTranscript(String proteinAc, String deadTranscriptAc, String masterUniprotAc, String masterIntactAc) {
-        super(proteinAc, deadTranscriptAc);
+        super(UpdateError.not_matching_protein_transcript,proteinAc, deadTranscriptAc);
 
         this.masterIntactAc = masterIntactAc;
         this.masterUniprotAc = masterUniprotAc;

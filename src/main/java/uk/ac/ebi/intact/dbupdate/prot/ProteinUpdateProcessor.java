@@ -410,7 +410,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             if (!isDeletedFromDatabase){
                 InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protToUpdate);
                 String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, protToUpdate, uniprot));
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, protToUpdate, uniprot));
 
             }
         }
@@ -506,7 +506,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
                     if (!isDeletedFromDatabase){
 
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p, processEvent.getUniprotIdentity()));
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, p, processEvent.getUniprotIdentity()));
 
                     }
                 }

@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 /**
  * This error is for the case of a dead uniprot ac and the option of fixing dead proteins has been set to false
  *
@@ -13,7 +15,12 @@ public class DeadUniprotAc extends DefaultProteinUpdateError{
     String deadUniprot;
 
     public DeadUniprotAc(String proteinAc, String deadUniprot) {
-        super(null, proteinAc);
+        super(UpdateError.dead_uniprot_ac, null, proteinAc);
+        this.deadUniprot = deadUniprot;
+    }
+
+    public DeadUniprotAc(UpdateError errorLabel, String proteinAc, String deadUniprot) {
+        super(errorLabel, null, proteinAc);
         this.deadUniprot = deadUniprot;
     }
 

@@ -227,7 +227,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
                 log.debug("Protein without AC, cannot be deleted");
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_with_ac_null_to_delete, p.getProtein(), evt.getQuerySentToService()));
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, p.getProtein(), evt.getQuerySentToService()));
                 }
             }
             else {

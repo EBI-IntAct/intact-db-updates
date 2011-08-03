@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 /**
  * Errors for dead master proteins having protein transcript which exist in uniprot
  *
@@ -14,7 +16,7 @@ public class NonExistingMasterProtein extends DeadUniprotAc{
     private String masterIntactAc;
 
     public NonExistingMasterProtein(String proteinAc, String deadMasterAc, String transcriptUniprotAc, String masterIntactAc) {
-        super(proteinAc, deadMasterAc);
+        super(UpdateError.dead_protein_with_transcripts_not_dead, proteinAc, deadMasterAc);
 
         this.masterIntactAc = masterIntactAc;
         this.transcriptUniprotAc = transcriptUniprotAc;

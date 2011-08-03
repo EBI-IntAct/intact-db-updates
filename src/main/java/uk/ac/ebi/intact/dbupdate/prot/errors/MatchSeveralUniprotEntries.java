@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,8 +19,8 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities {
     protected String taxId;
     protected Set<String> uniprotFromDifferentOrganisms = new HashSet<String>();
 
-    public MatchSeveralUniprotEntries(String proteinAc, String uniprotAc, String taxId) {
-        super(proteinAc);
+    public MatchSeveralUniprotEntries(String proteinAc, String uniprotAc, String taxId, UpdateError errorLabel) {
+        super(proteinAc, errorLabel);
         this.currentUniprotAc = uniprotAc;
         this.taxId = taxId;
     }

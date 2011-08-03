@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 /**
  * Default implementation for ProteinUpdateError
  *
@@ -12,10 +14,12 @@ public abstract class DefaultProteinUpdateError implements ProteinUpdateError{
 
     protected String errorMessage;
     protected String proteinAc;
+    private UpdateError errorLabel;
 
-    public DefaultProteinUpdateError(String errorMessage, String proteinAc){
+    public DefaultProteinUpdateError(UpdateError errorLabel, String errorMessage, String proteinAc){
         this.errorMessage = errorMessage;
         this.proteinAc = proteinAc;
+        this.errorLabel = errorLabel;
     }
 
     @Override
@@ -26,5 +30,10 @@ public abstract class DefaultProteinUpdateError implements ProteinUpdateError{
     @Override
     public String getProteinAc() {
         return this.proteinAc;
+    }
+
+    @Override
+    public UpdateError getErrorLabel(){
+        return this.errorLabel;
     }
 }

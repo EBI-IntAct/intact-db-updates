@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
+import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+
 /**
  * Error when a merge is impossible to do between two proteins
  *
@@ -13,7 +15,7 @@ public class ImpossibleMerge extends DefaultProteinUpdateError {
     String originalProtein;
 
     public ImpossibleMerge(String proteinAc, String originalProtein, String reason) {
-        super(reason, proteinAc);
+        super(UpdateError.impossible_merge, reason, proteinAc);
 
         this.originalProtein = originalProtein;
     }
