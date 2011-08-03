@@ -91,7 +91,32 @@ public class UpdateDaoFactory implements Serializable{
     @Autowired
     private UpdatedAliasDao updatedAliasDao;
 
+    @Autowired
+    private DeadProteinEventDao deadProteinEventDao;
 
+    @Autowired
+    private DeletedProteinEventDao deletedProteinEventDao;
+
+    @Autowired
+    private CreatedProteinEventDao createdProteinEventDao;
+
+    @Autowired
+    private IntactTranscriptUpdateEventDao intactTranscriptEventDao;
+
+    @Autowired
+    private SecondaryProteinEventDao secondaryProteinEventDao;
+
+    @Autowired
+    private SequenceIdenticalToTranscriptEventDao sequenceIdenticalToTranscriptEventDao;
+
+    @Autowired
+    private SequenceUpdateEventDao sequenceUpdateEventDao;
+
+    @Autowired
+    private UniprotProteinMapperEventDao uniprotProteinMapperEventDao;
+
+    @Autowired
+    private UniprotUpdateEventDao uniprotUpdateEventDao;
     /**
      * Creates a UpdateDaoFactory
      */
@@ -227,6 +252,46 @@ public class UpdateDaoFactory implements Serializable{
     public UpdatedAliasDao getUpdatedAliasDao() {
 
         return updatedAliasDao;
+    }
+
+    public PICRReportDao getPicrReportDao() {
+        return picrReportDao;
+    }
+
+    public DeadProteinEventDao getDeadProteinEventDao() {
+        return deadProteinEventDao;
+    }
+
+    public DeletedProteinEventDao getDeletedProteinEventDao() {
+        return deletedProteinEventDao;
+    }
+
+    public CreatedProteinEventDao getCreatedProteinEventDao() {
+        return createdProteinEventDao;
+    }
+
+    public IntactTranscriptUpdateEventDao getIntactTranscriptEventDao() {
+        return intactTranscriptEventDao;
+    }
+
+    public SecondaryProteinEventDao getSecondaryProteinEventDao() {
+        return secondaryProteinEventDao;
+    }
+
+    public SequenceIdenticalToTranscriptEventDao getSequenceIdenticalToTranscriptEventDao() {
+        return sequenceIdenticalToTranscriptEventDao;
+    }
+
+    public SequenceUpdateEventDao getSequenceUpdateEventDao() {
+        return sequenceUpdateEventDao;
+    }
+
+    public UniprotProteinMapperEventDao getUniprotProteinMapperEventDao() {
+        return uniprotProteinMapperEventDao;
+    }
+
+    public UniprotUpdateEventDao getUniprotUpdateEventDao() {
+        return uniprotUpdateEventDao;
     }
 
     /**

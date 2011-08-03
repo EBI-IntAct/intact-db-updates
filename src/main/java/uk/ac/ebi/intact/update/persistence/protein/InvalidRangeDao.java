@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
+import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 
 import java.util.Date;
@@ -12,7 +13,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>02-Dec-2010</pre>
  */
-
+@Mockable
 public interface InvalidRangeDao extends UpdatedRangeDao<PersistentInvalidRange>{
 
     public List<PersistentInvalidRange> getAllInvalidRanges();

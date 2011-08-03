@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
+import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.persistence.UpdateProcessDao;
 
@@ -12,7 +13,7 @@ import java.io.Serializable;
  * @version $Id$
  * @since <pre>15/03/11</pre>
  */
-
+@Mockable
 public interface ProteinUpdateProcessDao extends UpdateProcessDao<ProteinUpdateProcess>, Serializable {
 
 }

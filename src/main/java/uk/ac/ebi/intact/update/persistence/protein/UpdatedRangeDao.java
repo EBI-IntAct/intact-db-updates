@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
+import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.UpdateBaseDao;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>02-Dec-2010</pre>
  */
-
+@Mockable
 public interface UpdatedRangeDao<T extends AbstractUpdatedRange> extends UpdateBaseDao<T>, Serializable {
 
     public List<T> getUpdatedRangesByRangeAc(String rangeAc);

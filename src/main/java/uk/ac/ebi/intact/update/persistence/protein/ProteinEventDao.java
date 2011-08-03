@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
+import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.persistence.UpdateEventDao;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @version $Id$
  * @since <pre>02-Dec-2010</pre>
  */
-
+@Mockable
 public interface ProteinEventDao<T extends PersistentProteinEvent> extends UpdateEventDao<T>, Serializable {
 
     List<T> getAllUpdateEventsByProteinAc(String intactObjectAc);

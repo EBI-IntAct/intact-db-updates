@@ -26,7 +26,7 @@ import java.util.List;
 public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends UpdateEventDaoImpl<T> implements ProteinEventDao<T> {
 
     public ProteinEventDaoImpl(){
-        super();
+        super((Class<T>) PersistentProteinEvent.class, null);
     }
     public ProteinEventDaoImpl(Class<T> entityClass, EntityManager entityManager) {
         super( entityClass, entityManager);
