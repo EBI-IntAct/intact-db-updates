@@ -557,9 +557,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             uniprotRetriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(caseEvent);
 
             // secondary acs to update : after updating uniprot identity all secondary proteins are moved to primary proteins
-            if (!caseEvent.getSecondaryProteins().isEmpty() || !caseEvent.getSecondaryIsoforms().isEmpty()){
-                uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
-            }
+            uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
 
             // the master protein in IntAct
             Protein masterProtein = null;

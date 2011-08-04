@@ -15,10 +15,7 @@ import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.*;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
@@ -369,19 +366,47 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @throws ProcessorException
      */
     private void updateSecondaryAcsForProteins(UpdateCaseEvent evt)  throws ProcessorException {
-        Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
+        Collection<Protein> secondaryProteins = new ArrayList(evt.getSecondaryProteins());
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
 
         UniprotProtein uniprotProtein = evt.getProtein();
 
         for (Protein prot : secondaryProteins){
+            // check that organism is matching before updating uniprot ac
+            String taxId = prot.getBioSource() != null ? prot.getBioSource().getTaxId() : null;
 
-            if (evt.getSource() instanceof ProteinUpdateProcessor){
-                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
-                evt.getXrefUpdaterReports().add(xrefReport);
+            if (taxId != null){
+                Organism organism = uniprotProtein.getOrganism();
+
+                if (taxId.equals(organism.getTaxid())){
+                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
+                        evt.getXrefUpdaterReports().add(xrefReport);
+                    }
+                    primaryProteins.add(prot);
+                }
+                // cannot update the protein because of organism conflict
+                else {
+                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                        ProteinUpdateError organismConflict = errorFactory.createOrganismConflictError(prot.getAc(), taxId, String.valueOf(organism.getTaxid()), evt.getProtein().getPrimaryAc());
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), organismConflict, prot, evt.getProtein().getPrimaryAc()));
+                    }
+                }
             }
-            primaryProteins.add(prot);
+            else {
+                if (evt.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                    XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
+                    evt.getXrefUpdaterReports().add(xrefReport);
+                }
+                primaryProteins.add(prot);
+            }
         }
 
         evt.getSecondaryProteins().clear();
@@ -393,7 +418,10 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @throws ProcessorException
      */
     private void updateSecondaryAcsForIsoforms(UpdateCaseEvent evt)  throws ProcessorException {
-        Collection<ProteinTranscript> secondaryProteins = evt.getSecondaryIsoforms();
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
+        Collection<ProteinTranscript> secondaryProteins = new ArrayList(evt.getSecondaryIsoforms());
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();
 
         UniprotProtein uniprotProtein = evt.getProtein();
@@ -402,12 +430,38 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();
 
             if (spliceVariant != null){
-                if (evt.getSource() instanceof ProteinUpdateProcessor){
-                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
-                    evt.getXrefUpdaterReports().add(xrefReport);
+                // check that organism is matching before updating uniprot ac
+                String taxId = prot.getProtein().getBioSource() != null ? prot.getProtein().getBioSource().getTaxId() : null;
+
+                if (taxId != null){
+                    Organism organism = uniprotProtein.getOrganism();
+
+                    if (taxId.equals(organism.getTaxid())){
+                        if (evt.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                            XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
+                            evt.getXrefUpdaterReports().add(xrefReport);
+                        }
+                        primaryProteins.add(prot);
+                    }
+                    // cannot update the protein because of organism conflict
+                    else {
+                        if (evt.getSource() instanceof ProteinUpdateProcessor){
+                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                            ProteinUpdateError organismConflict = errorFactory.createOrganismConflictError(prot.getProtein().getAc(), taxId, String.valueOf(organism.getTaxid()), spliceVariant.getPrimaryAc());
+                            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), organismConflict, prot.getProtein(), spliceVariant.getPrimaryAc()));
+                        }
+                    }
                 }
-                primaryProteins.add(prot);
+                else {
+                    if (evt.getSource() instanceof ProteinUpdateProcessor){
+                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                        XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
+                        evt.getXrefUpdaterReports().add(xrefReport);
+                    }
+                    primaryProteins.add(prot);
+                }
             }
         }
 
