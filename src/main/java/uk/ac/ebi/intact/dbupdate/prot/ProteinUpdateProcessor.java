@@ -524,7 +524,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                         String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
 
                         ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError("The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", p.getAc());
-
                         fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleToDeleteEvent, p, uniprot));
 
                     }

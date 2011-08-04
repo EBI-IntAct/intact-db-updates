@@ -127,9 +127,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
-
                 proteinIterator.remove();
-
                 continue;
             }
 
@@ -140,7 +138,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());
-
                 proteinIterator.remove();
             }
             else if (uniprotIdentities.size() > 1){
@@ -150,8 +147,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                     ProteinUpdateError multiIdentities = errorFactory.createMultiUniprotIdentitiesError(protein.getAc(), uniprotIdentities);
                     updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, caseEvent.getDataContext(), multiIdentities, protein));
                 }
-                // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getProteins().remove(protein.getAc());
+                // remove the protein from list of proteins to update
                 proteinIterator.remove();
             }
         }
