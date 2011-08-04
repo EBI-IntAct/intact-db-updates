@@ -29,5 +29,6 @@ public interface ProteinUpdateErrorFactory {
     public ProteinUpdateError createNonExistingProteinTranscriptError(String proteinAc, String deadTranscriptAc, String masterUniprotAc, String masterIntactAc);
     public ProteinUpdateError createOrganismConflictError(String proteinAc, String wrongTaxId, String uniprotTaxId, String uniprotAc);
     public ProteinUpdateError createUniprotSequenceNullError(String proteinAc, String uniprotAc, String intactSequence);
+    public ProteinUpdateError createImpossibleParentTranscriptToReviewError(String proteinAc, String reason);
 
 }

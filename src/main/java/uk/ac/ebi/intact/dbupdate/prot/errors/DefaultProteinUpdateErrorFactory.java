@@ -102,4 +102,9 @@ public class DefaultProteinUpdateErrorFactory implements ProteinUpdateErrorFacto
     public ProteinUpdateError createUniprotSequenceNullError(String proteinAc, String uniprotAc, String intactSequence) {
         return new UniprotSequenceNull(proteinAc, uniprotAc, intactSequence);
     }
+
+    @Override
+    public ProteinUpdateError createImpossibleParentTranscriptToReviewError(String proteinAc, String error) {
+        return new ImpossibleTranscriptParentReview(error, proteinAc);
+    }
 }

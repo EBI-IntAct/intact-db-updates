@@ -462,6 +462,14 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                             processedProteins.addAll(caseEvent.getProteins());
                         }
                     }
+                    else if (!transcriptsWithoutParents.isEmpty()){
+                        ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because we cannot retrieve a single uniprot entry matching " + uniprotIdentity);
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprotIdentity));
+                    }
+                }
+                else if (!transcriptsWithoutParents.isEmpty()){
+                    ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because it does not have a valid uniprot identity.");
+                    fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate));
                 }
             }
         }

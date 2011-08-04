@@ -57,6 +57,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
         // filter 'no-uniprot-update' proteins
         if (!ProteinUtils.isFromUniprot(protein)) {
+
             evt.setMessage("no uniprot update");
             if (!proteinMappingManager.processProteinRemappingFor(evt)){
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
@@ -77,6 +78,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
         // no uniprot identity, it is a protein not from uniprot
         if (uniprotIdentities.size() == 0){
+
             evt.setMessage("no uniprot identities");
             if (!proteinMappingManager.processProteinRemappingFor(evt)){
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
