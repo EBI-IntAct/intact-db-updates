@@ -96,7 +96,7 @@ public final class XrefUpdaterUtils {
             }
             else {
                 deletedXrefs.add(xref);
-                ProteinTools.deleteInteractorXRef(protein, context, xref, processor);
+                ProteinTools.deleteInteractorXRef(protein, context, xref);
             }
         }
 
@@ -186,7 +186,7 @@ public final class XrefUpdaterUtils {
             }
             // If the protein xref does not exist in the uniprot entry anymore delete it.
             if(!convertedXrefs.contains(xref)){
-                ProteinTools.deleteInteractorXRef(protein, context, xref, processor);
+                ProteinTools.deleteInteractorXRef(protein, context, xref);
             }
         }
 
@@ -267,7 +267,7 @@ public final class XrefUpdaterUtils {
                 InteractorXref interactorXref =  protXrefsIterator.next();
 
                 if (interactorXref.getPrimaryId().equals(xref.getPrimaryId())) {
-                    ProteinTools.deleteInteractorXRef(protein, context, interactorXref, processor);
+                    ProteinTools.deleteInteractorXRef(protein, context, interactorXref);
                 }
 
             }
@@ -321,11 +321,11 @@ public final class XrefUpdaterUtils {
             for (InteractorXref ref : uniprotIdentities){
                 if (ref.getPrimaryId() != null && ref.getPrimaryId().equalsIgnoreCase(original.getPrimaryId())){
                     deletedDuplicate.add(ref);
-                    ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
+                    ProteinTools.deleteInteractorXRef(prot, context, ref);
                 }
                 else if (ref.getPrimaryId() == null && original.getPrimaryId() == null){
                     deletedDuplicate.add(ref);
-                    ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
+                    ProteinTools.deleteInteractorXRef(prot, context, ref);
                 }
             }
         }

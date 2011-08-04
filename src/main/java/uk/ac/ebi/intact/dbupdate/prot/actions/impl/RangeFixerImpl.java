@@ -189,7 +189,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
                 // the range ac still exists
                 else{
@@ -208,7 +208,7 @@ public class RangeFixerImpl implements RangeFixer{
                             featureReport.put(feature.getAc(), annreport);
                         }
 
-                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                        ProteinTools.deleteAnnotation(feature, context, annotation);
                     }
                 }
             }
@@ -227,7 +227,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
                 // the range ac still exists
                 else {
@@ -242,7 +242,7 @@ public class RangeFixerImpl implements RangeFixer{
                             featureReport.put(feature.getAc(), annreport);
                         }
 
-                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                        ProteinTools.deleteAnnotation(feature, context, annotation);
                     }
                     // if the map containing the features having range conflicts doesn't contains this range, create a new invalidFeatureReport
                     // and set the range ac of this report
@@ -268,7 +268,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
                 // the range ac still exists
                 else {
@@ -283,7 +283,7 @@ public class RangeFixerImpl implements RangeFixer{
                             featureReport.put(feature.getAc(), annreport);
                         }
 
-                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                        ProteinTools.deleteAnnotation(feature, context, annotation);
                     }
                     // it is not an invalid-range from the beginning, can be remapped eventually
                     else if(!invalidRanges.contains(rangeAc)){
@@ -318,7 +318,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
                 // the range ac still exists
                 else{
@@ -333,7 +333,7 @@ public class RangeFixerImpl implements RangeFixer{
                             featureReport.put(feature.getAc(), annreport);
                         }
 
-                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                        ProteinTools.deleteAnnotation(feature, context, annotation);
                     }
                     // add the sequence version to the proper feature report
                     else if (featureReports.containsKey(rangeAc)){
@@ -365,7 +365,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
             }
         }
@@ -434,7 +434,7 @@ public class RangeFixerImpl implements RangeFixer{
                             featureReport.put(feature.getAc(), annreport);
                         }
 
-                        ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                        ProteinTools.deleteAnnotation(feature, context, annotation);
                     }
                 }
                 // delete the annotation
@@ -448,7 +448,7 @@ public class RangeFixerImpl implements RangeFixer{
                         featureReport.put(feature.getAc(), annreport);
                     }
 
-                    ProteinTools.deleteAnnotation(feature, context, annotation, processor);
+                    ProteinTools.deleteAnnotation(feature, context, annotation);
                 }
             }
         }

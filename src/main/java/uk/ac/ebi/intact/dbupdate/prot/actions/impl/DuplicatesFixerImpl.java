@@ -425,11 +425,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     // we have feature conflicts for this protein which cannot be merged and becomes deprecated
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
-                        ProteinUpdateError impossibleMerge = errorfactory.createImpossibleMergeError(duplicate.getAc(), originalProt.getAc(), evt.getPrimaryUniprotAc(), "The duplicate " + duplicate.getAc() + " cannot be merged with " +
-                                originalProt.getAc() + " because we have " +
+                        ProteinUpdateError impossibleMerge = errorfactory.createImpossibleMergeError(duplicate.getAc(), originalProt.getAc(), evt.getPrimaryUniprotAc(), "the duplicated protein has " +
                                 proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts. The protein is now deprecated.");
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                impossibleMerge, duplicate));
+                                impossibleMerge, duplicate, evt.getPrimaryUniprotAc()));
 
                         // add no-uniprot-update and caution
                         Collection<Annotation> addedAnnotations = addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);

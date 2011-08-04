@@ -352,7 +352,7 @@ public class ProteinTools {
         return false;
     }
 
-    public static void deleteInteractorXRef(Protein protein, DataContext context, InteractorXref xref, ProteinUpdateProcessor processor) {
+    public static void deleteInteractorXRef(Protein protein, DataContext context, InteractorXref xref) {
         List<InteractorXref> xrefDuplicates = new ArrayList<InteractorXref>();
 
         for (InteractorXref ref : protein.getXrefs()){
@@ -398,7 +398,7 @@ public class ProteinTools {
         }
     }
 
-    public static void deleteAlias(Protein protein, DataContext context, InteractorAlias alias, ProteinUpdateProcessor processor) {
+    public static void deleteAlias(Protein protein, DataContext context, InteractorAlias alias) {
         List<InteractorAlias> aliasDuplicates = new ArrayList<InteractorAlias>();
 
         for (InteractorAlias a : protein.getAliases()){
@@ -444,7 +444,7 @@ public class ProteinTools {
         }
     }
 
-    public static void deleteAnnotation(AnnotatedObject ao, DataContext context, Annotation annotation, ProteinUpdateProcessor processor) {
+    public static void deleteAnnotation(AnnotatedObject ao, DataContext context, Annotation annotation) {
         List<Annotation> annotationDuplicates = new ArrayList<Annotation>();
 
         for (Annotation a : ao.getAnnotations()){

@@ -67,7 +67,6 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
         }
 
         if (protein.getAc() == null) {
-
             return true;
         }
 

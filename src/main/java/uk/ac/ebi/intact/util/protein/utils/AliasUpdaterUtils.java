@@ -165,7 +165,7 @@ public class AliasUpdaterUtils {
             // delete remaining outdated/unrecycled aliases
             InteractorAlias alias = toDeleteIterator.next();
 
-            ProteinTools.deleteAlias(protein, context, alias, processor);
+            ProteinTools.deleteAlias(protein, context, alias);
 
             //aliasDao.delete( alias );
 

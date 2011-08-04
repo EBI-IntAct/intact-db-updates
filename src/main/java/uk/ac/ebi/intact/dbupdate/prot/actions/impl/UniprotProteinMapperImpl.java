@@ -564,7 +564,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
             if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
                 if (ref.getCvXrefQualifier() != null){
                     if (ref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.ISOFORM_PARENT_MI_REF) || ref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.CHAIN_PARENT_MI_REF)){
-                        ProteinTools.deleteInteractorXRef(prot, context, ref, processor);
+                        ProteinTools.deleteInteractorXRef(prot, context, ref);
                     }
                 }
             }

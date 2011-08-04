@@ -248,7 +248,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
 
         // we delete the xrefs to be deleted
         for (Xref refToRemove : xRefsToRemove){
-            ProteinTools.deleteInteractorXRef(protein, context, (InteractorXref) refToRemove, processor);
+            ProteinTools.deleteInteractorXRef(protein, context, (InteractorXref) refToRemove);
         }
 
         // update the protein to be deleted
