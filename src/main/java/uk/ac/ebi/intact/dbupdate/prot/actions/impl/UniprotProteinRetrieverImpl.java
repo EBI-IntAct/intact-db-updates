@@ -382,91 +382,74 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             InteractorXref primary = ProteinUtils.getUniprotXref(prot);
             String primaryAc = primary.getPrimaryId();
 
-            // the protein is not the protein being updated at the moment so we need to query uniprot with this primary ac
-            if (!evt.getQuerySentToService().equals(primaryAc)){
-                if (protTrans.getUniprotVariant() == null){
-                    secondaryAcToRemove.add(protTrans);
-                    // remove the protein from the proteins whcih can be updated. Will be updated later
-                    evt.getProteins().remove(prot.getAc());
-                }
-                else {
-                    Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(primaryAc);
+            if (protTrans.getUniprotVariant() == null){
+                secondaryAcToRemove.add(protTrans);
+                // remove the protein from the proteins whcih can be updated. Will be updated later
+                evt.getProteins().remove(prot.getAc());
+            }
+            // the protein is not the protein being updated at the moment and is an isoform so we need to query uniprot with this primary ac
+            // the feature chains are always unique per entry
+            else if (!evt.getQuerySentToService().equals(primaryAc) && IdentifierChecker.isSpliceVariantId(primaryAc)){
+                Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(primaryAc);
 
-                    // no uniprot protein matches this uniprot ac
-                    if ( uniprotProteins.size() > 1 ) {
-                        if ( 1 == getSpeciesCount( uniprotProteins ) ) {
-                            // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
-                            if (IdentifierChecker.isSpliceVariantId(primaryAc)){
-                                String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
-                                List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+                // no uniprot protein matches this uniprot ac
+                if ( uniprotProteins.size() > 1 ) {
+                    if ( 1 == getSpeciesCount( uniprotProteins ) ) {
+                        String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
+                        List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
 
-                                for (UniprotProtein uniprot : uniprotProteins){
-                                    if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
-                                        proteinsWithSameBaseUniprotAc.add(uniprot);
+                        for (UniprotProtein uniprot : uniprotProteins){
+                            if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                                proteinsWithSameBaseUniprotAc.add(uniprot);
+                            }
+                        }
+
+                        if (proteinsWithSameBaseUniprotAc.size() != 1){
+                            secondaryAcToRemove.add(protTrans);
+                            // remove the protein from the proteins whcih can be updated. Will be updated later
+                            evt.getProteins().remove(prot.getAc());
+                        }
+
+                    } else {
+
+                        String taxId = null;
+                        if (prot.getBioSource() != null){
+                            taxId = prot.getBioSource().getTaxId();
+                        }
+
+                        List<UniprotProtein> proteinsWithSameTaxId = new ArrayList<UniprotProtein>();
+
+                        if (taxId != null){
+                            for (UniprotProtein uniprot : uniprotProteins){
+                                if (uniprot.getOrganism() != null){
+                                    Organism o = uniprot.getOrganism();
+                                    if (o.getTaxid() == Integer.parseInt(taxId)){
+                                        proteinsWithSameTaxId.add(uniprot);
                                     }
                                 }
+                            }
+                        }
 
-                                if (proteinsWithSameBaseUniprotAc.size() != 1){
-                                    secondaryAcToRemove.add(protTrans);
-                                    // remove the protein from the proteins whcih can be updated. Will be updated later
-                                    evt.getProteins().remove(prot.getAc());
+                        if (proteinsWithSameTaxId.size() > 1){
+                            String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
+                            List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+
+                            for (UniprotProtein uniprot : proteinsWithSameTaxId){
+                                if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                                    proteinsWithSameBaseUniprotAc.add(uniprot);
                                 }
                             }
-                            else {
+
+                            if (proteinsWithSameBaseUniprotAc.size() != 1){
                                 secondaryAcToRemove.add(protTrans);
                                 // remove the protein from the proteins whcih can be updated. Will be updated later
                                 evt.getProteins().remove(prot.getAc());
                             }
-
-                        } else {
-
-                            String taxId = null;
-                            if (prot.getBioSource() != null){
-                                taxId = prot.getBioSource().getTaxId();
-                            }
-
-                            List<UniprotProtein> proteinsWithSameTaxId = new ArrayList<UniprotProtein>();
-
-                            if (taxId != null){
-                                for (UniprotProtein uniprot : uniprotProteins){
-                                    if (uniprot.getOrganism() != null){
-                                        Organism o = uniprot.getOrganism();
-                                        if (o.getTaxid() == Integer.parseInt(taxId)){
-                                            proteinsWithSameTaxId.add(uniprot);
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (proteinsWithSameTaxId.size() == 1){
-                                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
-                                if (IdentifierChecker.isSpliceVariantId(primaryAc)){
-                                    String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
-                                    List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
-
-                                    for (UniprotProtein uniprot : proteinsWithSameTaxId){
-                                        if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
-                                            proteinsWithSameBaseUniprotAc.add(uniprot);
-                                        }
-                                    }
-
-                                    if (proteinsWithSameBaseUniprotAc.size() != 1){
-                                        secondaryAcToRemove.add(protTrans);
-                                        // remove the protein from the proteins whcih can be updated. Will be updated later
-                                        evt.getProteins().remove(prot.getAc());
-                                    }
-                                }
-                                else {
-                                    secondaryAcToRemove.add(protTrans);
-                                    // remove the protein from the proteins whcih can be updated. Will be updated later
-                                    evt.getProteins().remove(prot.getAc());
-                                }
-                            }
-                            else {
-                                secondaryAcToRemove.add(protTrans);
-                                // remove the protein from the proteins whcih can be updated. Will be updated later
-                                evt.getProteins().remove(prot.getAc());
-                            }
+                        }
+                        else if (proteinsWithSameTaxId.isEmpty()) {
+                            secondaryAcToRemove.add(protTrans);
+                            // remove the protein from the proteins whcih can be updated. Will be updated later
+                            evt.getProteins().remove(prot.getAc());
                         }
                     }
                 }
