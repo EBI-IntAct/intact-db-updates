@@ -247,13 +247,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             if (!spliceVariants.isEmpty()){
                 for (Protein variant : spliceVariants){
                     InteractorXref uniprotId = ProteinUtils.getUniprotXref(variant);
+                    boolean hasFoundAc = false;
 
-                    if (!ProteinUtils.isFromUniprot(variant)){
-                        primaryIsoforms.add(new ProteinTranscript(variant, null));
-                        evt.getProteins().add(variant.getAc());
-                    }
-                    else if (uniprotId != null){
-                        boolean hasFoundAc = false;
+                    if (uniprotId != null){
 
                         for (UniprotSpliceVariant sv : variants){
                             Collection<String> variantAcs = sv.getSecondaryAcs();
@@ -269,21 +265,13 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 evt.getProteins().add(variant.getAc());
                             }
                         }
-
-                        if (!hasFoundAc){
-                            if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-
-                                ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant));
-                            }
-                        }
                     }
-                    else {
+
+                    if (!hasFoundAc){
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
-                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), null, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant));
                         }
                     }
@@ -323,12 +311,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 for (Protein variant : featureChains){
                     InteractorXref uniprotId = ProteinUtils.getUniprotXref(variant);
 
-                    if (!ProteinUtils.isFromUniprot(variant)){
-                        primaryChains.add(new ProteinTranscript(variant, null));
-                        evt.getProteins().add(variant.getAc());
-                    }
-                    else if (uniprotId != null){
-                        boolean hasFoundAc = false;
+                    boolean hasFoundAc = false;
+
+                    if (uniprotId != null){
 
                         for (UniprotFeatureChain fc : variants){
 
@@ -338,21 +323,13 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 evt.getProteins().add(variant.getAc());
                             }
                         }
-
-                        if (!hasFoundAc){
-                            if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                                final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-
-                                ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant));
-                            }
-                        }
                     }
-                    else {
+
+                    if (!hasFoundAc){
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
-                            ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), null, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant));
                         }
                     }

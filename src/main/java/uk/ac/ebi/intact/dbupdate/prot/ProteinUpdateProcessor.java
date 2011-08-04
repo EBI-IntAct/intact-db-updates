@@ -497,7 +497,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+processEvent.getUniprotIdentity());
 
-            // get all the proteins in intact attached to this uniprot entry :
+            // get all the proteins in intact attached to this uniprot entry without non uniprot :
             // - all intact proteins with uniprot identity = uniprot primary ac => primary proteins
             // - all intact proteins with uniprot identity = one of the uniprot secondary acs => secondary proteins
             // - For each primary and secondary proteins, collect all splice variants and feature chains attached to it
@@ -544,7 +544,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
             if (log.isTraceEnabled()) log.trace("Filtering " + caseEvent.getPrimaryProteins().size() + " primary proteins and " + caseEvent.getSecondaryProteins().size() + "secondary proteins for uniprot update." );
 
-            // filter on 'no-uniprot-update' and multi identities, remove them from the list of proteins to update
+            // filter on 'no-uniprot-update' and multi identities, remove them from the list of proteins to update (can happen if proteins with uniprot identity and 'no-uniprot-update')
             updateFilter.filterNonUniprotAndMultipleUniprot(caseEvent);
 
             if (log.isTraceEnabled()) log.trace("Checking that it is possible to update existing secondary proteins for " + uniprotProtein.getPrimaryAc() );
@@ -553,6 +553,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // - all secondary proteins must match a single uniprot entry otherwise are removed from the list of proteins to update
             // - all isoforms/feature chains which doesn't have a 'no-uniprot-uptate' and doesn't match any uniprot transcript of this uniprot entry
             // are dead proteins removed from the list of proteins to update
+            // - all isoform/feature chains which can be attached to several uniprot entries and which do not have a main entry
             uniprotRetriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(caseEvent);
 
             // secondary acs to update : after updating uniprot identity all secondary proteins are moved to primary proteins

@@ -185,11 +185,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
                 caseEvent.getProteins().remove(protein.getAc());
             }
             else if (uniprotIdentities.size() > 1){
-
+                // remove the protein from list of proteins to update
                 proteinIterator.remove();
-
-                // remove the protein from list of processed proteins. Will be processed later
-                caseEvent.getProteins().remove(protein.getAc());
             }
         }
     }
@@ -217,20 +214,6 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         processListOfProteinsTranscript(primaryIsoforms, evt, true);
         processListOfProteinsTranscript(secondaryIsoforms, evt, true);
         processListOfProteinsTranscript(primaryChains, evt, false);
-    }
-
-    private String xRefToString(Collection<InteractorXref> refs){
-        StringBuilder sb = new StringBuilder();
-
-        for (InteractorXref ref : refs) {
-
-            String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
-
-            sb.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
-            sb.append(", ");
-        }
-
-        return sb.toString();
     }
 
     public UniprotProteinMapper getProteinMappingManager() {

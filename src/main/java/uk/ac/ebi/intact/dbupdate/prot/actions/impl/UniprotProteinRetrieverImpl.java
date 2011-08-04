@@ -75,24 +75,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * @return the unique uniprot entry matching this uniprot ac if possible, null otherwise
      */
     public UniprotProtein retrieveUniprotEntry(String uniprotAc){
-        Collection<UniprotProtein> uniprotProteins;
-        try{
-            uniprotProteins = uniprotService.retrieve( uniprotAc );
-        } catch (RemoteConnectFailureException ce) {
-            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
-                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprotAc);
-            }
-            retryAttempt++;
-
-            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
-            try {
-                Thread.sleep(60*1000);
-                uniprotProteins = uniprotService.retrieve( uniprotAc );
-            } catch (InterruptedException e) {
-                throw new ProcessorException("Problem while waiting before retrying for "+uniprotAc, e);
-            }
-
-        }
+        Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(uniprotAc);
 
         // no uniprot protein matches this uniprot ac
         if(uniprotProteins.size() == 0){
@@ -140,24 +123,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         // if not null, query uniprot
         if (uniprotAc != null){
             // try to collect uniprot entries
-            Collection<UniprotProtein> uniprotProteins;
-            try{
-                uniprotProteins = uniprotService.retrieve( uniprotAc );
-            } catch (RemoteConnectFailureException ce) {
-                if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
-                    throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprotAc);
-                }
-                retryAttempt++;
-
-                if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
-                try {
-                    Thread.sleep(60*1000);
-                    uniprotProteins = uniprotService.retrieve( uniprotAc );
-                } catch (InterruptedException e) {
-                    throw new ProcessorException("Problem while waiting before retrying for "+uniprotAc, e);
-                }
-
-            }
+            Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(uniprotAc);
 
             // no uniprot protein matches this uniprot ac
             if(uniprotProteins.size() == 0){
@@ -200,8 +166,6 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), matchSeveralUniprot, evt.getProtein(), uniprotAc));
                     }
 
-                    if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several matching uniprot entries with the same organism)");
-                    ((ProteinProcessor)evt.getSource()).finalizeAfterCurrentPhase();
                 } else {
 
                     Protein prot = evt.getProtein();
@@ -301,17 +265,17 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
         // filter primary isoforms
         if (evt.getPrimaryIsoforms().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryIsoforms(), evt, true);
+            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryIsoforms(), evt);
         }
 
         // filter secondary isoforms
         if (evt.getSecondaryIsoforms().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getSecondaryIsoforms(), evt, true);
+            filterProteinTranscriptsPossibleToUpdate(evt.getSecondaryIsoforms(), evt);
         }
 
         // filter primary chains
         if (evt.getPrimaryFeatureChains().size() > 0){
-            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryFeatureChains(), evt, false);
+            filterProteinTranscriptsPossibleToUpdate(evt.getPrimaryFeatureChains(), evt);
         }
 
         // filter secondary proteins only!
@@ -407,21 +371,131 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * @param evt
      * @throws ProcessorException
      */
-    private void filterProteinTranscriptsPossibleToUpdate(Collection<ProteinTranscript> transcripts, UpdateCaseEvent evt, boolean isSpliceVariant)  throws ProcessorException {
+    private void filterProteinTranscriptsPossibleToUpdate(Collection<ProteinTranscript> transcripts, UpdateCaseEvent evt)  throws ProcessorException {
 
         Collection<ProteinTranscript> secondaryAcToRemove = new ArrayList<ProteinTranscript>();
 
         for (ProteinTranscript protTrans : transcripts){
+
             Protein prot = protTrans.getProtein();
 
-            if (protTrans.getUniprotVariant() == null){
-                secondaryAcToRemove.add(protTrans);
+            InteractorXref primary = ProteinUtils.getUniprotXref(prot);
+            String primaryAc = primary.getPrimaryId();
 
-                // remove the protein from the proteins whcih can be updated. Will be updated later
-                evt.getProteins().remove(prot.getAc());
+            // the protein is not the protein being updated at the moment so we need to query uniprot with this primary ac
+            if (!evt.getQuerySentToService().equals(primaryAc)){
+                if (protTrans.getUniprotVariant() == null){
+                    secondaryAcToRemove.add(protTrans);
+                    // remove the protein from the proteins whcih can be updated. Will be updated later
+                    evt.getProteins().remove(prot.getAc());
+                }
+                else {
+                    Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(primaryAc);
+
+                    // no uniprot protein matches this uniprot ac
+                    if ( uniprotProteins.size() > 1 ) {
+                        if ( 1 == getSpeciesCount( uniprotProteins ) ) {
+                            // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+                            if (IdentifierChecker.isSpliceVariantId(primaryAc)){
+                                String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
+                                List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+
+                                for (UniprotProtein uniprot : uniprotProteins){
+                                    if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                                        proteinsWithSameBaseUniprotAc.add(uniprot);
+                                    }
+                                }
+
+                                if (proteinsWithSameBaseUniprotAc.size() != 1){
+                                    secondaryAcToRemove.add(protTrans);
+                                    // remove the protein from the proteins whcih can be updated. Will be updated later
+                                    evt.getProteins().remove(prot.getAc());
+                                }
+                            }
+                            else {
+                                secondaryAcToRemove.add(protTrans);
+                                // remove the protein from the proteins whcih can be updated. Will be updated later
+                                evt.getProteins().remove(prot.getAc());
+                            }
+
+                        } else {
+
+                            String taxId = null;
+                            if (prot.getBioSource() != null){
+                                taxId = prot.getBioSource().getTaxId();
+                            }
+
+                            List<UniprotProtein> proteinsWithSameTaxId = new ArrayList<UniprotProtein>();
+
+                            if (taxId != null){
+                                for (UniprotProtein uniprot : uniprotProteins){
+                                    if (uniprot.getOrganism() != null){
+                                        Organism o = uniprot.getOrganism();
+                                        if (o.getTaxid() == Integer.parseInt(taxId)){
+                                            proteinsWithSameTaxId.add(uniprot);
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (proteinsWithSameTaxId.size() == 1){
+                                // several splice variants can be attached to several master proteins and it is not an error. If we are working with such protein transcripts, we need to update them
+                                if (IdentifierChecker.isSpliceVariantId(primaryAc)){
+                                    String truncatedAc = primaryAc.substring(0, Math.max(0, primaryAc.indexOf("-")));
+                                    List<UniprotProtein> proteinsWithSameBaseUniprotAc = new ArrayList<UniprotProtein>();
+
+                                    for (UniprotProtein uniprot : proteinsWithSameTaxId){
+                                        if (uniprot.getPrimaryAc().equalsIgnoreCase(truncatedAc)){
+                                            proteinsWithSameBaseUniprotAc.add(uniprot);
+                                        }
+                                    }
+
+                                    if (proteinsWithSameBaseUniprotAc.size() != 1){
+                                        secondaryAcToRemove.add(protTrans);
+                                        // remove the protein from the proteins whcih can be updated. Will be updated later
+                                        evt.getProteins().remove(prot.getAc());
+                                    }
+                                }
+                                else {
+                                    secondaryAcToRemove.add(protTrans);
+                                    // remove the protein from the proteins whcih can be updated. Will be updated later
+                                    evt.getProteins().remove(prot.getAc());
+                                }
+                            }
+                            else {
+                                secondaryAcToRemove.add(protTrans);
+                                // remove the protein from the proteins whcih can be updated. Will be updated later
+                                evt.getProteins().remove(prot.getAc());
+                            }
+                        }
+                    }
+                }
             }
         }
         transcripts.removeAll(secondaryAcToRemove);
+    }
+
+    private Collection<UniprotProtein> retrieveUniprotEntries(String primaryAc) {
+        // try to collect uniprot entries
+        Collection<UniprotProtein> uniprotProteins;
+        try{
+            uniprotProteins = uniprotService.retrieve( primaryAc );
+        } catch (RemoteConnectFailureException ce) {
+            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
+                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+primaryAc);
+            }
+            retryAttempt++;
+
+            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
+            try {
+                Thread.sleep(60*1000);
+                uniprotProteins = uniprotService.retrieve( primaryAc );
+            } catch (InterruptedException e) {
+                throw new ProcessorException("Problem while waiting before retrying for "+primaryAc, e);
+            }
+
+        }
+        return uniprotProteins;
     }
 
     /**
@@ -456,25 +530,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     InteractorXref uniprot = ProteinUtils.getUniprotXref(pt);
 
                     if (uniprot != null){
-                        Collection<UniprotProtein> uniprotProteins;
-                        try{
-                            uniprotProteins = uniprotService.retrieve( uniprot.getPrimaryId() );
-
-                        } catch (RemoteConnectFailureException ce) {
-                            if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
-                                throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+uniprot.getPrimaryId() );
-                            }
-                            retryAttempt++;
-
-                            if (log.isErrorEnabled()) log.error("Couldn't connect to Uniprot. Will wait 60 seconds before retrying. (Retry: "+retryAttempt+")");
-                            try {
-                                Thread.sleep(60*1000);
-                                uniprotProteins = uniprotService.retrieve( uniprot.getPrimaryId() );
-                            } catch (InterruptedException e) {
-                                throw new ProcessorException("Problem while waiting before retrying for "+uniprot.getPrimaryId(), e);
-                            }
-
-                        }
+                        Collection<UniprotProtein> uniprotProteins = retrieveUniprotEntries(uniprot.getPrimaryId());
 
                         if (uniprotProteins.size() >= 1){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
