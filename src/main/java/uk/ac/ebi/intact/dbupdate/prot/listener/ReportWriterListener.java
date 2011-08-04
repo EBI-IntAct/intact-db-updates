@@ -21,6 +21,7 @@ import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
@@ -320,6 +321,11 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             String proteinShortlablel = "-";
             String uniprotAc = evt.getUniprotAc() != null ? evt.getUniprotAc() : "-";
 
+            ProteinUpdateError error = evt.getError();
+
+            String errorType = error.getErrorLabel().toString();
+            String message = error.getErrorMessage();
+
             if (evt.getProtein() != null){
                 proteinAc = evt.getProtein().getAc();
                 proteinShortlablel = evt.getProtein().getShortLabel();
@@ -333,8 +339,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer.writeColumnValues(proteinAc,
                     proteinShortlablel,
                     uniprotAc,
-                    evt.getError().toString(),
-                    evt.getMessage());
+                    errorType,
+                    message);
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException(e);

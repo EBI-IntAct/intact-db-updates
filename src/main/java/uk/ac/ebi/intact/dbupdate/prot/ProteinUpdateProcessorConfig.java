@@ -16,7 +16,13 @@
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import uk.ac.ebi.intact.dbupdate.prot.errors.DefaultProteinUpdateErrorFactory;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
+import uk.ac.ebi.intact.protein.mapping.factories.ReportsFactory;
+import uk.ac.ebi.intact.protein.mapping.factories.ResultsFactory;
+import uk.ac.ebi.intact.protein.mapping.factories.impl.DefaultReportsFactory;
+import uk.ac.ebi.intact.protein.mapping.factories.impl.DefaultResultsFactory;
 import uk.ac.ebi.intact.uniprot.service.CachedUniprotService;
 import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
@@ -64,12 +70,17 @@ public class ProteinUpdateProcessorConfig {
 
     private boolean isBlastEnabled = true;
 
-    private boolean persistUpdateEvents = false;
+    private ProteinUpdateErrorFactory errorFactory;
+    private ResultsFactory proteinMappingResultsFactory;
+    private ReportsFactory proteinMappingReportFactory;
 
     public ProteinUpdateProcessorConfig() {
         this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
         this.taxonomyService = bioSourceService.getTaxonomyService();
+        this.errorFactory = new DefaultProteinUpdateErrorFactory();
+        this.proteinMappingResultsFactory = new DefaultResultsFactory();
+        this.proteinMappingReportFactory = new DefaultReportsFactory();
     }
 
     public ProteinUpdateProcessorConfig(UpdateReportHandler reportHandler) {
@@ -149,11 +160,27 @@ public class ProteinUpdateProcessorConfig {
         isBlastEnabled = blastEnabled;
     }
 
-    public boolean isPersistUpdateEvents() {
-        return persistUpdateEvents;
+    public ProteinUpdateErrorFactory getErrorFactory() {
+        return errorFactory;
     }
 
-    public void setPersistUpdateEvents(boolean persistUpdateEvents) {
-        this.persistUpdateEvents = persistUpdateEvents;
+    public void setErrorFactory(ProteinUpdateErrorFactory errorFactory) {
+        this.errorFactory = errorFactory;
+    }
+
+    public ResultsFactory getProteinMappingResultsFactory() {
+        return proteinMappingResultsFactory;
+    }
+
+    public void setProteinMappingResultsFactory(ResultsFactory proteinMappingResultsFactory) {
+        this.proteinMappingResultsFactory = proteinMappingResultsFactory;
+    }
+
+    public ReportsFactory getProteinMappingReportFactory() {
+        return proteinMappingReportFactory;
+    }
+
+    public void setProteinMappingReportFactory(ReportsFactory proteinMappingReportFactory) {
+        this.proteinMappingReportFactory = proteinMappingReportFactory;
     }
 }

@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Error when sequence of uniprot protein is null
  *
@@ -10,7 +8,7 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
  * @since <pre>03/08/11</pre>
  */
 
-public class UniprotSequenceNull extends DefaultProteinUpdateError {
+public class UniprotSequenceNull extends DefaultIntactProteinUpdateError {
 
     private String intactSequence;
     private String uniprotAc;

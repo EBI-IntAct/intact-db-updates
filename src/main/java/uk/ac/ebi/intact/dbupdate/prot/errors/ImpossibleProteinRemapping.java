@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * This error is for proteins for which the remapping was successful but not allowed
  *
@@ -10,7 +8,7 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
  * @since <pre>03/08/11</pre>
  */
 
-public class ImpossibleProteinRemapping extends DefaultProteinUpdateError {
+public class ImpossibleProteinRemapping extends DefaultIntactProteinUpdateError {
     public ImpossibleProteinRemapping(String errorMessage, String proteinAc) {
         super(UpdateError.impossible_protein_remapping, errorMessage, proteinAc);
     }

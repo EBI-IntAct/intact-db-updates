@@ -3,11 +3,10 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotIdentityUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -232,6 +231,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @param collectTranscriptWithoutParents : true if we want to collect splice variants without parents as well having a uniprot ac related to this uniprot entry
      */
     private void collectSpliceVariantsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotSpliceVariant> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         // isoforms
         Collection<ProteinTranscript> primaryIsoforms = evt.getPrimaryIsoforms();
         Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
@@ -271,14 +273,18 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                         if (!hasFoundAc){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
+
+                                ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant));
                             }
                         }
                     }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The splice variant " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any splice variants of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
+
+                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), null, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant));
                         }
                     }
                 }
@@ -302,6 +308,9 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @param collectTranscriptWithoutParents : true if we want to collect splice variants without parents as well having a uniprot ac related to this uniprot entry
      */
     private void collectFeatureChainsFrom(UpdateCaseEvent evt, Collection<Protein> proteins, Collection<UniprotFeatureChain> variants, ProteinDao proteinDao, boolean collectTranscriptWithoutParents) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         Collection<ProteinTranscript> primaryChains = evt.getPrimaryFeatureChains();
 
         // for each master protein, collect its feature chains and try to remap it to one of the uniprot transcript
@@ -333,14 +342,18 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                         if (!hasFoundAc){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
+
+                                ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant));
                             }
                         }
                     }
                     else {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The feature chain " + variant.getAc() + " doesn't have a uniprot identifier and doesn't match any feature chains of the uniprot entry " + evt.getProtein().getPrimaryAc(), UpdateError.not_matching_protein_transcript, variant));
+
+                            ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), null, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant));
                         }
                     }
                 }

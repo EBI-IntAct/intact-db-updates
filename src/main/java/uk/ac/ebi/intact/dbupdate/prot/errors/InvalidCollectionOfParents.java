@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -14,7 +12,7 @@ import java.util.Set;
  * @since <pre>03/08/11</pre>
  */
 
-public class InvalidCollectionOfParents extends DefaultProteinUpdateError{
+public class InvalidCollectionOfParents extends DefaultIntactProteinUpdateError {
 
     Set<String> isoformParents = new HashSet<String>();
     Set<String> chainParents = new HashSet<String>();
@@ -33,7 +31,7 @@ public class InvalidCollectionOfParents extends DefaultProteinUpdateError{
 
     @Override
     public String getErrorMessage(){
-        if (this.isoformParents.isEmpty() || this.proteinAc == null || this.chainParents.isEmpty()){
+        if (this.proteinAc == null){
             return "";
         }
 

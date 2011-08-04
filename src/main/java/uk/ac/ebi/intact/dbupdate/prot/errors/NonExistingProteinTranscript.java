@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Error for protein transcript which cannot be found in the uniprot entry of the parent protein
  *
@@ -32,7 +30,7 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
 
     @Override
     public String getErrorMessage(){
-        if (this.deadUniprot == null || this.proteinAc == null || this.masterIntactAc == null || this.masterUniprotAc == null){
+        if (this.proteinAc == null || this.masterIntactAc == null || this.masterUniprotAc == null){
             return "";
         }
 
@@ -41,10 +39,17 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
         error.append(proteinAc);
         error.append(" is attached to the parent protein ");
         error.append(masterIntactAc);
-        error.append(" but refers to a uniprot ac ");
-        error.append(deadUniprot);
-        error.append(" which is not present in the master uniprot entry ");
-        error.append(masterUniprotAc);
+
+        if (deadUniprot != null){
+            error.append(" but refers to a uniprot ac ");
+            error.append(deadUniprot);
+            error.append(" which is not present in the master uniprot entry ");
+            error.append(masterUniprotAc);
+        }
+        else {
+            error.append(" and does not have a 'no-uniprot-update' and or any uniprot identity which can be found in the uniprot entry ");
+            error.append(masterUniprotAc);
+        }
 
         return error.toString();
     }

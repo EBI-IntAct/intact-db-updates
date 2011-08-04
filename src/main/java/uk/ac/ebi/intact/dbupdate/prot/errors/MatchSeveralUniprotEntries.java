@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,14 +31,18 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities {
         return taxId;
     }
 
+    public Set<String> getUniprotFromDifferentOrganisms() {
+        return uniprotFromDifferentOrganisms;
+    }
+
     @Override
     public String getErrorMessage(){
-        if (this.taxId == null || this.proteinAc == null){
+        if (this.proteinAc == null){
             return "";
         }
 
         StringBuffer error = new StringBuffer();
-        error.append("The protein (TaxId = "+taxId+"");
+        error.append("The protein (TaxId = "+(taxId != null ? taxId : "null")+"");
         error.append(proteinAc);
         error.append(" has a uniprot ac (");
         error.append(currentUniprotAc);

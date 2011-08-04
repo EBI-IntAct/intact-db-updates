@@ -7,8 +7,9 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinRemappingEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -19,8 +20,6 @@ import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
 import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
 import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
-import uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException;
-import uk.ac.ebi.intact.protein.mapping.update.ProteinUpdateException;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 
 import java.util.ArrayList;
@@ -64,6 +63,8 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
         this.strategy = new StrategyForProteinUpdate();
         this.strategy.enableIsoforms(false);
         this.strategy.setBasicBlastProcessRequired(config.isBlastEnabled());
+        this.strategy.setReportsFactory(config.getProteinMappingReportFactory());
+        this.strategy.setResultsFactory(config.getProteinMappingResultsFactory());
         this.context = new UpdateContext();
     }
 
@@ -126,6 +127,9 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
      * @return true if the protein has been remapped, false otherwise
      */
     public boolean processProteinRemappingFor(ProteinEvent evt){
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         Protein protein = evt.getProtein();
         if (protein != null){
             if (isProteinMappingAllowed(protein)){
@@ -208,12 +212,14 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
 
                         return true;
                     }
-                } catch (StrategyException e) {
+                } catch (Exception e) {
                     log.error("Impossible to remap the protein " + accession, e);
 
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping, protein));
+
+                        ProteinUpdateError impossibleRemapping = errorFactory.createImpossibleProteinRemappingError(accession, "Impossible to remap the protein " + accession + " " + e.getMessage());
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), impossibleRemapping, protein));
                     }
                 }
             }
@@ -246,19 +252,23 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                         processor.fireOnProteinToBeRemapped(new ProteinRemappingEvent(processor, evt.getDataContext(), protein, context, result, evt.getMessage()));
                     }
 
-                } catch (StrategyException e) {
+                } catch (Exception e) {
                     log.error("Impossible to remap the protein " + accession, e);
 
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + accession + " " + e.getMessage(), UpdateError.impossible_protein_remapping, protein));
+
+                        ProteinUpdateError impossibleRemapping = errorFactory.createImpossibleProteinRemappingError(accession, "Impossible to remap the protein " + accession + " " + e.getMessage());
+                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), impossibleRemapping, protein));
                     }
                 }
             }
             else {
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "Impossible to remap the protein " + protein.getAc() + " because a uniprot identity already exists for this protein.", UpdateError.impossible_protein_remapping, protein));
+
+                    ProteinUpdateError impossibleRemapping = errorFactory.createImpossibleProteinRemappingError(protein.getAc(), "Impossible to remap the protein " + protein.getAc() + " because a uniprot identity already exists for this protein.");
+                    processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), impossibleRemapping, protein));
                 }
             }
         }
@@ -560,213 +570,4 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
             }
         }
     }
-
-    /**
-     * Update the proteins with no uniprot cross references and the proteins with uniprot cross references set to 'uniprot-removed-ac'
-     * @throws ProteinUpdateException
-     */
-    /*public void updateProteins() throws ProteinUpdateException {
-        IntactContext intactContext = IntactContext.getCurrentInstance();
-
-        // enable the update
-        this.strategy.setUpdateEnabled(true);
-
-        // get the data context
-        final DataContext dataContext = intactContext.getDataContext();
-        TransactionStatus transactionStatus = dataContext.beginTransaction();
-        try {
-
-            // create a new file where the results are stored in
-            File file = new File("updateReport_"+ Calendar.getInstance().getTime().getTime() +".txt");
-
-            Writer writer = new FileWriter(file);
-
-            final DaoFactory daoFactory = dataContext.getDaoFactory();
-            final Query query = getProteinsWithoutUniprotXrefs(dataContext);
-
-            proteinToUpdate = query.getResultList();
-            log.info(proteinToUpdate.size());
-
-            ArrayList<String> accessionsToUpdate = new ArrayList<String>();
-
-            for (ProteinImpl prot : proteinToUpdate){
-
-                this.context.clean();
-                String accession = prot.getAc();
-                String shortLabel = prot.getShortLabel();
-                log.info("Protein AC = " + accession + " shortLabel = " + shortLabel);
-
-                Collection<InteractorXref> refs = prot.getXrefs();
-                Collection<Annotation> annotations = prot.getAnnotations();
-                String sequence = prot.getSequence();
-                BioSource organism = prot.getBioSource();
-
-                // context
-                context.setSequence(sequence);
-                context.setOrganism(organism);
-                context.setIntactAccession(accession);
-                addIdentityCrossreferencesToContext(refs, context);
-
-                // result
-                IdentificationResults result = this.strategy.identifyProtein(context);
-                writeResultReports(accession, result, writer);
-
-                // update
-                if (result != null && result.getFinalUniprotId() != null){
-                    Annotation a = collectNo_Uniprot_UpdateAnnotation(annotations);
-
-                    if (a != null){
-                        log.info("annotation no_uniprot_update removed from the annotations of " + accession);
-                        prot.removeAnnotation(a);
-                        daoFactory.getAnnotationDao().delete(a);
-                    }
-
-                    Annotation a2 = collectObsoleteAnnotation(annotations);
-
-                    if (a2 != null){
-                        log.info("caution removed from the annotations of " + accession);
-                        prot.removeAnnotation(a2);
-                        daoFactory.getAnnotationDao().delete(a2);
-                    }
-                    addUniprotCrossReferenceTo(prot, result.getFinalUniprotId(), daoFactory);
-                    daoFactory.getProteinDao().update( prot );
-                    accessionsToUpdate.add(accession);
-                }
-            }
-
-            // commit the changes
-            log.info("commit the change in the database.");
-            log.info(accessionsToUpdate.size() + " proteins have been modified.");
-            dataContext.commitTransaction(transactionStatus);
-            writer.close();
-
-            // update the database
-            log.info("Processing the update of the proteins in Intact");
-            //UpdateReportHandler reportHandler = new FileReportHandler(new File("target"));
-            //ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig(reportHandler);
-
-            //ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor(configUpdate);
-            //ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
-            //protUpdateProcessor.updateByACs(accessionsToUpdate);
-
-        } catch (IntactTransactionException e) {
-            throw new ProteinUpdateException(e);
-        } catch (StrategyException e) {
-            throw new ProteinUpdateException("There is a problem when executing the protein update strategy. Check the protein contexts.", e);
-        } catch (IOException e) {
-            throw new ProteinUpdateException("We can't write the results in a file.", e);
-        } catch (Exception e){
-            throw new ProteinUpdateException( e);
-        }
-    }*/
-
-    /**
-     * Write a report for the identification of the proteins without any uniprot cross references set to identity but another uniprot cross reference
-     * @throws ProteinUpdateException
-     */
-    /*public void writeUpdateReportForProteinsWithUniprotCrossReferences() throws ProteinUpdateException {
-        IntactContext intactContext = IntactContext.getCurrentInstance();
-
-        // disable the update
-        this.strategy.setUpdateEnabled(false);
-
-        // create the data context
-        final DataContext dataContext = intactContext.getDataContext();
-        TransactionStatus transactionStatus = dataContext.beginTransaction();
-        try {
-
-            // create the file where to write the report
-            File file = new File("updateReportForProteinWithUniprotCrossReferences_"+Calendar.getInstance().getTime().getTime()+".txt");
-            Writer writer = new FileWriter(file);
-
-            final Query query = getProteinsWithUniprotXrefsWithoutIdentity(dataContext);
-
-            proteinToUpdate = query.getResultList();
-            log.info(proteinToUpdate.size());
-
-            ArrayList<String> accessionsToUpdate = new ArrayList<String>();
-
-            for (ProteinImpl prot : proteinToUpdate){
-                this.context.clean();
-                String accession = prot.getAc();
-                String shortLabel = prot.getShortLabel();
-                log.info("Protein AC = " + accession + " shortLabel = " + shortLabel);
-
-                Collection<InteractorXref> refs = prot.getXrefs();
-                String sequence = prot.getSequence();
-                BioSource organism = prot.getBioSource();
-
-                // context
-                context.setSequence(sequence);
-                context.setOrganism(organism);
-                context.setIntactAccession(accession);
-                addIdentityCrossreferencesToContext(refs, context);
-
-                // result
-                IdentificationResults result = this.strategy.identifyProtein(context);
-                writeResultReports(accession, result, writer);
-
-                // update
-                if (result != null && result.getFinalUniprotId() != null){
-                    accessionsToUpdate.add(accession);
-                }
-            }
-            log.info(accessionsToUpdate.size() + " proteins have been identified and could be updated.");
-            dataContext.commitTransaction(transactionStatus);
-            writer.close();
-
-        } catch (IntactTransactionException e) {
-            throw new ProteinUpdateException(e);
-        } catch (StrategyException e) {
-            throw new ProteinUpdateException("There is a problem when executing the protein update strategy. Check the protein contexts.", e);
-        } catch (IOException e) {
-            throw new ProteinUpdateException("We can't write the results in a file.", e);
-        } catch (Exception e){
-            throw new ProteinUpdateException( e);
-        }
-    }*/
-
-    /**
-     * write the results in a file
-     * @throws ProteinUpdateException
-     */
-    /*private void writeResultReports(String protAc, IdentificationResults result, Writer writer) throws ProteinUpdateException {
-        try {
-            writer.write("************************" + protAc + "************************************ \n");
-
-            writer.write("Uniprot accession found : " + result.getFinalUniprotId() + "\n");
-            for (ActionReport report : result.getListOfActions()){
-                writer.write(report.getName().toString() + " : " + report.getStatus().getLabel() + ", " + report.getStatus().getDescription() + "\n");
-
-                for (String warn : report.getWarnings()){
-                    writer.write(warn + "\n");
-                }
-
-                for (String ac : report.getPossibleAccessions()){
-                    writer.write("possible accession : " + ac + "\n");
-                }
-
-                if (report instanceof PICRReport){
-                    PICRReport picr = (PICRReport) report;
-                    writer.write("Is a Swissprot entry : " + picr.isASwissprotEntry() + "\n");
-
-                    for (PICRCrossReferences xrefs : picr.getCrossReferences()){
-                        writer.write(xrefs.getDatabase() + " cross reference : " + xrefs.getAccessions() + "\n");
-                    }
-                }
-                else if (report instanceof BlastReport){
-                    BlastReport blast = (BlastReport) report;
-
-                    for (BlastResults prot : blast.getBlastMatchingProteins()){
-                        writer.write("BLAST Protein " + prot.getAccession() + " : identity = " + prot.getIdentity() + "\n");
-                        writer.write("Query start = " + prot.getStartQuery() + ", end = " + prot.getEndQuery() + "\n");
-                        writer.write("Match start = " + prot.getStartMatch() + ", end = " + prot.getEndMatch() + "\n");
-                    }
-                }
-            }
-            writer.flush();
-        } catch (IOException e) {
-            throw new ProteinUpdateException("We can't write the results of the protein " + protAc, e);
-        }
-    }*/
 }

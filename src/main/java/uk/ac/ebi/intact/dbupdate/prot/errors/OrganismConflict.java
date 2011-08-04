@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Error for proteins having organism conflicts with uniprot
  *
@@ -10,7 +8,7 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
  * @since <pre>03/08/11</pre>
  */
 
-public class OrganismConflict extends DefaultProteinUpdateError{
+public class OrganismConflict extends DefaultIntactProteinUpdateError {
 
     String wrongTaxId;
     String uniprotTaxId;

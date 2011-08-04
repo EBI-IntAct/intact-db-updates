@@ -20,6 +20,8 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProtWithoutInteractionDeleter;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -220,6 +222,9 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
      * @param evt
      */
     private void collectProteinsTranscriptsWithoutInteractionsFrom(Collection<ProteinTranscript> protToInspect, Set<Protein> protToDelete, UpdateCaseEvent evt){
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         Collection<ProteinTranscript> transcriptToDelete = new ArrayList<ProteinTranscript>();
 
         for (ProteinTranscript p : protToInspect){
@@ -227,11 +232,12 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
                 log.debug("Protein without AC, cannot be deleted");
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, p.getProtein(), evt.getQuerySentToService()));
+
+                    ProteinUpdateError impossibleToDelete = errorFactory.createImpossibleToDeleteError(p.getProtein().getAc(), "The protein " + p.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), impossibleToDelete, p.getProtein(), evt.getQuerySentToService()));
                 }
             }
             else {
-                ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
                 final Integer interactionCount = p.getProtein().getActiveInstances().size();
 

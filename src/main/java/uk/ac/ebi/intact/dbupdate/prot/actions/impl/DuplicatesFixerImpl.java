@@ -24,6 +24,8 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -185,6 +187,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * @param evt : the event
      */
     private void mergeDuplicates(Collection<Protein> duplicates, DuplicatesFoundEvent evt) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // the list of duplicated proteins
@@ -278,7 +283,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             else {
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.", UpdateError.impossible_merge, calculateOriginalProtein(new ArrayList(evt.getProteins()))));
+
+                    for (Protein prot : duplicatesHavingDifferentSequence){
+                        ProteinUpdateError impossibleMerge = errorFactory.createImpossibleMergeError(prot.getAc(), null, evt.getPrimaryUniprotAc(), " The uniprot sequence is null and we need a valid uniprot sequence to merge proteins having different sequences");
+                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), impossibleMerge, prot, evt.getPrimaryUniprotAc()));
+                    }
                 }
                 log.error("It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
             }
@@ -354,6 +363,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * @param duplicates
      */
     protected Protein merge(List<Protein> duplicates, Map<String, Collection<Component>> proteinsNeedingPartialMerge, DuplicatesFoundEvent evt, boolean isSequenceChanged) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorfactory = config.getErrorFactory();
+
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
         // calculate the original protein (the oldest is kept as original)
@@ -413,10 +425,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     // we have feature conflicts for this protein which cannot be merged and becomes deprecated
                     if (proteinsNeedingPartialMerge.containsKey(duplicate.getAc())){
+                        ProteinUpdateError impossibleMerge = errorfactory.createImpossibleMergeError(duplicate.getAc(), originalProt.getAc(), evt.getPrimaryUniprotAc(), "The duplicate " + duplicate.getAc() + " cannot be merged with " +
+                                originalProt.getAc() + " because we have " +
+                                proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts. The protein is now deprecated.");
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "The duplicate " + duplicate.getAc() + " cannot be merged with " +
-                                        originalProt.getAc() + " because we have " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts. The protein is now deprecated.", UpdateError.impossible_merge, duplicate));
+                                impossibleMerge, duplicate));
+
                         // add no-uniprot-update and caution
                         Collection<Annotation> addedAnnotations = addAnnotationsForBadParticipant(duplicate, originalProt.getAc(), factory);
                         // components to let on the current protein
@@ -470,14 +484,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         log.trace("The duplicate " + duplicate.getAc() + " still have " + duplicate.getActiveInstances().size() + " active instances and cannot be deleted.");
                     }
                 }
-                else {
-                    // if the original protein contains range conflict, we need to demerge it to keep the bad ranges attached to a no-uniprot-update protein
-                    if (proteinsNeedingPartialMerge.containsKey(originalProt.getAc())){
-                        processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(),
-                                "The duplicate " + duplicate.getAc() + " has been kept as original protein but a new protein has been created with " +
-                                        proteinsNeedingPartialMerge.get(duplicate.getAc()).size() + " components with range conflicts.", UpdateError.original_protein_feature_conflicts, duplicate));
-                    }
-                }
             }
         }
 
@@ -522,9 +528,13 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         boolean isDeletedFromDatabase = proteinDeleter.delete(evt);
 
         if (!isDeletedFromDatabase && evt.getSource() instanceof ProteinUpdateProcessor){
+            ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+            ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(evt.getSource(), evt.getDataContext(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, evt.getProtein(), evt.getUniprotIdentity()));
+            ProteinUpdateError impossibleToDelete = errorFactory.createImpossibleToDeleteError(evt.getProtein().getAc(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(evt.getSource(), evt.getDataContext(), impossibleToDelete, evt.getProtein(), evt.getUniprotIdentity()));
         }
     }
 

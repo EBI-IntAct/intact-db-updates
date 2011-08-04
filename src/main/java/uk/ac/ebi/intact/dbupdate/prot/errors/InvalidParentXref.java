@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Error for invalid parent xrefs
  *
@@ -10,12 +8,13 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
  * @since <pre>03/08/11</pre>
  */
 
-public class InvalidParentXref extends DefaultProteinUpdateError {
+public class InvalidParentXref extends DefaultIntactProteinUpdateError {
 
     String invalidParent;
 
     public InvalidParentXref(String proteinAc, String invalidParent, String reason) {
         super(UpdateError.invalid_parent_xref,reason, proteinAc);
+        this.invalidParent = invalidParent;
     }
 
     public String getInvalidParent() {

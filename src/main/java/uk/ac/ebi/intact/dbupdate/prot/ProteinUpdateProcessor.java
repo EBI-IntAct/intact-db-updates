@@ -23,6 +23,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
+import uk.ac.ebi.intact.dbupdate.prot.errors.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
@@ -383,6 +384,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         // the protein to update
         this.currentProtein = protToUpdate;
 
@@ -410,8 +413,10 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             if (!isDeletedFromDatabase){
                 InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protToUpdate);
                 String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, protToUpdate, uniprot));
 
+                ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError("The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", protToUpdate.getAc());
+
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprot));
             }
         }
         // the protein must not be deleted, update it
@@ -468,6 +473,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         // if the uniprot protein exists, start to update
         if (uniprotProtein != null){
             // set the uniprot protein of the event
@@ -505,8 +512,12 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     boolean isDeletedFromDatabase = proteinDeleter.delete(protEvent);
 
                     if (!isDeletedFromDatabase){
+                        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(p);
+                        String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
 
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", UpdateError.protein_impossible_to_delete, p, processEvent.getUniprotIdentity()));
+                        ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError("The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.", p.getAc());
+
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleToDeleteEvent, p, uniprot));
 
                     }
                 }
@@ -563,7 +574,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 updater.createOrUpdateProtein(caseEvent);
             }
             catch (ProteinServiceException e){
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when creating a new protein", UpdateError.impossible_update_master, caseEvent.getProtein().getPrimaryAc()));
+                ProteinUpdateError impossibleUpdate = errorFactory.createImpossibleUpdateMasterError("The master proteins for the uniprot entry " + caseEvent.getProtein().getPrimaryAc() + " couldn't be updated because of a biosource service problem when creating a new protein", caseEvent.getProtein().getPrimaryAc());
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleUpdate, caseEvent.getProtein().getPrimaryAc()));
             }
 
 
@@ -622,14 +634,15 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     }
                 }
                 else {
-                    fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), "No master protein or several master proteins exist and it is impossible to update the protein transcripts", UpdateError.impossible_transcript_update, uniprotProtein.getPrimaryAc()));
+                    ProteinUpdateError impossibleUpdate = errorFactory.createImpossibleTranscriptUpdateError("No master protein or several master proteins exist and it is impossible to update the protein transcripts", uniprotProtein.getPrimaryAc());
+                    fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleUpdate, uniprotProtein.getPrimaryAc()));
                 }
             }
 
             // log in updated.csv
             boolean hasBeenUpdated = false;
             if (!caseEvent.getNameUpdaterReports().isEmpty()){
-               hasBeenUpdated = true;
+                hasBeenUpdated = true;
             }
             else if (!caseEvent.getAliasUpdaterReports().isEmpty()){
                 hasBeenUpdated = true;

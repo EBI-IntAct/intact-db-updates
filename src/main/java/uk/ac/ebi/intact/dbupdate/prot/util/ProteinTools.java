@@ -11,9 +11,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -364,7 +362,6 @@ public class ProteinTools {
         }
 
         if (xrefDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + xrefDuplicates.size() + " duplicates of the same interactorXRef " + xref.getPrimaryId(), UpdateError.xref_duplicates, protein));
 
             for (InteractorXref ref : xrefDuplicates){
                 protein.removeXref( ref );
@@ -411,7 +408,6 @@ public class ProteinTools {
         }
 
         if (aliasDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + aliasDuplicates.size() + " duplicates of the same interactorAlias " + alias.getName(), UpdateError.alias_duplicates, protein));
 
             for (InteractorAlias a : aliasDuplicates){
                 protein.removeAlias( a );
@@ -458,7 +454,6 @@ public class ProteinTools {
         }
 
         if (annotationDuplicates.size() > 1){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "we found " + annotationDuplicates.size() + " duplicates of the same annotation " + annotation.getAnnotationText(), UpdateError.annotations_duplicates));
 
             for (Annotation a : annotationDuplicates){
                 ao.removeAnnotation( a );

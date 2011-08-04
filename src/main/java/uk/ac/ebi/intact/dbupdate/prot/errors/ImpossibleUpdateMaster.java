@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.errors;
 
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
-
 /**
  * Error for master proteins impossible to update
  *
@@ -10,9 +8,13 @@ import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
  * @since <pre>03/08/11</pre>
  */
 
-public class ImpossibleUpdateMaster extends DefaultProteinUpdateError {
+public class ImpossibleUpdateMaster extends DefaultUniprotUpdateError {
 
-    public ImpossibleUpdateMaster(String errorMessage, String proteinAc) {
-        super(UpdateError.impossible_update_master, errorMessage, proteinAc);
+    public ImpossibleUpdateMaster(String errorMessage, String uniprot) {
+        super(UpdateError.impossible_update_master, errorMessage, uniprot);
+    }
+
+    public ImpossibleUpdateMaster(UpdateError errorLabel, String errorMessage, String uniprot) {
+        super(errorLabel, errorMessage, uniprot);
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteConnectFailureException;
@@ -7,6 +8,9 @@ import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinRetriever;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
+import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -22,6 +26,7 @@ import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -126,6 +131,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * @throws ProcessorException
      */
     public UniprotProtein retrieveUniprotEntry(ProteinEvent evt) throws ProcessorException {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         // the uniprot ac is the uniprot identity in the protein event
         String uniprotAc = evt.getUniprotIdentity();
 
@@ -186,7 +194,10 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     // choose manually which of the new uniprot ac is relevant.
                     if (evt.getSource() instanceof ProteinUpdateProcessor) {
                         final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_same_organim, evt.getProtein(), evt.getUniprotIdentity()));
+
+                        String taxId = evt.getProtein().getBioSource() != null ? evt.getProtein().getBioSource().getTaxId() : null;
+                        ProteinUpdateError matchSeveralUniprot = errorFactory.createMatchSeveralUniprotEntriesError(evt.getProtein().getAc(), uniprotAc, taxId, UpdateError.several_uniprot_entries_same_organim, uniprotProteins, Collections.EMPTY_LIST);
+                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), matchSeveralUniprot, evt.getProtein(), uniprotAc));
                     }
 
                     if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several matching uniprot entries with the same organism)");
@@ -239,7 +250,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         // It has now been demerged in one entry for the human P99998 and one for the chimpanzee P99999.
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + uniprotAc, UpdateError.several_uniprot_entries_different_organisms, evt.getProtein(), evt.getUniprotIdentity()));
+
+                            ProteinUpdateError matchSeveralUniprot = errorFactory.createMatchSeveralUniprotEntriesError(prot.getAc(), uniprotAc, taxId, UpdateError.several_uniprot_entries_different_organisms, proteinsWithSameTaxId, CollectionUtils.subtract(uniprotProteins, proteinsWithSameTaxId));
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), matchSeveralUniprot, prot, uniprotAc));
                         }
 
                         if (log.isTraceEnabled()) log.debug("Request finalization, as this protein cannot be updated using UniProt (several matching uniprot entries with different organisms)");
@@ -313,6 +326,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
      * @throws ProcessorException
      */
     private void filterSecondaryProteinsPossibleToUpdate(UpdateCaseEvent evt)  throws ProcessorException {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         Collection<? extends Protein> secondaryProteins = evt.getSecondaryProteins();
         UniprotProtein uniprotProtein = evt.getProtein();
 
@@ -338,7 +354,10 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                     if ( 1 == getSpeciesCount( uniprotProteins ) ) {
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_same_organim, prot, primaryAc));
+
+                            String taxId = prot.getBioSource() != null ? prot.getBioSource().getTaxId() : null;
+                            ProteinUpdateError matchSeveralUniprot = errorFactory.createMatchSeveralUniprotEntriesError(prot.getAc(), primaryAc, taxId, UpdateError.several_uniprot_entries_same_organim, uniprotProteins, Collections.EMPTY_LIST);
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), matchSeveralUniprot, prot, primaryAc));
                         }
                         secondaryAcToRemove.add(prot);
                     } else {
@@ -364,7 +383,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         if (proteinsWithSameTaxId.size() != 1){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), uniprotProteins.size() + " uniprot entries are matching the ac " + primaryAc, UpdateError.several_uniprot_entries_different_organisms, prot, primaryAc));
+
+                                ProteinUpdateError matchSeveralUniprot = errorFactory.createMatchSeveralUniprotEntriesError(prot.getAc(), primaryAc, taxId, UpdateError.several_uniprot_entries_different_organisms, proteinsWithSameTaxId, CollectionUtils.subtract(uniprotProteins, proteinsWithSameTaxId));
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), matchSeveralUniprot, prot, primaryAc));
                             }
                             secondaryAcToRemove.add(prot);
                         }
@@ -414,12 +435,15 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             transcripts.addAll(evt.getDataContext().getDaoFactory().getProteinDao().getProteinChains(evt.getProtein()));
 
             final ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+            ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
             // if we can update the dead proteins, we update them, otherwise we add an error in uniprotServiceResult
-            if (config != null && !config.isProcessProteinNotFoundInUniprot()){
+            if (!config.isProcessProteinNotFoundInUniprot()){
                 if (evt.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "No uniprot entry is matching the ac " + evt.getUniprotIdentity(), UpdateError.dead_uniprot_ac, evt.getProtein(), evt.getUniprotIdentity()));
+
+                    ProteinUpdateError notFoundError = errorFactory.createDeadUniprotAcError(evt.getProtein().getAc(), evt.getUniprotIdentity());
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notFoundError, evt.getProtein(), evt.getUniprotIdentity()));
                 }
 
             }
@@ -455,10 +479,9 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                         if (uniprotProteins.size() >= 1){
                             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor,
-                                        evt.getDataContext(), "The protein transcript " + pt.getAc() + " is attached to the dead uniprot parent "
-                                                + evt.getProtein().getAc() + " but we could find " + uniprotProteins.size() + " existing proteins in Uniprot matching the uniprot ac "
-                                                + uniprot.getPrimaryId(), UpdateError.dead_protein_with_transcripts_not_dead, evt.getProtein(), evt.getUniprotIdentity()));
+
+                                ProteinUpdateError existingTranscriptError = errorFactory.createNonExistingMasterProteinError(evt.getProtein().getAc(), evt.getUniprotIdentity(), uniprot.getPrimaryId(), pt.getAc());
+                                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), existingTranscriptError, evt.getProtein(), evt.getUniprotIdentity()));
                             }
 
                         }

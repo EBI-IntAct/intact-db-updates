@@ -2,12 +2,11 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.UpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
@@ -50,6 +49,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @throws ProcessorException
      */
     public String filterOnUniprotIdentity(ProteinEvent evt) throws ProcessorException {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
         // the protein to look at
         Protein protein = evt.getProtein();
@@ -92,7 +93,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         else if (uniprotIdentities.size() > 1){
             if (evt.getSource() instanceof ProteinUpdateProcessor) {
                 final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities, protein));
+
+                ProteinUpdateError multiIdentities = errorFactory.createMultiUniprotIdentitiesError(protein.getAc(), uniprotIdentities);
+                updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), multiIdentities, protein));
             }
         }
         else {
@@ -111,6 +114,8 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param caseEvent : the event containing all the intact proteins for a single uniprot entry
      */
     private void processListOfProteins(Collection<Protein> proteins, UpdateCaseEvent caseEvent){
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
         for (Iterator<? extends Protein> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             Protein protein = proteinIterator.next();
@@ -139,7 +144,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
             else if (uniprotIdentities.size() > 1){
                 if (caseEvent.getSource() instanceof ProteinUpdateProcessor) {
                     final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) caseEvent.getSource();
-                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, caseEvent.getDataContext(), "The protein " + protein.getAc() + " has several uniprot identities " +xRefToString(uniprotIdentities), UpdateError.multi_uniprot_identities, protein));
+
+                    ProteinUpdateError multiIdentities = errorFactory.createMultiUniprotIdentitiesError(protein.getAc(), uniprotIdentities);
+                    updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, caseEvent.getDataContext(), multiIdentities, protein));
                 }
                 // remove the protein from list of processed proteins. Will be processed later
                 caseEvent.getProteins().remove(protein.getAc());

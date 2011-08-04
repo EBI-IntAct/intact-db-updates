@@ -29,6 +29,8 @@ import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -294,7 +296,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private void updateProtein( Protein protein, UniprotProtein uniprotProtein, UpdateCaseEvent evt){
 
         // check that both protein carry the same organism information
-        if (!UpdateBioSource(protein, uniprotProtein.getOrganism(), evt.getDataContext())){
+        if (!UpdateBioSource(protein, uniprotProtein.getOrganism(), uniprotProtein.getPrimaryAc(), evt.getDataContext())){
             evt.getPrimaryProteins().remove(protein);
             return;
         }
@@ -354,7 +356,10 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         pdao.update( ( ProteinImpl ) protein );
     }
 
-    private boolean UpdateBioSource(Protein protein, Organism organism, DataContext context) {
+    private boolean UpdateBioSource(Protein protein, Organism organism, String uniprotAc, DataContext context) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         // check that both protein carry the same organism information
         BioSource organism1 = protein.getBioSource();
 
@@ -362,17 +367,15 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         if (organism1 == null) {
             if (log.isWarnEnabled()) log.warn("Protein protein does not contain biosource. It will be assigned the Biosource from uniprot: "+organism.getName()+" ("+organism.getTaxid()+")");
-            organism1 = new BioSource(protein.getOwner(), organism.getName(), String.valueOf(t2));
+            organism1 = new BioSource(protein.getOwner(), organism.getName().toLowerCase(), String.valueOf(t2));
             protein.setBioSource(organism1);
 
             context.getDaoFactory().getBioSourceDao().saveOrUpdate(organism1);
         }
 
         if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, "UpdateProteins is trying to modify" +
-                    " the BioSource(" + organism1.getTaxId() + "," + organism1.getShortLabel() +  ") of the following protein protein " +
-                    getProteinDescription(protein) + " by BioSource( " + t2 + "," +
-                    organism.getName() + " ). Changing the organism of an existing protein is a forbidden operation.", UpdateError.organism_conflict_with_uniprot_protein, protein));
+            ProteinUpdateError organismConflict = errorFactory.createOrganismConflictError(protein.getAc(), organism1.getTaxId(), String.valueOf(t2), uniprotAc);
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, organismConflict, protein, uniprotAc));
 
             return false;
         }
@@ -380,6 +383,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     }
 
     private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         InteractorXref ref = ProteinUtils.getUniprotXref(protein);
         String uniprotAc = ref.getPrimaryId();
 
@@ -393,9 +399,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             sequenceToBeUpdated = true;
         }
         else if (oldSequence != null && sequence == null){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The sequence of the protein " + protein.getAc() +
-                    " is not null but the uniprot entry has a sequence null.", UpdateError.uniprot_sequence_null, protein, uniprotAc));
-            processor.finalizeAfterCurrentPhase();
+            ProteinUpdateError sequenceNull = errorFactory.createUniprotSequenceNullError(protein.getAc(), uniprotAc, oldSequence);
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), sequenceNull, protein, uniprotAc));
         }
         else if (oldSequence != null && sequence != null){
             if (!sequence.equals( oldSequence ) ){
@@ -512,8 +517,10 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                                              UniprotProteinTranscript uniprotTranscript,
                                              UniprotProtein uniprotProtein,
                                              UpdateCaseEvent evt) {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
-        if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism(), evt.getDataContext())){
+        if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism(), uniprotTranscript.getPrimaryAc(), evt.getDataContext())){
             ProteinTranscript transcriptToRemove = null;
             for (ProteinTranscript t : evt.getPrimaryIsoforms()){
                 if (t.getProtein().getAc().equals(transcript.getAc())){
@@ -602,8 +609,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc());
         }
         else if (uniprotTranscript.isNullSequenceAllowed() && transcript.getSequence() != null){
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), "The feature chain " + transcript.getAc() + " has a sequence not null in IntAct but the sequence in uniprot is null because" +
-                    " one of the positions is unknown.", UpdateError.uniprot_sequence_null_intact_sequence_not_null, transcript, uniprotTranscript.getPrimaryAc()));
+            ProteinUpdateError sequenceNull = errorFactory.createUniprotSequenceNullError(transcript.getAc(), uniprotTranscript.getPrimaryAc(), transcript.getSequence());
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), sequenceNull, transcript, uniprotTranscript.getPrimaryAc()));
         }
 
         // Add IntAct Xref
