@@ -190,6 +190,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
         for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
             InteractorXref xref =  xrefIter.next();
@@ -205,6 +206,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
 
         Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
         dupe3.setCreated(dupe1.getCreated());
 
         for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {

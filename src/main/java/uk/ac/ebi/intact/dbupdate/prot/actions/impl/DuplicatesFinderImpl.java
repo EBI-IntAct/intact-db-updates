@@ -73,9 +73,10 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
 
             String uniprotSequence = uniprotProtein.getSequence();
             String uniprotCrc64 = uniprotProtein.getCrc64();
+            String organism = uniprotProtein.getOrganism() != null ? String.valueOf(uniprotProtein.getOrganism().getTaxid()) : null;
 
             // in case of master protein, we merge the duplicates
-            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(), possibleDuplicates, uniprotSequence, uniprotCrc64, uniprotProtein.getPrimaryAc());
+            DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( evt.getSource(), evt.getDataContext(), possibleDuplicates, uniprotSequence, uniprotCrc64, uniprotProtein.getPrimaryAc(), organism);
             return duplEvt;
         }
 
@@ -150,7 +151,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
         if (!realDuplicates.isEmpty()) {
             // fire a duplication event
             final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64, evt.getUniprotIdentity()));
+            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64, evt.getUniprotIdentity(), null));
         }
     }
 
@@ -283,11 +284,13 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     String uniprotSequence = null;
                     String uniprotCrc64 = null;
                     String primaryAc = null;
+                    String organism = null;
 
                     if (transcript != null){
                         uniprotSequence = transcript.getSequence();
                         uniprotCrc64 = Crc64.getCrc64(uniprotSequence);
                         primaryAc = transcript.getPrimaryAc();
+                        organism = transcript.getOrganism() != null ? String.valueOf(transcript.getOrganism().getTaxid()) : null;
                     }
 
                     // list of duplicates
@@ -298,7 +301,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     }
 
                     // create the DuplicateFoundEvent and add it to the list of duplicateFoundEvent
-                    DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( processor,context,duplicateToFix, uniprotSequence, uniprotCrc64, primaryAc);
+                    DuplicatesFoundEvent duplEvt = new DuplicatesFoundEvent( processor,context,duplicateToFix, uniprotSequence, uniprotCrc64, primaryAc, organism);
                     duplicateEvents.add(duplEvt);
                 }
 

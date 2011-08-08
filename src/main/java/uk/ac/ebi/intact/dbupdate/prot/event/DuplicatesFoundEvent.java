@@ -45,6 +45,8 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
 
     private String primaryUniprotAc;
 
+    private String uniprotTaxId;
+
     private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
     private boolean hasShiftedRanges;
 
@@ -58,7 +60,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
     /**
      * An event involving a list of proteins.
      */
-    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence, String uniprotCrc64, String primaryAc) {
+    public DuplicatesFoundEvent(Object source, DataContext dataContext, Collection<Protein> proteins, String uniprotSequence, String uniprotCrc64, String primaryAc, String uniprotTaxId) {
         super(source, dataContext, proteins);
 
         this.originalActiveInstancesCount = new AdditionalInfoMap<Integer>();
@@ -69,6 +71,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         this.uniprotSequence = uniprotSequence;
         this.uniprotCrc64 = uniprotCrc64;
         this.primaryUniprotAc = primaryAc;
+        this.uniprotTaxId = uniprotTaxId;
     }
 
     public AdditionalInfoMap<Integer> getOriginalActiveInstancesCount() {
@@ -83,6 +86,10 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         }
 
         return count;
+    }
+
+    public String getUniprotTaxId() {
+        return uniprotTaxId;
     }
 
     public String getUniprotSequence() {

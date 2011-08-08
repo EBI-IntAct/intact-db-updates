@@ -220,6 +220,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
+        String uniprotOrganism = evt.getUniprotTaxId() != null ? evt.getUniprotTaxId() : "";
+
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // the collection which will contain the duplicates having the same sequence
@@ -261,6 +263,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
             List<Protein> duplicatesAsList = entry.getValue();
 
+            boolean isUpdatable = entry.getKey().equals(uniprotOrganism);
+
             // while the list of possible duplicates has not been fully treated, we need to check the duplicates
             while (duplicatesAsList.size() > 0){
                 // clear the list of duplicates having the same sequence
@@ -297,8 +301,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     // in the list of duplicates having different sequences, we can add the final protein which is the result of the merge of several proteins having the same sequence
                     duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt, false));
                 }
-                // the duplicates didn't have the same sequence, we add it to the list of duplicates having different sequences
-                else{
+                // the duplicates didn't have the same sequence, we add it to the list of duplicates having different sequences only if the proteins can be updated with the uniprot entry. No organism conflicts
+                else if (isUpdatable){
                     duplicatesHavingDifferentSequence.addAll(duplicatesHavingSameSequence);
                 }
 

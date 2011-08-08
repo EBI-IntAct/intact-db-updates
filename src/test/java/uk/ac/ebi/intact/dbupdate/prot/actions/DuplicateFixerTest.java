@@ -122,7 +122,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getProteinChains(primary).size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -209,7 +209,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(2, primary.getActiveInstances().size());
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -294,7 +294,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(2, primary.getActiveInstances().size());
         Assert.assertEquals(5, IntactContext.getCurrentInstance().getDaoFactory().getComponentDao().countAll());
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -390,7 +390,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, primary.getActiveInstances().size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -487,7 +487,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getProteinChains(primary).size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -556,7 +556,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, primary.getActiveInstances().size());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -645,7 +645,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -743,7 +743,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(),"P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(),"P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
@@ -845,7 +845,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, IntactContext.getCurrentInstance().getDaoFactory().getRangeDao().countAll());
 
         // fix duplicates
-        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953");
+        DuplicatesFoundEvent evt = new DuplicatesFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryProteins, uniprot.getSequence(), uniprot.getCrc64(), "P60953", "9606");
 
         duplicateFixer.fixProteinDuplicates(evt);
 
