@@ -459,6 +459,7 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         // interaction: yes
         Protein isoform1 = getMockBuilder().createProteinSpliceVariant(master1, "P18459-1", "isoform1");
+        isoform1.getBioSource().setTaxId("7227");
         isoform1.setCreated( formatter.parse( "2010/06/23" ) );
         Interaction interaction = getMockBuilder().createInteraction( isoform1 );
 
@@ -472,6 +473,7 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         // interaction: yes
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(master1, "P18459-2", "isoform2");
+        isoform2.getBioSource().setTaxId("7227");
         isoform2.setCreated( formatter.parse( "2010/06/26" ) ); // note: 3 days later than isoform 1
         isoform2.setSequence(isoform1.getSequence());
         Interaction interaction2 = getMockBuilder().createInteraction( isoform2 );
