@@ -181,6 +181,36 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
     }
 
     /**
+     *
+     * @param duplicates
+     * @returna map of duplicated proteins sorted per taxId
+     */
+    private Map<String, List<Protein>> sortDuplicatesPerOrganism(Collection<Protein> duplicates){
+        Map<String, List<Protein>> duplicatesSortedByOrganism = new HashMap<String, List<Protein>>(duplicates.size());
+
+        for (Protein prot : duplicates){
+            BioSource biosource = prot.getBioSource();
+            String taxId = "";
+
+            if (biosource != null){
+                taxId = biosource.getTaxId() != null ? biosource.getTaxId() : "";
+            }
+
+            if (duplicatesSortedByOrganism.containsKey(taxId)){
+                duplicatesSortedByOrganism.get(taxId).add(prot);
+            }
+            else {
+                List<Protein> duplicatesAsList = new ArrayList<Protein>();
+                duplicatesAsList.add(prot);
+
+                duplicatesSortedByOrganism.put(taxId, duplicatesAsList);
+            }
+        }
+
+        return duplicatesSortedByOrganism;
+    }
+
+    /**
      * Merge the duplicates, the interactions are moved from the duplicate to the original protein.
      * If there are feature range conflucts, the duplicate is not merged and the interactions having range conflicts are still attached to the duplicate
      * @param duplicates : the list of duplicates to merge
@@ -192,109 +222,140 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
-        // the list of duplicated proteins
-        List<Protein> duplicatesAsList = new ArrayList<Protein>(duplicates);
-
         // the collection which will contain the duplicates having the same sequence
-        List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>(duplicatesAsList.size());
+        List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>(duplicates.size());
 
         // the collection which will contain the duplicates having different sequences
-        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<Protein>(duplicatesAsList.size());
+        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<Protein>(duplicates.size());
 
-        // while the list of possible duplicates has not been fully treated, we need to check the duplicates
-        while (duplicatesAsList.size() > 0){
-            // clear the list of duplicates having the same sequence
+        // sort the duplicates per organism
+        Map<String, List<Protein>> duplicatesSortedByOrganism = sortDuplicatesPerOrganism(duplicates);
+
+        if (duplicatesSortedByOrganism.size() != 1){
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                StringBuffer reason = new StringBuffer();
+                reason.append("Impossible to merge proteins having different taxIds : ");
+
+                int index = 0;
+                for (String taxId : duplicatesSortedByOrganism.keySet()){
+                    reason.append(taxId);
+
+                    if (index < duplicatesSortedByOrganism.size() - 1){
+                       reason.append(", ");
+                    }
+                    index ++;
+                }
+
+                ProteinUpdateError impossibleMerge = errorFactory.createImpossibleMergeError(null, null, evt.getPrimaryUniprotAc(), reason.toString());
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), impossibleMerge, evt.getPrimaryUniprotAc()));
+            }
+        }
+
+        // for each duplicated proteins sorted per organism, merge. If two proteins have same uniprot but different taxids, they are not merged together
+        for (Map.Entry<String, List<Protein>> entry : duplicatesSortedByOrganism.entrySet()){
+
+            duplicatesHavingDifferentSequence.clear();
             duplicatesHavingSameSequence.clear();
 
-            // pick the first protein of the list and add it in the list of duplicates having the same sequence
-            Iterator<Protein> iterator = duplicatesAsList.iterator();
-            Protein protToCompare = iterator.next();
-            duplicatesHavingSameSequence.add(protToCompare);
+            List<Protein> duplicatesAsList = entry.getValue();
 
-            // the sequence of the protein
-            String originalSequence = protToCompare.getSequence();
+            // while the list of possible duplicates has not been fully treated, we need to check the duplicates
+            while (duplicatesAsList.size() > 0){
+                // clear the list of duplicates having the same sequence
+                duplicatesHavingSameSequence.clear();
 
-            // we compare the sequence of this first protein against the sequence of the other proteins
-            while (iterator.hasNext()){
-                // we extract the sequence of the next protein to compare
-                Protein proteinCompared = iterator.next();
-                String sequenceToCompare = proteinCompared.getSequence();
+                // pick the first protein of the list and add it in the list of duplicates having the same sequence
+                Iterator<Protein> iterator = duplicatesAsList.iterator();
+                Protein protToCompare = iterator.next();
+                duplicatesHavingSameSequence.add(protToCompare);
 
-                // if the sequences are identical, we add the protein to the list of duplicates having the same sequence
-                if (originalSequence != null && sequenceToCompare != null){
-                    if (originalSequence.equalsIgnoreCase(sequenceToCompare)){
+                // the sequence of the protein
+                String originalSequence = protToCompare.getSequence();
+
+                // we compare the sequence of this first protein against the sequence of the other proteins
+                while (iterator.hasNext()){
+                    // we extract the sequence of the next protein to compare
+                    Protein proteinCompared = iterator.next();
+                    String sequenceToCompare = proteinCompared.getSequence();
+
+                    // if the sequences are identical, we add the protein to the list of duplicates having the same sequence
+                    if (originalSequence != null && sequenceToCompare != null){
+                        if (originalSequence.equalsIgnoreCase(sequenceToCompare)){
+                            duplicatesHavingSameSequence.add(proteinCompared);
+                        }
+                    }
+                    else if (originalSequence == null && sequenceToCompare == null){
                         duplicatesHavingSameSequence.add(proteinCompared);
                     }
                 }
-                else if (originalSequence == null && sequenceToCompare == null){
-                    duplicatesHavingSameSequence.add(proteinCompared);
+
+                // if we have more than two proteins in the duplicate list having the exact same sequence, we merge them
+                // without having to shift the ranges first
+                if (duplicatesHavingSameSequence.size() > 1){
+                    // in the list of duplicates having different sequences, we can add the final protein which is the result of the merge of several proteins having the same sequence
+                    duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt, false));
                 }
+                // the duplicates didn't have the same sequence, we add it to the list of duplicates having different sequences
+                else{
+                    duplicatesHavingDifferentSequence.addAll(duplicatesHavingSameSequence);
+                }
+
+                // we remove the processed proteins from the list of protein to process
+                duplicatesAsList.removeAll(duplicatesHavingSameSequence);
             }
 
-            // if we have more than two proteins in the duplicate list having the exact same sequence, we merge them
-            // without having to shift the ranges first
-            if (duplicatesHavingSameSequence.size() > 1){
-                // in the list of duplicates having different sequences, we can add the final protein which is the result of the merge of several proteins having the same sequence
-                duplicatesHavingDifferentSequence.add(merge(duplicatesHavingSameSequence, Collections.EMPTY_MAP, evt, false));
-            }
-            // the duplicates didn't have the same sequence, we add it to the list of duplicates having different sequences
-            else{
-                duplicatesHavingDifferentSequence.addAll(duplicatesHavingSameSequence);
-            }
+            // we still have to merge duplicates having different sequences
+            if (duplicatesHavingDifferentSequence.size() > 1){
+                // the uniprot protein has been found previously, it is possible to shift the ranges first using the uniprot sequence
+                if (evt.getUniprotSequence() != null){
+                    // in case of feature conflicts, we will only attach the interactions without feature conflicts to the original protein and keep the
+                    // duplicate as no-uniprot-update with the interactions having feature conflicts
+                    Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
 
-            // we remove the processed proteins from the list of protein to process
-            duplicatesAsList.removeAll(duplicatesHavingSameSequence);
-        }
+                    // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
+                    for (Protein p : duplicatesHavingDifferentSequence){
+                        // update the ranges with the new uniprot sequence for each duplicate
+                        RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
+                        evt.getUpdatedRanges().put(p.getAc(), rangeReport);
+                        // get the list of components with feature range conflicts
+                        Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
 
-        // we still have to merge duplicates having different sequences
-        if (duplicatesHavingDifferentSequence.size() > 1){
-            // the uniprot protein has been found previously, it is possible to shift the ranges first using the uniprot sequence
-            if (evt.getUniprotSequence() != null){
-                // in case of feature conflicts, we will only attach the interactions without feature conflicts to the original protein and keep the
-                // duplicate as no-uniprot-update with the interactions having feature conflicts
-                Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
+                        // if we have feature range conflicts before the merge
+                        if (!componentWithRangeConflicts.isEmpty()){
 
-                // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
-                for (Protein p : duplicatesHavingDifferentSequence){
-                    // update the ranges with the new uniprot sequence for each duplicate
-                    RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
-                    evt.getUpdatedRanges().put(p.getAc(), rangeReport);
-                    // get the list of components with feature range conflicts
-                    Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
-
-                    // if we have feature range conflicts before the merge
-                    if (!componentWithRangeConflicts.isEmpty()){
-
-                        log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
-                        // add this duplicate with the list of components with conflicts to the map of protein which couldn't be merged
-                        proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
-                        // add the components with feature conflicts in the report
-                        evt.getComponentsWithFeatureConflicts().put(p, rangeReport);
+                            log.info( "We found " + componentWithRangeConflicts.size() + " components with feature conflicts for the protein " + p.getAc() );
+                            // add this duplicate with the list of components with conflicts to the map of protein which couldn't be merged
+                            proteinNeedingPartialMerge.put(p.getAc(), componentWithRangeConflicts);
+                            // add the components with feature conflicts in the report
+                            evt.getComponentsWithFeatureConflicts().put(p, rangeReport);
+                        }
                     }
+
+                    // we merge the proteins taking into account the possible feature conflicts
+                    Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt, true);
+                    log.info( "The protein " + finalProt.getAc() + "has been kept as original protein.");
+                    // we set the original protein in the report
+                    evt.setReferenceProtein(finalProt);
                 }
+                // we cannot merge because we don't have a uniprot sequence as reference for range shifting. Log in 'process_errors.csv'
+                else {
+                    if (evt.getSource() instanceof ProteinUpdateProcessor) {
+                        final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
-                // we merge the proteins taking into account the possible feature conflicts
-                Protein finalProt = merge(duplicatesHavingDifferentSequence, proteinNeedingPartialMerge, evt, true);
-                log.info( "The protein " + finalProt.getAc() + "has been kept as original protein.");
-                // we set the original protein in the report
-                evt.setReferenceProtein(finalProt);
-            }
-            // we cannot merge because we don't have a uniprot sequence as reference for range shifting. Log in 'process_errors.csv'
-            else {
-                if (evt.getSource() instanceof ProteinUpdateProcessor) {
-                    final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
-
-                    for (Protein prot : duplicatesHavingDifferentSequence){
-                        ProteinUpdateError impossibleMerge = errorFactory.createImpossibleMergeError(prot.getAc(), null, evt.getPrimaryUniprotAc(), " The uniprot sequence is null and we need a valid uniprot sequence to merge proteins having different sequences");
-                        updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), impossibleMerge, prot, evt.getPrimaryUniprotAc()));
+                        for (Protein prot : duplicatesHavingDifferentSequence){
+                            ProteinUpdateError impossibleMerge = errorFactory.createImpossibleMergeError(prot.getAc(), null, evt.getPrimaryUniprotAc(), " The uniprot sequence is null and we need a valid uniprot sequence to merge proteins having different sequences");
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), impossibleMerge, prot, evt.getPrimaryUniprotAc()));
+                        }
                     }
+                    log.error("It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
                 }
-                log.error("It is impossible to merge all the duplicates ("+duplicatesHavingDifferentSequence.size()+") because the duplicates have different sequence and no uniprot sequence has been given to be able to shift the ranges before the merge.");
             }
-        }
-        // all the duplicates had the same sequence and have been merged. Set the original protein in the report
-        else if (duplicatesHavingDifferentSequence.size() == 1){
-            evt.setReferenceProtein(duplicatesHavingDifferentSequence.iterator().next());
+            // all the duplicates had the same sequence and have been merged. Set the original protein in the report
+            else if (duplicatesHavingDifferentSequence.size() == 1){
+                evt.setReferenceProtein(duplicatesHavingDifferentSequence.iterator().next());
+            }
         }
     }
 

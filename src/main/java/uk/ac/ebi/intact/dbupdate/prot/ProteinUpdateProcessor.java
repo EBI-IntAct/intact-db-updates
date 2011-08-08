@@ -556,23 +556,21 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // - all isoform/feature chains which can be attached to several uniprot entries and which do not have a main entry
             uniprotRetriever.filterAllSecondaryProteinsAndTranscriptsPossibleToUpdate(caseEvent);
 
-            // secondary acs to update : after updating uniprot identity all secondary proteins are moved to primary proteins
+            // secondary acs to update : after updating uniprot identity all secondary proteins are moved to primary proteins.
+            // in case of organism conflicts, the secondary protein is not updated
             uniprotIdentityUpdater.updateAllSecondaryProteins(caseEvent);
 
             // the master protein in IntAct
             Protein masterProtein = null;
 
             // if there are some duplicates and we can fix them, merge them
-            if (caseEvent.getPrimaryProteins().size() > 1){
+            // if fixing protein duplicate is enabled, fix them
+            if (config.isFixDuplicates()){
+                if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
 
-                // if fixing protein duplicate is enabled, fix them
-                if (config.isFixDuplicates()){
-                    if (log.isTraceEnabled()) log.trace("Check for possible duplicates." );
-
-                    // return the master protein which is the result of the merge if there is one. Returns null if there were no duplicated proteins
-                    // or if it was impossible to have an original protein after the merge
-                    masterProtein = duplicateFixer.fixAllProteinDuplicates(caseEvent);
-                }
+                // return the master protein which is the result of the merge if there is one. Returns null if there were no duplicated proteins
+                // or if it was impossible to have an original protein after the merge
+                masterProtein = duplicateFixer.fixAllProteinDuplicates(caseEvent);
             }
 
             // update master proteins first
@@ -619,14 +617,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     }
 
                     //protein transcript duplicates to merge
-                    if (caseEvent.getPrimaryIsoforms().size() > 1 || caseEvent.getPrimaryFeatureChains().size() > 1){
+                    // fixing duplicates is enabled
+                    if (config.isFixDuplicates()){
+                        if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
 
-                        // fixing duplicates is enabled
-                        if (config.isFixDuplicates()){
-                            if (log.isTraceEnabled()) log.trace("Check for possible transcript duplicates." );
-
-                            duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent, masterProtein);
-                        }
+                        duplicateFixer.fixAllProteinTranscriptDuplicates(caseEvent, masterProtein);
                     }
 
                     // update isoforms if necessary
