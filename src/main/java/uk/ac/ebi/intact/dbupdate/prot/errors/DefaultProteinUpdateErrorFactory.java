@@ -30,8 +30,8 @@ public class DefaultProteinUpdateErrorFactory implements ProteinUpdateErrorFacto
     }
 
     @Override
-    public ProteinUpdateError createImpossibleToDeleteError(String proteinAc, String errorMessage) {
-        return new ImpossibleToDelete(errorMessage, proteinAc);
+    public ProteinUpdateError createImpossibleToDeleteError(String proteinlabel, String errorMessage) {
+        return new ImpossibleToDelete(errorMessage, proteinlabel);
     }
 
     @Override

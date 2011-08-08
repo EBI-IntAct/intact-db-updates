@@ -597,7 +597,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-            ProteinUpdateError impossibleToDelete = errorFactory.createImpossibleToDeleteError(evt.getProtein().getAc(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
+            ProteinUpdateError impossibleToDelete = errorFactory.createImpossibleToDeleteError(evt.getProtein().getShortLabel(), "The protein " + evt.getProtein().getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
             processor.fireOnProcessErrorFound(new UpdateErrorEvent(evt.getSource(), evt.getDataContext(), impossibleToDelete, evt.getProtein(), evt.getUniprotIdentity()));
         }
     }

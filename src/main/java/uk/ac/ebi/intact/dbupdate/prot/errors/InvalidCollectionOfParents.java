@@ -12,13 +12,15 @@ import java.util.Set;
  * @since <pre>03/08/11</pre>
  */
 
-public class InvalidCollectionOfParents extends DefaultIntactProteinUpdateError {
+public class InvalidCollectionOfParents extends DefaultProteinUpdateError implements IntactUpdateError{
 
-    Set<String> isoformParents = new HashSet<String>();
-    Set<String> chainParents = new HashSet<String>();
+    private Set<String> isoformParents = new HashSet<String>();
+    private Set<String> chainParents = new HashSet<String>();
+    private String proteinAc;
 
     public InvalidCollectionOfParents(String proteinAc, UpdateError errorLabel) {
-        super(errorLabel, null, proteinAc);
+        super(errorLabel, null);
+        this.proteinAc = proteinAc;
     }
 
     public Collection<String> getIsoformParents() {
@@ -64,4 +66,8 @@ public class InvalidCollectionOfParents extends DefaultIntactProteinUpdateError 
         }
     }
 
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
+    }
 }

@@ -8,17 +8,19 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class OrganismConflict extends DefaultIntactProteinUpdateError {
+public class OrganismConflict extends DefaultProteinUpdateError implements IntactUpdateError, UniprotUpdateError {
 
-    String wrongTaxId;
-    String uniprotTaxId;
-    String uniprotAc;
+    private String wrongTaxId;
+    private String uniprotTaxId;
+    private String uniprotAc;
+    private String proteinAc;
 
     public OrganismConflict(String proteinAc, String wrongTaxId, String uniprotTaxId, String uniprotAc) {
-        super(UpdateError.organism_conflict_with_uniprot_protein, null, proteinAc);
+        super(UpdateError.organism_conflict_with_uniprot_protein, null);
         this.wrongTaxId = wrongTaxId;
         this.uniprotTaxId = uniprotTaxId;
         this.uniprotAc = uniprotAc;
+        this.proteinAc = proteinAc;
     }
 
     public String getWrongTaxId() {
@@ -50,5 +52,10 @@ public class OrganismConflict extends DefaultIntactProteinUpdateError {
         error.append(this.uniprotTaxId);;
 
         return error.toString();
+    }
+
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
     }
 }

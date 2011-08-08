@@ -8,13 +8,22 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class ImpossibleUpdateMaster extends DefaultUniprotUpdateError {
+public class ImpossibleUpdateMaster extends DefaultProteinUpdateError implements UniprotUpdateError {
+
+    private String uniprotAc;
 
     public ImpossibleUpdateMaster(String errorMessage, String uniprot) {
-        super(UpdateError.impossible_update_master, errorMessage, uniprot);
+        super(UpdateError.impossible_update_master, errorMessage);
+        this.uniprotAc = uniprot;
     }
 
     public ImpossibleUpdateMaster(UpdateError errorLabel, String errorMessage, String uniprot) {
-        super(errorLabel, errorMessage, uniprot);
+        super(errorLabel, errorMessage);
+        this.uniprotAc = uniprot;
+    }
+
+    @Override
+    public String getUniprotAc() {
+        return this.uniprotAc;
     }
 }

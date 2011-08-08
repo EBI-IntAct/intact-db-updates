@@ -8,14 +8,16 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class ImpossibleMerge extends DefaultIntactProteinUpdateError {
+public class ImpossibleMerge extends DefaultProteinUpdateError implements IntactUpdateError, UniprotUpdateError {
 
     String originalProtein;
     String uniprotAc;
+    private String proteinAc;
 
     public ImpossibleMerge(String proteinAc, String originalProtein, String uniprotAc, String reason) {
-        super(UpdateError.impossible_merge, reason, proteinAc);
+        super(UpdateError.impossible_merge, reason);
 
+        this.proteinAc = proteinAc;
         this.originalProtein = originalProtein;
         this.uniprotAc = uniprotAc;
     }
@@ -49,5 +51,15 @@ public class ImpossibleMerge extends DefaultIntactProteinUpdateError {
         error.append(this.errorMessage);
 
         return error.toString();
+    }
+
+    @Override
+    public String getProteinAc() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public String getUniprotAc() {
+        return this.uniprotAc;
     }
 }

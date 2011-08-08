@@ -8,13 +8,15 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class InvalidParentXref extends DefaultIntactProteinUpdateError {
+public class InvalidParentXref extends DefaultProteinUpdateError implements IntactUpdateError {
 
-    String invalidParent;
+    private String invalidParent;
+    private String proteinAc;
 
     public InvalidParentXref(String proteinAc, String invalidParent, String reason) {
-        super(UpdateError.invalid_parent_xref,reason, proteinAc);
+        super(UpdateError.invalid_parent_xref,reason);
         this.invalidParent = invalidParent;
+        this.proteinAc = proteinAc;
     }
 
     public String getInvalidParent() {
@@ -40,5 +42,10 @@ public class InvalidParentXref extends DefaultIntactProteinUpdateError {
         error.append(this.errorMessage);
 
         return error.toString();
+    }
+
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
     }
 }

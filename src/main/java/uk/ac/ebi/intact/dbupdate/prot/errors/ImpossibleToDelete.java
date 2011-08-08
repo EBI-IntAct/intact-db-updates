@@ -8,9 +8,16 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class ImpossibleToDelete extends DefaultIntactProteinUpdateError {
+public class ImpossibleToDelete extends DefaultProteinUpdateError {
 
-    public ImpossibleToDelete(String errorMessage, String proteinAc) {
-        super(UpdateError.protein_impossible_to_delete, errorMessage, proteinAc);
+    String proteinLabel;
+
+    public ImpossibleToDelete(String errorMessage, String proteinLabel) {
+        super(UpdateError.protein_impossible_to_delete, errorMessage);
+        this.proteinLabel = proteinLabel;
+    }
+
+    public String getProteinLabel() {
+        return proteinLabel;
     }
 }

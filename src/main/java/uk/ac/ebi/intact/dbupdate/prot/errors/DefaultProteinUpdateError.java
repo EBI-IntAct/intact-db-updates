@@ -8,30 +8,19 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>02/08/11</pre>
  */
 
-public class DefaultIntactProteinUpdateError implements ProteinUpdateError{
+public class DefaultProteinUpdateError implements ProteinUpdateError{
 
     protected String errorMessage;
-    protected String proteinAc;
     private UpdateError errorLabel;
 
-    public DefaultIntactProteinUpdateError(UpdateError errorLabel, String errorMessage, String proteinAc){
+    public DefaultProteinUpdateError(UpdateError errorLabel, String errorMessage){
         this.errorMessage = errorMessage;
-        this.proteinAc = proteinAc;
         this.errorLabel = errorLabel;
     }
 
     @Override
     public String getErrorMessage() {
         return this.errorMessage;
-    }
-
-    public String getProteinAc() {
-        return this.proteinAc;
-    }
-
-    @Override
-    public String getAccessionAc(){
-        return this.proteinAc;
     }
 
     @Override

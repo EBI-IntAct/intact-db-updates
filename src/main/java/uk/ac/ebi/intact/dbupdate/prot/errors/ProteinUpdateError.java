@@ -12,5 +12,4 @@ public interface ProteinUpdateError {
 
     public UpdateError getErrorLabel();
     public String getErrorMessage();
-    public String getAccessionAc();
 }

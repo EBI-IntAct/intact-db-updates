@@ -11,20 +11,20 @@ import java.util.Set;
  * @since <pre>03/08/11</pre>
  */
 
-public class MatchSeveralUniprotEntries extends MultiUniprotIdentities {
+public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implements UniprotUpdateError {
 
-    protected String currentUniprotAc;
+    protected String uniprotAc;
     protected String taxId;
     protected Set<String> uniprotFromDifferentOrganisms = new HashSet<String>();
 
     public MatchSeveralUniprotEntries(String proteinAc, String uniprotAc, String taxId, UpdateError errorLabel) {
         super(proteinAc, errorLabel);
-        this.currentUniprotAc = uniprotAc;
+        this.uniprotAc = uniprotAc;
         this.taxId = taxId;
     }
 
-    public String getCurrentUniprotAc() {
-        return currentUniprotAc;
+    public String getUniprotAc() {
+        return uniprotAc;
     }
 
     public String getTaxId() {
@@ -45,7 +45,7 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities {
         error.append("The protein (TaxId = "+(taxId != null ? taxId : "null")+"");
         error.append(proteinAc);
         error.append(" has a uniprot ac (");
-        error.append(currentUniprotAc);
+        error.append(uniprotAc);
         error.append(" which can match " + this.uniprotIdentities.size());
         error.append(" different uniprot entries having same taxId : ");
 

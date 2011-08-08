@@ -12,16 +12,19 @@ import java.util.Set;
  * @since <pre>03/08/11</pre>
  */
 
-public class MultiUniprotIdentities extends DefaultIntactProteinUpdateError {
+public class MultiUniprotIdentities extends DefaultProteinUpdateError implements IntactUpdateError {
 
     protected Set<String> uniprotIdentities = new HashSet<String>();
+    protected String proteinAc;
 
     public MultiUniprotIdentities(String proteinAc) {
-        super(UpdateError.multi_uniprot_identities, null, proteinAc);
+        super(UpdateError.multi_uniprot_identities, null);
+        this.proteinAc = proteinAc;
     }
 
     public MultiUniprotIdentities(String proteinAc, UpdateError errorLabel) {
-        super(errorLabel, null, proteinAc);
+        super(errorLabel, null);
+        this.proteinAc = proteinAc;
     }
 
     public Set<String> getUniprotIdentities() {
@@ -69,5 +72,10 @@ public class MultiUniprotIdentities extends DefaultIntactProteinUpdateError {
             }
             i++;
         }
+    }
+
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
     }
 }

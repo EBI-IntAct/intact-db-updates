@@ -8,18 +8,21 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class DeadUniprotAc extends DefaultIntactProteinUpdateError {
+public class DeadUniprotAc extends DefaultProteinUpdateError implements IntactUpdateError{
 
-    String deadUniprot;
+    protected String deadUniprot;
+    protected String proteinAc;
 
     public DeadUniprotAc(String proteinAc, String deadUniprot) {
-        super(UpdateError.dead_uniprot_ac, null, proteinAc);
+        super(UpdateError.dead_uniprot_ac, null);
         this.deadUniprot = deadUniprot;
+        this.proteinAc = proteinAc;
     }
 
     public DeadUniprotAc(UpdateError errorLabel, String proteinAc, String deadUniprot) {
-        super(errorLabel, null, proteinAc);
+        super(errorLabel, null);
         this.deadUniprot = deadUniprot;
+        this.proteinAc = proteinAc;
     }
 
     public String getDeadUniprot() {
@@ -39,5 +42,10 @@ public class DeadUniprotAc extends DefaultIntactProteinUpdateError {
         error.append(deadUniprot);
 
         return error.toString();
+    }
+
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
     }
 }

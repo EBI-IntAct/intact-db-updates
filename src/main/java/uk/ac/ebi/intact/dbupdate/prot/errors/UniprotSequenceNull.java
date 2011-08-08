@@ -8,15 +8,17 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
  * @since <pre>03/08/11</pre>
  */
 
-public class UniprotSequenceNull extends DefaultIntactProteinUpdateError {
+public class UniprotSequenceNull extends DefaultProteinUpdateError implements IntactUpdateError, UniprotUpdateError {
 
     private String intactSequence;
     private String uniprotAc;
+    private String proteinAc;
 
     public UniprotSequenceNull(String proteinAc, String uniprotAc, String intactSequence) {
-        super(UpdateError.uniprot_sequence_null, null, proteinAc);
+        super(UpdateError.uniprot_sequence_null, null);
         this.uniprotAc = uniprotAc;
         this.intactSequence = intactSequence;
+        this.proteinAc = proteinAc;
     }
 
     public String getIntactSequence() {
@@ -46,5 +48,10 @@ public class UniprotSequenceNull extends DefaultIntactProteinUpdateError {
         }
 
         return error.toString();
+    }
+
+    @Override
+    public String getProteinAc() {
+        return this.proteinAc;
     }
 }
