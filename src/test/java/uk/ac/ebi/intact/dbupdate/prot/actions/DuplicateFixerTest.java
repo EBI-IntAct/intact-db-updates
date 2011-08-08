@@ -70,7 +70,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.getBioSource().setTaxId("9606");
         prot.setSequence(sequence);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -80,7 +82,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        isoform.getBioSource().setTaxId("9606");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        isoform2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -91,7 +95,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        chain.getBioSource().setTaxId("9606");
         Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        chain2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
@@ -144,8 +150,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         primary.setSequence(sequence);
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.getBioSource().setTaxId("9606");
         prot.setSequence(sequence);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -155,7 +163,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        isoform.getBioSource().setTaxId("9606");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        isoform2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -166,7 +176,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        chain.getBioSource().setTaxId("9606");
         Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        chain2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
@@ -223,8 +235,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         String sequence = "AAFFSSPPAAMMYYLLLLLAAAAAAAAAA";
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         primary.setSequence(sequence);
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.getBioSource().setTaxId("9606");
         prot.setSequence(sequence);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -234,7 +248,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        isoform.getBioSource().setTaxId("9606");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        isoform2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -245,7 +261,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        chain.getBioSource().setTaxId("9606");
         Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        chain2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
@@ -312,8 +330,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
         prot.setSequence(sequence);
+        prot.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
@@ -331,7 +351,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        isoform.getBioSource().setTaxId("9606");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        isoform2.getBioSource().setTaxId("9606");
+
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -342,7 +365,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        chain.getBioSource().setTaxId("9606");
         Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        chain2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
@@ -401,8 +426,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
         prot.setSequence(sequence);
+        prot.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
@@ -411,7 +438,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         primaryProteins.add(prot);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
+        isoform.getBioSource().setTaxId("9606");
         Protein isoform2 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-2", "isoform3");
+        isoform2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform2);
 
@@ -431,7 +460,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(4, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
         Protein chain = getMockBuilder().createProteinChain(primary, "PRO-1", "chain");
+        chain.getBioSource().setTaxId("9606");
         Protein chain2 = getMockBuilder().createProteinChain(prot, "PRO-2", "chain");
+        chain2.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain2);
 
@@ -490,8 +521,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         String sequence2 = "AAPPPFFFLLLMMMMM";
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         primary.setSequence(sequence);
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.getBioSource().setTaxId("9606");
         prot.setSequence(sequence2);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -559,7 +592,9 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
+        prot.getBioSource().setTaxId("9606");
         prot.setSequence(sequence2);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
@@ -657,8 +692,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
         prot.setSequence(sequence2);
+        prot.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
@@ -755,8 +792,10 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         primary.setSequence(sequence);
+        primary.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
         prot.setSequence(sequence2);
+        prot.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
