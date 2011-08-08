@@ -240,7 +240,7 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
      * but does have 'no-uniprot-update'
      * Create a protein for a feature chain
      * Collect all these proteins and update the secondary ac : the isoform not in uniprot but with no-uniprot-update
-     * is not updated but is not ignored neither
+     * is not updated and is ignored. It will be updated later
      *
      */
     public void collect_cdc42_human_addTranscript_notInUniprot_and_noUniProtUpdate(){
@@ -249,22 +249,33 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         Protein secondary1 = getMockBuilder().createProtein("P21181", "secondary1");
+        secondary1.getBioSource().setTaxId("9606");
         Protein secondary2 = getMockBuilder().createProtein("P25763", "secondary2");
+        secondary2.getBioSource().setTaxId("9606");
         Protein secondary3 = getMockBuilder().createProtein("Q7L8R5", "secondary3");
+        secondary3.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary, secondary1, secondary2, secondary3);
 
         Protein isoformPrimary1 = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoformPrimary1");
+        isoformPrimary1.getBioSource().setTaxId("9606");
         Protein isoformSecondary1 = getMockBuilder().createProteinSpliceVariant(primary, "P21181-1", "isoformSecondary1");
+        isoformSecondary1.getBioSource().setTaxId("9606");
         Protein isoformPrimary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P60953-2", "isoformPrimary2");
+        isoformPrimary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P21181-4", "isoformSecondary2");
+        isoformSecondary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2_2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P00012-2", "isoformSecondary2_2");
+        isoformSecondary2_2.getBioSource().setTaxId("9606");
 
         Protein isoformSecondary3 = getMockBuilder().createProteinSpliceVariant(secondary3, "P12345-1", "isoformSecondary3");
+        isoformSecondary3.getBioSource().setTaxId("9606");
         Annotation noUniprotUpdate = getMockBuilder().createAnnotation(null, getMockBuilder().createCvObject(CvTopic.class, null, CvTopic.NON_UNIPROT));
         isoformSecondary3.addAnnotation(noUniprotUpdate);
 
         Protein chain1 = getMockBuilder().createProteinChain(secondary2, "PRO-1", "chain1");
+        chain1.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoformPrimary1, isoformSecondary1, isoformPrimary2, isoformSecondary2, isoformSecondary2_2, isoformSecondary3, chain1);
 
         // collect
@@ -276,17 +287,17 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         Assert.assertEquals(caseEvt.getQuerySentToService(), "P60953");
         Assert.assertEquals(1, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(3, caseEvt.getSecondaryProteins().size());
-        Assert.assertEquals(3, caseEvt.getPrimaryIsoforms().size());
+        Assert.assertEquals(2, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(3, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(11, caseEvt.getProteins().size());
+        Assert.assertEquals(10, caseEvt.getProteins().size());
 
         // update
         // update
         updater.updateAllSecondaryProteins(caseEvt);
         Assert.assertEquals(4, caseEvt.getPrimaryProteins().size());
         Assert.assertEquals(0, caseEvt.getSecondaryProteins().size());
-        Assert.assertEquals(6, caseEvt.getPrimaryIsoforms().size());
+        Assert.assertEquals(5, caseEvt.getPrimaryIsoforms().size());
         Assert.assertEquals(0, caseEvt.getSecondaryIsoforms().size());
         Assert.assertEquals(1, caseEvt.getPrimaryFeatureChains().size());
 

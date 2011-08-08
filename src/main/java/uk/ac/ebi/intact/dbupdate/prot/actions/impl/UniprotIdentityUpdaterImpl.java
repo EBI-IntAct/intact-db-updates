@@ -255,11 +255,13 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 hasFoundAc = true;
                                 primaryIsoforms.add(new ProteinTranscript(variant, sv));
                                 evt.getProteins().add(variant.getAc());
+                                break;
                             }
                             else if (variantAcs.contains(uniprotId.getPrimaryId())){
                                 hasFoundAc = true;
                                 secondaryIsoforms.add(new ProteinTranscript(variant, sv));
                                 evt.getProteins().add(variant.getAc());
+                                break;
                             }
                         }
                     }
@@ -318,6 +320,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                                 hasFoundAc = true;
                                 primaryChains.add(new ProteinTranscript(variant, fc));
                                 evt.getProteins().add(variant.getAc());
+                                break;
                             }
                         }
                     }
@@ -381,7 +384,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             if (taxId != null){
                 Organism organism = uniprotProtein.getOrganism();
 
-                if (taxId.equals(organism.getTaxid())){
+                if (taxId.equals(String.valueOf(organism.getTaxid()))){
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                         XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
@@ -436,7 +439,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 if (taxId != null){
                     Organism organism = uniprotProtein.getOrganism();
 
-                    if (taxId.equals(organism.getTaxid())){
+                    if (taxId.equals(String.valueOf(organism.getTaxid()))){
                         if (evt.getSource() instanceof ProteinUpdateProcessor){
                             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                             XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
