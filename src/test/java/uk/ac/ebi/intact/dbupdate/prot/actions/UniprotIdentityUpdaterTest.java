@@ -68,17 +68,27 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         Protein secondary1 = getMockBuilder().createProtein("P21181", "secondary1");
+        secondary1.getBioSource().setTaxId("9606");
         Protein secondary2 = getMockBuilder().createProtein("P25763", "secondary2");
+        secondary2.getBioSource().setTaxId("9606");
         Protein secondary3 = getMockBuilder().createProtein("Q7L8R5", "secondary3");
+        secondary3.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary, secondary1, secondary2, secondary3);
 
         Protein isoformPrimary1 = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoformPrimary1");
+        isoformPrimary1.getBioSource().setTaxId("9606");
         Protein isoformSecondary1 = getMockBuilder().createProteinSpliceVariant(primary, "P21181-1", "isoformSecondary1");
+        isoformSecondary1.getBioSource().setTaxId("9606");
         Protein isoformPrimary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P60953-2", "isoformPrimary2");
+        isoformPrimary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P21181-4", "isoformSecondary2");
+        isoformSecondary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2_2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P00012-2", "isoformSecondary2_2");
+        isoformSecondary2_2.getBioSource().setTaxId("9606");
         Protein chain1 = getMockBuilder().createProteinChain(secondary2, "PRO-1", "chain1");
+        chain1.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoformPrimary1, isoformSecondary1, isoformPrimary2, isoformSecondary2, isoformSecondary2_2, chain1);
 
         // collect
@@ -131,17 +141,27 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         Protein secondary1 = getMockBuilder().createProtein("P21181", "secondary1");
+        secondary1.getBioSource().setTaxId("9606");
         Protein prot = getMockBuilder().createProtein("P12345", "protein not updated");
+        prot.getBioSource().setTaxId("9606");
         Protein secondary3 = getMockBuilder().createProtein("Q7L8R5", "secondary3");
+        secondary3.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary, secondary1, prot, secondary3);
 
         Protein isoformPrimary1 = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoformPrimary1");
+        isoformPrimary1.getBioSource().setTaxId("9606");
         Protein isoformSecondary1 = getMockBuilder().createProteinSpliceVariant(primary, "P21181-1", "isoformSecondary1");
+        isoformSecondary1.getBioSource().setTaxId("9606");
         Protein isoformPrimary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P60953-2", "isoformPrimary2");
+        isoformPrimary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P21181-4", "isoformSecondary2");
+        isoformSecondary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2_2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P00012-2", "isoformSecondary2_2");
+        isoformSecondary2_2.getBioSource().setTaxId("9606");
         Protein chain1 = getMockBuilder().createProteinChain(prot, "PRO-1", "chain1");
+        chain1.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoformPrimary1, isoformSecondary1, isoformPrimary2, isoformSecondary2, isoformSecondary2_2, chain1);
 
         // collect
@@ -190,18 +210,29 @@ public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
+        primary.getBioSource().setTaxId("9606");
         Protein secondary1 = getMockBuilder().createProtein("P21181", "secondary1");
+        secondary1.getBioSource().setTaxId("9606");
         Protein secondary2 = getMockBuilder().createProtein("P25763", "secondary2");
+        secondary2.getBioSource().setTaxId("9606");
         Protein secondary3 = getMockBuilder().createProtein("Q7L8R5", "secondary3");
+        secondary3.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary, secondary1, secondary2, secondary3);
 
         Protein isoformPrimary1 = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoformPrimary1");
+        isoformPrimary1.getBioSource().setTaxId("9606");
         Protein isoformSecondary1 = getMockBuilder().createProteinSpliceVariant(primary, "P21181-1", "isoformSecondary1");
+        isoformSecondary1.getBioSource().setTaxId("9606");
         Protein isoformPrimary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P60953-2", "isoformPrimary2");
+        isoformPrimary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P21181-4", "isoformSecondary2");
+        isoformSecondary2.getBioSource().setTaxId("9606");
         Protein isoformSecondary2_2 = getMockBuilder().createProteinSpliceVariant(secondary1, "P00012-2", "isoformSecondary2_2");
+        isoformSecondary2_2.getBioSource().setTaxId("9606");
         Protein isoformSecondary3 = getMockBuilder().createProteinSpliceVariant(secondary3, "P12345-1", "isoformSecondary3");
+        isoformSecondary3.getBioSource().setTaxId("9606");
         Protein chain1 = getMockBuilder().createProteinChain(secondary2, "PRO-1", "chain1");
+        chain1.getBioSource().setTaxId("9606");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoformPrimary1, isoformSecondary1, isoformPrimary2, isoformSecondary2, isoformSecondary2_2, isoformSecondary3, chain1);
 
         // collect
