@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.actions;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.annotations.DiscriminatorFormula;
 import uk.ac.ebi.intact.protein.mapping.actions.ActionName;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.BlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
@@ -18,7 +17,6 @@ import java.util.Set;
  * @since <pre>01-Apr-2010</pre>
  */
 @Entity
-@DiscriminatorFormula("objclass")
 @DiscriminatorValue("PersistentBlastReport")
 public class PersistentBlastReport extends PersistentMappingReport implements BlastReport<PersistentBlastResults> {
 

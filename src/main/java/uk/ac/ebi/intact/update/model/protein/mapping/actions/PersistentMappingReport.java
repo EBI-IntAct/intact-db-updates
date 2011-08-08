@@ -23,7 +23,7 @@ import java.util.Set;
  */
 @Entity
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name="objclass", discriminatorType= DiscriminatorType.STRING, length = 100)
+@DiscriminatorColumn(name="type", discriminatorType= DiscriminatorType.STRING, length = 100)
 @DiscriminatorValue("PersistentMappingReport")
 @Table( name = "ia_mapping_report" )
 public class PersistentMappingReport extends HibernateUpdatePersistentImpl implements MappingReport {
