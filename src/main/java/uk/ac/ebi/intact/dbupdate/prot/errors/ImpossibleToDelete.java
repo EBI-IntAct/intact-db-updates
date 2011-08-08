@@ -10,7 +10,7 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
 
 public class ImpossibleToDelete extends DefaultProteinUpdateError {
 
-    String proteinLabel;
+    private String proteinLabel;
 
     public ImpossibleToDelete(String errorMessage, String proteinLabel) {
         super(UpdateError.protein_impossible_to_delete, errorMessage);

@@ -10,8 +10,8 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
 
 public class ImpossibleMerge extends DefaultProteinUpdateError implements IntactUpdateError, UniprotUpdateError {
 
-    String originalProtein;
-    String uniprotAc;
+    private String originalProtein;
+    private String uniprotAc;
     private String proteinAc;
 
     public ImpossibleMerge(String proteinAc, String originalProtein, String uniprotAc, String reason) {
