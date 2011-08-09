@@ -19,6 +19,9 @@ import javax.persistence.Entity;
 @DiscriminatorValue("impossible_update_master")
 public class ImpossibleUpdateMaster extends DefaultPersistentUpdateError implements UniprotUpdateError {
 
+    /**
+     * the uniprot ac
+     */
     private String uniprotAc;
 
     public ImpossibleUpdateMaster(){

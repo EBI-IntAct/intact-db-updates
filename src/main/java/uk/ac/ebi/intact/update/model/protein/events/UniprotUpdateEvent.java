@@ -26,12 +26,34 @@ import java.util.Collection;
 @DiscriminatorValue("uniprot_update")
 public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
 
+    /**
+     * The new shortlabel
+     */
     private String updatedShortLabel;
+
+    /**
+     * The new fullName
+     */
     private String updatedFullName;
+
+    /**
+     * The uniprot query it has been updated for
+     */
     private String uniprotQuery;
 
-    private Collection<UpdatedCrossReference> updatedReferences = new ArrayList<UpdatedCrossReference>();
+    /**
+     * the list of updated xrefs
+     */
+    private Collection<UpdatedCrossReference> updatedXrefs = new ArrayList<UpdatedCrossReference>();
+
+    /**
+     * The list of updated annotations
+     */
     private Collection<ProteinUpdateAnnotation> updatedAnnotations = new ArrayList<ProteinUpdateAnnotation>();
+
+    /**
+     * The list of updated aliases
+     */
     private Collection<UpdatedAlias> updatedAliases = new ArrayList<UpdatedAlias>();
 
     public UniprotUpdateEvent(){
@@ -72,7 +94,7 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
         this.updatedFullName = updatedFullName;
     }
 
-    @Column(name = "uniprot")
+    @Column(name = "query")
     public String getUniprotQuery() {
         return uniprotQuery;
     }
@@ -120,15 +142,15 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedCrossReference> getUpdatedReferences() {
-        return this.updatedReferences;
+    public Collection<UpdatedCrossReference> getUpdatedXrefs() {
+        return this.updatedXrefs;
     }
 
     public void addUpdatedReferencesFromXref(Collection<Xref> updatedRef, UpdateStatus status){
         for (Xref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, status);
-            if (this.updatedReferences.add(reference)){
+            if (this.updatedXrefs.add(reference)){
                 reference.setParent(this);
             }
         }
@@ -146,9 +168,9 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
         }
     }
 
-    public void setUpdatedReferences(Collection<UpdatedCrossReference> updatedReferences) {
-        if (updatedReferences != null){
-            this.updatedReferences = updatedReferences;
+    public void setUpdatedXrefs(Collection<UpdatedCrossReference> updatedXrefs) {
+        if (updatedXrefs != null){
+            this.updatedXrefs = updatedXrefs;
         }
     }
 
@@ -184,7 +206,7 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
     }
 
     public boolean addUpdatedXRef(UpdatedCrossReference xref){
-        if (this.updatedReferences.add(xref)){
+        if (this.updatedXrefs.add(xref)){
             xref.setParent(this);
             return true;
         }
@@ -193,7 +215,7 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
     }
 
     public boolean removeUpdatedXRef(UpdatedCrossReference xref){
-        if (this.updatedReferences.remove(xref)){
+        if (this.updatedXrefs.remove(xref)){
             xref.setParent(null);
             return true;
         }
@@ -310,7 +332,7 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
             return false;
         }
 
-        return CollectionUtils.isEqualCollection(updatedReferences, event.getUpdatedReferences());
+        return CollectionUtils.isEqualCollection(updatedXrefs, event.getUpdatedXrefs());
     }
 
     @Override

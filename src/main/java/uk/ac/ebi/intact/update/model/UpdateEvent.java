@@ -10,5 +10,9 @@ package uk.ac.ebi.intact.update.model;
 
 public interface UpdateEvent extends HibernateUpdatePersistent{
 
+    /**
+     *
+     * @return the parent process
+     */
     public UpdateProcess getParent();
 }

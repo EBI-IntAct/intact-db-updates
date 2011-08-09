@@ -20,8 +20,19 @@ import java.util.Set;
 @DiscriminatorValue("match_several_uniprot")
 public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implements UniprotUpdateError {
 
+    /**
+     * the uniprot ac
+     */
     protected String uniprotAc;
+
+    /**
+     * the taxId of the intact protein
+     */
     protected String taxId;
+
+    /**
+     * the collection of uniprot acs poitning to a different taxid from the one of the intact protein
+     */
     protected Set<String> uniprotFromDifferentOrganisms = new HashSet<String>();
 
     public MatchSeveralUniprotEntries(){
@@ -41,14 +52,14 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implement
         return uniprotAc;
     }
 
-    @Column(name = "taxId")
+    @Column(name = "intact_taxId")
     public String getTaxId() {
         return taxId;
     }
 
     @ElementCollection
-    @JoinTable(name = "ia_error2uniprot_diff_organism", joinColumns = @JoinColumn(name="error_id"))
-    @Column(name = "uniprot_identity", nullable = false)
+    @JoinTable(name = "ia_err2uniprot_diff_organisms", joinColumns = @JoinColumn(name="error_id"))
+    @Column(name = "uniprot")
     public Set<String> getUniprotFromDifferentOrganisms() {
         return uniprotFromDifferentOrganisms;
     }

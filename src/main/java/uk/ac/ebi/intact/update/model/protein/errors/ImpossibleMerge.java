@@ -17,8 +17,19 @@ import javax.persistence.Entity;
 @Entity
 @DiscriminatorValue("impossible_merge")
 public class ImpossibleMerge extends DefaultPersistentUpdateError implements IntactUpdateError, UniprotUpdateError {
+    /**
+     * The intact protein ac of the original protein
+     */
     private String originalProtein;
+
+    /**
+     * the uniprot ac of the duplicate
+     */
     private String uniprotAc;
+
+    /**
+     * The intact protein ac of the duplicate
+     */
     private String proteinAc;
 
     public ImpossibleMerge(){

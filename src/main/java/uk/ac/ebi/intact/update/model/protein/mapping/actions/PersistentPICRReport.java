@@ -20,7 +20,7 @@ import java.util.Set;
  * @since <pre>01-Apr-2010</pre>
  */
 @Entity
-@DiscriminatorValue("PersistentPICRReport")
+@DiscriminatorValue("picr_report")
 public class PersistentPICRReport extends PersistentMappingReport implements PICRReport<PersistentPICRCrossReferences> {
 
     /**

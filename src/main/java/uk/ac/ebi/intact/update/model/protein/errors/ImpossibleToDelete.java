@@ -18,6 +18,9 @@ import javax.persistence.Entity;
 @DiscriminatorValue("impossible_delete")
 public class ImpossibleToDelete extends DefaultPersistentUpdateError{
 
+    /**
+     * the intact protein shortlabel
+     */
     private String proteinLabel;
 
     public ImpossibleToDelete(){

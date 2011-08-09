@@ -19,7 +19,14 @@ import javax.persistence.Entity;
 @DiscriminatorValue("invalid_parent")
 public class InvalidParentXref extends DefaultPersistentUpdateError implements IntactUpdateError {
 
+    /**
+     * the invalid parent ac
+     */
     private String invalidParent;
+
+    /**
+     * the intact protein ac of the transcript
+     */
     private String proteinAc;
 
     public InvalidParentXref(){

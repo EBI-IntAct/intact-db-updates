@@ -17,7 +17,10 @@ import javax.persistence.*;
 @DiscriminatorValue("protein_mapping")
 public class UniprotProteinMapperEvent extends PersistentProteinEvent {
 
-    PersistentIdentificationResults identificationResults;
+    /**
+     * The results of the uniprot remapping
+     */
+    private PersistentIdentificationResults identificationResults;
 
     public UniprotProteinMapperEvent(){
         super();

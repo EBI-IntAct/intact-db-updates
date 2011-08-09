@@ -17,9 +17,24 @@ import javax.persistence.*;
 @MappedSuperclass
 public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
 
+    /**
+     * The annotation topic
+     */
     private String topic;
+
+    /**
+     * The annotation description
+     */
     private String text;
+
+    /**
+     * The parent
+     */
     private UpdateEventImpl parent;
+
+    /**
+     * The status
+     */
     private UpdateStatus status;
 
     public UpdatedAnnotation(){

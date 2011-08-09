@@ -18,7 +18,14 @@ import javax.persistence.Entity;
 @DiscriminatorValue("non_existing_master")
 public class NonExistingMasterProtein extends DeadUniprotAc {
 
+    /**
+     * The uniprot ac of the protein transcript
+     */
     private String transcriptUniprotAc;
+
+    /**
+     * The intact ac of the protein transcript
+     */
     private String transcriptIntactAc;
 
     public NonExistingMasterProtein(){
@@ -34,12 +41,12 @@ public class NonExistingMasterProtein extends DeadUniprotAc {
         this.transcriptUniprotAc = transcriptUniprotAc;
     }
 
-    @Column(name = "transcript_ac")
+    @Column(name = "uniprot_transcript")
     public String getTranscriptUniprotAc() {
         return transcriptUniprotAc;
     }
 
-    @Column(name = "transcript_intact_ac")
+    @Column(name = "intact_transcript")
     public String getTranscriptIntactAc() {
         return transcriptIntactAc;
     }

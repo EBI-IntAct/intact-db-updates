@@ -17,11 +17,22 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type", discriminatorType= DiscriminatorType.STRING)
-@Table(name = "ia_protein_update_error")
+@Table(name = "ia_prot_update_err")
 public abstract class DefaultPersistentUpdateError extends HibernateUpdatePersistentImpl implements ProteinUpdateError {
 
+    /**
+     * the protein update process
+     */
     private ProteinUpdateProcess parent;
+
+    /**
+     * the label of the error
+     */
     private UpdateError errorLabel;
+
+    /**
+     * The reason or message
+     */
     protected String reason;
 
     public DefaultPersistentUpdateError(){

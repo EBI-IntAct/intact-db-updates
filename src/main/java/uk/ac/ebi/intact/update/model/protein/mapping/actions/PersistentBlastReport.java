@@ -17,7 +17,7 @@ import java.util.Set;
  * @since <pre>01-Apr-2010</pre>
  */
 @Entity
-@DiscriminatorValue("PersistentBlastReport")
+@DiscriminatorValue("blast_report")
 public class PersistentBlastReport extends PersistentMappingReport implements BlastReport<PersistentBlastResults> {
 
     /**
@@ -73,7 +73,7 @@ public class PersistentBlastReport extends PersistentMappingReport implements Bl
      * @return the sequence used for the blast
      */
     @Lob
-    @Column(name = "query_sequence")
+    @Column(name = "query_seq")
     public String getQuerySequence() {
         return querySequence;
     }

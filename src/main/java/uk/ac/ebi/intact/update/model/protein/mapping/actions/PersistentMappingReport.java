@@ -24,7 +24,7 @@ import java.util.Set;
 @Entity
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type", discriminatorType= DiscriminatorType.STRING, length = 100)
-@DiscriminatorValue("PersistentMappingReport")
+@DiscriminatorValue("default_report")
 @Table( name = "ia_mapping_report" )
 public class PersistentMappingReport extends HibernateUpdatePersistentImpl implements MappingReport {
 
@@ -92,7 +92,7 @@ public class PersistentMappingReport extends HibernateUpdatePersistentImpl imple
      * @return the warnings
      */
     @ElementCollection
-    @JoinTable(name = "ia_action2warning", joinColumns = @JoinColumn(name="action_id"))
+    @JoinTable(name = "ia_action2warn", joinColumns = @JoinColumn(name="action_id"))
     @Column(name = "warnings", nullable = false)
     public List<String> getWarnings(){
         return this.warnings;

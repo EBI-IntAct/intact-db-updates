@@ -19,9 +19,19 @@ import javax.persistence.Lob;
 @DiscriminatorValue("sequence_update")
 public class SequenceUpdateEvent extends PersistentProteinEvent {
 
+    /**
+     * The new uniprot sequence
+     */
     private String newSequence;
+
+    /**
+     * The old uniprot sequence
+     */
     private String oldSequence;
 
+    /**
+     * The relative conservation of the protein sequence
+     */
     private double relativeConservation;
 
     public SequenceUpdateEvent(){
@@ -39,7 +49,7 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
     }
 
     @Lob
-    @Column(name = "new_sequence")
+    @Column(name = "new_seq")
     public String getNewSequence() {
         return newSequence;
     }
@@ -49,7 +59,7 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
     }
 
     @Lob
-    @Column(name = "old_sequence")
+    @Column(name = "old_seq")
     public String getOldSequence() {
         return oldSequence;
     }
@@ -58,7 +68,7 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
         this.oldSequence = oldSequence;
     }
 
-    @Column(name = "relative_conservation")
+    @Column(name = "rel_conservation")
     public double getRelativeConservation() {
         return relativeConservation;
     }

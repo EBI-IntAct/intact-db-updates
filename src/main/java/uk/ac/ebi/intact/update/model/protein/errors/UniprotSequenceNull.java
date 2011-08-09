@@ -21,9 +21,19 @@ import javax.persistence.Lob;
 @DiscriminatorValue("uniprot_sequence_null")
 public class UniprotSequenceNull extends DefaultPersistentUpdateError  implements IntactUpdateError, UniprotUpdateError {
 
-
+    /**
+     * The sequence in intact
+     */
     private String intactSequence;
+
+    /**
+     * The uniprot ac
+     */
     private String uniprotAc;
+
+    /**
+     * The intact protein ac
+     */
     private String proteinAc;
 
     public UniprotSequenceNull(){
@@ -41,7 +51,7 @@ public class UniprotSequenceNull extends DefaultPersistentUpdateError  implement
     }
 
     @Lob
-    @Column(name = "intact_sequence")
+    @Column(name = "intact_seq")
     public String getIntactSequence() {
         return intactSequence;
     }

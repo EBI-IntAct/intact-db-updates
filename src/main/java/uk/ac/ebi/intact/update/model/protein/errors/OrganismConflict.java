@@ -20,14 +20,29 @@ import javax.persistence.Entity;
 @DiscriminatorValue("invalid_parent")
 public class OrganismConflict extends DefaultPersistentUpdateError  implements IntactUpdateError, UniprotUpdateError {
 
-    private String wrongTaxId;
+    /**
+     *  The taxId of the protein in intact
+     */
+    private String intactTaxId;
+
+    /**
+     * The taxId in uniprot
+     */
     private String uniprotTaxId;
+
+    /**
+     * The uniprot ac
+     */
     private String uniprotAc;
+
+    /**
+     * The intact protein ac
+     */
     private String proteinAc;
 
     public OrganismConflict(){
         super(null, UpdateError.organism_conflict_with_uniprot_protein, null);
-        this.wrongTaxId = null;
+        this.intactTaxId = null;
         this.uniprotTaxId = null;
         this.uniprotAc = null;
         this.proteinAc = null;
@@ -35,15 +50,15 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
 
     public OrganismConflict(ProteinUpdateProcess process, String proteinAc, String wrongTaxId, String uniprotTaxId, String uniprotAc) {
         super(process, UpdateError.organism_conflict_with_uniprot_protein, null);
-        this.wrongTaxId = wrongTaxId;
+        this.intactTaxId = wrongTaxId;
         this.uniprotTaxId = uniprotTaxId;
         this.uniprotAc = uniprotAc;
         this.proteinAc = proteinAc;
     }
 
-    @Column(name = "invalid_taxid")
-    public String getWrongTaxId() {
-        return wrongTaxId;
+    @Column(name = "intact_taxid")
+    public String getIntactTaxId() {
+        return intactTaxId;
     }
 
     @Column(name = "uniprot_taxid")
@@ -62,8 +77,8 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
         return this.proteinAc;
     }
 
-    public void setWrongTaxId(String wrongTaxId) {
-        this.wrongTaxId = wrongTaxId;
+    public void setIntactTaxId(String intactTaxId) {
+        this.intactTaxId = intactTaxId;
     }
 
     public void setUniprotTaxId(String uniprotTaxId) {
@@ -86,12 +101,12 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
 
         final OrganismConflict event = (OrganismConflict) o;
 
-        if ( wrongTaxId != null ) {
-            if (!wrongTaxId.equals( event.getWrongTaxId())){
+        if ( intactTaxId != null ) {
+            if (!intactTaxId.equals( event.getIntactTaxId())){
                 return false;
             }
         }
-        else if (event.getWrongTaxId()!= null){
+        else if (event.getIntactTaxId()!= null){
             return false;
         }
 
@@ -138,8 +153,8 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
 
         code = 29 * code + super.hashCode();
 
-        if ( wrongTaxId != null ) {
-            code = 29 * code + wrongTaxId.hashCode();
+        if ( intactTaxId != null ) {
+            code = 29 * code + intactTaxId.hashCode();
         }
 
         if ( uniprotTaxId != null ) {
@@ -166,12 +181,12 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
 
         final OrganismConflict event = (OrganismConflict) o;
 
-        if ( wrongTaxId != null ) {
-            if (!wrongTaxId.equals( event.getWrongTaxId())){
+        if ( intactTaxId != null ) {
+            if (!intactTaxId.equals( event.getIntactTaxId())){
                 return false;
             }
         }
-        else if (event.getWrongTaxId()!= null){
+        else if (event.getIntactTaxId()!= null){
             return false;
         }
 
@@ -208,7 +223,7 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
     @Override
     public String toString() {
 
-        if (this.proteinAc == null || this.wrongTaxId == null || this.uniprotTaxId == null || this.uniprotAc == null){
+        if (this.proteinAc == null || this.intactTaxId == null || this.uniprotTaxId == null || this.uniprotAc == null){
             return super.getErrorMessage();
         }
 
@@ -216,7 +231,7 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
         error.append("The protein ");
         error.append(proteinAc);
         error.append(" refers to taxId ");
-        error.append(wrongTaxId);
+        error.append(intactTaxId);
         error.append(" but is associated with uniprot entry ");
         error.append(this.uniprotAc);
         error.append(" which refers to a different taxId ") ;

@@ -55,7 +55,7 @@ public class PersistentIdentificationResults extends HibernateUpdatePersistentIm
      *
      * @return the final uniprot accession identifying the protein
      */
-    @Column(name="uniprot_ac", length = 10)
+    @Column(name="final_uniprot", length = 10)
     public String getFinalUniprotId(){
         return this.finalUniprotId;
     }
@@ -64,6 +64,7 @@ public class PersistentIdentificationResults extends HibernateUpdatePersistentIm
      *
      * @return true if the unique uniprot id is not null
      */
+    @Transient
     public boolean hasUniqueUniprotId(){
         return this.finalUniprotId != null;
     }

@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.events;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.annotations.Type;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
@@ -23,16 +24,35 @@ import java.util.Collection;
 @DiscriminatorValue("duplicated_protein")
 public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
 
+    /**
+     * The intact ac of the original protein
+     */
     private String originalProtein;
+
+    /**
+     * Boolean value to know if the sequence has been updated during the merge
+     */
     private boolean neededSequenceUpdate;
+
+    /**
+     * Boolean value to know if the merge was successful
+     */
     private boolean wasMergeSuccessful;
 
+    /**
+     * The list of interaction acs which have been moved to the original protein
+     */
     private Collection<String> movedInteractions = new ArrayList<String>();
 
+    /**
+     * The list of intact acs of updated transcripts
+     */
     private Collection<String> updatedTranscripts = new ArrayList<String>();
 
-    private Collection<UpdatedCrossReference> movedReferences = new ArrayList<UpdatedCrossReference>();
-
+    /**
+     * The list of cross reference which have been moved to the parent protein
+     */
+    private Collection<UpdatedCrossReference> movedXrefs = new ArrayList<UpdatedCrossReference>();
 
     public DuplicatedProteinEvent(){
         super();
@@ -48,7 +68,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         this.wasMergeSuccessful = wasMergeSuccessful;
     }
 
-    @Column(name="original_protein_ac")
+    @Column(name="original_protein")
     public String getOriginalProtein() {
         return originalProtein;
     }
@@ -57,7 +77,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         this.originalProtein = originalProtein;
     }
 
-    @Column(name = "updated_sequence")
+    @Column(name = "updated_seq")
     public boolean isSequenceUpdate() {
         return neededSequenceUpdate;
     }
@@ -66,7 +86,8 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         this.neededSequenceUpdate = neededSequenceUpdate;
     }
 
-    @Column(name = "merge")
+    @Column(name = "merged")
+    @Type(type="yes_no")
     public boolean isMergeSuccessful() {
         return wasMergeSuccessful;
     }
@@ -101,29 +122,29 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         }
     }
 
-        @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedCrossReference> getMovedReferences() {
-        return this.movedReferences;
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    public Collection<UpdatedCrossReference> getMovedXrefs() {
+        return this.movedXrefs;
     }
 
     public void addMovedReferencesFromXref(Collection<InteractorXref> updatedRef){
         for (Xref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, UpdateStatus.deleted);
-            if (this.movedReferences.add(reference)){
+            if (this.movedXrefs.add(reference)){
                 reference.setParent(this);
             }
         }
     }
 
-    public void setMovedReferences(Collection<UpdatedCrossReference> updatedReferences) {
+    public void setMovedXrefs(Collection<UpdatedCrossReference> updatedReferences) {
         if (updatedReferences != null){
-            this.movedReferences = updatedReferences;
+            this.movedXrefs = updatedReferences;
         }
     }
 
     public boolean addMovedXRef(UpdatedCrossReference xref){
-        if (this.movedReferences.add(xref)){
+        if (this.movedXrefs.add(xref)){
             xref.setParent(this);
             return true;
         }
@@ -132,7 +153,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     }
 
     public boolean removeMovedXRef(UpdatedCrossReference xref){
-        if (this.movedReferences.remove(xref)){
+        if (this.movedXrefs.remove(xref)){
             xref.setParent(null);
             return true;
         }
@@ -221,7 +242,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
             return false;
         }
 
-        if (!CollectionUtils.isEqualCollection(this.movedReferences, event.getMovedReferences())){
+        if (!CollectionUtils.isEqualCollection(this.movedXrefs, event.getMovedXrefs())){
             return false;
         }
 

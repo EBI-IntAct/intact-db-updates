@@ -15,7 +15,7 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_protein_updated_annotation")
+@Table(name = "ia_prot_updated_annot")
 public class ProteinUpdateAnnotation extends UpdatedAnnotation {
 
     public ProteinUpdateAnnotation(){

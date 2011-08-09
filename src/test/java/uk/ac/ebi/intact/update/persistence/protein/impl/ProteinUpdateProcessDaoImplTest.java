@@ -21,7 +21,7 @@ import java.util.Date;
  * @since <pre>18/03/11</pre>
  */
 
-public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
+public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     public void create_update_process(){

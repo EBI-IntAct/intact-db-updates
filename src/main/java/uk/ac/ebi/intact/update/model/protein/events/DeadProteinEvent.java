@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * TODO comment this
+ * Event for dead proteins in uniprot
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -26,7 +26,10 @@ import java.util.Collection;
 @DiscriminatorValue("dead_protein")
 public class DeadProteinEvent extends PersistentProteinEvent {
 
-    private Collection<UpdatedCrossReference> deletedReferences = new ArrayList<UpdatedCrossReference>();
+    /**
+     * The collection of cross references which have been deleted while processing the dead protein
+     */
+    private Collection<UpdatedCrossReference> deletedXrefs = new ArrayList<UpdatedCrossReference>();
 
     public DeadProteinEvent() {
         super();
@@ -49,28 +52,28 @@ public class DeadProteinEvent extends PersistentProteinEvent {
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<UpdatedCrossReference> getDeletedReferences() {
-        return this.deletedReferences;
+    public Collection<UpdatedCrossReference> getDeletedXrefs() {
+        return this.deletedXrefs;
     }
 
     public void addDeletedReferencesFromXref(Collection<InteractorXref> updatedRef){
         for (Xref ref : updatedRef){
 
             UpdatedCrossReference reference = new UpdatedCrossReference(ref, UpdateStatus.deleted);
-            if (this.deletedReferences.add(reference)){
+            if (this.deletedXrefs.add(reference)){
                 reference.setParent(this);
             }
         }
     }
 
-    public void setDeletedReferences(Collection<UpdatedCrossReference> updatedReferences) {
+    public void setDeletedXrefs(Collection<UpdatedCrossReference> updatedReferences) {
         if (updatedReferences != null){
-            this.deletedReferences = updatedReferences;
+            this.deletedXrefs = updatedReferences;
         }
     }
 
     public boolean addDeletedXRef(UpdatedCrossReference xref){
-        if (this.deletedReferences.add(xref)){
+        if (this.deletedXrefs.add(xref)){
             xref.setParent(this);
             return true;
         }
@@ -79,7 +82,7 @@ public class DeadProteinEvent extends PersistentProteinEvent {
     }
 
     public boolean removeDeletedXRef(UpdatedCrossReference xref){
-        if (this.deletedReferences.remove(xref)){
+        if (this.deletedXrefs.remove(xref)){
             xref.setParent(null);
             return true;
         }
@@ -96,6 +99,6 @@ public class DeadProteinEvent extends PersistentProteinEvent {
 
         final DeadProteinEvent event = (DeadProteinEvent) o;
 
-        return CollectionUtils.isEqualCollection(deletedReferences, event.getDeletedReferences());
+        return CollectionUtils.isEqualCollection(deletedXrefs, event.getDeletedXrefs());
     }
 }

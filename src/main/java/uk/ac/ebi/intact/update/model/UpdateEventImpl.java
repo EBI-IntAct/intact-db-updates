@@ -13,6 +13,9 @@ import javax.persistence.Transient;
 @MappedSuperclass
 public abstract class UpdateEventImpl extends HibernateUpdatePersistentImpl implements UpdateEvent {
 
+    /**
+     * The parent process
+     */
     UpdateProcess parent;
 
     public UpdateEventImpl(){

@@ -17,8 +17,19 @@ import java.util.Date;
 @MappedSuperclass
 public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends HibernateUpdatePersistentImpl implements UpdateProcess<T>{
 
+    /**
+     * The date of the process
+     */
     private Date date;
+
+    /**
+     * The name of the user which started this process
+     */
     private String userStamp;
+
+    /**
+     * Collection of update events
+     */
     protected Collection<T> updateEvents = new ArrayList<T>();
 
     public UpdateProcessImpl(){

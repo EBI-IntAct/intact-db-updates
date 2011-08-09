@@ -19,13 +19,22 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type", discriminatorType=DiscriminatorType.STRING)
-@Table(name = "ia_protein_event")
+@Table(name = "ia_prot_update_evt")
 public abstract class PersistentProteinEvent extends UpdateEventImpl {
 
+    /**
+     * The uniprot ac
+     */
     String uniprotAc;
 
+    /**
+     * The message
+     */
     String message;
 
+    /**
+     * The intact protein ac
+     */
     String proteinAc;
 
     public PersistentProteinEvent(){

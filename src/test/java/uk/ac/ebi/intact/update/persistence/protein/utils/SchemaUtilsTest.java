@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.utils;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.ebi.intact.update.model.utils.SchemaUtils;
 
@@ -15,14 +14,17 @@ import uk.ac.ebi.intact.update.model.utils.SchemaUtils;
 
 public class SchemaUtilsTest {
 
-        @Test
-        @Ignore
+    @Test
     public void testGenerateCreateSchemaDDLForOracle() throws Exception {
         String[] strings = SchemaUtils.generateCreateSchemaDDLForOracle();
 
-        Assert.assertEquals(183, strings.length);
-        Assert.assertEquals(183, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
-        Assert.assertEquals(183, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
-        Assert.assertEquals(183, SchemaUtils.generateCreateSchemaDDLForH2().length);
+        for (String s : strings){
+            System.out.println(s);
+        }
+
+        Assert.assertEquals(50, strings.length);
+        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
+        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
+        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForH2().length);
     }
 }

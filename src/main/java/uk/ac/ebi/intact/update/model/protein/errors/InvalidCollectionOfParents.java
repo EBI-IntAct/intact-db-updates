@@ -18,11 +18,22 @@ import java.util.Set;
  * @since <pre>08/08/11</pre>
  */
 @Entity
-@DiscriminatorValue("invalid_parents_collection")
+@DiscriminatorValue("invalid_parent_collection")
 public class InvalidCollectionOfParents extends DefaultPersistentUpdateError  implements IntactUpdateError {
 
+    /**
+     * the collection of intact isoform parent acs
+     */
     private Set<String> isoformParents = new HashSet<String>();
+
+    /**
+     * the collection of intact chain parent acs
+     */
     private Set<String> chainParents = new HashSet<String>();
+
+    /**
+     * the intact protein ac
+     */
     private String proteinAc;
 
     public InvalidCollectionOfParents(){
@@ -36,15 +47,15 @@ public class InvalidCollectionOfParents extends DefaultPersistentUpdateError  im
     }
 
     @ElementCollection
-    @JoinTable(name = "ia_error2isoform_parent", joinColumns = @JoinColumn(name="error_id"))
-    @Column(name = "protein_parent", nullable = false)
+    @JoinTable(name = "ia_err2isoform_parent", joinColumns = @JoinColumn(name="error_id"))
+    @Column(name = "parent_ac")
     public Collection<String> getIsoformParents() {
         return isoformParents;
     }
 
     @ElementCollection
-    @JoinTable(name = "ia_error2chain_parent", joinColumns = @JoinColumn(name="error_id"))
-    @Column(name = "protein_parent", nullable = false)
+    @JoinTable(name = "ia_err2chain_parent", joinColumns = @JoinColumn(name="error_id"))
+    @Column(name = "parent_ac")
     public Collection<String> getChainParents() {
         return chainParents;
     }

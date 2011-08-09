@@ -19,6 +19,9 @@ import javax.persistence.Entity;
 @DiscriminatorValue("impossible_parent_review")
 public class ImpossibleParentToReview extends DefaultPersistentUpdateError implements IntactUpdateError {
 
+    /**
+     * the intact protein ac
+     */
     private String proteinAc;
 
     public ImpossibleParentToReview(){

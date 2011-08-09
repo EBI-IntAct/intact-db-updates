@@ -18,17 +18,49 @@ import javax.persistence.Transient;
 @MappedSuperclass
 public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl {
 
+    /**
+     * The old positions of the range
+     */
     private String oldPositions;
+
+    /**
+     * The new positions of the range
+     */
     private String newPositions;
+
+    /**
+     * The old feature sequence
+     */
     private String oldSequence;
+
+    /**
+     * The new feature sequence
+     */
     private String newSequence;
 
+    /**
+     * The range ac
+     */
     private String rangeAc;
 
+    /**
+     * The feature ac
+     */
     private String featureAc;
+
+    /**
+     * The component ac
+     */
     private String componentAc;
+
+    /**
+     * The interaction ac
+     */
     private String interactionAc;
 
+    /**
+     * the parent event
+     */
     private ProteinEventWithRangeUpdate parent;
 
     public AbstractUpdatedRange(){
@@ -91,7 +123,7 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
         this.interactionAc = interactionAc;
     }
 
-    @Column( name = "old_positions", nullable = false)
+    @Column( name = "old_pos", nullable = false)
     public String getOldPositions() {
         return oldPositions;
     }
@@ -100,7 +132,7 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
         this.oldPositions = oldPositions;
     }
 
-    @Column( name = "new_positions", nullable = true)
+    @Column( name = "new_pos", nullable = true)
     public String getNewPositions() {
         return newPositions;
     }
@@ -119,7 +151,7 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
     }
 
     @Lob
-    @Column(name = "old_sequence", nullable = true)
+    @Column(name = "old_seq", nullable = true)
     public String getOldSequence() {
         return oldSequence;
     }
@@ -129,7 +161,7 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
     }
 
     @Lob
-    @Column(name = "new_sequence", nullable = true)
+    @Column(name = "new_seq", nullable = true)
     public String getNewSequence() {
         return newSequence;
     }

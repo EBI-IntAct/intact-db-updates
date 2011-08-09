@@ -21,7 +21,14 @@ import java.util.Set;
 @DiscriminatorValue("multi_uniprot")
 public class MultiUniprotIdentities extends DefaultPersistentUpdateError  implements IntactUpdateError{
 
+    /**
+     * The collection of uniprot acs that the intact protein refers to
+     */
     protected Set<String> uniprotIdentities = new HashSet<String>();
+
+    /**
+     * The intact protein ac
+     */
     protected String proteinAc;
 
     public MultiUniprotIdentities(){
@@ -40,8 +47,8 @@ public class MultiUniprotIdentities extends DefaultPersistentUpdateError  implem
     }
 
     @ElementCollection
-    @JoinTable(name = "ia_error2uniprot", joinColumns = @JoinColumn(name="error_id"))
-    @Column(name = "uniprot_identity", nullable = false)
+    @JoinTable(name = "ia_err2uniprot", joinColumns = @JoinColumn(name="error_id"))
+    @Column(name = "uniprot")
     public Set<String> getUniprotIdentities() {
         return uniprotIdentities;
     }

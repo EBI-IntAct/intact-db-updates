@@ -18,7 +18,14 @@ import java.util.Collection;
 @DiscriminatorValue("out_of_date_participant")
 public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<PersistentInvalidRange> {
 
+    /**
+     * The intact ac of the remapped protein
+     */
     private String remapped_protein;
+
+    /**
+     * The intact ac of the remapped parent
+     */
     private String remapped_parent;
 
     public OutOfDateParticipantEvent(){
@@ -51,7 +58,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
         return super.removeRangeUpdate(up);
     }
 
-    @Column(name="remapped_protein_ac")
+    @Column(name="remapped_protein")
     public String getRemapped_protein() {
         return remapped_protein;
     }
@@ -60,7 +67,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
         this.remapped_protein = remapped_protein;
     }
 
-    @Column(name="remapped_parent_ac")
+    @Column(name="remapped_parent")
     public String getRemapped_parent() {
         return remapped_parent;
     }

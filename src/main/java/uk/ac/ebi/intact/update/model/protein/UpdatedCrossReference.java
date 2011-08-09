@@ -16,11 +16,22 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_protein_updated_xref")
+@Table(name = "ia_prot_updated_xref")
 public class UpdatedCrossReference extends HibernateUpdatePersistentImpl {
 
+    /**
+     * The database
+     */
     private String database;
+
+    /**
+     * The identifier
+     */
     private String identifier;
+
+    /**
+     * The qualifier
+     */
     private String qualifier;
 
     private UpdateEventImpl parent;
@@ -96,7 +107,7 @@ public class UpdatedCrossReference extends HibernateUpdatePersistentImpl {
     }
 
     @ManyToOne( targetEntity = PersistentProteinEvent.class )
-    @JoinColumn( name = "event_id" )
+    @JoinColumn( name = "event_id", nullable = false)
     public UpdateEventImpl getParent() {
         return parent;
     }

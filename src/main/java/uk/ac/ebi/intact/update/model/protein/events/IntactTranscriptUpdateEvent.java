@@ -18,7 +18,14 @@ import javax.persistence.Entity;
 @DiscriminatorValue("transcript_update")
 public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
+    /**
+     * The old parent ac which has been replaced
+     */
     private String oldParentAc;
+
+    /**
+     * The new parent ac
+     */
     private String newParentAc;
 
     public IntactTranscriptUpdateEvent(){

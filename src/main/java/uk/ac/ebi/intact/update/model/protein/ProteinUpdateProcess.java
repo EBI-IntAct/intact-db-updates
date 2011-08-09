@@ -21,9 +21,12 @@ import java.util.Date;
  * @since <pre>14/03/11</pre>
  */
 @Entity
-@Table(name = "ia_protein_update_process")
+@Table(name = "ia_prot_update_process")
 public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEvent>{
 
+    /**
+     * Collection of errors while processing this update process
+     */
     Collection<DefaultPersistentUpdateError> updateErrors = new ArrayList<DefaultPersistentUpdateError>();
 
     public ProteinUpdateProcess(){

@@ -19,6 +19,9 @@ import javax.persistence.*;
 @Table(name = "ia_blast_results")
 public class PersistentBlastResults extends HibernateUpdatePersistentImpl implements BlastResults{
 
+    /**
+     * The blast protein
+     */
     private BlastProtein blastProtein;
 
     /**
@@ -62,7 +65,7 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
      *
      * @return The trembl accession we want to remap using the swissprto remapping process, null if it is a blast from anonymous sequence
      */
-    @Column(name = "trembl_accession_remapping", nullable = true, length = 20)
+    @Column(name = "trembl_ac", nullable = true, length = 20)
     public String getTremblAccession() {
         return tremblAccession;
     }
@@ -181,7 +184,7 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
      * @return The sequence
      */
     @Lob
-    @Column(name = "match_sequence")
+    @Column(name = "match_seq")
     public String getSequence() {
         if (this.blastProtein != null){
             return this.blastProtein.getSequence();

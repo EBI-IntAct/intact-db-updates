@@ -15,9 +15,12 @@ import javax.persistence.Entity;
  * @since <pre>01/08/11</pre>
  */
 @Entity
-@DiscriminatorValue("transcript_with_identical_sequence")
+@DiscriminatorValue("transcript_with_same_sequence")
 public class SequenceIdenticalToTranscriptEvent extends PersistentProteinEvent {
 
+    /**
+     * The uniprot ac of the transcript which has the same sequence as the protein in intact
+     */
     private String matchingUniprotTranscript;
 
     public SequenceIdenticalToTranscriptEvent(){

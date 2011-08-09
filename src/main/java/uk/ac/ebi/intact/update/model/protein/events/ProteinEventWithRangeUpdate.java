@@ -22,7 +22,14 @@ import java.util.Collection;
 @Entity
 public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange> extends PersistentProteinEvent {
 
+    /**
+     * The collection of updated feature annotations
+     */
     private Collection<FeatureUpdatedAnnotation> updatedFeatureAnnotations = new ArrayList<FeatureUpdatedAnnotation>();
+
+    /**
+     * The collection of updated ranges
+     */
     private Collection<T> updatedRanges = new ArrayList<T>();
 
     public ProteinEventWithRangeUpdate() {

@@ -16,9 +16,12 @@ import javax.persistence.*;
  * @since <pre>20/07/11</pre>
  */
 @Entity
-@Table(name = "ia_feature_updated_annotation")
+@Table(name = "ia_feature_updated_annot")
 public class FeatureUpdatedAnnotation extends UpdatedAnnotation {
 
+    /**
+     * The ac of the feature which has been updated
+     */
     String featureAc;
 
     public FeatureUpdatedAnnotation(){
@@ -47,7 +50,7 @@ public class FeatureUpdatedAnnotation extends UpdatedAnnotation {
 
     @Override
     @ManyToOne( targetEntity = PersistentProteinEvent.class )
-    @JoinColumn( name = "event_id" )
+    @JoinColumn( name = "event_id", nullable = false)
     public UpdateEventImpl getParent() {
         return super.getParent();
     }

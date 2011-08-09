@@ -19,7 +19,14 @@ import javax.persistence.Entity;
 @DiscriminatorValue("dead_uniprot")
 public class DeadUniprotAc extends DefaultPersistentUpdateError implements IntactUpdateError {
 
+    /**
+     * the uniprot ac which does not exist in uniprot
+     */
     protected String deadUniprot;
+
+    /**
+     * The intact protein ac
+     */
     protected String proteinAc;
 
     public DeadUniprotAc(){
@@ -40,7 +47,7 @@ public class DeadUniprotAc extends DefaultPersistentUpdateError implements Intac
         this.proteinAc = proteinAc;
     }
 
-    @Column(name = "dead_uniprot_ac")
+    @Column(name = "dead_ac")
     public String getDeadUniprot() {
         return deadUniprot;
     }

@@ -64,7 +64,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
      *
      * @return the list of accessions as a String, separated by a semi-colon
      */
-    @Column(name = "accessions", nullable = false, length = 500)
+    @Column(name = "accession", nullable = false, length = 500)
     public String getListOfAccessions(){
 
         if (this.accessions.isEmpty()){

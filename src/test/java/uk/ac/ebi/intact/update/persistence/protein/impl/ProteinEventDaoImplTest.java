@@ -47,18 +47,18 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         UniprotUpdateEvent evt2 = eventDao.getById(evt.getId());
         Assert.assertEquals(1, evt2.getUpdatedAliases().size());
         Assert.assertEquals(1, evt2.getUpdatedAnnotations().size());
-        Assert.assertEquals(1, evt2.getUpdatedReferences().size());
+        Assert.assertEquals(1, evt2.getUpdatedXrefs().size());
 
         evt.getUpdatedAliases().clear();
         evt.getUpdatedAnnotations().clear();
-        evt.getUpdatedReferences().clear();
+        evt.getUpdatedXrefs().clear();
 
         eventDao.update(evt);
 
         UniprotUpdateEvent evt3 = eventDao.getById(evt.getId());
         Assert.assertEquals(0, evt3.getUpdatedAliases().size());
         Assert.assertEquals(0, evt3.getUpdatedAnnotations().size());
-        Assert.assertEquals(0, evt3.getUpdatedReferences().size());
+        Assert.assertEquals(0, evt3.getUpdatedXrefs().size());
     }
 
     @Test

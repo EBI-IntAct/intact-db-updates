@@ -19,22 +19,21 @@ import java.util.Collection;
 @DiscriminatorValue("deleted_component")
 public class DeletedComponentEvent extends PersistentProteinEvent {
 
-    private Collection<String> deletedComponents;
+    /**
+     * collection of intact ac of components which have been deleted
+     */
+    private Collection<String> deletedComponents  = new ArrayList<String>();
 
     public DeletedComponentEvent(){
         super();
-
-        deletedComponents = new ArrayList<String>();
     }
 
     public DeletedComponentEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprot){
         super(updateProcess, protein, uniprot);
-
-        deletedComponents = new ArrayList<String>();
     }
 
     @ElementCollection
-    @CollectionTable(name="ia_deleted_components", joinColumns=@JoinColumn(name="event_id"))
+    @CollectionTable(name="ia_deleted_comp", joinColumns=@JoinColumn(name="event_id"))
     @Column(name="component_ac")
     public Collection<String> getDeletedComponents() {
         return deletedComponents;

@@ -18,26 +18,29 @@ import javax.persistence.Entity;
 @DiscriminatorValue("secondary_protein")
 public class SecondaryProteinEvent extends PersistentProteinEvent {
 
-    String updatedPrimaryAc;
+    /**
+     * The old primary ac in uniprot which is now a secondary ac
+     */
+    String secondaryUniprotAc;
 
     public SecondaryProteinEvent(){
         super();
-        this.updatedPrimaryAc = null;
+        this.secondaryUniprotAc = null;
 
     }
 
     public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String originalUniprotAc, String updatedPrimaryAc){
         super(updateProcess,protein, originalUniprotAc);
-        this.updatedPrimaryAc = updatedPrimaryAc;
+        this.secondaryUniprotAc = updatedPrimaryAc;
     }
 
-    @Column(name = "updated_primary_ac")
-    public String getUpdatedPrimaryAc() {
-        return updatedPrimaryAc;
+    @Column(name = "secondary_uniprot")
+    public String getSecondaryUniprotAc() {
+        return secondaryUniprotAc;
     }
 
-    public void setUpdatedPrimaryAc(String updatedAc) {
-        this.updatedPrimaryAc = updatedAc;
+    public void setSecondaryUniprotAc(String updatedAc) {
+        this.secondaryUniprotAc = updatedAc;
     }
 
     @Override
@@ -48,12 +51,12 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         final SecondaryProteinEvent event = ( SecondaryProteinEvent ) o;
 
-        if ( updatedPrimaryAc != null ) {
-            if (!updatedPrimaryAc.equals( event.getUpdatedPrimaryAc())){
+        if ( secondaryUniprotAc != null ) {
+            if (!secondaryUniprotAc.equals( event.getSecondaryUniprotAc())){
                 return false;
             }
         }
-        else if (event.getUpdatedPrimaryAc()!= null){
+        else if (event.getSecondaryUniprotAc()!= null){
             return false;
         }
 
@@ -73,8 +76,8 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         code = 29 * code + super.hashCode();
 
-        if ( updatedPrimaryAc != null ) {
-            code = 29 * code + updatedPrimaryAc.hashCode();
+        if ( secondaryUniprotAc != null ) {
+            code = 29 * code + secondaryUniprotAc.hashCode();
         }
 
         return code;
@@ -89,12 +92,12 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         final SecondaryProteinEvent event = ( SecondaryProteinEvent ) o;
 
-        if ( updatedPrimaryAc != null ) {
-            if (!updatedPrimaryAc.equals( event.getUpdatedPrimaryAc())){
+        if ( secondaryUniprotAc != null ) {
+            if (!secondaryUniprotAc.equals( event.getSecondaryUniprotAc())){
                 return false;
             }
         }
-        else if (event.getUpdatedPrimaryAc()!= null){
+        else if (event.getSecondaryUniprotAc()!= null){
             return false;
         }
 
@@ -107,7 +110,7 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Secondary proteinAc event : [ updated primary ac = " + updatedPrimaryAc != null ? updatedPrimaryAc : "none");
+        buffer.append("Secondary proteinAc event : [ updated primary ac = " + secondaryUniprotAc != null ? secondaryUniprotAc : "none");
 
         return buffer.toString();
     }

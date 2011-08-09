@@ -16,14 +16,27 @@ import javax.persistence.*;
  * @since <pre>28-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_protein_updated_alias")
+@Table(name = "ia_prot_updated_alias")
 public class UpdatedAlias extends HibernateUpdatePersistentImpl {
 
+    /**
+     * The alias type
+     */
     private String type;
+
+    /**
+     * The alias name
+     */
     private String name;
 
+    /**
+     * The parent
+     */
     private UpdateEventImpl parent;
 
+    /**
+     * The update status
+     */
     private UpdateStatus status;
 
     public UpdatedAlias(){

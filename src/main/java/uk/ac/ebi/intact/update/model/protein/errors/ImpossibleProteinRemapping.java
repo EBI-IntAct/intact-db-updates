@@ -19,6 +19,9 @@ import javax.persistence.Entity;
 @DiscriminatorValue("impossible_remapping")
 public class ImpossibleProteinRemapping extends DefaultPersistentUpdateError implements IntactUpdateError{
 
+    /**
+     * the intact protein ac
+     */
     private String proteinAc;
 
     public ImpossibleProteinRemapping(){
