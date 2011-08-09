@@ -115,6 +115,16 @@ public class UpdateDaoFactory implements Serializable{
 
     @Autowired
     private UniprotUpdateEventDao uniprotUpdateEventDao;
+
+    @Autowired
+    private DuplicatedProteinEventDao duplicatedProteinEventDao;
+
+    @Autowired
+    private OutOfDateParticipantEventDao outOfDateParticipantEventDao;
+
+    @Autowired
+    private DeletedComponentEventDao deletedComponentEventDao;
+
     /**
      * Creates a UpdateDaoFactory
      */
@@ -308,4 +318,15 @@ public class UpdateDaoFactory implements Serializable{
         return (T) applicationContext.getBean(StringUtils.uncapitalize(beanType.getSimpleName()));
     }
 
+    public DuplicatedProteinEventDao getDuplicatedProteinEventDao() {
+        return duplicatedProteinEventDao;
+    }
+
+    public OutOfDateParticipantEventDao getOutOfDateParticipantEventDao() {
+        return outOfDateParticipantEventDao;
+    }
+
+    public DeletedComponentEventDao getDeletedComponentEventDao() {
+        return deletedComponentEventDao;
+    }
 }

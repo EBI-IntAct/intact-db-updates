@@ -65,7 +65,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         DeletedProteinEvent proteinEvt = new DeletedProteinEvent(this.updateProcess, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DeletedProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getDeletedProteinEventDao().persist(proteinEvt);
     }
 
     @Transactional( "update" )
@@ -103,7 +103,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             collectRangeUpdateEvents(rangeReport, duplicatedEvent);
 
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(DuplicatedProteinEvent.class).persist(duplicatedEvent);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getDuplicatedProteinEventDao().persist(duplicatedEvent);
         }
     }
 
@@ -158,7 +158,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             proteinEvt.addDeletedReferencesFromXref(deletedXrefs);
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(PersistentProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getDeadProteinEventDao().persist(proteinEvt);
     }
 
     @Override
@@ -168,7 +168,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(this.updateProcess, protein, evt.getUniprotIdentity(), evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceUpdateEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSequenceUpdateEventDao().persist(proteinEvt);
     }
 
     @Override
@@ -179,7 +179,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         CreatedProteinEvent proteinEvt = new CreatedProteinEvent(this.updateProcess, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(CreatedProteinEvent.class).persist(proteinEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getCreatedProteinEventDao().persist(proteinEvt);
     }
 
     @Override
@@ -275,7 +275,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             }
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(protEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getOutOfDateParticipantEventDao().persist(protEvt);
     }
 
     @Override
@@ -308,7 +308,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
 
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SecondaryProteinEvent.class).persist(protEvt);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
 
         for (ProteinTranscript protTrans : secondaryIsoforms){
@@ -320,7 +320,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
 
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SecondaryProteinEvent.class).persist(protEvt);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
     }
 
@@ -334,7 +334,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         SequenceIdenticalToTranscriptEvent protEvt = new SequenceIdenticalToTranscriptEvent(this.updateProcess, protein, currentAc, transcriptAc);
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(SequenceIdenticalToTranscriptEvent.class).persist(protEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSequenceIdenticalToTranscriptEventDao().persist(protEvt);
     }
 
     @Override
@@ -348,7 +348,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         IntactTranscriptUpdateEvent protEvt = new IntactTranscriptUpdateEvent(this.updateProcess, protein, uniprotAc, oldParentAc, newParentAc);
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(IntactTranscriptUpdateEvent.class).persist(protEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getIntactTranscriptEventDao().persist(protEvt);
 
     }
 
@@ -362,7 +362,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             Protein protein = evt.getProtein();
 
             UniprotProteinMapperEvent protEvt = new UniprotProteinMapperEvent(this.updateProcess, protein, result);
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(UniprotProteinMapperEvent.class).persist(protEvt);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUniprotProteinMapperEventDao().persist(protEvt);
         }
     }
 
@@ -386,7 +386,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             protEvt.getDeletedComponents().add(c.getAc());
         }
 
-        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent.class).persist(protEvt);
+        IntactUpdateContext.getCurrentInstance().getUpdateFactory().getDeletedComponentEventDao().persist(protEvt);
     }
 
     private void processUpdatedProtein(Protein protein, UpdateCaseEvent evt){
@@ -437,7 +437,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         }
 
         if (needToBePersisted){
-            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUniprotUpdateEventDao().persist(proteinEvent);
         }
     }
 }
