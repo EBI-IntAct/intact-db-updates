@@ -67,7 +67,7 @@ public class InvalidCollectionOfParents extends DefaultPersistentUpdateError  im
         this.proteinAc = proteinAc;
     }
 
-        @Override
+    @Override
     public boolean equals( Object o ) {
         if ( !super.equals(o) ) {
             return false;
@@ -109,6 +109,10 @@ public class InvalidCollectionOfParents extends DefaultPersistentUpdateError  im
 
     @Override
     public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
 
         final InvalidCollectionOfParents event = (InvalidCollectionOfParents) o;
 

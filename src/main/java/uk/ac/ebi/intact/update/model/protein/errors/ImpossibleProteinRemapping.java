@@ -83,6 +83,10 @@ public class ImpossibleProteinRemapping extends DefaultPersistentUpdateError imp
     @Override
     public boolean isIdenticalTo(Object o){
 
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
         final ImpossibleProteinRemapping event = (ImpossibleProteinRemapping) o;
 
         if ( proteinAc != null ) {

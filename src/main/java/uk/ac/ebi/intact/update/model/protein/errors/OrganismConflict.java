@@ -77,4 +77,151 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
     public void setProteinAc(String proteinAc) {
         this.proteinAc = proteinAc;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final OrganismConflict event = (OrganismConflict) o;
+
+        if ( wrongTaxId != null ) {
+            if (!wrongTaxId.equals( event.getWrongTaxId())){
+                return false;
+            }
+        }
+        else if (event.getWrongTaxId()!= null){
+            return false;
+        }
+
+        if ( uniprotTaxId != null ) {
+            if (!uniprotTaxId.equals( event.getUniprotTaxId())){
+                return false;
+            }
+        }
+        else if (event.getUniprotTaxId()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( wrongTaxId != null ) {
+            code = 29 * code + wrongTaxId.hashCode();
+        }
+
+        if ( uniprotTaxId != null ) {
+            code = 29 * code + uniprotTaxId.hashCode();
+        }
+
+        if ( uniprotAc != null ) {
+            code = 29 * code + uniprotAc.hashCode();
+        }
+
+        if ( proteinAc != null ) {
+            code = 29 * code + proteinAc.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final OrganismConflict event = (OrganismConflict) o;
+
+        if ( wrongTaxId != null ) {
+            if (!wrongTaxId.equals( event.getWrongTaxId())){
+                return false;
+            }
+        }
+        else if (event.getWrongTaxId()!= null){
+            return false;
+        }
+
+        if ( uniprotTaxId != null ) {
+            if (!uniprotTaxId.equals( event.getUniprotTaxId())){
+                return false;
+            }
+        }
+        else if (event.getUniprotTaxId()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+
+        if (this.proteinAc == null || this.wrongTaxId == null || this.uniprotTaxId == null || this.uniprotAc == null){
+            return super.getErrorMessage();
+        }
+
+        StringBuffer error = new StringBuffer();
+        error.append("The protein ");
+        error.append(proteinAc);
+        error.append(" refers to taxId ");
+        error.append(wrongTaxId);
+        error.append(" but is associated with uniprot entry ");
+        error.append(this.uniprotAc);
+        error.append(" which refers to a different taxId ") ;
+        error.append(this.uniprotTaxId);;
+
+        return error.toString();
+    }
 }

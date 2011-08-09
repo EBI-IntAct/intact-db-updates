@@ -89,6 +89,10 @@ public class ImpossibleUpdateMaster extends DefaultPersistentUpdateError impleme
     @Override
     public boolean isIdenticalTo(Object o){
 
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
         final ImpossibleUpdateMaster event = (ImpossibleUpdateMaster) o;
 
         if ( uniprotAc != null ) {

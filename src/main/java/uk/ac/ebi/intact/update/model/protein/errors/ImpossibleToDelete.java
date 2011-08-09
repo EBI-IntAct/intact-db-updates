@@ -82,6 +82,10 @@ public class ImpossibleToDelete extends DefaultPersistentUpdateError{
     @Override
     public boolean isIdenticalTo(Object o){
 
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
         final ImpossibleToDelete event = (ImpossibleToDelete) o;
 
         if ( proteinLabel != null ) {

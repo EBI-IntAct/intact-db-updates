@@ -68,4 +68,131 @@ public class UniprotSequenceNull extends DefaultPersistentUpdateError  implement
     public void setProteinAc(String proteinAc) {
         this.proteinAc = proteinAc;
     }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final UniprotSequenceNull event = (UniprotSequenceNull) o;
+
+        if ( intactSequence != null ) {
+            if (!intactSequence.equals( event.getIntactSequence())){
+                return false;
+            }
+        }
+        else if (event.getIntactSequence()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( intactSequence != null ) {
+            code = 29 * code + intactSequence.hashCode();
+        }
+
+        if ( uniprotAc != null ) {
+            code = 29 * code + uniprotAc.hashCode();
+        }
+
+        if ( proteinAc != null ) {
+            code = 29 * code + proteinAc.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final UniprotSequenceNull event = (UniprotSequenceNull) o;
+
+        if ( intactSequence != null ) {
+            if (!intactSequence.equals( event.getIntactSequence())){
+                return false;
+            }
+        }
+        else if (event.getIntactSequence()!= null){
+            return false;
+        }
+
+        if ( uniprotAc != null ) {
+            if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( proteinAc != null ) {
+            if (!proteinAc.equals( event.getProteinAc())){
+                return false;
+            }
+        }
+        else if (event.getProteinAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+
+        if (this.proteinAc == null || this.uniprotAc == null){
+            return super.getErrorMessage();
+        }
+
+        StringBuffer error = new StringBuffer();
+        error.append("The uniprot entry ");
+        error.append(uniprotAc);
+        error.append(" does not have a sequence ");
+        error.append(" and the sequence of the protein ");
+        error.append(this.proteinAc);
+        error.append(" cannot be updated.");
+
+        if (intactSequence != null){
+            error.append("The sequence of the protein in Intact is not null.");
+        }
+
+        return error.toString();
+    }
 }

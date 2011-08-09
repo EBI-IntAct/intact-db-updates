@@ -19,8 +19,8 @@ import javax.persistence.Entity;
 @DiscriminatorValue("dead_uniprot")
 public class DeadUniprotAc extends DefaultPersistentUpdateError implements IntactUpdateError {
 
-    private String deadUniprot;
-    private String proteinAc;
+    protected String deadUniprot;
+    protected String proteinAc;
 
     public DeadUniprotAc(){
         super(null, UpdateError.dead_uniprot_ac, null);

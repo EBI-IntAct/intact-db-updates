@@ -39,7 +39,7 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
         return masterUniprotAc;
     }
 
-    @Column(name = "transcript_intact_ac")
+    @Column(name = "master_intact_ac")
     public String getMasterIntactAc() {
         return masterIntactAc;
     }
@@ -50,5 +50,115 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
 
     public void setMasterIntactAc(String masterIntactAc) {
         this.masterIntactAc = masterIntactAc;
+    }
+
+    @Override
+    public boolean equals( Object o ) {
+        if ( !super.equals(o) ) {
+            return false;
+        }
+
+        final NonExistingProteinTranscript event = (NonExistingProteinTranscript) o;
+
+        if ( masterUniprotAc != null ) {
+            if (!masterUniprotAc.equals( event.getMasterUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getMasterUniprotAc()!= null){
+            return false;
+        }
+
+        if ( masterIntactAc != null ) {
+            if (!masterIntactAc.equals( event.getMasterIntactAc())){
+                return false;
+            }
+        }
+        else if (event.getMasterIntactAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * This class overwrites equals. To ensure proper functioning of HashTable,
+     * hashCode must be overwritten, too.
+     *
+     * @return hash code of the object.
+     */
+    @Override
+    public int hashCode() {
+
+        int code = 29;
+
+        code = 29 * code + super.hashCode();
+
+        if ( masterUniprotAc != null ) {
+            code = 29 * code + masterUniprotAc.hashCode();
+        }
+
+        if ( masterIntactAc != null ) {
+            code = 29 * code + masterIntactAc.hashCode();
+        }
+
+        return code;
+    }
+
+    @Override
+    public boolean isIdenticalTo(Object o){
+
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
+        final NonExistingProteinTranscript event = (NonExistingProteinTranscript) o;
+
+        if ( masterUniprotAc != null ) {
+            if (!masterUniprotAc.equals( event.getMasterUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getMasterUniprotAc()!= null){
+            return false;
+        }
+
+        if ( masterIntactAc != null ) {
+            if (!masterIntactAc.equals( event.getMasterIntactAc())){
+                return false;
+            }
+        }
+        else if (event.getMasterIntactAc()!= null){
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+
+        if (this.proteinAc == null || this.masterIntactAc == null || this.masterUniprotAc == null){
+            return "";
+        }
+
+        StringBuffer error = new StringBuffer();
+        error.append("The protein transcript ");
+        error.append(proteinAc);
+        error.append(" is attached to the parent protein ");
+        error.append(masterIntactAc);
+
+        if (deadUniprot != null){
+            error.append(" but refers to a uniprot ac ");
+            error.append(deadUniprot);
+            error.append(" which is not present in the master uniprot entry ");
+            error.append(masterUniprotAc);
+        }
+        else {
+            error.append(" and does not have a 'no-uniprot-update' and or any uniprot identity which can be found in the uniprot entry ");
+            error.append(masterUniprotAc);
+        }
+
+        return error.toString();
     }
 }

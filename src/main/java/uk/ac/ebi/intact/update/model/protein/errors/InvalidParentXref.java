@@ -109,6 +109,10 @@ public class InvalidParentXref extends DefaultPersistentUpdateError implements I
     @Override
     public boolean isIdenticalTo(Object o){
 
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
+
         final InvalidParentXref event = (InvalidParentXref) o;
 
         if ( proteinAc != null ) {
@@ -135,7 +139,7 @@ public class InvalidParentXref extends DefaultPersistentUpdateError implements I
     @Override
     public String toString() {
 
-       if (this.invalidParent.isEmpty() || this.proteinAc == null){
+        if (this.invalidParent.isEmpty() || this.proteinAc == null){
             return this.reason;
         }
 

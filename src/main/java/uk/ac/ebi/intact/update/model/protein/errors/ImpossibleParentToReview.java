@@ -84,6 +84,9 @@ public class ImpossibleParentToReview extends DefaultPersistentUpdateError imple
     @Override
     public boolean isIdenticalTo(Object o){
 
+        if (!super.isIdenticalTo(o)){
+            return false;
+        }
         final ImpossibleParentToReview event = (ImpossibleParentToReview) o;
 
         if ( proteinAc != null ) {
