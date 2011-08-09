@@ -54,10 +54,6 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
 
         final ProteinUpdateProcess process = ( ProteinUpdateProcess ) o;
 
-        if (!CollectionUtils.isEqualCollection(updateErrors, process.getUpdateErrors())){
-            return false;
-        }
-
-        return true;
+        return CollectionUtils.isEqualCollection(updateErrors, process.getUpdateErrors());
     }
 }

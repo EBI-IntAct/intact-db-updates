@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.protein.ProteinEventDao;
+import uk.ac.ebi.intact.update.persistence.protein.UniprotUpdateEventDao;
 
 import java.util.Date;
 
@@ -62,9 +63,9 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
     @Test
     public void delete_protein_event(){
-        ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
+        UniprotUpdateEventDao eventDao = getUpdateDaoFactory().getUniprotUpdateEventDao();
 
-        PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
+        UniprotUpdateEvent evt = getMockBuilder().createDefaultProteinEvent();
         eventDao.persist(evt);
 
         Assert.assertEquals(1, eventDao.countAll());

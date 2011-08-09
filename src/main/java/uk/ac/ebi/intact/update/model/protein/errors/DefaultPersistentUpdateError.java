@@ -38,7 +38,8 @@ public abstract class DefaultPersistentUpdateError extends HibernateUpdatePersis
         this.reason = reason;
     }
 
-    @Column(name="process_ac", nullable = false)
+    @ManyToOne( targetEntity = ProteinUpdateProcess.class )
+    @JoinColumn(name="parent_ac")
     public ProteinUpdateProcess getParent() {
         return parent;
     }

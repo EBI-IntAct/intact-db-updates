@@ -7,16 +7,14 @@ import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
+import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateEventDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateProcessDaoImpl;
 import uk.ac.ebi.intact.update.persistence.protein.*;
-import uk.ac.ebi.intact.update.persistence.protein.impl.MappingReportDaoImpl;
-import uk.ac.ebi.intact.update.persistence.protein.impl.ProteinEventDaoImpl;
-import uk.ac.ebi.intact.update.persistence.protein.impl.UpdatedAnnotationDaoImpl;
-import uk.ac.ebi.intact.update.persistence.protein.impl.UpdatedRangeDaoImpl;
+import uk.ac.ebi.intact.update.persistence.protein.impl.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -143,6 +141,12 @@ public class UpdateDaoFactory implements Serializable{
         return actionReportDao;
     }
 
+    public <T extends DefaultPersistentUpdateError> ProteinUpdateErrorDao<T> getProteinUpdateErrorDao(Class<T> entityType) {
+        ProteinUpdateErrorDao proteinUpdateErrorDao = getBean(ProteinUpdateErrorDaoImpl.class);
+        proteinUpdateErrorDao.setEntityClass(entityType);
+        return proteinUpdateErrorDao;
+    }
+
     /**
      *
      * @param entityType
@@ -221,7 +225,7 @@ public class UpdateDaoFactory implements Serializable{
         return invalidRangeDao;
     }
 
-   /**
+    /**
      *
      * @param entityType
      * @param <T>

@@ -5,6 +5,7 @@ import org.junit.Test;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
@@ -117,7 +118,7 @@ public class UpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         process.addEvent(proteinEvent);
 
-        PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
+        UniprotUpdateEvent evt = getMockBuilder().createDefaultProteinEvent();
 
         process.addEvent(evt);
 
