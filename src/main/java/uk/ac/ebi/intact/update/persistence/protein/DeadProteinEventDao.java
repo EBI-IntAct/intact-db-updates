@@ -3,6 +3,8 @@ package uk.ac.ebi.intact.update.persistence.protein;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
 
+import java.util.List;
+
 /**
  * Dao for dead proteins
  *
@@ -12,4 +14,7 @@ import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
  */
 @Mockable
 public interface DeadProteinEventDao extends ProteinEventDao<DeadProteinEvent> {
+
+    public List<DeadProteinEvent> getAllDeadProteinEventsHavingDeletedXrefs(long processId);
+    public List<DeadProteinEvent> getAllDeadProteinEventsWithoutDeletedXrefs(long processId);
 }

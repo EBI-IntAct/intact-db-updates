@@ -3,6 +3,8 @@ package uk.ac.ebi.intact.update.persistence.protein;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.events.SecondaryProteinEvent;
 
+import java.util.List;
+
 /**
  * Dao for secondary protein events
  *
@@ -12,4 +14,6 @@ import uk.ac.ebi.intact.update.model.protein.events.SecondaryProteinEvent;
  */
 @Mockable
 public interface SecondaryProteinEventDao extends ProteinEventDao<SecondaryProteinEvent> {
+
+    public List<SecondaryProteinEvent> getSecondaryProteinEventsBySecondaryAc(long processId, String secondary);
 }

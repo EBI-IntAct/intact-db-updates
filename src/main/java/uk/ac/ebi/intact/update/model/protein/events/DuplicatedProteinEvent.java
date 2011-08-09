@@ -78,6 +78,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     }
 
     @Column(name = "updated_seq")
+    @Type(type="yes_no")
     public boolean isSequenceUpdate() {
         return neededSequenceUpdate;
     }

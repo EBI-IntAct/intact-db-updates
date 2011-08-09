@@ -21,24 +21,24 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
     /**
      * The intact ac of the remapped protein
      */
-    private String remapped_protein;
+    private String remappedProtein;
 
     /**
      * The intact ac of the remapped parent
      */
-    private String remapped_parent;
+    private String remappedParent;
 
     public OutOfDateParticipantEvent(){
         super();
-        this.remapped_protein = null;
-        this.remapped_parent = null;
+        this.remappedProtein = null;
+        this.remappedParent = null;
 
     }
 
     public OutOfDateParticipantEvent(ProteinUpdateProcess updateProcess, Protein protein, String uniprotAc, String fixedProtein, String remapped_parent){
         super(updateProcess, protein, uniprotAc);
-        this.remapped_protein = fixedProtein;
-        this.remapped_parent = remapped_parent;
+        this.remappedProtein = fixedProtein;
+        this.remappedParent = remapped_parent;
     }
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
@@ -58,22 +58,22 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
         return super.removeRangeUpdate(up);
     }
 
-    @Column(name="remapped_protein")
-    public String getRemapped_protein() {
-        return remapped_protein;
+    @Column(name="remappedProtein")
+    public String getRemappedProtein() {
+        return remappedProtein;
     }
 
-    public void setRemapped_protein(String remapped_protein) {
-        this.remapped_protein = remapped_protein;
+    public void setRemappedProtein(String remappedProtein) {
+        this.remappedProtein = remappedProtein;
     }
 
-    @Column(name="remapped_parent")
-    public String getRemapped_parent() {
-        return remapped_parent;
+    @Column(name="remappedParent")
+    public String getRemappedParent() {
+        return remappedParent;
     }
 
-    public void setRemapped_parent(String remapped_protein) {
-        this.remapped_parent = remapped_protein;
+    public void setRemappedParent(String remapped_protein) {
+        this.remappedParent = remapped_protein;
     }
 
     @Override
@@ -84,21 +84,21 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
         final OutOfDateParticipantEvent event = ( OutOfDateParticipantEvent ) o;
 
-        if ( remapped_protein != null ) {
-            if (!remapped_protein.equals( event.getRemapped_protein())){
+        if ( remappedProtein != null ) {
+            if (!remappedProtein.equals( event.getRemappedProtein())){
                 return false;
             }
         }
-        else if (event.getRemapped_protein()!= null){
+        else if (event.getRemappedProtein()!= null){
             return false;
         }
 
-        if ( remapped_parent != null ) {
-            if (!remapped_parent.equals( event.getRemapped_parent())){
+        if ( remappedParent != null ) {
+            if (!remappedParent.equals( event.getRemappedParent())){
                 return false;
             }
         }
-        else if (event.getRemapped_parent()!= null){
+        else if (event.getRemappedParent()!= null){
             return false;
         }
 
@@ -118,12 +118,12 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
         code = 29 * code + super.hashCode();
 
-        if ( remapped_protein != null ) {
-            code = 29 * code + remapped_protein.hashCode();
+        if ( remappedProtein != null ) {
+            code = 29 * code + remappedProtein.hashCode();
         }
 
-        if ( remapped_parent!= null ) {
-            code = 29 * code + remapped_parent.hashCode();
+        if ( remappedParent != null ) {
+            code = 29 * code + remappedParent.hashCode();
         }
 
         return code;
@@ -138,21 +138,21 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
         final OutOfDateParticipantEvent event = ( OutOfDateParticipantEvent ) o;
 
-        if ( remapped_protein != null ) {
-            if (!remapped_protein.equals( event.getRemapped_protein())){
+        if ( remappedProtein != null ) {
+            if (!remappedProtein.equals( event.getRemappedProtein())){
                 return false;
             }
         }
-        else if (event.getRemapped_protein()!= null){
+        else if (event.getRemappedProtein()!= null){
             return false;
         }
 
-        if ( remapped_parent != null ) {
-            if (!remapped_parent.equals( event.getRemapped_parent())){
+        if ( remappedParent != null ) {
+            if (!remappedParent.equals( event.getRemappedParent())){
                 return false;
             }
         }
-        else if (event.getRemapped_parent()!= null){
+        else if (event.getRemappedParent()!= null){
             return false;
         }
 
@@ -165,8 +165,8 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Out of date participant event : [Remapped proteinAc ac = " + (remapped_protein != null ? remapped_protein : "none"));
-        buffer.append(", remapped parent ac = "+(remapped_protein != null ? remapped_protein : "none")+"] \n");
+        buffer.append("Out of date participant event : [Remapped proteinAc ac = " + (remappedProtein != null ? remappedProtein : "none"));
+        buffer.append(", remapped parent ac = "+(remappedProtein != null ? remappedProtein : "none")+"] \n");
 
         return buffer.toString();
     }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,6 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.persistence.protein.DeadProteinEventDao;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * Default implementation of Dead protein event dao
@@ -25,5 +27,19 @@ public class DeadProteinEventDaoImpl extends ProteinEventDaoImpl<DeadProteinEven
     }
     public DeadProteinEventDaoImpl(EntityManager entityManager) {
         super( DeadProteinEvent.class, entityManager);
+    }
+
+    @Override
+    public List<DeadProteinEvent> getAllDeadProteinEventsHavingDeletedXrefs(long id) {
+        return getSession().createCriteria(DeadProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
+                add(Restrictions.isNotEmpty("deletedXrefs")).list();
+    }
+
+    @Override
+    public List<DeadProteinEvent> getAllDeadProteinEventsWithoutDeletedXrefs(long id) {
+        return getSession().createCriteria(DeadProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
+                add(Restrictions.isEmpty("deletedXrefs")).list();
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,6 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.events.SequenceIdenticalToTranscrip
 import uk.ac.ebi.intact.update.persistence.protein.SequenceIdenticalToTranscriptEventDao;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * Default dao for sequence identical to protein transcript events
@@ -25,5 +27,12 @@ public class SequenceIdenticalToTranscriptEventDaoImpl extends ProteinEventDaoIm
     }
     public SequenceIdenticalToTranscriptEventDaoImpl(EntityManager entityManager) {
         super( SequenceIdenticalToTranscriptEvent.class, entityManager);
+    }
+
+    @Override
+    public List<SequenceIdenticalToTranscriptEvent> getByUniprotTranscriptAc(long processId, String transcript) {
+        return getSession().createCriteria(getEntityClass()).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("matchingUniprotTranscript", transcript)).list();
     }
 }

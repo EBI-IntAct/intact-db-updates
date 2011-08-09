@@ -54,4 +54,16 @@ public class ProteinUpdateProcessDaoImpl extends UpdateProcessDaoImpl<ProteinUpd
         return getSession().createCriteria(ProteinUpdateProcess.class)
                 .add(Restrictions.ge("date", date)).list();
     }
+
+    @Override
+    public List<ProteinUpdateProcess> getUpdateProcessHavingErrors() {
+        return getSession().createCriteria(getEntityClass()).
+                add(Restrictions.isNotEmpty("updateErrors")).list();
+    }
+
+    @Override
+    public List<ProteinUpdateProcess> getUpdateProcessWithoutErrors() {
+        return getSession().createCriteria(getEntityClass()).
+                add(Restrictions.isEmpty("updateErrors")).list();
+    }
 }

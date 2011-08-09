@@ -1,13 +1,16 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
 import uk.ac.ebi.intact.update.persistence.protein.DuplicatedProteinEventDao;
 
+import java.util.List;
+
 /**
- * TODO comment this
+ * Default implementation for duplicated protein events dao
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -17,4 +20,38 @@ import uk.ac.ebi.intact.update.persistence.protein.DuplicatedProteinEventDao;
 @Transactional(readOnly = true)
 @Lazy
 public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<DuplicatedProteinEvent> implements DuplicatedProteinEventDao {
+    @Override
+    public List<DuplicatedProteinEvent> getDuplicatedEventByOriginalProtein(long processId, String originalProtein) {
+        return getSession().createCriteria(DuplicatedProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("originalProtein", originalProtein)).list();
+    }
+
+    @Override
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeSuccessful(long processId) {
+        return getSession().createCriteria(DuplicatedProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("mergeSuccessful", true)).list();
+    }
+
+    @Override
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeNotSuccessful(long processId) {
+        return getSession().createCriteria(DuplicatedProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("mergeSuccessful", false)).list();
+    }
+
+    @Override
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithSequenceUpdate(long processId) {
+        return getSession().createCriteria(DuplicatedProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("sequenceUpdate", true)).list();
+    }
+
+    @Override
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithoutSequenceUpdate(long processId) {
+        return getSession().createCriteria(DuplicatedProteinEvent.class).
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.eq("sequenceUpdate", false)).list();
+    }
 }

@@ -3,6 +3,8 @@ package uk.ac.ebi.intact.update.persistence.protein;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
 
+import java.util.List;
+
 /**
  * Dao for duplicated proteins
  *
@@ -12,4 +14,10 @@ import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
  */
 @Mockable
 public interface DuplicatedProteinEventDao extends ProteinEventDao<DuplicatedProteinEvent> {
+
+    public List<DuplicatedProteinEvent> getDuplicatedEventByOriginalProtein(long processId, String originalProtein);
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeSuccessful(long processId);
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeNotSuccessful(long processId);
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithSequenceUpdate(long processId);
+    public List<DuplicatedProteinEvent> getDuplicatedEventWithoutSequenceUpdate(long processId);
 }

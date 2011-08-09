@@ -5,6 +5,7 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.persistence.UpdateProcessDao;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * This interface allows to query the database to get Update processes
@@ -16,4 +17,6 @@ import java.io.Serializable;
 @Mockable
 public interface ProteinUpdateProcessDao extends UpdateProcessDao<ProteinUpdateProcess>, Serializable {
 
+    public List<ProteinUpdateProcess> getUpdateProcessHavingErrors();
+    public List<ProteinUpdateProcess> getUpdateProcessWithoutErrors();
 }

@@ -2,8 +2,10 @@ package uk.ac.ebi.intact.update.model.protein.errors;
 
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
-import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
+import uk.ac.ebi.intact.update.model.UpdateEventImpl;
+import uk.ac.ebi.intact.update.model.UpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 
@@ -18,12 +20,7 @@ import javax.persistence.*;
 @Inheritance(strategy= InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="type", discriminatorType= DiscriminatorType.STRING)
 @Table(name = "ia_prot_update_err")
-public abstract class DefaultPersistentUpdateError extends HibernateUpdatePersistentImpl implements ProteinUpdateError {
-
-    /**
-     * the protein update process
-     */
-    private ProteinUpdateProcess parent;
+public abstract class DefaultPersistentUpdateError extends UpdateEventImpl implements ProteinUpdateError {
 
     /**
      * the label of the error
@@ -37,26 +34,21 @@ public abstract class DefaultPersistentUpdateError extends HibernateUpdatePersis
 
     public DefaultPersistentUpdateError(){
         super();
-        this.parent = null;
         this.errorLabel = null;
         this.reason = null;
     }
 
     public DefaultPersistentUpdateError(ProteinUpdateProcess parent, UpdateError errorLabel, String reason){
-        super();
-        this.parent = parent;
+        super(parent);
         this.errorLabel = errorLabel;
         this.reason = reason;
     }
 
+    @Override
     @ManyToOne( targetEntity = ProteinUpdateProcess.class )
     @JoinColumn(name="parent_ac")
-    public ProteinUpdateProcess getParent() {
-        return parent;
-    }
-
-    public void setParent(ProteinUpdateProcess parent) {
-        this.parent = parent;
+    public UpdateProcess<PersistentProteinEvent> getParent() {
+        return super.getParent();
     }
 
     @Override

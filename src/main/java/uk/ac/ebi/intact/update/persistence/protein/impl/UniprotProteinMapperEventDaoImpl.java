@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -7,6 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.events.UniprotProteinMapperEvent;
 import uk.ac.ebi.intact.update.persistence.protein.UniprotProteinMapperEventDao;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * Default dao for uniprot mapping events
@@ -25,5 +27,21 @@ public class UniprotProteinMapperEventDaoImpl extends ProteinEventDaoImpl<Unipro
     }
     public UniprotProteinMapperEventDaoImpl(EntityManager entityManager) {
         super( UniprotProteinMapperEvent.class, entityManager);
+    }
+
+    @Override
+    public List<UniprotProteinMapperEvent> getSuccessfulUniprotMappingEvents(long processId) {
+        return getSession().createCriteria(getEntityClass()).
+                createAlias("identificationResults", "i").
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.isNotNull("i.finalUniprotId")).list();
+    }
+
+    @Override
+    public List<UniprotProteinMapperEvent> getUnSuccessfulUniprotMappingEvents(long processId) {
+        return getSession().createCriteria(getEntityClass()).
+                createAlias("identificationResults", "i").
+                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                add(Restrictions.isNull("i.finalUniprotId")).list();
     }
 }

@@ -3,6 +3,8 @@ package uk.ac.ebi.intact.update.persistence.protein;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 
+import java.util.List;
+
 /**
  * Dao for out of date participants events
  *
@@ -12,4 +14,9 @@ import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
  */
 @Mockable
 public interface OutOfDateParticipantEventDao extends ProteinEventDao<OutOfDateParticipantEvent> {
+
+    public List<OutOfDateParticipantEvent> getOutOfDateEventImpossibleToFix(long processId);
+    public List<OutOfDateParticipantEvent> getOutOfDateEventPossibleToFix(long processId);
+    public List<OutOfDateParticipantEvent> getOutOfDateEventPossiblePerRemappedProtein(long processId, String remappedProtein);
+    public List<OutOfDateParticipantEvent> getOutOfDateEventPossiblePerRemappedParent(long processId, String remappedParent);
 }

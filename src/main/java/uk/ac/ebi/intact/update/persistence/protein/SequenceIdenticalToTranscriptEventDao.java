@@ -3,6 +3,8 @@ package uk.ac.ebi.intact.update.persistence.protein;
 import uk.ac.ebi.intact.annotation.Mockable;
 import uk.ac.ebi.intact.update.model.protein.events.SequenceIdenticalToTranscriptEvent;
 
+import java.util.List;
+
 /**
  * Dao for proteins having sequence identical to one of the transcripts
  *
@@ -12,4 +14,6 @@ import uk.ac.ebi.intact.update.model.protein.events.SequenceIdenticalToTranscrip
  */
 @Mockable
 public interface SequenceIdenticalToTranscriptEventDao extends ProteinEventDao<SequenceIdenticalToTranscriptEvent> {
+
+    public List<SequenceIdenticalToTranscriptEvent> getByUniprotTranscriptAc(long processId, String transcript);
 }
