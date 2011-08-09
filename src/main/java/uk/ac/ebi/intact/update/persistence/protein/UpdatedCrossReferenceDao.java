@@ -16,7 +16,7 @@ import java.util.Collection;
 @Mockable
 public interface UpdatedCrossReferenceDao extends UpdateBaseDao<UpdatedCrossReference> {
 
-     Collection<UpdatedCrossReference> getDeletedXrefsFor(Long eventId);
-    Collection<UpdatedCrossReference> getUpdatedXrefsFor(Long eventId);
-    Collection<UpdatedCrossReference> getAddedXrefsFor(Long eventId);
+    public Collection<UpdatedCrossReference> getDeletedXrefsFor(Long eventId);
+    public Collection<UpdatedCrossReference> getUpdatedXrefsFor(Long eventId);
+    public Collection<UpdatedCrossReference> getAddedXrefsFor(Long eventId);
 }

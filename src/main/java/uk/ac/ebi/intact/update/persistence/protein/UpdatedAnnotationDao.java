@@ -16,7 +16,7 @@ import java.util.Collection;
 @Mockable
 public interface UpdatedAnnotationDao<T extends UpdatedAnnotation> extends UpdateBaseDao<T> {
 
-    Collection<T> getDeletedAnnotationFor(Long eventId);
-    Collection<T> getUpdatedAnnotationFor(Long eventId);
-    Collection<T> getAddedAnnotationFor(Long eventId);
+    public Collection<T> getDeletedAnnotationFor(Long eventId);
+    public Collection<T> getUpdatedAnnotationFor(Long eventId);
+    public Collection<T> getAddedAnnotationFor(Long eventId);
 }

@@ -15,7 +15,7 @@ import java.util.Collection;
  */
 @Mockable
 public interface UpdatedAliasDao extends UpdateBaseDao<UpdatedAlias> {
-    Collection<UpdatedAlias> getDeletedAliasesFor(Long eventId);
-    Collection<UpdatedAlias> getUpdatedAliasesFor(Long eventId);
-    Collection<UpdatedAlias> getAddedAliasesFor(Long eventId);
+    public Collection<UpdatedAlias> getDeletedAliasesFor(Long eventId);
+    public Collection<UpdatedAlias> getUpdatedAliasesFor(Long eventId);
+    public Collection<UpdatedAlias> getAddedAliasesFor(Long eventId);
 }
