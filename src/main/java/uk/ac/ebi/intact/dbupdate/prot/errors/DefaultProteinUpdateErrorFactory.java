@@ -84,8 +84,8 @@ public class DefaultProteinUpdateErrorFactory implements ProteinUpdateErrorFacto
     }
 
     @Override
-    public ProteinUpdateError createNonExistingMasterProteinError(String proteinAc, String deadMasterAc, String transcriptUniprotAc, String masterIntactAc) {
-        return new NonExistingMasterProtein(proteinAc, deadMasterAc, transcriptUniprotAc, masterIntactAc);
+    public ProteinUpdateError createNonExistingMasterProteinError(String proteinAc, String deadMasterAc, String transcriptUniprotAc, String transcriptIntactAc) {
+        return new NonExistingMasterProtein(proteinAc, deadMasterAc, transcriptUniprotAc, transcriptIntactAc);
     }
 
     @Override
