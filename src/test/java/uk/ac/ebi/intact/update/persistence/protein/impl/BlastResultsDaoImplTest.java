@@ -42,7 +42,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<PersistentBlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
+        List<PersistentBlastResults> r = blastResultDao.getByIdentitySuperiorTo((float) 98);
 
         Assert.assertEquals(1, r.size());
         Assert.assertTrue(r.get(0).getIdentity() >= 98);
@@ -58,7 +58,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
         blastResultDao.persist( blastResults );
         blastResultDao.flush();
 
-        List<PersistentBlastResults> r = blastResultDao.getResultsByIdentitySuperior((float)98);
+        List<PersistentBlastResults> r = blastResultDao.getByIdentitySuperiorTo((float) 98);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -79,7 +79,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<PersistentBlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, id);
+        List<PersistentBlastResults> results = blastResultDao.getByActionIdAndIdentitySuperiorTo((float) 98, id);
 
         Assert.assertEquals(1, results.size());
         Assert.assertTrue(results.get(0).getIdentity() >= 98);
@@ -103,7 +103,7 @@ public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
         Long id = r.getId();
 
-        List<PersistentBlastResults> results = blastResultDao.getResultsByActionIdAndIdentitySuperior((float)98, 1);
+        List<PersistentBlastResults> results = blastResultDao.getByActionIdAndIdentitySuperiorTo((float) 98, 1);
 
         Assert.assertEquals(0, results.size());
     }

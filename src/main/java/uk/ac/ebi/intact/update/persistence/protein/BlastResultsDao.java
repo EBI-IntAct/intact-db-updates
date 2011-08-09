@@ -21,7 +21,7 @@ public interface BlastResultsDao extends UpdateBaseDao<PersistentBlastResults> {
      * @param identity
      * @return  The list of PersistentBlastResults with an identity percent superior or equal to 'identity'
      */
-    public List<PersistentBlastResults> getResultsByIdentitySuperior(float identity);
+    public List<PersistentBlastResults> getByIdentitySuperiorTo(float identity);
 
     /**
      *
@@ -29,7 +29,7 @@ public interface BlastResultsDao extends UpdateBaseDao<PersistentBlastResults> {
      * @param actionId
      * @return  The list of PersistentBlastResults attached to a specific action and with an identity superior or equal to 'identity'
      */
-    public List<PersistentBlastResults> getResultsByActionIdAndIdentitySuperior(float identity, long actionId);
+    public List<PersistentBlastResults> getByActionIdAndIdentitySuperiorTo(float identity, long actionId);
 
     /**
      * 

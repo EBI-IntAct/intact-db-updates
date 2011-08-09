@@ -50,7 +50,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentBlastReport> r = blastReportDao.getBlastReportsByResultsId(id);
+        List<PersistentBlastReport> r = blastReportDao.getByResultsId(id);
 
         Assert.assertFalse(r.isEmpty());
         Assert.assertTrue(r.get(0).getUpdateResult() != null);
@@ -71,7 +71,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         updateResultsDao.persist( results );
         updateResultsDao.flush();
 
-        List<PersistentBlastReport> r = blastReportDao.getBlastReportsByResultsId(1);
+        List<PersistentBlastReport> r = blastReportDao.getByResultsId(1);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -92,7 +92,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentBlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(id);
+        List<PersistentBlastReport> list = blastReportDao.getReportsWithSwissprotRemappingResultsByResultsId(id);
 
         Assert.assertTrue(!list.isEmpty());
         Assert.assertTrue(list.get(0).getUpdateResult().getId() == id);
@@ -112,7 +112,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        List<PersistentBlastReport> list = blastReportDao.getActionReportsWithSwissprotRemappingResultsByResultsId(1);
+        List<PersistentBlastReport> list = blastReportDao.getReportsWithSwissprotRemappingResultsByResultsId(1);
 
         Assert.assertTrue(list.isEmpty());
     }

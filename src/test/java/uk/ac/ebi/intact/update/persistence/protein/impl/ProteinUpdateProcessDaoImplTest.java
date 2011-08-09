@@ -143,9 +143,9 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
         Long id = process.getId();
 
         Assert.assertEquals(1, processDao.countAll());
-        Assert.assertEquals(1, processDao.getAllUpdateProcessesByDate(dateBefore).size());
-        Assert.assertEquals(0, processDao.getAllUpdateProcessesByDate(new Date(1)).size());
-        Assert.assertEquals(id, processDao.getAllUpdateProcessesByDate(dateBefore).iterator().next().getId());
+        Assert.assertEquals(1, processDao.getByDate(dateBefore).size());
+        Assert.assertEquals(0, processDao.getByDate(new Date(1)).size());
+        Assert.assertEquals(id, processDao.getByDate(dateBefore).iterator().next().getId());
     }
 
     @Test
@@ -176,8 +176,8 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
         Long id = process.getId();
 
         Assert.assertEquals(3, processDao.countAll());
-        Assert.assertEquals(2, processDao.getAllUpdateProcessesBeforeDate(date2).size());
-        Assert.assertEquals(1, processDao.getAllUpdateProcessesAfterDate(date).size());
-        Assert.assertEquals(id, processDao.getAllUpdateProcessesAfterDate(date).iterator().next().getId());
+        Assert.assertEquals(2, processDao.getBeforeDate(date2).size());
+        Assert.assertEquals(1, processDao.getAfterDate(date).size());
+        Assert.assertEquals(id, processDao.getAfterDate(date).iterator().next().getId());
     }
 }

@@ -37,20 +37,20 @@ public class ProteinUpdateProcessDaoImpl extends UpdateProcessDaoImpl<ProteinUpd
     }
 
     @Override
-    public List<ProteinUpdateProcess> getAllUpdateProcessesByDate(Date date) {
+    public List<ProteinUpdateProcess> getByDate(Date date) {
         return getSession().createCriteria(ProteinUpdateProcess.class)
                 .add(Restrictions.lt("date", DateUtils.addDays(date, 1)))
                 .add(Restrictions.gt("date", DateUtils.addDays(date, -1))).list();
     }
 
     @Override
-    public List<ProteinUpdateProcess> getAllUpdateProcessesBeforeDate(Date date) {
+    public List<ProteinUpdateProcess> getBeforeDate(Date date) {
         return getSession().createCriteria(ProteinUpdateProcess.class)
                 .add(Restrictions.le("date", date)).list();
     }
 
     @Override
-    public List<ProteinUpdateProcess> getAllUpdateProcessesAfterDate(Date date) {
+    public List<ProteinUpdateProcess> getAfterDate(Date date) {
         return getSession().createCriteria(ProteinUpdateProcess.class)
                 .add(Restrictions.ge("date", date)).list();
     }

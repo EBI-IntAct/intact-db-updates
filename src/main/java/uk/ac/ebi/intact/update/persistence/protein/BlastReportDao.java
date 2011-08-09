@@ -20,13 +20,13 @@ public interface BlastReportDao extends MappingReportDao<PersistentBlastReport> 
      * @param id
      * @return The list of BlastReports attached to a specific result
      */
-    public List<PersistentBlastReport> getBlastReportsByResultsId(long id);
+    public List<PersistentBlastReport> getByResultsId(long id);
 
     /**
      *
      * @param id
      * @return the list of BlastReports containing swissprot remapping information for a specific update result
      */
-    public List<PersistentBlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id);
+    public List<PersistentBlastReport> getReportsWithSwissprotRemappingResultsByResultsId(long id);
 
 }

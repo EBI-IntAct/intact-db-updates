@@ -16,7 +16,7 @@ import java.util.List;
 
 public interface UpdateProcessDao<T extends UpdateProcess> extends UpdateBaseDao<T>, Serializable {
 
-    public List<T> getAllUpdateProcessesByDate(Date date);
-    public List<T> getAllUpdateProcessesBeforeDate(Date date);
-    public List<T> getAllUpdateProcessesAfterDate(Date date);
+    public List<T> getByDate(Date date);
+    public List<T> getBeforeDate(Date date);
+    public List<T> getAfterDate(Date date);
 }

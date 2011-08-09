@@ -32,13 +32,13 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
     }
 
     @Override
-    public List<T> getAllUpdateEventsByProcessId(long processId) {
+    public List<T> getByProcessId(long processId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).list();
     }
 
     @Override
-    public List<T> getAllUpdateEventsByDate(Date updatedDate) {
+    public List<T> getByDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
@@ -46,14 +46,14 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
     }
 
     @Override
-    public List<T> getUpdateEventsBeforeDate(Date updatedDate) {
+    public List<T> getBeforeDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.le("p.date", updatedDate)).list();
     }
 
     @Override
-    public List<T> getUpdateEventsAfterDate(Date updatedDate) {
+    public List<T> getAfterDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.ge("p.date", updatedDate)).list();

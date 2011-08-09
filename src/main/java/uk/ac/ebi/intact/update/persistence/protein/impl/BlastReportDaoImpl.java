@@ -43,7 +43,7 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<PersistentBlastRepo
      * @param id
      * @return
      */
-    public List<PersistentBlastReport> getBlastReportsByResultsId(long id) {
+    public List<PersistentBlastReport> getByResultsId(long id) {
         return getSession().createCriteria(PersistentBlastReport.class)
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id)).list();
     }
@@ -53,7 +53,7 @@ public class BlastReportDaoImpl extends MappingReportDaoImpl<PersistentBlastRepo
      * @param id
      * @return
      */
-    public List<PersistentBlastReport> getActionReportsWithSwissprotRemappingResultsByResultsId(long id) {
+    public List<PersistentBlastReport> getReportsWithSwissprotRemappingResultsByResultsId(long id) {
         return getSession().createCriteria(PersistentBlastReport.class)
                 .createAlias("updateResult", "u").add(Restrictions.eq("u.id", id))
                 .add(Restrictions.eq("name", ActionName.BLAST_Swissprot_Remapping)).list();

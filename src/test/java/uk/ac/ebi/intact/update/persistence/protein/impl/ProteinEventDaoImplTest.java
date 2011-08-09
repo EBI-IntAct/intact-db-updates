@@ -105,10 +105,10 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         Date date = process.getDate();
         Date oldDate = new Date(1);
 
-        Assert.assertEquals(1, eventDao.getAllUpdateEventsByProcessId(id).size());
-        Assert.assertEquals(1, eventDao.getAllUpdateEventsByDate(date).size());
-        Assert.assertEquals(0, eventDao.getAllUpdateEventsByDate(oldDate).size());
-        Assert.assertEquals(0, eventDao.getAllUpdateEventsByProcessId(1).size());
+        Assert.assertEquals(1, eventDao.getByProcessId(id).size());
+        Assert.assertEquals(1, eventDao.getByDate(date).size());
+        Assert.assertEquals(0, eventDao.getByDate(oldDate).size());
+        Assert.assertEquals(0, eventDao.getByProcessId(1).size());
     }
 
     @Test
@@ -135,8 +135,8 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals(1, eventDao.getUpdateEventsByProteinAcAndProcessId(proteinAc, id).size());
         Assert.assertEquals(1, eventDao.getUpdateEventsByProteinAcAndDate(proteinAc, date).size());
         Assert.assertEquals(0, eventDao.getUpdateEventsByProteinAcAndDate(proteinAc, oldDate).size());
-        Assert.assertEquals(1, eventDao.getAllUpdateEventsByDate(date).size());
-        Assert.assertEquals(0, eventDao.getAllUpdateEventsByDate(oldDate).size());
+        Assert.assertEquals(1, eventDao.getByDate(date).size());
+        Assert.assertEquals(0, eventDao.getByDate(oldDate).size());
         Assert.assertEquals(1, eventDao.getUpdateEventsByProteinAcAndDate(proteinAc, date).size());
     }
 
@@ -161,8 +161,8 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
         Assert.assertEquals(0, eventDao.getUpdateEventsByProteinAcBeforeDate(proteinAc, oldDate).size());
         Assert.assertEquals(1, eventDao.getUpdateEventsByProteinAcAfterDate(proteinAc, oldDate).size());
-        Assert.assertEquals(0, eventDao.getUpdateEventsBeforeDate(oldDate).size());
-        Assert.assertEquals(1, eventDao.getUpdateEventsAfterDate(oldDate).size());
+        Assert.assertEquals(0, eventDao.getBeforeDate(oldDate).size());
+        Assert.assertEquals(1, eventDao.getAfterDate(oldDate).size());
         Assert.assertEquals(0, eventDao.getUpdateEventsByProteinAcBeforeDate(proteinAc, oldDate).size());
         Assert.assertEquals(1, eventDao.getUpdateEventsByProteinAcAfterDate(proteinAc, oldDate).size());
     }

@@ -34,7 +34,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<PersistentBlastResult
      * @param identity
      * @return
      */
-    public List<PersistentBlastResults> getResultsByIdentitySuperior(float identity) {
+    public List<PersistentBlastResults> getByIdentitySuperiorTo(float identity) {
         return getSession().createCriteria(PersistentBlastResults.class).add(Restrictions.ge("identity", identity)).list();
     }
 
@@ -44,7 +44,7 @@ public class BlastResultsDaoImpl extends UpdateBaseDaoImpl<PersistentBlastResult
      * @param actionId
      * @return
      */
-    public List<PersistentBlastResults> getResultsByActionIdAndIdentitySuperior(float identity, long actionId) {
+    public List<PersistentBlastResults> getByActionIdAndIdentitySuperiorTo(float identity, long actionId) {
         return getSession().createCriteria(PersistentBlastResults.class).createAlias("blastReport", "b")
                 .add(Restrictions.ge("identity", identity)).add(Restrictions.eq("b.id", actionId)).list();
 

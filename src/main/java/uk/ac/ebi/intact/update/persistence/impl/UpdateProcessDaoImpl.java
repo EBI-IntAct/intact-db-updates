@@ -41,20 +41,20 @@ public class UpdateProcessDaoImpl<T extends UpdateProcessImpl> extends UpdateBas
     }
 
     @Override
-    public List<T> getAllUpdateProcessesByDate(Date date) {
+    public List<T> getByDate(Date date) {
         return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.lt("date", DateUtils.addDays(date, 1)))
                 .add(Restrictions.gt("date", DateUtils.addDays(date, -1))).list();
     }
 
     @Override
-    public List<T> getAllUpdateProcessesBeforeDate(Date date) {
+    public List<T> getBeforeDate(Date date) {
         return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.le("date", date)).list();
     }
 
     @Override
-    public List<T> getAllUpdateProcessesAfterDate(Date date) {
+    public List<T> getAfterDate(Date date) {
         return getSession().createCriteria(getEntityClass())
                 .add(Restrictions.ge("date", date)).list();
     }
