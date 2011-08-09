@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.model.protein;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
+import uk.ac.ebi.intact.update.model.protein.update.errors.DefaultPersistentUpdateError;
 import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
 
 import javax.persistence.CascadeType;
@@ -23,7 +24,7 @@ import java.util.Date;
 @Table(name = "ia_protein_update_process")
 public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEvent>{
 
-    Collection<IntactUpdateError> updateErrors = new ArrayList<IntactUpdateError>();
+    Collection<DefaultPersistentUpdateError> updateErrors = new ArrayList<DefaultPersistentUpdateError>();
 
     public ProteinUpdateProcess(){
         super();
@@ -36,11 +37,11 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
     }
 
     @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<IntactUpdateError> getUpdateErrors() {
+    public Collection<DefaultPersistentUpdateError> getUpdateErrors() {
         return updateErrors;
     }
 
-    public void setUpdateErrors(Collection<IntactUpdateError> updateErrors) {
+    public void setUpdateErrors(Collection<DefaultPersistentUpdateError> updateErrors) {
         this.updateErrors = updateErrors;
     }
 
