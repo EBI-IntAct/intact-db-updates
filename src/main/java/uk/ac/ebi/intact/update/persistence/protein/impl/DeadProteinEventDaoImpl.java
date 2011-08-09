@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.persistence.protein.impl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.events.DeadProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.persistence.protein.DeadProteinEventDao;
 
 import javax.persistence.EntityManager;

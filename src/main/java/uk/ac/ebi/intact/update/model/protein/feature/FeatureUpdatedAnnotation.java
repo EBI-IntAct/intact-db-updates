@@ -4,7 +4,7 @@ import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 

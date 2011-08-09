@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.core.config.ConfigurationException;
 import uk.ac.ebi.intact.core.context.IntactInitializationError;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
-import uk.ac.ebi.intact.update.model.protein.update.listener.EventPersisterListener;
+import uk.ac.ebi.intact.update.model.protein.listener.EventPersisterListener;
 import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
 
 import javax.annotation.PostConstruct;

@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.persistence.protein.impl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.events.DeletedComponentEvent;
+import uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent;
 import uk.ac.ebi.intact.update.persistence.protein.DeletedComponentEventDao;
 
 import javax.persistence.EntityManager;

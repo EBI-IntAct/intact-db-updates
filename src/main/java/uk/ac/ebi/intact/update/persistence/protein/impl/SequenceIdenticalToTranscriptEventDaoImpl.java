@@ -3,7 +3,7 @@ package uk.ac.ebi.intact.update.persistence.protein.impl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.model.protein.update.events.SequenceIdenticalToTranscriptEvent;
+import uk.ac.ebi.intact.update.model.protein.events.SequenceIdenticalToTranscriptEvent;
 import uk.ac.ebi.intact.update.persistence.protein.SequenceIdenticalToTranscriptEventDao;
 
 import javax.persistence.EntityManager;

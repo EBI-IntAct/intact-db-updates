@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
-import uk.ac.ebi.intact.update.model.protein.update.events.OutOfDateParticipantEvent;
-import uk.ac.ebi.intact.update.model.protein.update.events.ProteinEventWithRangeUpdate;
+import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
+import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
 
 import javax.persistence.*;
 

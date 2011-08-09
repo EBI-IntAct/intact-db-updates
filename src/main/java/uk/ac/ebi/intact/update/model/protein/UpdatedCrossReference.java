@@ -4,7 +4,7 @@ import uk.ac.ebi.intact.model.Xref;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.UpdateEventImpl;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 
 import javax.persistence.*;
 

@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.protein;
 
 import uk.ac.ebi.intact.annotation.Mockable;
-import uk.ac.ebi.intact.update.model.protein.update.events.DuplicatedProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
 
 /**
  * Dao for duplicated proteins

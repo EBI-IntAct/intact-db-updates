@@ -9,6 +9,9 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
 import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
+import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
+import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
@@ -17,7 +20,6 @@ import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentific
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.*;
 
 import java.util.Date;
 

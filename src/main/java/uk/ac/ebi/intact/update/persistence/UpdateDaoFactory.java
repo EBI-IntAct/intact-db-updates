@@ -9,7 +9,7 @@ import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.range.AbstractUpdatedRange;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateEventDaoImpl;
 import uk.ac.ebi.intact.update.persistence.impl.UpdateProcessDaoImpl;
 import uk.ac.ebi.intact.update.persistence.protein.*;

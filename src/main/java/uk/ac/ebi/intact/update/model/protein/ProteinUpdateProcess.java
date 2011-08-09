@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.update.model.protein;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
-import uk.ac.ebi.intact.update.model.protein.update.errors.DefaultPersistentUpdateError;
-import uk.ac.ebi.intact.update.model.protein.update.events.PersistentProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
+import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
