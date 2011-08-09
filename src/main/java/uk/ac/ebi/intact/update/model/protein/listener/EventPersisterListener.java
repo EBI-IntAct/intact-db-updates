@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
@@ -17,6 +18,7 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.UpdateStatus;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
 import uk.ac.ebi.intact.update.model.protein.events.*;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
@@ -277,7 +279,17 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
+    @Transactional( "update" )
     public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException {
+        ProteinUpdateError error = evt.getError();
+
+        if (error instanceof DefaultPersistentUpdateError){
+            DefaultPersistentUpdateError persistentError = (DefaultPersistentUpdateError) error;
+
+            persistentError.setParent(this.updateProcess);
+
+            IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class).persist(persistentError);
+        }
     }
 
     @Override
