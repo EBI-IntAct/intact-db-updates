@@ -22,7 +22,7 @@ public abstract class UpdateEventImpl extends HibernateUpdatePersistentImpl impl
     public UpdateEventImpl(){
         super();
         this.parent = null;
-        this.eventDate = null;
+        this.eventDate = new Date(System.currentTimeMillis());
     }
 
     public UpdateEventImpl(UpdateProcess process){

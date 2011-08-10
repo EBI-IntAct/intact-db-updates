@@ -8,7 +8,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.update.persistence.UpdateDaoFactory;
+import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
