@@ -304,7 +304,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         try {
             ReportWriter noUniprotWriter = reportHandler.getNonUniprotProteinWriter();
 
-            writeDefaultLine(noUniprotWriter, evt.getProtein());
+            writeDefaultLine(noUniprotWriter, evt.getProtein(), evt.getMessage());
 
             noUniprotWriter.flush();
         } catch (IOException e) {
@@ -674,9 +674,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Prot. Label",
                     "Prot. Uniprot",
                     "Interaction ac",
-                    "Message",
-                    "Added annotations",
-                    "Removed annotations");
+                    "Message");
             writer.writeColumnValues(dashIfNull(rangeAc),
                     dashIfNull(oldRange),
                     Integer.toString(updatedRange.getSequence().length()),

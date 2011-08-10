@@ -245,7 +245,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     reason.append(taxId);
 
                     if (index < duplicatesSortedByOrganism.size() - 1){
-                       reason.append(", ");
+                        reason.append(", ");
                     }
                     index ++;
                 }
@@ -322,7 +322,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     for (Protein p : duplicatesHavingDifferentSequence){
                         // update the ranges with the new uniprot sequence for each duplicate
                         RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
-                        evt.getUpdatedRanges().put(p.getAc(), rangeReport);
+
+                        if (!rangeReport.getShiftedRanges().isEmpty() || (rangeReport.getInvalidComponents().isEmpty() && !rangeReport.getUpdatedFeatureAnnotations().isEmpty())){
+                            evt.getUpdatedRanges().put(p.getAc(), rangeReport);
+                        }
                         // get the list of components with feature range conflicts
                         Collection<Component> componentWithRangeConflicts = rangeReport.getInvalidComponents().keySet();
 

@@ -42,7 +42,7 @@ public class FileReportHandler implements UpdateReportHandler{
     private ReportWriter preprocessErrorWriter;
     private ReportWriter secondaryProteinsWriter;
     private ReportWriter transcriptWithSameSequenceWriter;
-    private ReportWriter invalidIntactParentWriter;
+    private ReportWriter updatedIntactParentWriter;
     private ReportWriter proteinMappingWriter;
     private ReportWriter sequenceChangedCautionWriter;
     private ReportWriter deletedComponentWriter;
@@ -70,7 +70,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.preprocessErrorWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "process_errors.csv")));
         this.secondaryProteinsWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "secondary_proteins.csv")));
         this.transcriptWithSameSequenceWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "transcript_same_sequence.csv")));
-        this.invalidIntactParentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "invalid_intact_parents.csv")));
+        this.updatedIntactParentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "updated_intact_parents.csv")));
         this.proteinMappingWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "protein_mapping.csv")));
         this.sequenceChangedCautionWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "sequence_changed_caution.csv")));
         this.deletedComponentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted_component.csv")));
@@ -130,7 +130,7 @@ public class FileReportHandler implements UpdateReportHandler{
 
     @Override
     public ReportWriter getIntactParentWriter() throws IOException {
-        return invalidIntactParentWriter;
+        return updatedIntactParentWriter;
     }
 
     @Override
@@ -174,7 +174,7 @@ public class FileReportHandler implements UpdateReportHandler{
         this.preprocessErrorWriter.close();
         this.secondaryProteinsWriter.close();
         this.transcriptWithSameSequenceWriter.close();
-        this.invalidIntactParentWriter.close();
+        this.updatedIntactParentWriter.close();
         this.proteinMappingWriter.close();
         this.sequenceChangedCautionWriter.close();
         this.deletedComponentWriter.close();

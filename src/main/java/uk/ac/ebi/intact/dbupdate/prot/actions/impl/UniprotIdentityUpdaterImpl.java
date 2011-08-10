@@ -350,6 +350,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      * @param evt
      */
     public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
+
         if (evt.getSource() instanceof ProteinUpdateProcessor && (!evt.getSecondaryIsoforms().isEmpty() || !evt.getSecondaryProteins().isEmpty())){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
             processor.fireOnSecondaryAcsFound(evt);

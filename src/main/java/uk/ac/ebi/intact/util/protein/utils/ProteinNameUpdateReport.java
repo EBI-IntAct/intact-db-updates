@@ -17,6 +17,7 @@ public class ProteinNameUpdateReport {
     public ProteinNameUpdateReport(String proteinAc, String shortLabel, String fullName){
          this.shortLabel = shortLabel;
         this.fullName = fullName;
+        protein = proteinAc;
     }
 
     public String getShortLabel() {

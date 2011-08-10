@@ -424,7 +424,10 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
 
             RangeUpdateReport report =  rangeFixer.updateRanges(protein, uniprotSequence, processor, evt.getDataContext());
-            evt.getUpdatedRanges().put(protein.getAc(), report);
+
+            if (!report.getShiftedRanges().isEmpty() || (report.getInvalidComponents().isEmpty() && !report.getUpdatedFeatureAnnotations().isEmpty())){
+                evt.getUpdatedRanges().put(protein.getAc(), report);
+            }
 
             if (!report.getInvalidComponents().isEmpty()){
 

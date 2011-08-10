@@ -91,7 +91,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(simple);
 
         // one protein no uniprot update with one interaction
-        Protein noUniProtUpdate = getMockBuilder().createProtein("P12346", "no_uniprot_update");
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
         noUniProtUpdate.getXrefs().clear();
         Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
         noUniProtUpdate.addAnnotation(noUniprot);
@@ -104,7 +104,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(interaction_1);
 
         // one protein without uniprot identity and with an interaction
-        Protein noUniProtIdentity = getMockBuilder().createProtein("P12346", "no_uniprot_identity");
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
         InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
         noUniProtIdentity.removeXref(identity);
         getCorePersister().saveOrUpdate(noUniProtIdentity);
@@ -116,8 +116,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(interaction_2);
 
         // one protein with several uniprot identities and with an interaction
-        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12346", "several_uniprot_identities");
-        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12345",
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
                 getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
                 getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
         severalUniProtIdentity.addXref(identity2);
@@ -143,27 +143,46 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         }
         getCorePersister().saveOrUpdate(interaction_4);
 
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
         // one secondary protein
         Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
         secondary.getBioSource().setTaxId("1423");
         getCorePersister().saveOrUpdate(secondary);
 
-        Interaction interaction_5 = getMockBuilder().createInteraction(simple, secondary);
-        for (Component c : interaction_5.getComponents()){
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
             c.getBindingDomains().clear();
         }
-        getCorePersister().saveOrUpdate(interaction_5);
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
 
         // one protein with bad organism
         Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
         bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
         getCorePersister().saveOrUpdate(bad_organism);
 
-        Interaction interaction_6 = getMockBuilder().createInteraction(simple, bad_organism);
-        for (Component c : interaction_6.getComponents()){
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
             c.getBindingDomains().clear();
         }
-        getCorePersister().saveOrUpdate(interaction_6);
+        getCorePersister().saveOrUpdate(interaction_7);
 
         // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
         Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
@@ -174,11 +193,11 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         isoform_no_uniprot.getBioSource().setTaxId("5938");
         getCorePersister().saveOrUpdate(parent);
 
-        Interaction interaction_7 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
-        for (Component c : interaction_7.getComponents()){
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
             c.getBindingDomains().clear();
         }
-        getCorePersister().saveOrUpdate(interaction_7);
+        getCorePersister().saveOrUpdate(interaction_8);
 
         // duplicates
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
@@ -204,6 +223,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe2.setCreated(new Date(1)); // dupe2 is older
         // no need to update the sequence
         dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
         Protein dupe3 = cloner.clone(dupe2);
         dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
@@ -217,7 +237,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         }
 
         // no need to update the sequence
-        dupe3.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
 
         Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
         Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
@@ -230,6 +250,13 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Range range = getMockBuilder().createRange(5, 5, 7, 7);
         feature.addRange(range);
         dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
 
         // add a bad range in the protein with sequence to update (dupe2)
         Feature feature2 = getMockBuilder().createFeatureRandom();
@@ -244,25 +271,25 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(dupe3);
         getCorePersister().saveOrUpdate(interaction1, interaction2, interaction3, interaction4);
 
-        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(11, getDaoFactory().getInteractionDao().countAll());
-        Assert.assertEquals(22, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
 
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
         Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
         InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
         uniprotXref.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
 
-        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
         Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
         InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
         uniprotXref2.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
 
-        Assert.assertEquals(4, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
         getDataContext().commitTransaction(status);
 
         // try the updater
@@ -270,10 +297,10 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         protUpdateProcessor.updateAll();
 
         TransactionStatus status2 = getDataContext().beginTransaction();
-        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
-        Assert.assertEquals(11, getDaoFactory().getProteinDao().countAll());
-        Assert.assertEquals(11, getDaoFactory().getInteractionDao().countAll());
-        Assert.assertEquals(22, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
 
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
@@ -307,11 +334,18 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         final File updateCasesFile = new File(dir, "update_cases.csv");
         final File sequenceChangedFile = new File(dir, "sequence_changed.fasta");
         final File rangeChangedFile = new File(dir, "range_changed.csv");
+        final File featureChangedFile = new File(dir, "feature_changed.csv");
         final File invalidRangeFile = new File(dir, "invalid_range.csv");
+        final File outOfDateRangeFile = new File(dir, "out_of_date_range.csv");
         final File deadProteinFile = new File(dir, "dead_proteins.csv");
         final File outOfDateProteinFile = new File(dir, "out_of_date_participants.csv");
         final File erroFile = new File(dir, "process_errors.csv");
         final File secondaryProteinsFile = new File(dir, "secondary_proteins.csv");
+        final File transcriptWithSameSequenceFile = new File(dir, "transcript_same_sequence.csv");
+        final File invalidIntactParentFile = new File(dir, "updated_intact_parents.csv");
+        final File proteinMappingFile = new File(dir, "protein_mapping.csv");
+        final File sequenceChangedCautionFile = new File(dir, "sequence_changed_caution.csv");
+        final File deletedComponentFile = new File(dir, "deleted_component.csv");
 
         Assert.assertTrue(duplicatesFile.exists());
         Assert.assertTrue(deletedFile.exists());
@@ -320,22 +354,35 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(updateCasesFile.exists());
         Assert.assertTrue(sequenceChangedFile.exists());
         Assert.assertTrue(rangeChangedFile.exists());
+        Assert.assertTrue(featureChangedFile.exists());
         Assert.assertTrue(invalidRangeFile.exists());
+        Assert.assertTrue(outOfDateRangeFile.exists());
         Assert.assertTrue(deadProteinFile.exists());
         Assert.assertTrue(outOfDateProteinFile.exists());
         Assert.assertTrue(erroFile.exists());
         Assert.assertTrue(secondaryProteinsFile.exists());
+        Assert.assertTrue(transcriptWithSameSequenceFile.exists());
+        Assert.assertTrue(invalidIntactParentFile.exists());
+        Assert.assertTrue(proteinMappingFile.exists());
+        Assert.assertTrue(sequenceChangedCautionFile.exists());
+        Assert.assertTrue(deletedComponentFile.exists());
 
+        // 2 : header plus one duplicate case
         Assert.assertEquals(2, countLinesInFile(duplicatesFile));
+        // 3 : header plus one deleted because duplicate and one deleted because no interactions
         Assert.assertEquals(3, countLinesInFile(deletedFile));
-        Assert.assertEquals(0, countLinesInFile(createdFile));
+        // 2 : header plus one master protein created because one transcript without parents
+        Assert.assertEquals(2, countLinesInFile(createdFile));
+        // 3 : header plus one 'non-uniprot' protein, plus one protein without uniprot
         Assert.assertEquals(3, countLinesInFile(nonUniprotFile));
-        Assert.assertEquals(5, countLinesInFile(updateCasesFile));
-        //Assert.assertEquals(5, countLinesInFile(sequenceChangedFile));
-        Assert.assertEquals(0, countLinesInFile(rangeChangedFile));
-        Assert.assertEquals(0, countLinesInFile(invalidRangeFile)); // TODO can be changed later
+        // 6 : header plus simple_protein, transcript without parent, secondary protein, one protein with a splice variant which doesn't exist in uniprot and duplicated prot
+        Assert.assertEquals(6, countLinesInFile(updateCasesFile));
+        // 2 : header plus one range updated with dupe3
+        Assert.assertEquals(2, countLinesInFile(rangeChangedFile));
+        // 2 : header plus invalid range attached to secondary protein
+        Assert.assertEquals(2, countLinesInFile(invalidRangeFile));
         Assert.assertEquals(3, countLinesInFile(deadProteinFile));
-        Assert.assertEquals(2, countLinesInFile(outOfDateProteinFile));
+        Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
         Assert.assertEquals(5, countLinesInFile(erroFile));
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
 
