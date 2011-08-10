@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -42,7 +43,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
     private OutOfDateParticipantFixerImpl participantFixer;
     @Before
     public void setUp(){
-        participantFixer = new OutOfDateParticipantFixerImpl();
+        participantFixer = new OutOfDateParticipantFixerImpl(new RangeFixerImpl());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

@@ -21,7 +21,9 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.service.CachedUniprotService;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 import java.util.ArrayList;
@@ -63,10 +65,27 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
 
     private int retryAttempt = 0;
 
-    public UniprotProteinRetrieverImpl(UniprotService uniprotService) {
-        this.uniprotService = uniprotService;
-        this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
-        this.proteinMappingManager = new UniprotProteinMapperImpl();
+    public UniprotProteinRetrieverImpl(UniprotService uniprotService, UniprotProteinMapper proteinMapper, DeadUniprotProteinFixer deadProteinfixer) {
+        if (uniprotService != null){
+            this.uniprotService = uniprotService;
+        }
+        else {
+            this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
+        }
+
+        if (deadProteinfixer != null){
+            this.deadUniprotFixer = deadProteinfixer;
+        }
+        else {
+            this.deadUniprotFixer = new DeadUniprotProteinFixerImpl();
+        }
+
+        if (proteinMapper != null){
+            this.proteinMappingManager = proteinMapper;
+        }
+        else {
+            this.proteinMappingManager = new UniprotProteinMapperImpl();
+        }
     }
 
     /**

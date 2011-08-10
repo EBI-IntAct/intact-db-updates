@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -38,7 +38,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
     @Before
     public void setUp(){
-        duplicateFixer = new DuplicatesFixerImpl();
+        duplicateFixer = new DuplicatesFixerImpl(new ProteinDeleterImpl(), new OutOfDateParticipantFixerImpl(new RangeFixerImpl()), new DuplicatesFinderImpl());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

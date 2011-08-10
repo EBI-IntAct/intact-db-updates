@@ -20,11 +20,15 @@ public interface DuplicatesFixer {
      */
     public ProteinDeleter getProteinDeleter();
 
+    public void setProteinDeleter(ProteinDeleter deleter);
+
     /**
      *
      * @return The range updater which is charged to update ranges before the merge when duplicates have different sequences
      */
     public RangeFixer getRangeFixer();
+
+    public void setRangeFixer(RangeFixer rangeFixer);
 
     /**
      *
@@ -32,9 +36,15 @@ public interface DuplicatesFixer {
      */
     public OutOfDateParticipantFixer getDeprecatedParticipantFixer();
 
+    public void setDeprecatedParticipantFixer(OutOfDateParticipantFixer participantFixer);
+
     public Protein fixAllProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException;
 
     public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt, Protein masterProtein) throws ProcessorException;
 
     public DuplicatesFinder getDuplicatesFinder();
+
+    public void setDuplicatesFinder(DuplicatesFinder finder);
+
+
 }

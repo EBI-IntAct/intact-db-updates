@@ -82,21 +82,38 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private BioSourceService bioSourceService;
     private OutOfDateParticipantFixer participantFixer;
 
-    public UniprotProteinUpdaterImpl(TaxonomyService taxonomyService) {
+    public UniprotProteinUpdaterImpl(TaxonomyService taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
-        participantFixer = new OutOfDateParticipantFixerImpl();
-        rangeFixer = new RangeFixerImpl();
+        this.participantFixer = outOfDateParticipantFixer;
+        this.rangeFixer = this.participantFixer.getRangeFixer();
     }
 
-    public UniprotProteinUpdaterImpl() {
+    public UniprotProteinUpdaterImpl(OutOfDateParticipantFixer outOfDateParticipantFixer) {
         // Build default taxonomy service
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService());
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
-        participantFixer = new OutOfDateParticipantFixerImpl();
-        rangeFixer = new RangeFixerImpl();
+
+        if (outOfDateParticipantFixer != null) {
+            this.participantFixer = outOfDateParticipantFixer;
+
+            if (participantFixer.getRangeFixer() == null){
+                this.rangeFixer = new RangeFixerImpl();
+                participantFixer.setRangeFixer(this.rangeFixer);
+            }
+            else{
+                this.rangeFixer = participantFixer.getRangeFixer();
+            }
+        }
+        else {
+            if (this.rangeFixer == null){
+                this.rangeFixer = new RangeFixerImpl();
+            }
+
+            this.participantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
+        }
     }
 
     /**

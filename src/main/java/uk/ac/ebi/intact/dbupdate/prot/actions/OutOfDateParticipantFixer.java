@@ -53,4 +53,6 @@ public interface OutOfDateParticipantFixer {
      * @return The range updater which is charged to update ranges if the participant fixer cannot fix the problem
      */
     public RangeFixer getRangeFixer();
+
+    public void setRangeFixer(RangeFixer rangeFixer);
 }

@@ -45,8 +45,13 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
     private RangeFixer rangeFixer;
 
-    public OutOfDateParticipantFixerImpl(){
-        this.rangeFixer = new RangeFixerImpl();
+    public OutOfDateParticipantFixerImpl(RangeFixer rangeFixer){
+        if (rangeFixer != null){
+            this.rangeFixer = rangeFixer;
+        }
+        else {
+            this.rangeFixer = new RangeFixerImpl();
+        }
     }
     /**
      *

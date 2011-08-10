@@ -37,8 +37,13 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
 
     private UniprotProteinMapper proteinMappingManager;
 
-    public ProteinUpdateFilterImpl(){
-        proteinMappingManager = new UniprotProteinMapperImpl();
+    public ProteinUpdateFilterImpl(UniprotProteinMapper uniprotProteinMapper){
+        if (uniprotProteinMapper != null){
+            proteinMappingManager = uniprotProteinMapper;
+        }
+        else{
+            proteinMappingManager = new UniprotProteinMapperImpl();
+        }
     }
 
     /**

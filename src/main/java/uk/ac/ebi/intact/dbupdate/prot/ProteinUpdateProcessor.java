@@ -85,24 +85,33 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     protected OutOfDateParticipantFixer participantFixer;
     protected UniprotProteinUpdater updater;
     protected IntactTranscriptParentUpdater parentUpdater;
+    protected UniprotProteinMapper proteinMappingManager;
+    protected DeadUniprotProteinFixer deadUniprotProteinFixer;
+    protected DuplicatesFinder duplicatesFinder;
+    protected RangeFixer rangeFixer;
 
     public ProteinUpdateProcessor(){
         super();
-        initActionsAndListeners();
+        initDefaultActionsAndListeners();
     }
 
-    public void initActionsAndListeners(){
+    public void initDefaultActionsAndListeners(){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
-        updateFilter = new ProteinUpdateFilterImpl();
-        this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
-        this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService());
-        this.duplicateFixer = new DuplicatesFixerImpl();
         this.proteinDeleter = new ProteinDeleterImpl();
+        this.proteinMappingManager = new UniprotProteinMapperImpl();
+        this.deadUniprotProteinFixer = new DeadUniprotProteinFixerImpl();
+        this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
+        this.duplicatesFinder = new DuplicatesFinderImpl();
+        this.rangeFixer = new RangeFixerImpl();
         this.protWithoutInteractionDeleter = new ProtWithoutInteractionDeleterImpl();
-        this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService());
-        this.participantFixer = new OutOfDateParticipantFixerImpl();
-        parentUpdater = new IntactTranscriptParentUpdaterImpl();
+        this.parentUpdater = new IntactTranscriptParentUpdaterImpl();
+
+        this.participantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
+        this.updateFilter = new ProteinUpdateFilterImpl(proteinMappingManager);
+        this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService(), this.proteinMappingManager, this.deadUniprotProteinFixer);
+        this.duplicateFixer = new DuplicatesFixerImpl(this.proteinDeleter, this.participantFixer, this.duplicatesFinder);
+        this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService(), this.participantFixer);
     }
 
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
@@ -738,5 +747,37 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     public void setParentUpdater(IntactTranscriptParentUpdater parentUpdater) {
         this.parentUpdater = parentUpdater;
+    }
+
+    public UniprotProteinMapper getProteinMappingManager() {
+        return proteinMappingManager;
+    }
+
+    public void setProteinMappingManager(UniprotProteinMapper proteinMappingManager) {
+        this.proteinMappingManager = proteinMappingManager;
+    }
+
+    public DeadUniprotProteinFixer getDeadUniprotProteinFixer() {
+        return deadUniprotProteinFixer;
+    }
+
+    public void setDeadUniprotProteinFixer(DeadUniprotProteinFixer deadUniprotProteinFixer) {
+        this.deadUniprotProteinFixer = deadUniprotProteinFixer;
+    }
+
+    public DuplicatesFinder getDuplicatesFinder() {
+        return duplicatesFinder;
+    }
+
+    public void setDuplicatesFinder(DuplicatesFinder duplicatesFinder) {
+        this.duplicatesFinder = duplicatesFinder;
+    }
+
+    public RangeFixer getRangeFixer() {
+        return rangeFixer;
+    }
+
+    public void setRangeFixer(RangeFixer rangeFixer) {
+        this.rangeFixer = rangeFixer;
     }
 }

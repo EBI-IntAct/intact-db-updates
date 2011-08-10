@@ -16,6 +16,8 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
@@ -44,7 +46,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
     @Before
     public void before() throws Exception {
-        updater = new UniprotProteinUpdaterImpl();
+        updater = new UniprotProteinUpdaterImpl(new OutOfDateParticipantFixerImpl(new RangeFixerImpl()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

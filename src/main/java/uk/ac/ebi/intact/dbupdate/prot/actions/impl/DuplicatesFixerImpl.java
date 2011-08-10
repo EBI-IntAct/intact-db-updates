@@ -70,11 +70,39 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      */
     private RangeFixer rangeFixer;
 
-    public DuplicatesFixerImpl(){
-        proteinDeleter = new ProteinDeleterImpl();
-        deprecatedParticipantFixer = new OutOfDateParticipantFixerImpl();
-        this.rangeFixer = new RangeFixerImpl();
-        this.duplicatesFinder = new DuplicatesFinderImpl();
+    public DuplicatesFixerImpl(ProteinDeleter proteinDeleter, OutOfDateParticipantFixer participantFixer, DuplicatesFinder duplicateFinder){
+        if (proteinDeleter != null) {
+            this.proteinDeleter = proteinDeleter;
+        }
+        else {
+            this.proteinDeleter = new ProteinDeleterImpl();
+        }
+
+        if (deprecatedParticipantFixer != null) {
+            this.deprecatedParticipantFixer = participantFixer;
+
+            if (participantFixer.getRangeFixer() == null){
+                this.rangeFixer = new RangeFixerImpl();
+                participantFixer.setRangeFixer(this.rangeFixer);
+            }
+            else{
+                this.rangeFixer = participantFixer.getRangeFixer();
+            }
+        }
+        else {
+            if (this.rangeFixer == null){
+                this.rangeFixer = new RangeFixerImpl();
+            }
+
+            this.deprecatedParticipantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
+        }
+
+        if (duplicateFinder != null) {
+            this.duplicatesFinder = duplicateFinder;
+        }
+        else {
+            this.duplicatesFinder = new DuplicatesFinderImpl();
+        }
     }
 
     /**
@@ -609,12 +637,27 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         return proteinDeleter;
     }
 
+    @Override
+    public void setProteinDeleter(ProteinDeleter deleter) {
+        this.proteinDeleter = deleter;
+    }
+
     public RangeFixer getRangeFixer() {
         return rangeFixer;
     }
 
+    @Override
+    public void setRangeFixer(RangeFixer rangeFixer) {
+        this.rangeFixer = rangeFixer;
+    }
+
     public OutOfDateParticipantFixer getDeprecatedParticipantFixer() {
         return deprecatedParticipantFixer;
+    }
+
+    @Override
+    public void setDeprecatedParticipantFixer(OutOfDateParticipantFixer participantFixer) {
+        this.deprecatedParticipantFixer = participantFixer;
     }
 
     private void processDuplicatedTranscript(UpdateCaseEvent caseEvent, DuplicatesFoundEvent duplEvt, Protein masterProtein, boolean isIsoform, Collection<ProteinTranscript> mergedTranscripts) {
