@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
+import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.errors.DeadUniprotAc;
 import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
 import uk.ac.ebi.intact.update.model.protein.errors.ImpossibleParentToReview;
@@ -67,5 +68,26 @@ public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
 
         errorDao.delete(error);
         Assert.assertEquals(0, errorDao.countAll());
+    }
+
+    @Test
+    public void search_error_event_by_label(){
+        ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
+
+        DefaultPersistentUpdateError error = getMockBuilder().createDefaultError();
+
+        errorDao.persist(error);
+
+        UpdateError label = error.getErrorLabel();
+
+        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
+        process.addError(error);
+
+        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
+
+        Long id = process.getId();
+
+        Assert.assertEquals(1, errorDao.getAll().size());
+        Assert.assertEquals(1, errorDao.getUpdateErrorByLabel(id, label).size());
     }
 }

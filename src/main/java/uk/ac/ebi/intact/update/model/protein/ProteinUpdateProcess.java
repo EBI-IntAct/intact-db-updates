@@ -48,6 +48,22 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
         this.updateErrors = updateErrors;
     }
 
+    public boolean addError(DefaultPersistentUpdateError error){
+        if (updateErrors.add(error)){
+            error.setParent(this);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeError(DefaultPersistentUpdateError error){
+        if (updateErrors.remove(error)){
+            error.setParent(null);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean isIdenticalTo(Object o){
 
