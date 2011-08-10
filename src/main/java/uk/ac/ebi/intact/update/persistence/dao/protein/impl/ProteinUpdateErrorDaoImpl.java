@@ -2,6 +2,9 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
 import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
 import uk.ac.ebi.intact.update.persistence.dao.impl.UpdateEventDaoImpl;
@@ -17,7 +20,9 @@ import java.util.List;
  * @version $Id$
  * @since <pre>09/08/11</pre>
  */
-
+@Repository
+@Transactional(readOnly = true)
+@Lazy
 public class ProteinUpdateErrorDaoImpl<T extends DefaultPersistentUpdateError> extends UpdateEventDaoImpl<T> implements ProteinUpdateErrorDao<T> {
     public ProteinUpdateErrorDaoImpl() {
         super((Class<T>)DefaultPersistentUpdateError.class, null);

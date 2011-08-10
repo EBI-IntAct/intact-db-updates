@@ -9,6 +9,9 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
 import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
+import uk.ac.ebi.intact.update.model.protein.errors.DeadUniprotAc;
+import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
+import uk.ac.ebi.intact.update.model.protein.errors.ImpossibleParentToReview;
 import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
@@ -428,4 +431,20 @@ public class CurationMockBuilder extends IntactMockBuilder {
         return proteinEvent;
     }
 
+    public DefaultPersistentUpdateError createDefaultError(){
+        DeadUniprotAc dead = new DeadUniprotAc();
+
+        dead.setProteinAc("EBI-xxxxx10");
+        dead.setDeadUniprot("Pxxxxx");
+
+        return dead;
+    }
+
+    public ImpossibleParentToReview createImpossibleParentToReviewError(){
+        ImpossibleParentToReview impossible = new ImpossibleParentToReview();
+
+        impossible.setProteinAc("EBI-xxxxx10");
+
+        return impossible;
+    }
 }
