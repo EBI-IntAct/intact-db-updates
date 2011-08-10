@@ -30,7 +30,6 @@ import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidFeatureReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
@@ -552,8 +551,8 @@ public class RangeFixerImpl implements RangeFixer{
      * @param evt
      */
     public void fixInvalidRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor){
-        RangeUpdateReport report = evt.getRangeReport();
 
+        RangeUpdateReport report = evt.getRangeReport();
         // get the range
         Range range = evt.getInvalidRange().getOldRange();
         // get the invalid positions
@@ -861,7 +860,7 @@ public class RangeFixerImpl implements RangeFixer{
     /**
      * For each component with range conflicts, fix the invalid or out of date ranges
      * @param protein : protein having range conflicts
-     * @param evt
+     * @param context
      * @param uniprotAc : the uniprot ac
      * @param oldSequence : the previous sequence
      * @param report : the range update report
@@ -869,13 +868,13 @@ public class RangeFixerImpl implements RangeFixer{
      * @param processor
      * @param fixOutOfDateRanges : enable or not to fix the out of date ranges
      */
-    public void processInvalidRanges(Protein protein, UpdateCaseEvent evt, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges) {
+    public void processInvalidRanges(Protein protein, DataContext context, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges) {
         // for each component with range conflicts
         for (Map.Entry<Component, Collection<InvalidRange>> entry : report.getInvalidComponents().entrySet()){
             for (InvalidRange invalid : entry.getValue()){
                 // range is bad from the beginning, not after the range shifting : fix it
                 if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
-                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(evt.getDataContext(), invalid, report);
+                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(context, invalid, report);
                     fixInvalidRanges(invalidEvent, processor);
                 }
                 // range is out of date fix it if necessary and enabled
@@ -889,7 +888,7 @@ public class RangeFixerImpl implements RangeFixer{
                     }
 
                     // create an event
-                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(evt.getDataContext(), invalid, report);
+                    InvalidRangeEvent invalidEvent = new InvalidRangeEvent(context, invalid, report);
 
                     // the sequence version has been found
                     if (sequenceVersion != -1){

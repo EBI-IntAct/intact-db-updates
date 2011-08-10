@@ -430,9 +430,15 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
 
             if (!report.getInvalidComponents().isEmpty()){
+                boolean createDeprecatedProtein = false;
+
+                // no unisave sequence for splice variants and feature chains so if we have conflicts, it is better to create a no-uniprot protein with the sequence of the moment
+                if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
+                    createDeprecatedProtein = true;
+                }
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
-                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
+                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, createDeprecatedProtein);
 
                 if (fixedProtein != null){
                     evt.getProteins().add(fixedProtein.getProtein().getAc());
@@ -475,14 +481,6 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
                     updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
-                // no unisave sequence for splice variants and feature chains so if we have conflicts, it is better to create a no-uniprot protein with the sequence of the moment
-                else if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
-                    fixedProtein = participantFixer.createDeprecatedProtein(participantEvent);
-                    rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, false);
-                }
-                else{
-                    rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, fixedProtein, processor, true);
-                }
             }
 
             protein.setSequence( sequence );
@@ -503,9 +501,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             if (!report.getInvalidComponents().isEmpty()){
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
-                processor.fireOnOutOfDateParticipantFound(participantEvent);
-
-                rangeFixer.processInvalidRanges(protein, evt, uniprotAc, oldSequence, report, null, processor, true);
+                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
             }
         }
     }

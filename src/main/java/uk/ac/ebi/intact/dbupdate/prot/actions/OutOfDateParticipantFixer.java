@@ -47,4 +47,10 @@ public interface OutOfDateParticipantFixer {
      * @return the created deprecated protein
      */
     public ProteinTranscript createDeprecatedProtein(OutOfDateParticipantFoundEvent evt);
+
+    /**
+     *
+     * @return The range updater which is charged to update ranges if the participant fixer cannot fix the problem
+     */
+    public RangeFixer getRangeFixer();
 }

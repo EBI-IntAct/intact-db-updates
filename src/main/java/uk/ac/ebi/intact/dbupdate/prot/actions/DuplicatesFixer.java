@@ -37,6 +37,4 @@ public interface DuplicatesFixer {
     public void fixAllProteinTranscriptDuplicates(UpdateCaseEvent evt, Protein masterProtein) throws ProcessorException;
 
     public DuplicatesFinder getDuplicatesFinder();
-
-    public void setDuplicatesFinder(DuplicatesFinder duplicatesFinder);
 }

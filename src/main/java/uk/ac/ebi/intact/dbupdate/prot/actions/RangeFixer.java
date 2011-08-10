@@ -5,7 +5,6 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
 import uk.ac.ebi.intact.model.Protein;
 
@@ -34,7 +33,7 @@ public interface RangeFixer {
     /**
      * Fix invalid ranges and out of date ranges
      * @param protein : protein having range conflicts
-     * @param evt
+     * @param context
      * @param uniprotAc : the uniprot ac
      * @param oldSequence : the previous sequence
      * @param report : the range update report
@@ -42,7 +41,7 @@ public interface RangeFixer {
      * @param processor
      * @param fixOutOfDateRanges : enable or not to fix the out of date ranges
      */
-    public void processInvalidRanges(Protein protein, UpdateCaseEvent evt, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges);
+    public void processInvalidRanges(Protein protein, DataContext context, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges);
 
     /**
      * Update ranges attached to a protein

@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
@@ -42,6 +43,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
     public static final String FEATURE_OBSOLETE = "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts. ";
 
+    private RangeFixer rangeFixer;
+
+    public OutOfDateParticipantFixerImpl(){
+        this.rangeFixer = new RangeFixerImpl();
+    }
     /**
      *
      * @param sequence : the protein sequence to retrieve
@@ -84,7 +90,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         proteinTranscripts.addAll(uniprotProtein.getSpliceVariants());
         proteinTranscripts.addAll(uniprotProtein.getFeatureChains());
 
-        // if the uniprot entry contains isoforms and feature chains different from the uniprotprotein transcript we want to exclude        
+        // if the uniprot entry contains isoforms and feature chains different from the uniprotprotein transcript we want to exclude
         if (!(proteinTranscripts.size() == 1 && proteinTranscripts.contains(uniprotProteinTranscript)) && !proteinTranscripts.isEmpty()){
 
             for (UniprotProteinTranscript pt : proteinTranscripts){
@@ -173,7 +179,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             factory.getCvObjectDao(CvDatabase.class).persist(db);
         }
 
-        // the parent 
+        // the parent
         String parentXrefAc = evt.getValidParentAc() != null ? evt.getValidParentAc() : proteinWithConflicts.getAc();
 
         // add the transcript parent xref which is the protein having range conflicts : it is the valid parent ac of the event
@@ -191,7 +197,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             processor.fireOnProteinCreated(new ProteinEvent(processor, evt.getDataContext(), transcriptIntact, "The protein is a feature chain created because of feature ranges impossible to remap to the canonical sequence in uniprot."));
 
             evt.setRemappedProteinAc(transcriptIntact.getAc());
-            processor.fireOnOutOfDateParticipantFound(evt);
         }
 
         // return the new ProteinTranscript
@@ -220,6 +225,8 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         // sequence without conflicts is the sequence of the intact protein
         String sequenceWithoutConflicts = protein.getSequence();
 
+        String uniprot = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : null;
+
         // if the sequence without conflicts is not null, try to remap to uniprot protein transcript having the exact same sequence
         if (sequenceWithoutConflicts != null){
 
@@ -228,6 +235,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
             // if one protein transcript in uniprot has the exact same sequence
             if (possibleMatch != null){
+                ProteinTranscript fixedProtein;
 
                 // if we have a splice variant
                 if (possibleMatch instanceof UniprotSpliceVariant){
@@ -243,36 +251,38 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
                         evt.setRemappedProteinAc(intactMatch.getProtein().getAc());
-                        // log in 'out_of_date_participant.csv'
-                        if (evt.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                            processor.fireOnOutOfDateParticipantFound(evt);
-                        }
-                        return intactMatch;
+                        fixedProtein = intactMatch;
                     }
-
-                    // create the intact entry matching the uniprot transcript
-                    return createSpliceVariant((UniprotSpliceVariant) possibleMatch, protein, componentsToFix, factory, evt);
+                    else {
+                        // create the intact entry matching the uniprot transcript
+                        fixedProtein = createSpliceVariant((UniprotSpliceVariant) possibleMatch, protein, componentsToFix, factory, evt);
+                    }
                 }
-                else if (possibleMatch instanceof UniprotFeatureChain){
+                else {
                     // try to find an intact feature chain representing the same uniprot transcript and having its sequence up to date with uniprot
                     ProteinTranscript intactMatch = findAndMoveInteractionsToIntactProteinTranscript(evt.getDataContext(), protein, sequenceWithoutConflicts, possibleMatch, evt.getPrimaryFeatureChains(), (ProteinUpdateProcessor) evt.getSource());
 
                     // return the intact entry if it exists and is up to date with uniprot
                     if (intactMatch != null){
-                        // log in 'out_of_date_participant.csv'
-                        if (evt.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                            evt.setRemappedProteinAc(intactMatch.getProtein().getAc());
-                            processor.fireOnOutOfDateParticipantFound(evt);
-                        }
-                        return intactMatch;
-                    }
 
-                    // create the intact entry matching the uniprot transcript
-                    return createFeatureChain((UniprotFeatureChain) possibleMatch, protein, componentsToFix, factory, evt);
+                        fixedProtein = intactMatch;
+                    }
+                    else {
+                        // create the intact entry matching the uniprot transcript
+                        fixedProtein = createFeatureChain((UniprotFeatureChain) possibleMatch, protein, componentsToFix, factory, evt);
+                    }
                 }
+
+                rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
+
+                // log in 'out_of_date_participant.csv'
+                if (evt.getSource() instanceof ProteinUpdateProcessor){
+                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                    evt.setRemappedProteinAc(fixedProtein.getProtein().getAc());
+                    processor.fireOnOutOfDateParticipantFound(evt);
+                }
+                return fixedProtein;
             }
             else {
                 log.warn("No isoform/feature chain has the same sequence as " + protein.getAc());
@@ -284,9 +294,22 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
         // if no uniprot transcript has the same sequence and creating deprecated proteins is enabled, we create a deprecated protein, otherwise return null
         if (createDeprecatedParticipant){
-            return createDeprecatedProtein(evt);
+            ProteinTranscript fixedProtein = createDeprecatedProtein(evt);
+
+            rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
+
+            // log in 'out_of_date_participant.csv'
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+
+                processor.fireOnOutOfDateParticipantFound(evt);
+            }
+            return fixedProtein;
         }
+        // impossible to fix the conflict.
         else {
+            rangeFixer.processInvalidRanges(protein, evt.getDataContext(), uniprot, protein.getSequence(), evt.getInvalidRangeReport(), null, (ProteinUpdateProcessor)evt.getSource(), true);
+
             // log in 'out_of_date_participant.csv'
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
@@ -357,10 +380,18 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             processor.fireNonUniprotProteinFound(protEvt);
 
             evt.setRemappedProteinAc(noUniprotUpdate.getAc());
-            processor.fireOnOutOfDateParticipantFound(evt);
         }
 
         return new ProteinTranscript(noUniprotUpdate, null);
+    }
+
+    @Override
+    public RangeFixer getRangeFixer() {
+        return this.rangeFixer;
+    }
+
+    public void setRangeFixer(RangeFixer rangeFixer) {
+        this.rangeFixer = rangeFixer;
     }
 
     /**

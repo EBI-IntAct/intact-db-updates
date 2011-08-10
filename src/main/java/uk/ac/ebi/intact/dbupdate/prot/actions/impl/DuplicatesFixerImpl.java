@@ -646,7 +646,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                 // protein has been fixed or a deprecated protein has been created
                 if (fixedProtein != null){
-                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
                     // if protein is deprecated, it means that the original protein had range conflicts, We don't need to add the deprecated protein to the list of proteins to update
                     boolean isFromUniprot = ProteinUtils.isFromUniprot(fixedProtein.getProtein());
@@ -713,9 +712,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
                 }
-                else {
-                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
-                }
             }
         }
 
@@ -769,7 +765,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 ProteinTranscript fixedProtein = deprecatedParticipantFixer.fixParticipantWithRangeConflicts(participantEvt, enableCreationDeprecatedProtein);
 
                 if (fixedProtein != null){
-                    rangeFixer.processInvalidRanges(fixedProtein.getProtein(), caseEvent, caseEvent.getQuerySentToService(), fixedProtein.getProtein().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
 
                     // if uniprot variant is null, it means that a deprecated protein has been created because the protein with range conflicts is a master protein
                     if (fixedProtein.getUniprotVariant() != null){
@@ -823,9 +818,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
                         proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
                     }
-                }
-                else {
-                    rangeFixer.processInvalidRanges(entry.getKey(), caseEvent, caseEvent.getQuerySentToService(), entry.getKey().getSequence(), entry.getValue(), fixedProtein, (ProteinUpdateProcessor)caseEvent.getSource(), false);
                 }
             }
         }
