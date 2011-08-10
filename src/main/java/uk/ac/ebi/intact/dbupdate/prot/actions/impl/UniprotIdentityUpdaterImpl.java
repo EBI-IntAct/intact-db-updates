@@ -351,13 +351,20 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
      */
     public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
 
-        if (evt.getSource() instanceof ProteinUpdateProcessor && (!evt.getSecondaryIsoforms().isEmpty() || !evt.getSecondaryProteins().isEmpty())){
-            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnSecondaryAcsFound(evt);
-        }
+        if (!evt.getSecondaryIsoforms().isEmpty() || !evt.getSecondaryProteins().isEmpty()){
+            // create a copy of the event because the secondary proteins are removed from the list of secondary and primary proteins
+            UpdateCaseEvent copyEvt = new UpdateCaseEvent(evt.getSource(), evt.getDataContext(), evt.getProtein(), Collections.EMPTY_LIST, new ArrayList(evt.getSecondaryProteins()), Collections.EMPTY_LIST, new ArrayList(evt.getSecondaryIsoforms()), Collections.EMPTY_LIST, evt.getQuerySentToService());
 
-        updateSecondaryAcsForProteins(evt);
-        updateSecondaryAcsForIsoforms(evt);
+            updateSecondaryAcsForProteins(evt);
+            updateSecondaryAcsForIsoforms(evt);
+
+            copyEvt.getXrefUpdaterReports().addAll(evt.getXrefUpdaterReports());
+
+            if (evt.getSource() instanceof ProteinUpdateProcessor){
+                ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
+                processor.fireOnSecondaryAcsFound(copyEvt);
+            }
+        }
     }
 
     /**

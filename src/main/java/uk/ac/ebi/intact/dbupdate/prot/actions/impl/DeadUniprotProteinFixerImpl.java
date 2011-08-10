@@ -54,14 +54,13 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         Protein protein = evt.getProtein();
 
         // add no-uniprot-update and the caution
-        Collection<Annotation> addedAnnotations = updateAnnotations(protein, evt.getDataContext());
+        updateAnnotations(protein, evt.getDataContext());
 
         if (evt.getSource() instanceof ProteinUpdateProcessor) {
 
             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
             DeadUniprotEvent deadEvt = new DeadUniprotEvent(updateProcessor, evt.getDataContext(), evt.getProtein());
-            deadEvt.setAddedAnnotations(addedAnnotations);
 
             // delete all other xrefs which are not intact or uniprot identity and update the uniprot identity
             updateXRefs(protein, evt.getDataContext(), updateProcessor, deadEvt);
@@ -75,8 +74,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
      * Two new annotations will be added : a 'no-uniprot-update' and a 'caution' explaining that this protein is now obsolete in uniprot
      * @param protein :the dead protein in IntAct
      */
-    private Collection<Annotation> updateAnnotations(Protein protein, DataContext context){
-        Collection<Annotation> addedAnnotations = new ArrayList<Annotation>(2);
+    private void updateAnnotations(Protein protein, DataContext context){
 
         DaoFactory factory = context.getDaoFactory();
         Collection<Annotation> annotations = protein.getAnnotations();
@@ -122,7 +120,6 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             annotationDao.persist(no_uniprot);
 
             protein.addAnnotation(no_uniprot);
-            addedAnnotations.add(no_uniprot);
         }
         // if no 'caution' exists, add the annotation
         if (!has_caution_obsolete){
@@ -130,12 +127,9 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             annotationDao.persist(obsolete);
 
             protein.addAnnotation(obsolete);
-            addedAnnotations.add(obsolete);
         }
 
         proteinDao.update((ProteinImpl) protein);
-
-        return addedAnnotations;
     }
 
     private Collection<InteractorXref> retrieveDuplicateOfSameUniprotIdentity(List<InteractorXref> uniprotIdentities){
