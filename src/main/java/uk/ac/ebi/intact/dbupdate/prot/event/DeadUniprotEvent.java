@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.model.Annotation;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -19,7 +18,6 @@ import java.util.Collection;
 public class DeadUniprotEvent extends ProteinEvent {
 
     private Collection<InteractorXref> deletedXrefs;
-    private Collection<Annotation> addedAnnotations;
     private InteractorXref uniprotIdentityXref;
 
     public DeadUniprotEvent(Object source, DataContext dataContext, Protein protein) {
@@ -48,14 +46,6 @@ public class DeadUniprotEvent extends ProteinEvent {
 
     public void setDeletedXrefs(Collection<InteractorXref> deletedXrefs) {
         this.deletedXrefs = deletedXrefs;
-    }
-
-    public Collection<Annotation> getAddedAnnotations() {
-        return addedAnnotations;
-    }
-
-    public void setAddedAnnotations(Collection<Annotation> addedAnnotations) {
-        this.addedAnnotations = addedAnnotations;
     }
 
     public void setUniprotIdentityXref(InteractorXref uniprotIdentityXref) {

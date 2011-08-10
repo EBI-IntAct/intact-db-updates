@@ -255,12 +255,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Protein shortlabel",
                     "Protein taxId",
                     "Updated primary annotation",
-                    "Removed xref",
-                    "Added annotations");
+                    "Removed xref");
 
             String primaryRef = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : "-";
             StringBuilder xRefs = new StringBuilder();
-            StringBuilder annotations = new StringBuilder();
 
             if (evt.getDeletedXrefs() != null && !evt.getDeletedXrefs().isEmpty()){
                 for (Xref ref : evt.getDeletedXrefs()) {
@@ -274,25 +272,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 xRefs.append("-");
             }
 
-            if (evt.getAddedAnnotations() != null && !evt.getAddedAnnotations().isEmpty()){
-                for (Annotation annotation : evt.getAddedAnnotations()) {
-
-                    String qual = (annotation.getCvTopic()!= null)? "("+ annotation.getCvTopic().getShortLabel()+")" : "";
-
-                    annotations.append(qual+":"+ (annotation.getAnnotationText() != null ? annotation.getAnnotationText() : "-"));
-                }
-            }
-            else {
-                annotations.append("-");
-            }
-
             String taxId = protein.getBioSource() != null ? protein.getBioSource().getTaxId() : "-";
             writer.writeColumnValues(protein.getAc(),
                     protein.getShortLabel(),
                     taxId,
                     primaryRef,
-                    xRefs.toString(),
-                    annotations.toString());
+                    xRefs.toString());
             writer.flush();
         } catch (IOException e) {
             throw new ProcessorException("Problem writing to dead protein writer", e);
