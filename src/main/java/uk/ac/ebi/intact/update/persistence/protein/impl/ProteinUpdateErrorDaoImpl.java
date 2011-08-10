@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
 import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
@@ -30,13 +31,15 @@ public class ProteinUpdateErrorDaoImpl<T extends DefaultPersistentUpdateError> e
     public List<T> getUpdateErrorByLabel(long processId, UpdateError label) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("errorLabel", label)).list();
+                add(Restrictions.eq("errorLabel", label))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
     public List<T> getUpdateErrorByReason(long processId, String reason) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("errorMessage", reason)).list();
+                add(Restrictions.eq("errorMessage", reason))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

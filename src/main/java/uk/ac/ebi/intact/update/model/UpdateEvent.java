@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.update.model;
 
+import java.util.Date;
+
 /**
  * Interface for update events
  *
@@ -15,4 +17,10 @@ public interface UpdateEvent extends HibernateUpdatePersistent{
      * @return the parent process
      */
     public UpdateProcess getParent();
+
+    /**
+     *
+     * @return the date when the event started
+     */
+    public Date getEventDate();
 }

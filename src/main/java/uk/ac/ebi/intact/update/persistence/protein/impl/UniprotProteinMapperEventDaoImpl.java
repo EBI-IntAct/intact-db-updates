@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -34,7 +35,8 @@ public class UniprotProteinMapperEventDaoImpl extends ProteinEventDaoImpl<Unipro
         return getSession().createCriteria(getEntityClass()).
                 createAlias("identificationResults", "i").
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotNull("i.finalUniprotId")).list();
+                add(Restrictions.isNotNull("i.finalUniprotId"))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
@@ -42,6 +44,7 @@ public class UniprotProteinMapperEventDaoImpl extends ProteinEventDaoImpl<Unipro
         return getSession().createCriteria(getEntityClass()).
                 createAlias("identificationResults", "i").
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNull("i.finalUniprotId")).list();
+                add(Restrictions.isNull("i.finalUniprotId"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

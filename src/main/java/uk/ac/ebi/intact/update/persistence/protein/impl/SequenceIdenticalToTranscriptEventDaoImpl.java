@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,6 +34,7 @@ public class SequenceIdenticalToTranscriptEventDaoImpl extends ProteinEventDaoIm
     public List<SequenceIdenticalToTranscriptEvent> getByUniprotTranscriptAc(long processId, String transcript) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("matchingUniprotTranscript", transcript)).list();
+                add(Restrictions.eq("matchingUniprotTranscript", transcript))
+                .addOrder(Order.asc("eventDate")).list();
     }
 }

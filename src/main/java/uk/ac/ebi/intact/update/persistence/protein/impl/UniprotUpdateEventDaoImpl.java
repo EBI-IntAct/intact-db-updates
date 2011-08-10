@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,35 +34,40 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedShortLabel(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotNull("updatedShortLabel")).list();
+                add(Restrictions.isNotNull("updatedShortLabel"))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedFullName(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotNull("updatedFullName")).list();
+                add(Restrictions.isNotNull("updatedFullName"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUniprotQuery(long processId, String query) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("uniprotQuery", query)).list();
+                add(Restrictions.eq("uniprotQuery", query))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedXrefs(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotEmpty("updatedXrefs")).list();
+                add(Restrictions.isNotEmpty("updatedXrefs"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedAnnotations(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotEmpty("updatedAnnotations")).list();
+                add(Restrictions.isNotEmpty("updatedAnnotations"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override

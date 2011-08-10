@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,6 +34,7 @@ public class SecondaryProteinEventDaoImpl extends ProteinEventDaoImpl<SecondaryP
     public List<SecondaryProteinEvent> getSecondaryProteinEventsBySecondaryAc(long processId, String secondary) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("secondaryUniprotAc", secondary)).list();
+                add(Restrictions.eq("secondaryUniprotAc", secondary))
+                .addOrder(Order.asc("eventDate")).list();
     }
 }

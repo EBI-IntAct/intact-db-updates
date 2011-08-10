@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,20 +34,23 @@ public class IntactTranscriptUpdateDaoImpl extends ProteinEventDaoImpl<IntactTra
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithoutOldParent(long processId) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNull("oldParentAc")).list();
+                add(Restrictions.isNull("oldParentAc"))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithOldParent(long processId, String oldParent) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("oldParentAc", oldParent)).list();
+                add(Restrictions.eq("oldParentAc", oldParent))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithNewParent(long processId, String newParent) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("newParentAc", newParent)).list();
+                add(Restrictions.eq("newParentAc", newParent))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

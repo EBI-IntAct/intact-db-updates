@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.impl;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -34,7 +35,8 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
     @Override
     public List<T> getByProcessId(long processId) {
         return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).list();
+                .createAlias("parent", "p").add(Restrictions.eq("p.id", processId))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
@@ -42,20 +44,23 @@ public class UpdateEventDaoImpl<T extends UpdateEventImpl> extends UpdateBaseDao
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
-                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1))).list();
+                .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<T> getBeforeDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
-                .add(Restrictions.le("p.date", updatedDate)).list();
+                .add(Restrictions.le("p.date", updatedDate))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<T> getAfterDate(Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
-                .add(Restrictions.ge("p.date", updatedDate)).list();
+                .add(Restrictions.ge("p.date", updatedDate))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

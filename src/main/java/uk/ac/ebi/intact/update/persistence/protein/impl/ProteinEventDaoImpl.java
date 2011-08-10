@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -34,14 +35,16 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
 
     @Override
     public List<T> getAllUpdateEventsByProteinAc(String intactObjectAc) {
-        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+        return getSession().createCriteria(getEntityClass()).add(Restrictions.eq("proteinAc", intactObjectAc))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
     public List<T> getUpdateEventsByProteinAcAndProcessId(String intactObjectAc, long processId) {
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
-                .add(Restrictions.eq("proteinAc", intactObjectAc)).add(Restrictions.eq("p.id", processId)).list();
+                .add(Restrictions.eq("proteinAc", intactObjectAc)).add(Restrictions.eq("p.id", processId))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
@@ -50,7 +53,8 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
                 .createAlias("parent", "p")
                 .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
                 .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
-                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+                .add(Restrictions.eq("proteinAc", intactObjectAc))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
@@ -58,7 +62,8 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.le("p.date", updatedDate))
-                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+                .add(Restrictions.eq("proteinAc", intactObjectAc))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
@@ -66,6 +71,7 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
         return getSession().createCriteria(getEntityClass())
                 .createAlias("parent", "p")
                 .add(Restrictions.ge("p.date", updatedDate))
-                .add(Restrictions.eq("proteinAc", intactObjectAc)).list();
+                .add(Restrictions.eq("proteinAc", intactObjectAc))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

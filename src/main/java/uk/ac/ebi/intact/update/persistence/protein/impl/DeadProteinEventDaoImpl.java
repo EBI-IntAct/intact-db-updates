@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,13 +34,15 @@ public class DeadProteinEventDaoImpl extends ProteinEventDaoImpl<DeadProteinEven
     public List<DeadProteinEvent> getAllDeadProteinEventsHavingDeletedXrefs(long id) {
         return getSession().createCriteria(DeadProteinEvent.class).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
-                add(Restrictions.isNotEmpty("deletedXrefs")).list();
+                add(Restrictions.isNotEmpty("deletedXrefs"))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
     public List<DeadProteinEvent> getAllDeadProteinEventsWithoutDeletedXrefs(long id) {
         return getSession().createCriteria(DeadProteinEvent.class).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
-                add(Restrictions.isEmpty("deletedXrefs")).list();
+                add(Restrictions.isEmpty("deletedXrefs"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

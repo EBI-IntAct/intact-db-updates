@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.persistence.protein.impl;
 
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
@@ -33,7 +34,8 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithRelativeConservation(long processId, double cons) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.eq("relativeConservation", cons)).list();
+                add(Restrictions.eq("relativeConservation", cons))
+                .addOrder(Order.asc("eventDate")).list();
     }
 
     @Override
@@ -47,20 +49,23 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithRelativeConservationSuperiorTo(long processId, double cons) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.ge("relativeConservation", cons)).list();
+                add(Restrictions.ge("relativeConservation", cons))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithoutOldSequence(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNull("oldSequence")).list();
+                add(Restrictions.isNull("oldSequence"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithOldSequence(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
-                add(Restrictions.isNotNull("oldSequence")).list();
+                add(Restrictions.isNotNull("oldSequence"))
+                .addOrder( Order.asc("eventDate") ).list();
     }
 }

@@ -81,7 +81,7 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
             return false;
         }
 
-        final UpdateProcess process = ( UpdateProcess ) o;
+        final UpdateProcessImpl process = ( UpdateProcessImpl ) o;
 
         if ( date != null ) {
             if (!date.equals( process.getDate())){
