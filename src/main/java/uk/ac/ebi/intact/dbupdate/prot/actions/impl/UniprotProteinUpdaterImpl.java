@@ -455,7 +455,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 }
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
-                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, createDeprecatedProtein);
+                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, createDeprecatedProtein, true);
 
                 if (fixedProtein != null){
                     evt.getProteins().add(fixedProtein.getProtein().getAc());
@@ -518,7 +518,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             if (!report.getInvalidComponents().isEmpty()){
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
-                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false);
+                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false, true);
             }
         }
     }

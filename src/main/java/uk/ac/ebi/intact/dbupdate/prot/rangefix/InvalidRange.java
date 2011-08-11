@@ -13,7 +13,7 @@ import uk.ac.ebi.intact.model.Range;
 public class InvalidRange extends UpdatedRange{
 
     /**
-     * The sequence of the protein
+     * The new sequence of the protein
      */
     String sequence;
 
@@ -32,10 +32,12 @@ public class InvalidRange extends UpdatedRange{
      */
     String message;
 
+    boolean isOutOfDate = false;
+
     private String fromStatus;
     private String toStatus;
 
-    public InvalidRange(Range range, Range newRange, String sequence, String message, String fromStatus, String toStatus) {
+    public InvalidRange(Range range, Range newRange, String sequence, String message, String fromStatus, String toStatus, boolean outOfDate) {
         super(range, newRange);
 
         this.sequence = sequence;
@@ -45,9 +47,10 @@ public class InvalidRange extends UpdatedRange{
 
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
+        this.isOutOfDate = outOfDate;
     }
 
-    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion, String fromStatus, String toStatus) {
+    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion, String fromStatus, String toStatus, boolean outOfDate) {
         super(range, newRange);
 
         this.sequence = sequence;
@@ -57,6 +60,7 @@ public class InvalidRange extends UpdatedRange{
 
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
+        this.isOutOfDate = outOfDate;
     }
 
     public String getSequence() {
@@ -105,5 +109,9 @@ public class InvalidRange extends UpdatedRange{
 
     public void setFromStatus(String fromStatus) {
         this.fromStatus = fromStatus;
+    }
+
+    public boolean isOutOfDate() {
+        return isOutOfDate;
     }
 }

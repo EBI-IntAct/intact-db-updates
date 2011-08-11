@@ -37,9 +37,9 @@ public interface OutOfDateParticipantFixer {
      * @param evt : contains protein having range conflicts, the list of components affected by range conflicts and the parent ac if a protein transcript need to be created
      * @param createDeprecatedParticipant : to know if we want to create a deprecated protein with the range conflicts if no transcript can be found
      * @return the remapped protein transcript if it has been found, a deprecated protein if createDeprecated and no protein transcript can be found with
-     * the same sequence, null otherwise
+     * the same sequence, null otherwise. If fixOutOfDateRange is true, we allows the program to reset the out of date range to undetermined if it cannot be remapped to any proteins
      */
-    public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant);
+    public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant, boolean fixOutOfDateRanges);
 
     /**
      *

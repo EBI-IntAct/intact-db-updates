@@ -212,9 +212,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      *
      * @param evt : evt containing protein with conflicts, the components having range conflicts and the ac of the parent protein in case we create a new transcript
      * @param createDeprecatedParticipant
-     * @return
+     * @param fixOutOfDateRanges
+     * @return the protein transcript with the remapped protein if remapping possible. If not and createDeprecated protein is true, a deprecated protein is returned. If fixOutOfDateRanges is true and remapping was impossible
+     * and createDeprecatedParticipant was false, we can fix the ranges (set to undetermined), otherwise we just log them
      */
-    public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant){
+    public ProteinTranscript fixParticipantWithRangeConflicts(OutOfDateParticipantFoundEvent evt, boolean createDeprecatedParticipant, boolean fixOutOfDateRanges){
 
         DaoFactory factory = evt.getDataContext().getDaoFactory();
 
@@ -279,6 +281,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                     }
                 }
 
+                // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
                 rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
 
                 // log in 'out_of_date_participant.csv'
@@ -301,6 +304,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         if (createDeprecatedParticipant){
             ProteinTranscript fixedProtein = createDeprecatedProtein(evt);
 
+            // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
             rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
 
             // log in 'out_of_date_participant.csv'
@@ -313,7 +317,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         }
         // impossible to fix the conflict.
         else {
-            rangeFixer.processInvalidRanges(protein, evt.getDataContext(), uniprot, protein.getSequence(), evt.getInvalidRangeReport(), null, (ProteinUpdateProcessor)evt.getSource(), true);
+            rangeFixer.processInvalidRanges(protein, evt.getDataContext(), uniprot, protein.getSequence(), evt.getInvalidRangeReport(), null, (ProteinUpdateProcessor)evt.getSource(), fixOutOfDateRanges);
 
             // log in 'out_of_date_participant.csv'
             if (evt.getSource() instanceof ProteinUpdateProcessor){

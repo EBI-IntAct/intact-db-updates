@@ -91,7 +91,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> invalidPosBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_positions));
         Assert.assertEquals(0, invalidPosBefore.size());
 
-        InvalidRange invalidRange = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain");
+        InvalidRange invalidRange = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain", false);
 
         RangeUpdateReport rangeReport = new RangeUpdateReport();
         rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRange));
@@ -161,7 +161,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> seVersionBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(sequence_version));
         Assert.assertEquals(0, seVersionBefore.size());
 
-        InvalidRange invalidRange = new InvalidRange(range, range, oldSequence, "out of bound", "certain", "certain");
+        InvalidRange invalidRange = new InvalidRange(range, range, oldSequence, "out of bound", "certain", "certain", true);
 
         RangeUpdateReport rangeReport = new RangeUpdateReport();
         rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRange));
@@ -224,7 +224,7 @@ public class RangeFixerTest extends IntactBasicTestCase {
         final Collection<Annotation> invalidPosBefore = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalidPositions));
         Assert.assertEquals(1, invalidPosBefore.size());
 
-        InvalidRange invalidRangeEvt = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain");
+        InvalidRange invalidRangeEvt = new InvalidRange(range, null, oldSequence, "out of bound", "certain", "certain", false);
 
         RangeUpdateReport rangeReport = new RangeUpdateReport();
         rangeReport.getInvalidComponents().put(component, Arrays.asList(invalidRangeEvt));

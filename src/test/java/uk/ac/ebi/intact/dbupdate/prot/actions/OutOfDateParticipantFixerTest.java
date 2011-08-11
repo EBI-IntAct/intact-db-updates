@@ -167,7 +167,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create deprecated participant
         OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primary, uniprot, rangeReport, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, false);
+        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, false, true);
 
         Assert.assertNull(proteinTranscript);
         Assert.assertEquals(2, primary.getActiveInstances().size());
@@ -223,7 +223,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create deprecated participant
         OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primary, uniprot, rangeReport, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primary.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
+        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
         Assert.assertNull(proteinTranscript.getUniprotVariant());
@@ -307,7 +307,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create splice variant
         OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryIsoform.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
+        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
         Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
@@ -325,7 +325,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create feature chain
         OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, Collections.EMPTY_LIST, Collections.EMPTY_LIST, Collections.EMPTY_LIST, primaryChain.getAc());
 
-        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
+        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
         Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());
@@ -428,7 +428,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create splice variant
         OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
+        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
         Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
@@ -442,7 +442,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create feature chain
         OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
-        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
+        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
         Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());
@@ -542,7 +542,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create splice variant
         OutOfDateParticipantFoundEvent evt = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryIsoform, uniprot, reportIsoform, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
-        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true);
+        ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
         Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
@@ -561,7 +561,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         // create feature chain
         OutOfDateParticipantFoundEvent evt2 = new OutOfDateParticipantFoundEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), primaryChain, uniprot, reportChain, primaryIsoforms, Collections.EMPTY_LIST, primaryChains, primary.getAc());
 
-        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true);
+        ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
         Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());

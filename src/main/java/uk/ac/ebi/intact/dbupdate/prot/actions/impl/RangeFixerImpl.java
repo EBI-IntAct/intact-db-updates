@@ -121,7 +121,7 @@ public class RangeFixerImpl implements RangeFixer{
         else if(range.getToCvFuzzyType() == null){
             return true;
         }
-        else if(range.getFromCvFuzzyType().isUndetermined() && range.getToCvFuzzyType().isUndetermined()){
+        else if(range.getFromCvFuzzyType().isUndetermined() && range.getToCvFuzzyType().isUndetermined() && range.getFromIntervalStart() == 0 && range.getFromIntervalEnd() == range.getFromIntervalStart() && range.getToIntervalStart() == range.getFromIntervalStart() && range.getToIntervalEnd() == range.getFromIntervalStart()){
             return true;
         }
 
@@ -862,7 +862,7 @@ public class RangeFixerImpl implements RangeFixer{
      * @param protein : protein having range conflicts
      * @param context
      * @param uniprotAc : the uniprot ac
-     * @param oldSequence : the previous sequence
+     * @param oldSequence : the previous sequence of the protein
      * @param report : the range update report
      * @param fixedProtein : the proteins the ranges can be remapped to
      * @param processor
@@ -872,8 +872,8 @@ public class RangeFixerImpl implements RangeFixer{
         // for each component with range conflicts
         for (Map.Entry<Component, Collection<InvalidRange>> entry : report.getInvalidComponents().entrySet()){
             for (InvalidRange invalid : entry.getValue()){
-                // range is bad from the beginning, not after the range shifting : fix it
-                if (!ProteinTools.isSequenceChanged(oldSequence, invalid.getSequence())){
+                // range is bad from the beginning, not after the range shifting : fix it.
+                if (!invalid.isOutOfDate()){
                     InvalidRangeEvent invalidEvent = new InvalidRangeEvent(context, invalid, report);
                     fixInvalidRanges(invalidEvent, processor);
                 }
