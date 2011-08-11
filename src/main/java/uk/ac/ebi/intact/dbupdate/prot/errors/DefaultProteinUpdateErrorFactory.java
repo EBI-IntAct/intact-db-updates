@@ -107,4 +107,9 @@ public class DefaultProteinUpdateErrorFactory implements ProteinUpdateErrorFacto
     public ProteinUpdateError createImpossibleParentTranscriptToReviewError(String proteinAc, String error) {
         return new ImpossibleTranscriptParentReview(error, proteinAc);
     }
+
+    @Override
+    public ProteinUpdateError createFatalUpdateError(String proteinAc, String uniprot, Exception e) {
+        return new FatalErrorDuringUpdate(proteinAc, uniprot, e);
+    }
 }

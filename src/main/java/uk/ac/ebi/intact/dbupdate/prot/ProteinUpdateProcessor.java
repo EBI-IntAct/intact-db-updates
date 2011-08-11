@@ -293,6 +293,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setBlastEnabled(false);
 
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         List<Protein> intactProteins = super.retrieveAndUpdateProteinFromUniprot(uniprotAc);
 
         // register the listeners
@@ -337,6 +339,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 context.commitTransaction(status);
             }  catch (Exception e) {
                 log.fatal("We failed to update the protein " + uniprotAc);
+                ProteinUpdateError fatalError = errorFactory.createFatalUpdateError(null, uniprotAc, e);
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, context, fatalError, uniprotAc));
                 if (!status.isCompleted()){
                     context.rollbackTransaction(status);
                 }
@@ -359,6 +363,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 context.commitTransaction(status);
             } catch (Exception e) {
                 log.fatal("We failed to update the protein " + uniprotAc);
+                ProteinUpdateError fatalError = errorFactory.createFatalUpdateError(null, uniprotAc, e);
+                fireOnProcessErrorFound(new UpdateErrorEvent(this, context, fatalError, uniprotAc));
                 if (!status.isCompleted()){
                     context.rollbackTransaction(status);
                 }
@@ -383,104 +389,114 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     }
 
     @Override
-    public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
+    public Set<String> update(Protein protToUpdate, DataContext dataContext){
         // register the listeners
         registerListenersIfNotDoneYet();
 
         // the proteins processed during this update
         Set<String> processedProteins = super.update(protToUpdate, dataContext);
-
         // the current config
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
-        // the protein to update
-        this.currentProtein = protToUpdate;
+        String uniprotIdentity = null;
 
-        // add the protein to the list of processed proteins
-        processedProteins.add(protToUpdate.getAc());
+        try{
+            // the protein to update
+            this.currentProtein = protToUpdate;
 
-        // create the event for this protein
-        ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
+            // add the protein to the list of processed proteins
+            processedProteins.add(protToUpdate.getAc());
 
-        // to know if the protein should be deleted
-        boolean toDelete = false;
+            // create the event for this protein
+            ProteinEvent processEvent = new ProteinEvent(this, dataContext, protToUpdate);
 
-        // if we delete proteins without interactions
-        if (config.isDeleteProtsWithoutInteractions()){
-            if (log.isTraceEnabled()) log.trace("Checking for protein interactions : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
+            // to know if the protein should be deleted
+            boolean toDelete = false;
 
-            // true if the protein is not involved in any interactions
-            toDelete = protWithoutInteractionDeleter.hasToBeDeleted(processEvent);
-        }
+            // if we delete proteins without interactions
+            if (config.isDeleteProtsWithoutInteractions()){
+                if (log.isTraceEnabled()) log.trace("Checking for protein interactions : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
 
-        // if the protein must be deleted, delete it
-        if (toDelete){
-            boolean isDeletedFromDatabase = proteinDeleter.delete(processEvent);
-
-            if (!isDeletedFromDatabase){
-                InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protToUpdate);
-                String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
-
-                ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError(protToUpdate.getShortLabel(), "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
-
-                fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprot));
-            }
-        }
-        // the protein must not be deleted, update it
-        else {
-            if (log.isTraceEnabled()) log.trace("Filtering protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+") for uniprot update");
-
-            boolean canBeUpdated = true;
-
-            // get the list of protein isoforms or feature chains in intact matching this uniprot entry but without any parents attached to it
-            // remove from the list of transcripts to update :
-            // - transcripts with dead parent impossible to remap
-            // - transcript with several parents
-            // - transcripts with both feature chain and isoform parents
-            List<Protein> transcriptsWithoutParents = new ArrayList<Protein>();
-
-            // case of splice variant or feature chain, check if the parent cross references are consistent, otherwise don't update
-            // - cannot be updated if is attached to several parents
-            if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
-                canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent, transcriptsWithoutParents);
+                // true if the protein is not involved in any interactions
+                toDelete = protWithoutInteractionDeleter.hasToBeDeleted(processEvent);
             }
 
-            if (canBeUpdated){
-                // get the uniprot identity of this protein
-                String uniprotIdentity = updateFilter.filterOnUniprotIdentity(processEvent);
+            // if the protein must be deleted, delete it
+            if (toDelete){
+                boolean isDeletedFromDatabase = proteinDeleter.delete(processEvent);
 
-                // if the protein has a uniprot identity and is not 'no-uniprot-update'
-                if (uniprotIdentity != null){
-                    if (log.isTraceEnabled()) log.trace("Retrieving uniprot entry matching the protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+"), "+uniprotIdentity+"");
-                    processEvent.setUniprotIdentity(uniprotIdentity);
+                if (!isDeletedFromDatabase){
+                    InteractorXref uniprotIdentityXref = ProteinUtils.getUniprotXref(protToUpdate);
+                    String uniprot = uniprotIdentityXref != null ? uniprotIdentityXref.getPrimaryId() : null;
 
-                    // get the uniprot protein
-                    UniprotProtein uniprotProtein = uniprotRetriever.retrieveUniprotEntry(processEvent);
+                    ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError(protToUpdate.getShortLabel(), "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
 
-                    // if the uniprot protein exists, start to update
-                    if (uniprotProtein != null){
+                    fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprot));
+                }
+            }
+            // the protein must not be deleted, update it
+            else {
+                if (log.isTraceEnabled()) log.trace("Filtering protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+") for uniprot update");
 
-                        if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotIdentity);
+                boolean canBeUpdated = true;
 
-                        UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent, transcriptsWithoutParents);
+                // get the list of protein isoforms or feature chains in intact matching this uniprot entry but without any parents attached to it
+                // remove from the list of transcripts to update :
+                // - transcripts with dead parent impossible to remap
+                // - transcript with several parents
+                // - transcripts with both feature chain and isoform parents
+                List<Protein> transcriptsWithoutParents = new ArrayList<Protein>();
 
-                        if (caseEvent != null){
-                            // add each protein to the list of processed proteins
-                            processedProteins.addAll(caseEvent.getProteins());
+                // case of splice variant or feature chain, check if the parent cross references are consistent, otherwise don't update
+                // - cannot be updated if is attached to several parents
+                if (ProteinUtils.isFeatureChain(protToUpdate) || ProteinUtils.isSpliceVariant(protToUpdate)){
+                    canBeUpdated = parentUpdater.checkConsistencyProteinTranscript(processEvent, transcriptsWithoutParents);
+                }
+
+                if (canBeUpdated){
+                    // get the uniprot identity of this protein
+                    uniprotIdentity = updateFilter.filterOnUniprotIdentity(processEvent);
+
+                    // if the protein has a uniprot identity and is not 'no-uniprot-update'
+                    if (uniprotIdentity != null){
+                        if (log.isTraceEnabled()) log.trace("Retrieving uniprot entry matching the protein : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+"), "+uniprotIdentity+"");
+                        processEvent.setUniprotIdentity(uniprotIdentity);
+
+                        // get the uniprot protein
+                        UniprotProtein uniprotProtein = uniprotRetriever.retrieveUniprotEntry(processEvent);
+
+                        // if the uniprot protein exists, start to update
+                        if (uniprotProtein != null){
+
+                            if (log.isTraceEnabled()) log.trace("Retrieving all intact proteins matcing the uniprot entry : "+uniprotIdentity);
+
+                            UpdateCaseEvent caseEvent = runProteinUpdate(uniprotProtein, processEvent, transcriptsWithoutParents);
+
+                            if (caseEvent != null){
+                                // add each protein to the list of processed proteins
+                                processedProteins.addAll(caseEvent.getProteins());
+                            }
+                        }
+                        else if (!transcriptsWithoutParents.isEmpty()){
+                            ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because we cannot retrieve a single uniprot entry matching " + uniprotIdentity);
+                            fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprotIdentity));
                         }
                     }
                     else if (!transcriptsWithoutParents.isEmpty()){
-                        ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because we cannot retrieve a single uniprot entry matching " + uniprotIdentity);
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate, uniprotIdentity));
+                        ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because it does not have a valid uniprot identity.");
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate));
                     }
                 }
-                else if (!transcriptsWithoutParents.isEmpty()){
-                    ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleParentTranscriptToReviewError(protToUpdate.getAc(), "The protein transcript cannot be reviewed because it does not have a valid uniprot identity.");
-                    fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, impossibleToDeleteEvent, protToUpdate));
-                }
             }
+
+        }
+        catch (Exception e) {
+            log.fatal("We failed to update the protein " + protToUpdate.getAc(), e);
+
+            ProteinUpdateError fatalError = errorFactory.createFatalUpdateError(protToUpdate.getAc(), uniprotIdentity, e);
+            fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, fatalError, protToUpdate, uniprotIdentity));
         }
 
         return processedProteins;

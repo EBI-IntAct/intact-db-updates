@@ -184,7 +184,7 @@ public abstract class ProteinProcessor {
     }
 
     // do nothing, to override
-    public Set<String> update(Protein protToUpdate, DataContext dataContext) throws ProcessorException {
+    public Set<String> update(Protein protToUpdate, DataContext dataContext){
         // the proteins processed during this update
         Set<String> processedProteins = new HashSet<String>();
 
