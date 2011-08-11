@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.errors;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
@@ -114,5 +115,11 @@ public class PersistentUpdateErrorFactory implements ProteinUpdateErrorFactory{
     @Override
     public ProteinUpdateError createImpossibleParentTranscriptToReviewError(String proteinAc, String reason) {
         return new ImpossibleParentToReview(null, reason, proteinAc);
+    }
+
+    @Override
+    public ProteinUpdateError createFatalUpdateError(String proteinAc, String uniprot, Exception e) {
+        String errorMessage = ExceptionUtils.getFullStackTrace(e);
+        return new FatalUpdateError(null, proteinAc, uniprot, errorMessage);
     }
 }
