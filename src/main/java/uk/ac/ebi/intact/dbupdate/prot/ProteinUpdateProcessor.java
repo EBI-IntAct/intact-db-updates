@@ -112,6 +112,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         this.uniprotRetriever = new UniprotProteinRetrieverImpl(config.getUniprotService(), this.proteinMappingManager, this.deadUniprotProteinFixer);
         this.duplicateFixer = new DuplicatesFixerImpl(this.proteinDeleter, this.participantFixer, this.duplicatesFinder);
         this.updater = new UniprotProteinUpdaterImpl(config.getTaxonomyService(), this.participantFixer);
+
+        registerListeners();
     }
 
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
