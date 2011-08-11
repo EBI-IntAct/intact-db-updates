@@ -85,9 +85,17 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
 
-        // one protein for all interactions
-        Protein simple = getMockBuilder().createProtein("P12347", "simple_protein");
-        simple.getBioSource().setTaxId("35845");
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
         getCorePersister().saveOrUpdate(simple);
 
         // one protein no uniprot update with one interaction
@@ -200,6 +208,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(interaction_8);
 
         // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
         dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
@@ -209,6 +219,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
         IntactCloner cloner = new IntactCloner(true);
         Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
         dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
         for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
@@ -220,13 +231,16 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
             }
         }
 
+        // dupe2 will be kept as original but has the same interaction as dupe3
         dupe2.setCreated(new Date(1)); // dupe2 is older
         // no need to update the sequence
         dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
         dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
         Protein dupe3 = cloner.clone(dupe2);
         dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
         dupe3.setCreated(dupe1.getCreated());
 
         for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
@@ -239,11 +253,17 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         // no need to update the sequence
         dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
 
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
         Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
         Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
-        Interaction interaction3 = getMockBuilder().createInteraction(dupe1, simple);
         Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
 
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
         // add a range in the protein with up-to-date sequence (dupe2)
         Feature feature = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -251,6 +271,9 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         feature.addRange(range);
         dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
 
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
         // add a range which will be shifted (dupe3)
         Feature feature3 = getMockBuilder().createFeatureRandom();
         feature.getRanges().clear();
@@ -258,22 +281,35 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         feature3.addRange(range3);
         dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
 
-        // add a bad range in the protein with sequence to update (dupe2)
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
         Feature feature2 = getMockBuilder().createFeatureRandom();
         feature2.getRanges().clear();
         Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
         feature2.addRange(range2);
-        dupe1.getActiveInstances().iterator().next().addBindingDomain(feature2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
 
         // persist the interactions
-        getCorePersister().saveOrUpdate(dupe1);
-        getCorePersister().saveOrUpdate(dupe2);
-        getCorePersister().saveOrUpdate(dupe3);
-        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction3, interaction4);
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe1, simple, dupe3);
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
 
         Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
-        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
 
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
 
@@ -391,7 +427,14 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
         // 5 : header plus one protein with several uniprot identities
         Assert.assertEquals(5, countLinesInFile(erroFile));
+        // 2 : header plus one secondary protein updated
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
+        // 2 : header plus one simple protein haing the same sequence as one of its isoforms
+        Assert.assertEquals(2, countLinesInFile(transcriptWithSameSequenceFile));
+        // 2 : header plus protein transcript without intact parent
+        Assert.assertEquals(2, countLinesInFile(invalidIntactParentFile));
+        // 2 : header plus dupe3 which is now a duplicated participant
+        Assert.assertEquals(2, countLinesInFile(deletedComponentFile));
 
         getDataContext().commitTransaction(status2);
     }

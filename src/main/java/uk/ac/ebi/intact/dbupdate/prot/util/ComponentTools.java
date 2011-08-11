@@ -287,7 +287,7 @@ public class ComponentTools {
     public static void moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
-        Collection<Component> deletedComponents = new ArrayList<Component>(sourceProtein.getActiveInstances());
+        Collection<Component> deletedComponents = new ArrayList<Component>(componentsToMove.size());
 
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);

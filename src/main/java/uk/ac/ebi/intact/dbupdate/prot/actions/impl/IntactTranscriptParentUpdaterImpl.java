@@ -456,6 +456,9 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
 
                     if (!t.getXrefs().contains(parent)){
 
+                        InvalidIntactParentFoundEvent invalidEvent = new InvalidIntactParentFoundEvent(processor, context, t, uniprot, null, masterAc);
+                        processor.fireOnInvalidIntactParentFound(invalidEvent);
+
                         factory.getXrefDao(InteractorXref.class).persist(parent);
                         t.addXref(parent);
 
