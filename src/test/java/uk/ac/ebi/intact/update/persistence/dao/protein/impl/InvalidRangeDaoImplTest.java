@@ -86,15 +86,13 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
         OutOfDateParticipantEvent proteinEvent = getMockBuilder().createOutOfDateParticipantProcess();
 
+        proteinEvent.setUpdateProcess(process2);
         getUpdateDaoFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(proteinEvent);
-
-        process2.addEvent(proteinEvent);
 
         proteinEvent.addRangeUpdate(invalid2);
         proteinEvent.addRangeUpdate(invalid3);
 
         processDao.persist(process1);
-        processDao.persist(process2);
 
         Long id1 = process1.getId();
         Long id2 = process2.getId();
@@ -127,16 +125,13 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
         invalidRangeDao.persist(invalid3);
 
         OutOfDateParticipantEvent proteinEvent = getMockBuilder().createOutOfDateParticipantProcess();
-
+        proteinEvent.setUpdateProcess(process2);
         getUpdateDaoFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(proteinEvent);
-
-        process2.addEvent(proteinEvent);
 
         proteinEvent.addRangeUpdate(invalid2);
         proteinEvent.addRangeUpdate(invalid3);
 
         processDao.persist(process1);
-        processDao.persist(process2);
 
         Date date1 = process1.getDate();
         Date date2 = process2.getDate();

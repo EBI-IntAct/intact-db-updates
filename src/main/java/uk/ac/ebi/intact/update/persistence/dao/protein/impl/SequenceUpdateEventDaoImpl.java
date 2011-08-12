@@ -33,7 +33,7 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithRelativeConservation(long processId, double cons) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("relativeConservation", cons))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -41,14 +41,14 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithRelativeConservationInferiorTo(long processId, double cons) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.le("relativeConservation", cons)).list();
     }
 
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithRelativeConservationSuperiorTo(long processId, double cons) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.ge("relativeConservation", cons))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -56,7 +56,7 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithoutOldSequence(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNull("oldSequence"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -64,7 +64,7 @@ public class SequenceUpdateEventDaoImpl extends ProteinEventDaoImpl<SequenceUpda
     @Override
     public List<SequenceUpdateEvent> getSequenceUpdateEventWithOldSequence(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotNull("oldSequence"))
                 .addOrder(Order.asc("eventDate")).list();
     }

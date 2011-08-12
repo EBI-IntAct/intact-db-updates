@@ -24,7 +24,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
     private String remappedProtein;
 
     /**
-     * The intact ac of the remapped parent
+     * The intact ac of the remapped updateProcess
      */
     private String remappedParent;
 
@@ -43,6 +43,12 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
     @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<PersistentInvalidRange> getInvalidRanges(){
+        return super.getUpdatedRanges();
+    }
+
+    @Override
+
+    public Collection<PersistentInvalidRange> getUpdatedRanges(){
         return super.getUpdatedRanges();
     }
 
@@ -166,7 +172,7 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
         buffer.append(super.toString() + "\n");
 
         buffer.append("Out of date participant event : [Remapped proteinAc ac = " + (remappedProtein != null ? remappedProtein : "none"));
-        buffer.append(", remapped parent ac = "+(remappedProtein != null ? remappedProtein : "none")+"] \n");
+        buffer.append(", remapped updateProcess ac = "+(remappedProtein != null ? remappedProtein : "none")+"] \n");
 
         return buffer.toString();
     }

@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.listener;
 
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
@@ -40,6 +41,8 @@ import java.util.Map;
  * @since <pre>27/06/11</pre>
  */
 @Component
+@TransactionConfiguration( transactionManager = "updateTransactionManager" )
+@Transactional
 public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
     private ProteinUpdateProcess updateProcess;
@@ -62,7 +65,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     public void onDelete(ProteinEvent evt) throws ProcessorException {
         Protein protein = evt.getProtein();
 
-        DeletedProteinEvent proteinEvt = new DeletedProteinEvent(this.updateProcess, evt.getUniprotIdentity());
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
+
+        DeletedProteinEvent proteinEvt = new DeletedProteinEvent(updateProcess, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getDeletedProteinEventDao().persist(proteinEvt);
@@ -70,6 +76,9 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
     @Transactional( "update" )
     public void onProteinDuplicationFound(DuplicatesFoundEvent evt) throws ProcessorException {
+
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         Protein originalProtein = evt.getReferenceProtein();
         boolean sequenceUpdate = evt.hasShiftedRanges();
@@ -85,7 +94,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             boolean isMergeSuccessful = (invalidRangeReport == null);
 
-            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(this.updateProcess, duplicate, originalProtein, uniprotAc, sequenceUpdate, isMergeSuccessful);
+            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(updateProcess, duplicate, originalProtein, uniprotAc, sequenceUpdate, isMergeSuccessful);
 
             // add the moved interactions
             if (movedInteractions != null){
@@ -147,12 +156,15 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onDeadProteinFound(DeadUniprotEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
+
         Protein protein = evt.getProtein();
 
         String identity = evt.getUniprotIdentityXref() != null ? evt.getUniprotIdentityXref().getPrimaryId() : null;
         Collection<InteractorXref> deletedXrefs = evt.getDeletedXrefs();
 
-        DeadProteinEvent proteinEvt = new DeadProteinEvent(this.updateProcess, protein, identity);
+        DeadProteinEvent proteinEvt = new DeadProteinEvent(updateProcess, protein, identity);
 
         if (deletedXrefs != null && !deletedXrefs.isEmpty()){
             proteinEvt.addDeletedReferencesFromXref(deletedXrefs);
@@ -164,9 +176,12 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProteinSequenceChanged(ProteinSequenceChangeEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
+
         Protein protein = evt.getProtein();
 
-        SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(this.updateProcess, protein, evt.getUniprotIdentity(), evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
+        SequenceUpdateEvent proteinEvt = new SequenceUpdateEvent(updateProcess, protein, evt.getUniprotIdentity(), evt.getNewSequence(), evt.getOldSequence(), evt.getRelativeConservation());
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSequenceUpdateEventDao().persist(proteinEvt);
     }
@@ -174,9 +189,12 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProteinCreated(ProteinEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
+
         Protein protein = evt.getProtein();
 
-        CreatedProteinEvent proteinEvt = new CreatedProteinEvent(this.updateProcess, protein, evt.getUniprotIdentity());
+        CreatedProteinEvent proteinEvt = new CreatedProteinEvent(updateProcess, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getCreatedProteinEventDao().persist(proteinEvt);
@@ -185,6 +203,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onUpdateCase(UpdateCaseEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        this.updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         for (Protein prot : evt.getPrimaryProteins()){
             processUpdatedProtein(prot, evt);
@@ -230,6 +250,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onOutOfDateParticipantFound(OutOfDateParticipantFoundEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         String remappedProteinAc = evt.getRemappedProteinAc();
         String remappedParentAc = evt.getValidParentAc();
@@ -238,7 +260,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         RangeUpdateReport invalidRanges = evt.getInvalidRangeReport();
         String uniprotId = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : null;
 
-        OutOfDateParticipantEvent protEvt = new OutOfDateParticipantEvent(this.updateProcess, currentProteinHavingConflicts, uniprotId, remappedProteinAc, remappedParentAc);
+        OutOfDateParticipantEvent protEvt = new OutOfDateParticipantEvent(updateProcess, currentProteinHavingConflicts, uniprotId, remappedProteinAc, remappedParentAc);
 
         if (invalidRanges != null){
             Map<String, AnnotationUpdateReport> featureReport = invalidRanges.getUpdatedFeatureAnnotations();
@@ -269,8 +291,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                     String oldPositions = inv.getOldRange() != null ? FeatureUtils.convertRangeIntoString(inv.getOldRange()) : null;
                     String newPositions = inv.getNewRange() != null ? FeatureUtils.convertRangeIntoString(inv.getNewRange()) : null;
 
-                    PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, inv.getFromStatus(), inv.getToStatus(), newSequence, oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());
-                    protEvt.addInvalidRange(persistentRange);
+                    PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, newSequence, inv.getFromStatus(), inv.getToStatus(), oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());
+                    protEvt.addRangeUpdate(persistentRange);
                 }
             }
         }
@@ -281,12 +303,15 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
+
         ProteinUpdateError error = evt.getError();
 
         if (error instanceof DefaultPersistentUpdateError){
             DefaultPersistentUpdateError persistentError = (DefaultPersistentUpdateError) error;
 
-            persistentError.setParent(this.updateProcess);
+            persistentError.setUpdateProcess(updateProcess);
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class).persist(persistentError);
         }
@@ -295,6 +320,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         Collection<Protein> secondaryProteins = evt.getSecondaryProteins();
         Collection<ProteinTranscript> secondaryIsoforms = evt.getSecondaryIsoforms();
@@ -306,7 +333,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             InteractorXref originalSecondary = ProteinUtils.getUniprotXref(prot);
             String originalAc = originalSecondary != null ? originalSecondary.getPrimaryId() : null;
 
-            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, originalAc, uniprotPrimaryAc);
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
@@ -318,7 +345,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             InteractorXref originalSecondary = ProteinUtils.getUniprotXref(prot);
             String originalAc = originalSecondary != null ? originalSecondary.getPrimaryId() : null;
 
-            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(this.updateProcess, prot, originalAc, uniprotPrimaryAc);
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, originalAc, uniprotPrimaryAc);
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
@@ -327,12 +354,14 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         String currentAc = evt.getUniprotIdentity();
         String transcriptAc = evt.getUniprotTranscriptAc();
         Protein protein = evt.getProtein();
 
-        SequenceIdenticalToTranscriptEvent protEvt = new SequenceIdenticalToTranscriptEvent(this.updateProcess, protein, currentAc, transcriptAc);
+        SequenceIdenticalToTranscriptEvent protEvt = new SequenceIdenticalToTranscriptEvent(updateProcess, protein, currentAc, transcriptAc);
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSequenceIdenticalToTranscriptEventDao().persist(protEvt);
     }
@@ -340,13 +369,15 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         Protein protein = evt.getProtein();
         String newParentAc = evt.getNewParentAc();
         String oldParentAc = evt.getNewParentAc();
         String uniprotAc= evt.getUniprotIdentity();
 
-        IntactTranscriptUpdateEvent protEvt = new IntactTranscriptUpdateEvent(this.updateProcess, protein, uniprotAc, oldParentAc, newParentAc);
+        IntactTranscriptUpdateEvent protEvt = new IntactTranscriptUpdateEvent(updateProcess, protein, uniprotAc, oldParentAc, newParentAc);
 
         IntactUpdateContext.getCurrentInstance().getUpdateFactory().getIntactTranscriptEventDao().persist(protEvt);
 
@@ -355,13 +386,15 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         if (evt.getResult() instanceof PersistentIdentificationResults){
             PersistentIdentificationResults result = (PersistentIdentificationResults) evt.getResult();
 
             Protein protein = evt.getProtein();
 
-            UniprotProteinMapperEvent protEvt = new UniprotProteinMapperEvent(this.updateProcess, protein, result);
+            UniprotProteinMapperEvent protEvt = new UniprotProteinMapperEvent(updateProcess, protein, result);
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getUniprotProteinMapperEventDao().persist(protEvt);
         }
     }
@@ -374,13 +407,15 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     @Override
     @Transactional( "update" )
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
+        // reattach the updateProcess to the entity manager
+        ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         Protein protein = evt.getProtein();
         String uniprot = evt.getUniprotIdentity();
 
         Collection<uk.ac.ebi.intact.model.Component> deletedComponents = evt.getDeletedComponents();
 
-        uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent protEvt = new uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent(this.updateProcess, protein, uniprot);
+        uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent protEvt = new uk.ac.ebi.intact.update.model.protein.events.DeletedComponentEvent(updateProcess, protein, uniprot);
 
         for (uk.ac.ebi.intact.model.Component c : deletedComponents){
             protEvt.getDeletedComponents().add(c.getAc());

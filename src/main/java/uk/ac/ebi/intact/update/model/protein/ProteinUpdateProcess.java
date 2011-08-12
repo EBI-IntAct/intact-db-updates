@@ -1,16 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein;
 
-import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.update.model.UpdateProcessImpl;
-import uk.ac.ebi.intact.update.model.protein.errors.DefaultPersistentUpdateError;
 import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -24,11 +18,6 @@ import java.util.Date;
 @Table(name = "ia_prot_update_process")
 public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEvent>{
 
-    /**
-     * Collection of errors while processing this update process
-     */
-    Collection<DefaultPersistentUpdateError> updateErrors = new ArrayList<DefaultPersistentUpdateError>();
-
     public ProteinUpdateProcess(){
         super();
         setDate(new Date(System.currentTimeMillis()));
@@ -37,31 +26,6 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
 
     public ProteinUpdateProcess(Date date, String userStamp){
         super(date, userStamp);
-    }
-
-    @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<DefaultPersistentUpdateError> getUpdateErrors() {
-        return updateErrors;
-    }
-
-    public void setUpdateErrors(Collection<DefaultPersistentUpdateError> updateErrors) {
-        this.updateErrors = updateErrors;
-    }
-
-    public boolean addError(DefaultPersistentUpdateError error){
-        if (updateErrors.add(error)){
-            error.setParent(this);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeError(DefaultPersistentUpdateError error){
-        if (updateErrors.remove(error)){
-            error.setParent(null);
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -73,6 +37,6 @@ public class ProteinUpdateProcess extends UpdateProcessImpl<PersistentProteinEve
 
         final ProteinUpdateProcess process = ( ProteinUpdateProcess ) o;
 
-        return CollectionUtils.isEqualCollection(updateErrors, process.getUpdateErrors());
+        return true;
     }
 }

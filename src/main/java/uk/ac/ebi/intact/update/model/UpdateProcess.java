@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.update.model;
 
-import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -23,10 +22,4 @@ public interface UpdateProcess<T extends UpdateEventImpl> extends HibernateUpdat
      * @return the user which runs the update
      */
     public String getUserStamp();
-
-    /**
-     *
-     * @return the collection of update events which occurred during the update process
-     */
-    public Collection<T> getUpdateEvents();
 }

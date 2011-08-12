@@ -69,9 +69,9 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
 
-        process.addEvent(evt);
+        evt.setUpdateProcess(process);
 
-        processDao.update(process);
+        getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).persist(evt);
 
         Assert.assertEquals(1, processDao.countAll());
         Assert.assertEquals(1, getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).countAll());
@@ -95,9 +95,8 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         getUpdateDaoFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(proteinEvent);
 
-        process.addEvent(proteinEvent);
+        proteinEvent.setUpdateProcess(process);
 
-        processDao.update(process);
 
         Assert.assertEquals(1, processDao.countAll());
         Assert.assertEquals(1, getUpdateDaoFactory().getUpdatedRangeDao(PersistentInvalidRange.class).countAll());
@@ -113,18 +112,19 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
         OutOfDateParticipantEvent proteinEvent = getMockBuilder().createOutOfDateParticipantProcess();
         proteinEvent.addRangeUpdate(range);
+        proteinEvent.setUpdateProcess(process);
 
         getUpdateDaoFactory().getProteinEventDao(OutOfDateParticipantEvent.class).persist(proteinEvent);
 
-        process.addEvent(proteinEvent);
-
         UniprotUpdateEvent evt = getMockBuilder().createDefaultProteinEvent();
 
-        process.addEvent(evt);
+        evt.setUpdateProcess(process);
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(evt);
 
-        processDao.persist(process);
         Assert.assertEquals(1, processDao.countAll());
 
+        getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).delete(proteinEvent);
+        getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class).delete(evt);
         processDao.delete(process);
         Assert.assertEquals(0, processDao.countAll());
         Assert.assertEquals(0, getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class).countAll());

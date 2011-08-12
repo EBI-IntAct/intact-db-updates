@@ -30,7 +30,7 @@ public class UpdatedAlias extends HibernateUpdatePersistentImpl {
     private String name;
 
     /**
-     * The parent
+     * The updateProcess
      */
     private UpdateEventImpl parent;
 

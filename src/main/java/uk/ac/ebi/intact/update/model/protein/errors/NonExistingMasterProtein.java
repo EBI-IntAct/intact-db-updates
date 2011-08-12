@@ -154,7 +154,7 @@ public class NonExistingMasterProtein extends DeadUniprotAc {
         error.append(proteinAc);
         error.append(" refers to a valid uniprot entry ");
         error.append(transcriptUniprotAc);
-        error.append(" but is attached to a parent protein ");
+        error.append(" but is attached to a updateProcess protein ");
         error.append(transcriptIntactAc);
         error.append(" which is refers to an obsolete uniprot entry ");
         error.append(deadUniprot);

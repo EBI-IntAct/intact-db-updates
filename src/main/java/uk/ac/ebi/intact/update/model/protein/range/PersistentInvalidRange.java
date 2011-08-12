@@ -1,9 +1,10 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
-import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 
 /**
  * Class for invalid ranges found during the protein update
@@ -13,8 +14,8 @@ import javax.persistence.*;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@Table(name = "ia_invalid_range")
-public class PersistentInvalidRange extends AbstractUpdatedRange {
+@DiscriminatorValue("invalid_range")
+public class PersistentInvalidRange extends PersistentUpdatedRange {
 
     private String fromStatus;
     private String toStatus;
@@ -43,12 +44,6 @@ public class PersistentInvalidRange extends AbstractUpdatedRange {
         this.sequenceVersion = sequenceVersion;
         this.fromStatus = startStatus;
         this.toStatus = endStatus;
-    }
-
-    @ManyToOne(targetEntity = OutOfDateParticipantEvent.class)
-    @JoinColumn(name="parent_id")
-    public ProteinEventWithRangeUpdate getParent() {
-        return super.getParent();
     }
 
     @Column(name = "from_range_status")

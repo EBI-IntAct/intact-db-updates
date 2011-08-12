@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.update.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.update.utils.SchemaUtils;
 
 /**
  * TODO comment this
@@ -22,9 +21,9 @@ public class SchemaUtilsTest {
             System.out.println(s);
         }
 
-        Assert.assertEquals(50, strings.length);
-        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
-        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
-        Assert.assertEquals(50, SchemaUtils.generateCreateSchemaDDLForH2().length);
+        Assert.assertEquals(49, strings.length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForH2().length);
     }
 }

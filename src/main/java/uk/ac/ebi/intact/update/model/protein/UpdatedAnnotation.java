@@ -28,7 +28,7 @@ public class UpdatedAnnotation extends HibernateUpdatePersistentImpl {
     private String text;
 
     /**
-     * The parent
+     * The updateProcess
      */
     private UpdateEventImpl parent;
 

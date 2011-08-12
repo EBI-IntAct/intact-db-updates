@@ -14,30 +14,30 @@ import java.util.Date;
 public abstract class UpdateEventImpl extends HibernateUpdatePersistentImpl implements UpdateEvent {
 
     /**
-     * The parent process
+     * The updateProcess process
      */
-    protected UpdateProcess parent;
+    protected UpdateProcess updateProcess;
     protected Date eventDate;
 
     public UpdateEventImpl(){
         super();
-        this.parent = null;
+        this.updateProcess = null;
         this.eventDate = new Date(System.currentTimeMillis());
     }
 
     public UpdateEventImpl(UpdateProcess process){
         super();
-        this.parent = process;
+        this.updateProcess = process;
         this.eventDate = new Date(System.currentTimeMillis());
     }
 
     @Transient
-    public UpdateProcess getParent() {
-        return this.parent;
+    public UpdateProcess getUpdateProcess() {
+        return this.updateProcess;
     }
 
-    public void setParent(UpdateProcess updateProcess) {
-        this.parent = updateProcess;
+    public void setUpdateProcess(UpdateProcess updateProcess) {
+        this.updateProcess = updateProcess;
     }
 
     @Temporal(TemporalType.TIMESTAMP)

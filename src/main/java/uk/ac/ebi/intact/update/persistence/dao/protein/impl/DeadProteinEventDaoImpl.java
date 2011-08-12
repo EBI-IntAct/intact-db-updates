@@ -33,7 +33,7 @@ public class DeadProteinEventDaoImpl extends ProteinEventDaoImpl<DeadProteinEven
     @Override
     public List<DeadProteinEvent> getAllDeadProteinEventsHavingDeletedXrefs(long id) {
         return getSession().createCriteria(DeadProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", id)).
                 add(Restrictions.isNotEmpty("deletedXrefs"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -41,7 +41,7 @@ public class DeadProteinEventDaoImpl extends ProteinEventDaoImpl<DeadProteinEven
     @Override
     public List<DeadProteinEvent> getAllDeadProteinEventsWithoutDeletedXrefs(long id) {
         return getSession().createCriteria(DeadProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", id)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", id)).
                 add(Restrictions.isEmpty("deletedXrefs"))
                 .addOrder(Order.asc("eventDate")).list();
     }

@@ -75,15 +75,11 @@ public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
         ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
 
         DefaultPersistentUpdateError error = getMockBuilder().createDefaultError();
-
+        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
+        error.setUpdateProcess(process);
         errorDao.persist(error);
 
         UpdateError label = error.getErrorLabel();
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addError(error);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
         Long id = process.getId();
 

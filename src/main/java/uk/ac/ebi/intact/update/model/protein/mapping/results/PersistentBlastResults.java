@@ -36,7 +36,7 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
     private String tremblAccession;
 
     /**
-     * The parent of this object.
+     * The updateProcess of this object.
      */
     private PersistentBlastReport blastReport;
 
@@ -363,7 +363,7 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
 
     /**
      *
-     * @return the parent report
+     * @return the updateProcess report
      */
     @ManyToOne
     @JoinColumn(name = "blast_report_id")
@@ -372,7 +372,7 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
     }
 
     /**
-     * Set the parent report
+     * Set the updateProcess report
      * @param blastReport
      */
     public void setBlastReport(PersistentBlastReport blastReport) {

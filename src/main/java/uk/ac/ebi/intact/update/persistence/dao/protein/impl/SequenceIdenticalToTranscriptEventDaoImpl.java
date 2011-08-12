@@ -33,7 +33,7 @@ public class SequenceIdenticalToTranscriptEventDaoImpl extends ProteinEventDaoIm
     @Override
     public List<SequenceIdenticalToTranscriptEvent> getByUniprotTranscriptAc(long processId, String transcript) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("matchingUniprotTranscript", transcript))
                 .addOrder(Order.asc("eventDate")).list();
     }

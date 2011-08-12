@@ -9,7 +9,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * Errors for isoforms and feature chains referring to an invalid parent
+ * Errors for isoforms and feature chains referring to an invalid updateProcess
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -20,7 +20,7 @@ import javax.persistence.Entity;
 public class InvalidParentXref extends DefaultPersistentUpdateError implements IntactUpdateError {
 
     /**
-     * the invalid parent ac
+     * the invalid updateProcess ac
      */
     private String invalidParent;
 
@@ -153,7 +153,7 @@ public class InvalidParentXref extends DefaultPersistentUpdateError implements I
         StringBuffer error = new StringBuffer();
         error.append("The protein ");
         error.append(proteinAc);
-        error.append(" has a parent cross reference to the protein ");
+        error.append(" has a updateProcess cross reference to the protein ");
         error.append(invalidParent);
         error.append(" which is not valid because ");
         error.append(this.reason);

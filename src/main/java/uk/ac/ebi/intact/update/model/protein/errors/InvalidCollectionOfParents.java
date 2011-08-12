@@ -22,12 +22,12 @@ import java.util.Set;
 public class InvalidCollectionOfParents extends DefaultPersistentUpdateError  implements IntactUpdateError {
 
     /**
-     * the collection of intact isoform parent acs
+     * the collection of intact isoform updateProcess acs
      */
     private Set<String> isoformParents = new HashSet<String>();
 
     /**
-     * the collection of intact chain parent acs
+     * the collection of intact chain updateProcess acs
      */
     private Set<String> chainParents = new HashSet<String>();
 

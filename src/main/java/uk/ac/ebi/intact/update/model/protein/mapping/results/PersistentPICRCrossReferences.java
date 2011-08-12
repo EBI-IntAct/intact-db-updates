@@ -31,7 +31,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
     private Set<String> accessions = new HashSet<String>();
 
     /**
-     * The parent report
+     * The updateProcess report
      */
     private PersistentPICRReport picrReport;
 
@@ -130,7 +130,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
 
     /**
      *
-     * @return the parent report
+     * @return the updateProcess report
      */
     @ManyToOne
     @JoinColumn(name="picr_report_id")
@@ -139,7 +139,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
     }
 
     /**
-     * Set the parent report
+     * Set the updateProcess report
      * @param picrReport
      */
     public void setPicrReport(PersistentPICRReport picrReport) {

@@ -34,7 +34,7 @@ public class UniprotProteinMapperEventDaoImpl extends ProteinEventDaoImpl<Unipro
     public List<UniprotProteinMapperEvent> getSuccessfulUniprotMappingEvents(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("identificationResults", "i").
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotNull("i.finalUniprotId"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -43,7 +43,7 @@ public class UniprotProteinMapperEventDaoImpl extends ProteinEventDaoImpl<Unipro
     public List<UniprotProteinMapperEvent> getUnSuccessfulUniprotMappingEvents(long processId) {
         return getSession().createCriteria(getEntityClass()).
                 createAlias("identificationResults", "i").
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNull("i.finalUniprotId"))
                 .addOrder(Order.asc("eventDate")).list();
     }

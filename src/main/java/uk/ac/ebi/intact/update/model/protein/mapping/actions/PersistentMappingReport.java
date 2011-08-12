@@ -54,7 +54,7 @@ public class PersistentMappingReport extends HibernateUpdatePersistentImpl imple
     private boolean isASwissprotEntry = false;
 
     /**
-     * The parent object of this report. We store the parent of this object only if it is an instance of UpdateMappingResults
+     * The updateProcess object of this report. We store the updateProcess of this object only if it is an instance of UpdateMappingResults
      */
     protected PersistentIdentificationResults updateResult;
 
@@ -246,7 +246,7 @@ public class PersistentMappingReport extends HibernateUpdatePersistentImpl imple
 
     /**
      *
-     * @return  the parent object of this action. If the parent is not an instance of UpdateMappingResults, the parent returned is null
+     * @return  the updateProcess object of this action. If the updateProcess is not an instance of UpdateMappingResults, the updateProcess returned is null
      */
     @ManyToOne
     @JoinColumn(name="result_id")
@@ -255,7 +255,7 @@ public class PersistentMappingReport extends HibernateUpdatePersistentImpl imple
     }
 
     /**
-     * Set the parent of this object only if it is an instance of UpdateMappingResults
+     * Set the updateProcess of this object only if it is an instance of UpdateMappingResults
      * @param result
      */
     public void setUpdateResult(PersistentIdentificationResults result) {

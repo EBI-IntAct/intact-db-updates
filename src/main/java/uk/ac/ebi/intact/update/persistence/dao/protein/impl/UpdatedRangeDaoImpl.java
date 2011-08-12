@@ -54,20 +54,20 @@ public class UpdatedRangeDaoImpl<T extends AbstractUpdatedRange> extends UpdateB
 
     @Override
     public List<T> getUpdatedRangesByUpdateProcessId(long processId) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("p2.id", processId)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByUpdateDate(Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.lt("p2.date", DateUtils.addDays(updateDate, 1)))
                 .add(Restrictions.gt("p2.date", DateUtils.addDays(updateDate, -1))).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndDate(String rangeAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.lt("p2.date", DateUtils.addDays(updateDate, 1)))
                 .add(Restrictions.gt("p2.date", DateUtils.addDays(updateDate, -1)))
                 .add(Restrictions.eq("rangeAc", rangeAc)).list();
@@ -75,7 +75,7 @@ public class UpdatedRangeDaoImpl<T extends AbstractUpdatedRange> extends UpdateB
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndDate(String componentAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.lt("p2.date", DateUtils.addDays(updateDate, 1)))
                 .add(Restrictions.gt("p2.date", DateUtils.addDays(updateDate, -1)))
                 .add(Restrictions.eq("componentAc", componentAc)).list();
@@ -83,54 +83,54 @@ public class UpdatedRangeDaoImpl<T extends AbstractUpdatedRange> extends UpdateB
 
     @Override
     public List<T> getUpdatedRangesBeforeUpdateDate(Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.le("p2.date", updateDate)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndBeforeDate(String rangeAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.le("p2.date", updateDate))
                 .add(Restrictions.eq("rangeAc", rangeAc)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndBeforeDate(String componentAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.le("p2.date", updateDate))
                 .add(Restrictions.eq("componentAc", componentAc)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesAfterUpdateDate(Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ge("p2.date", updateDate)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndAfterDate(String rangeAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ge("p2.date", updateDate))
                 .add(Restrictions.eq("rangeAc", rangeAc)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndAfterDate(String componentAc, Date updateDate) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ge("p2.date", updateDate))
                 .add(Restrictions.eq("componentAc", componentAc)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByRangeAcAndProcessId(String rangeAc, long processId) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("rangeAc", rangeAc))
                 .add(Restrictions.eq("p2.id", processId)).list();
     }
 
     @Override
     public List<T> getUpdatedRangesByComponentAcAndProcessId(String componentAc, long processId) {
-        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(getEntityClass()).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("componentAc", componentAc))
                 .add(Restrictions.eq("p2.id", processId)).list();
     }

@@ -33,7 +33,7 @@ public class IntactTranscriptUpdateDaoImpl extends ProteinEventDaoImpl<IntactTra
     @Override
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithoutOldParent(long processId) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNull("oldParentAc"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -41,7 +41,7 @@ public class IntactTranscriptUpdateDaoImpl extends ProteinEventDaoImpl<IntactTra
     @Override
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithOldParent(long processId, String oldParent) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("oldParentAc", oldParent))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -49,7 +49,7 @@ public class IntactTranscriptUpdateDaoImpl extends ProteinEventDaoImpl<IntactTra
     @Override
     public List<IntactTranscriptUpdateEvent> getUpdatedTranscriptsWithNewParent(long processId, String newParent) {
         return getSession().createCriteria(IntactTranscriptUpdateEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("newParentAc", newParent))
                 .addOrder(Order.asc("eventDate")).list();
     }

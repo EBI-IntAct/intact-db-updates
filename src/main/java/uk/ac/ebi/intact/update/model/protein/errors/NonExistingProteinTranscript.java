@@ -152,7 +152,7 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
         StringBuffer error = new StringBuffer();
         error.append("The protein transcript ");
         error.append(proteinAc);
-        error.append(" is attached to the parent protein ");
+        error.append(" is attached to the updateProcess protein ");
         error.append(masterIntactAc);
 
         if (deadUniprot != null){

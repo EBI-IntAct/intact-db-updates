@@ -91,10 +91,10 @@ public abstract class PersistentProteinEvent extends UpdateEventImpl {
     }
 
     @Override
-    @ManyToOne( targetEntity = ProteinUpdateProcess.class )
-    @JoinColumn( name = "parent_ac" )
-    public UpdateProcess<PersistentProteinEvent> getParent(){
-        return super.getParent();
+    @ManyToOne( targetEntity = ProteinUpdateProcess.class, cascade = {CascadeType.PERSIST})
+    @JoinColumn( name = "process_id" )
+    public UpdateProcess<PersistentProteinEvent> getUpdateProcess(){
+        return super.getUpdateProcess();
     }
 
     @Column(name = "message")

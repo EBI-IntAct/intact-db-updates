@@ -33,7 +33,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedShortLabel(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotNull("updatedShortLabel"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -41,7 +41,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedFullName(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotNull("updatedFullName"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -49,7 +49,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUniprotQuery(long processId, String query) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("uniprotQuery", query))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -57,7 +57,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedXrefs(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotEmpty("updatedXrefs"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -65,7 +65,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedAnnotations(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotEmpty("updatedAnnotations"))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -73,7 +73,7 @@ public class UniprotUpdateEventDaoImpl extends ProteinEventDaoImpl<UniprotUpdate
     @Override
     public List<UniprotUpdateEvent> getUniprotUpdateEventWithUpdatedAliases(long processId) {
         return getSession().createCriteria(getEntityClass()).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.isNotEmpty("updatedAliases")).list();
     }
 }

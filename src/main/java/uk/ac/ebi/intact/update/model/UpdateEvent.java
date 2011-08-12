@@ -14,9 +14,9 @@ public interface UpdateEvent extends HibernateUpdatePersistent{
 
     /**
      *
-     * @return the parent process
+     * @return the updateProcess process
      */
-    public UpdateProcess getParent();
+    public UpdateProcess getUpdateProcess();
 
     /**
      *

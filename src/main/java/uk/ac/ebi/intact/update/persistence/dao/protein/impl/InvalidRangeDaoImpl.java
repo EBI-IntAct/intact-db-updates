@@ -50,19 +50,19 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<PersistentInvalidRa
 
     @Override
     public List<PersistentInvalidRange> getInvalidRanges(long processId) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("sequenceVersion", -1)).add(Restrictions.eq("p2.id", processId)).list();
     }
 
     @Override
     public List<PersistentInvalidRange> getOutOfDateRanges(long processId) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ne("sequenceVersion", -1)).add(Restrictions.eq("p2.id", processId)).list();
     }
 
     @Override
     public List<PersistentInvalidRange> getInvalidRanges(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("sequenceVersion", -1))
                 .add(Restrictions.lt("p2.date", DateUtils.addDays(updateddate, 1)))
                 .add(Restrictions.gt("p2.date", DateUtils.addDays(updateddate, -1))).list();
@@ -70,7 +70,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<PersistentInvalidRa
 
     @Override
     public List<PersistentInvalidRange> getOutOfDateRanges(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ne("sequenceVersion", -1))
                 .add(Restrictions.lt("p2.date", DateUtils.addDays(updateddate, 1)))
                 .add(Restrictions.gt("p2.date", DateUtils.addDays(updateddate, -1))).list();
@@ -78,28 +78,28 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<PersistentInvalidRa
 
     @Override
     public List<PersistentInvalidRange> getInvalidRangesBefore(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("sequenceVersion", -1))
                 .add(Restrictions.le("p2.date", updateddate)).list();
     }
 
     @Override
     public List<PersistentInvalidRange> getOutOfDateRangesBefore(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ne("sequenceVersion", -1))
                 .add(Restrictions.le("p2.date", updateddate)).list();
     }
 
     @Override
     public List<PersistentInvalidRange> getInvalidRangesAfter(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.eq("sequenceVersion", -1))
                 .add(Restrictions.ge("p2.date", updateddate)).list();
     }
 
     @Override
     public List<PersistentInvalidRange> getOutOfDateRangesAfter(Date updateddate) {
-        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.parent", "p2")
+        return getSession().createCriteria(PersistentInvalidRange.class).createAlias("parent", "p").createAlias("p.updateProcess", "p2")
                 .add(Restrictions.ne("sequenceVersion", -1))
                 .add(Restrictions.ge("p2.date", updateddate)).list();
     }

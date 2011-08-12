@@ -59,7 +59,7 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
     private String interactionAc;
 
     /**
-     * the parent event
+     * the updateProcess event
      */
     private ProteinEventWithRangeUpdate parent;
 

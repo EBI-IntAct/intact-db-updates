@@ -1,10 +1,9 @@
 package uk.ac.ebi.intact.update.model;
 
-import org.apache.commons.collections.CollectionUtils;
-
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import java.util.Date;
 
 /**
@@ -26,11 +25,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
      * The name of the user which started this process
      */
     private String userStamp;
-
-    /**
-     * Collection of update events
-     */
-    protected Collection<T> updateEvents = new ArrayList<T>();
 
     public UpdateProcessImpl(){
         super();
@@ -57,22 +51,12 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
         return this.userStamp;
     }
 
-    @Override
-    @OneToMany(mappedBy="parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<T> getUpdateEvents() {
-        return this.updateEvents;
-    }
-
     public void setDate(Date date) {
         this.date = date;
     }
 
     public void setUserStamp(String userStamp) {
         this.userStamp = userStamp;
-    }
-
-    public void setUpdateEvents(Collection<T> updateEvents) {
-        this.updateEvents = updateEvents;
     }
 
     @Override
@@ -102,22 +86,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
         }
 
         return true;
-    }
-
-    public boolean addEvent(T event){
-        if (updateEvents.add(event)){
-            event.setParent(this);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeEvent(T event){
-        if (updateEvents.remove(event)){
-            event.setParent(null);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -170,11 +138,6 @@ public abstract class UpdateProcessImpl<T extends UpdateEventImpl> extends Hiber
         else if (process.getUserStamp()!= null){
             return false;
         }
-
-        if (!CollectionUtils.isEqualCollection(updateEvents, process.getUpdateEvents())){
-            return false;
-        }
-
         return true;
     }
 

@@ -77,12 +77,10 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
         UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
         proteinEvent.addRangeUpdate(range);
 
-        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
-
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(proteinEvent);
+        proteinEvent.setUpdateProcess(process);
 
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -111,13 +109,9 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
         proteinEvent.addRangeUpdate(range);
-
-        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
-
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(proteinEvent);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
+        proteinEvent.setUpdateProcess(process);
+        getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -141,13 +135,10 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
         UniprotUpdateEvent proteinEvent = getMockBuilder().createDefaultUniprotProteinEvent();
         proteinEvent.addRangeUpdate(range);
+        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
+        proteinEvent.setUpdateProcess(process);
 
         getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class).persist(proteinEvent);
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(proteinEvent);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
         Date date = process.getDate();
 

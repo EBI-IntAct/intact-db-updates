@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
 import uk.ac.ebi.intact.update.persistence.dao.protein.DuplicatedProteinEventDao;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
@@ -21,10 +22,18 @@ import java.util.List;
 @Transactional(readOnly = true)
 @Lazy
 public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<DuplicatedProteinEvent> implements DuplicatedProteinEventDao {
+
+    public DuplicatedProteinEventDaoImpl(){
+        super(DuplicatedProteinEvent.class, null);
+    }
+    public DuplicatedProteinEventDaoImpl(EntityManager entityManager) {
+        super( DuplicatedProteinEvent.class, entityManager);
+    }
+
     @Override
     public List<DuplicatedProteinEvent> getDuplicatedEventByOriginalProtein(long processId, String originalProtein) {
         return getSession().createCriteria(DuplicatedProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("originalProtein", originalProtein))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -32,7 +41,7 @@ public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<Duplicate
     @Override
     public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeSuccessful(long processId) {
         return getSession().createCriteria(DuplicatedProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("mergeSuccessful", true))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -40,7 +49,7 @@ public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<Duplicate
     @Override
     public List<DuplicatedProteinEvent> getDuplicatedEventWithMergeNotSuccessful(long processId) {
         return getSession().createCriteria(DuplicatedProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("mergeSuccessful", false))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -48,7 +57,7 @@ public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<Duplicate
     @Override
     public List<DuplicatedProteinEvent> getDuplicatedEventWithSequenceUpdate(long processId) {
         return getSession().createCriteria(DuplicatedProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("sequenceUpdate", true))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -56,7 +65,7 @@ public class DuplicatedProteinEventDaoImpl extends ProteinEventDaoImpl<Duplicate
     @Override
     public List<DuplicatedProteinEvent> getDuplicatedEventWithoutSequenceUpdate(long processId) {
         return getSession().createCriteria(DuplicatedProteinEvent.class).
-                createAlias("parent", "p").add(Restrictions.eq("p.id", processId)).
+                createAlias("updateProcess", "p").add(Restrictions.eq("p.id", processId)).
                 add(Restrictions.eq("sequenceUpdate", false))
                 .addOrder(Order.asc("eventDate")).list();
     }

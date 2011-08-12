@@ -42,7 +42,7 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
     @Override
     public List<T> getUpdateEventsByProteinAcAndProcessId(String intactObjectAc, long processId) {
         return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
+                .createAlias("updateProcess", "p")
                 .add(Restrictions.eq("proteinAc", intactObjectAc)).add(Restrictions.eq("p.id", processId))
                 .addOrder(Order.asc("eventDate")).list();
     }
@@ -50,7 +50,7 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
     @Override
     public List<T> getUpdateEventsByProteinAcAndDate(String intactObjectAc, Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
+                .createAlias("updateProcess", "p")
                 .add(Restrictions.lt("p.date", DateUtils.addDays(updatedDate, 1)))
                 .add(Restrictions.gt("p.date", DateUtils.addDays(updatedDate, -1)))
                 .add(Restrictions.eq("proteinAc", intactObjectAc))
@@ -60,7 +60,7 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
     @Override
     public List<T> getUpdateEventsByProteinAcBeforeDate(String intactObjectAc, Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
+                .createAlias("updateProcess", "p")
                 .add(Restrictions.le("p.date", updatedDate))
                 .add(Restrictions.eq("proteinAc", intactObjectAc))
                 .addOrder(Order.asc("eventDate")).list();
@@ -69,7 +69,7 @@ public class ProteinEventDaoImpl<T extends PersistentProteinEvent> extends Updat
     @Override
     public List<T> getUpdateEventsByProteinAcAfterDate(String intactObjectAc, Date updatedDate) {
         return getSession().createCriteria(getEntityClass())
-                .createAlias("parent", "p")
+                .createAlias("updateProcess", "p")
                 .add(Restrictions.ge("p.date", updatedDate))
                 .add(Restrictions.eq("proteinAc", intactObjectAc))
                 .addOrder(Order.asc("eventDate")).list();

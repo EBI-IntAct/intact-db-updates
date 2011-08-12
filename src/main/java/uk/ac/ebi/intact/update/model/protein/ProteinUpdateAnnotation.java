@@ -30,7 +30,7 @@ public class ProteinUpdateAnnotation extends UpdatedAnnotation {
         super(annotation, status);
     }
 
-        @Override
+    @Override
     @ManyToOne( targetEntity = PersistentProteinEvent.class )
     @JoinColumn( name = "event_id" )
     public UpdateEventImpl getParent() {

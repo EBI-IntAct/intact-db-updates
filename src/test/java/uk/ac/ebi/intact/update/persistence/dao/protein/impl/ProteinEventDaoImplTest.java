@@ -94,12 +94,9 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
 
         PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
-        eventDao.persist(evt);
-
         ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(evt);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
+        evt.setUpdateProcess(process);
+        eventDao.persist(evt);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -116,14 +113,11 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
         UniprotUpdateEvent evt = getMockBuilder().createDefaultProteinEvent();
+        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
+        evt.setUpdateProcess(process);
         eventDao.persist(evt);
 
         String proteinAc = evt.getProteinAc();
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(evt);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
         Long id = process.getId();
         Date date = process.getDate();
@@ -145,14 +139,11 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
         ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
 
         PersistentProteinEvent evt = getMockBuilder().createDefaultProteinEvent();
+        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
+        evt.setUpdateProcess(process);
         eventDao.persist(evt);
 
         String proteinAc = evt.getProteinAc();
-
-        ProteinUpdateProcess process = getMockBuilder().createUpdateProcess();
-        process.addEvent(evt);
-
-        getUpdateDaoFactory().getProteinUpdateProcessDao().persist(process);
 
         Date date = process.getDate();
         Date oldDate = new Date(1);

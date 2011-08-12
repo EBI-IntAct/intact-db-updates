@@ -50,7 +50,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     private Collection<String> updatedTranscripts = new ArrayList<String>();
 
     /**
-     * The list of cross reference which have been moved to the parent protein
+     * The list of cross reference which have been moved to the updateProcess protein
      */
     private Collection<UpdatedCrossReference> movedXrefs = new ArrayList<UpdatedCrossReference>();
 

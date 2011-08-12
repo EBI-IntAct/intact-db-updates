@@ -8,7 +8,7 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
 /**
- * Event for isoforms and feature chains with necessity to update the parent cross reference
+ * Event for isoforms and feature chains with necessity to update the updateProcess cross reference
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -19,12 +19,12 @@ import javax.persistence.Entity;
 public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
     /**
-     * The old parent ac which has been replaced
+     * The old updateProcess ac which has been replaced
      */
     private String oldParentAc;
 
     /**
-     * The new parent ac
+     * The new updateProcess ac
      */
     private String newParentAc;
 
@@ -147,7 +147,7 @@ public class IntactTranscriptUpdateEvent extends PersistentProteinEvent{
 
         buffer.append(super.toString() + "\n");
 
-        buffer.append("Intact transcript update event : [New parent ac = " + (newParentAc != null ? newParentAc : "none") + "Old parent ac = " + (oldParentAc != null ? oldParentAc : "none"));
+        buffer.append("Intact transcript update event : [New updateProcess ac = " + (newParentAc != null ? newParentAc : "none") + "Old updateProcess ac = " + (oldParentAc != null ? oldParentAc : "none"));
         buffer.append("] \n");
 
         return buffer.toString();
