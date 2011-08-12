@@ -3,10 +3,7 @@ package uk.ac.ebi.intact.update.model.protein.range;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
 import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
 
-import javax.persistence.Column;
-import javax.persistence.Lob;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * This abstract class is for all persistent updated ranges
@@ -15,7 +12,8 @@ import javax.persistence.Transient;
  * @version $Id$
  * @since <pre>25/07/11</pre>
  */
-@MappedSuperclass
+@Entity
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl {
 
     /**

@@ -3,8 +3,8 @@ package uk.ac.ebi.intact.update.model.protein.range;
 import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
 
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * Class for invalid ranges found during the protein update
@@ -14,7 +14,7 @@ import javax.persistence.Entity;
  * @since <pre>19-Oct-2010</pre>
  */
 @Entity
-@DiscriminatorValue("invalid_range")
+@Table(name = "ia_invalid_range")
 public class PersistentInvalidRange extends PersistentUpdatedRange {
 
     private String fromStatus;
