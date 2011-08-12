@@ -37,51 +37,52 @@ public class UpdatedRange {
         this.oldRange = oldRange;
         this.newRange = newRange;
 
-        if (oldRange != null){
-            this.rangeAc = oldRange.getAc();
+        // the current range to look at is the old range by default but it can happen if shifting ranges was successful that the current range is the new range
+        Range currentRange = oldRange;
 
-            Feature feature = oldRange.getFeature();
+        if (oldRange == null){
+            currentRange = newRange;
+        }
+        else if (oldRange.getAc() == null){
+            currentRange = newRange;
+        }
 
-            if (feature != null){
-                this.featureAc = feature.getAc();
+        this.rangeAc = currentRange.getAc();
 
-                Component component = feature.getComponent();
+        Feature feature = currentRange.getFeature();
 
-                if (component != null){
-                    this.componentAc = component.getAc();
+        if (feature != null){
+            this.featureAc = feature.getAc();
 
-                    Interactor interactor = component.getInteractor();
-                    Interaction interaction = component.getInteraction();
+            Component component = feature.getComponent();
 
-                    if (interactor != null){
-                        this.proteinAc = interactor.getAc();
-                    }
-                    else {
-                        this.proteinAc = null;
-                    }
+            if (component != null){
+                this.componentAc = component.getAc();
 
-                    if (interaction != null){
-                        this.interactionAc = interaction.getAc();
-                    }
-                    else {
-                        this.interactionAc = null;
-                    }
+                Interactor interactor = component.getInteractor();
+                Interaction interaction = component.getInteraction();
+
+                if (interactor != null){
+                    this.proteinAc = interactor.getAc();
                 }
                 else {
-                    this.componentAc = null;
                     this.proteinAc = null;
+                }
+
+                if (interaction != null){
+                    this.interactionAc = interaction.getAc();
+                }
+                else {
                     this.interactionAc = null;
                 }
             }
             else {
-                this.featureAc = null;
                 this.componentAc = null;
                 this.proteinAc = null;
                 this.interactionAc = null;
             }
         }
         else {
-            this.rangeAc = null;
             this.featureAc = null;
             this.componentAc = null;
             this.proteinAc = null;
