@@ -26,7 +26,7 @@ public class PersistentUpdatedRange extends AbstractUpdatedRange {
 
     @ManyToOne(targetEntity = ProteinEventWithShiftedRanges.class)
     @JoinColumn(name="parent_id")
-    public ProteinEventWithRangeUpdate<PersistentUpdatedRange> getParent() {
+    public ProteinEventWithRangeUpdate getParent() {
         return super.getParent();
     }
 
