@@ -37,10 +37,10 @@ public class UpdatedRange {
         this.oldRange = oldRange;
         this.newRange = newRange;
 
-        if (newRange != null){
-            this.rangeAc = newRange.getAc();
+        if (oldRange != null){
+            this.rangeAc = oldRange.getAc();
 
-            Feature feature = newRange.getFeature();
+            Feature feature = oldRange.getFeature();
 
             if (feature != null){
                 this.featureAc = feature.getAc();
