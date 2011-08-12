@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
+import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
 
 import javax.persistence.*;
@@ -44,7 +45,7 @@ public class PersistentInvalidRange extends AbstractUpdatedRange {
         this.toStatus = endStatus;
     }
 
-    @ManyToOne(targetEntity = ProteinEventWithRangeUpdate.class)
+    @ManyToOne(targetEntity = OutOfDateParticipantEvent.class)
     @JoinColumn(name="parent_id")
     public ProteinEventWithRangeUpdate getParent() {
         return super.getParent();

@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.update.model.protein.range;
 
 import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithRangeUpdate;
+import uk.ac.ebi.intact.update.model.protein.events.ProteinEventWithShiftedRanges;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -26,7 +27,7 @@ public class PersistentUpdatedRange extends AbstractUpdatedRange {
         super(proteinEvent, componentAc, featureAc, interactionAc, rangeAc, oldSequence, newSequence, oldRangePositions, newRangePositions);
     }
 
-    @ManyToOne(targetEntity = ProteinEventWithRangeUpdate.class)
+    @ManyToOne(targetEntity = ProteinEventWithShiftedRanges.class)
     @JoinColumn(name="parent_id")
     public ProteinEventWithRangeUpdate getParent() {
         return super.getParent();

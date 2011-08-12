@@ -384,23 +384,23 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             if (evt.getProteinAc().equals(dupe1.getAc())){
                Assert.assertFalse(evt.isMergeSuccessful());
                Assert.assertTrue(evt.isSequenceUpdate());
-               Assert.assertEquals(0, evt.getUpdatedRanges());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations());
-               Assert.assertEquals(1, evt.getMovedInteractions());
+               Assert.assertEquals(0, evt.getUpdatedRanges().size());
+               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+               Assert.assertEquals(1, evt.getMovedInteractions().size());
             }
             else if (evt.getProteinAc().equals(dupe2.getAc())){
                Assert.assertTrue(evt.isMergeSuccessful());
                Assert.assertFalse(evt.isSequenceUpdate());
-               Assert.assertEquals(0, evt.getUpdatedRanges());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations());
-               Assert.assertEquals(0, evt.getMovedInteractions());
+               Assert.assertEquals(0, evt.getUpdatedRanges().size());
+               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+               Assert.assertEquals(0, evt.getMovedInteractions().size());
             }
             else if (evt.getProteinAc().equals(dupe3.getAc())){
                Assert.assertTrue(evt.isMergeSuccessful());
                Assert.assertTrue(evt.isSequenceUpdate());
-               Assert.assertEquals(1, evt.getUpdatedRanges());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations());
-               Assert.assertEquals(1, evt.getMovedInteractions());
+               Assert.assertEquals(1, evt.getUpdatedRanges().size());
+               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+               Assert.assertEquals(1, evt.getMovedInteractions().size());
             }
         }
 

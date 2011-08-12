@@ -21,9 +21,9 @@ public class SchemaUtilsTest {
             System.out.println(s);
         }
 
-        Assert.assertEquals(51, strings.length);
-        Assert.assertEquals(51, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
-        Assert.assertEquals(51, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
-        Assert.assertEquals(51, SchemaUtils.generateCreateSchemaDDLForH2().length);
+        Assert.assertEquals(49, strings.length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
+        Assert.assertEquals(49, SchemaUtils.generateCreateSchemaDDLForH2().length);
     }
 }

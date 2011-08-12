@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 
 /**
  * This class is for fatal errors while updating a protein
@@ -30,16 +31,23 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
      */
     private String uniprotAc;
 
+    /**
+     * The exception in details
+     */
+    private String exception;
+
     public FatalUpdateError() {
         super(null, UpdateError.fatal_error_during_update, null);
         this.proteinAc = null;
         this.uniprotAc = null;
+        this.exception = null;
     }
 
     public FatalUpdateError(ProteinUpdateProcess process, String proteinAc, String uniprotAc, String exception) {
-        super(process, UpdateError.fatal_error_during_update, exception);
+        super(process, UpdateError.fatal_error_during_update, null);
         this.proteinAc = proteinAc;
         this.uniprotAc = uniprotAc;
+        this.exception = exception;
     }
 
     @Override
@@ -52,6 +60,16 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
     @Column(name = "uniprot_ac")
     public String getUniprotAc() {
         return this.uniprotAc;
+    }
+
+    @Lob
+    @Column(name = "exception")
+    public String getException() {
+        return exception;
+    }
+
+    public void setException(String exception) {
+        this.exception = exception;
     }
 
     public void setProteinAc(String proteinAc) {
@@ -84,7 +102,7 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
 
         error.append(" because an Exception was thrown : ");
 
-        error.append(this.reason);
+        error.append(this.exception);
 
         return error.toString();
     }
@@ -108,6 +126,15 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
 
         if ( uniprotAc != null ) {
             if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( exception != null ) {
+            if (!exception.equals( event.getException())){
                 return false;
             }
         }
@@ -139,6 +166,10 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
             code = 29 * code + uniprotAc.hashCode();
         }
 
+        if ( exception != null ) {
+            code = 29 * code + exception.hashCode();
+        }
+
         return code;
     }
 
@@ -162,6 +193,15 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
 
         if ( uniprotAc != null ) {
             if (!uniprotAc.equals( event.getUniprotAc())){
+                return false;
+            }
+        }
+        else if (event.getUniprotAc()!= null){
+            return false;
+        }
+
+        if ( exception != null ) {
+            if (!exception.equals( event.getException())){
                 return false;
             }
         }
