@@ -41,13 +41,13 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
         this.remappedParent = remapped_parent;
     }
 
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    @Transient
     public Collection<PersistentInvalidRange> getInvalidRanges(){
         return super.getUpdatedRanges();
     }
 
     @Override
-
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<PersistentInvalidRange> getUpdatedRanges(){
         return super.getUpdatedRanges();
     }
