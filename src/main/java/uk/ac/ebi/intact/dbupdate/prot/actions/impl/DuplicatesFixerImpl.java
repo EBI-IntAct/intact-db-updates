@@ -533,8 +533,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // components without conflicts to move on the original protein
                         Collection<Component> componentToMove = CollectionUtils.subtract(duplicate.getActiveInstances(), componentToFix);
 
+                        Set<String> movedInteractions = Collections.EMPTY_SET;
                         // move components without conflicts
-                        Set<String> movedInteractions = ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
+                        if (componentToMove.isEmpty()){
+                            movedInteractions = ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
+                        }
 
                         // report the interactions to move before moving them
                         reportMovedInteraction(duplicate, movedInteractions, evt);
