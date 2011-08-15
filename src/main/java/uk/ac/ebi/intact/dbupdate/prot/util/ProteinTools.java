@@ -43,7 +43,7 @@ public class ProteinTools {
      * @param sourceProtein : the protein for what we want to move the interactions
      * @return the collection of interaction acs which have been moved from the cource protein to the destination protein
      */
-    public static Collection<String> moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
+    public static Set<String> moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
 
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
 

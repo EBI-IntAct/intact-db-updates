@@ -10,9 +10,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * TODO comment this
@@ -295,7 +293,7 @@ public class ComponentTools {
      * @param uniprot
      * @return
      */
-    public static Collection<String> moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
+    public static Set<String> moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
         Collection<Component> deletedComponents = new ArrayList<Component>(componentsToMove.size());
@@ -338,7 +336,13 @@ public class ComponentTools {
         factory.getProteinDao().update((ProteinImpl) sourceProtein);
         factory.getProteinDao().update((ProteinImpl) destinationProtein);
 
+        Collection<Component> components = CollectionUtils.subtract(componentsToMove, deletedComponents);
+        Set<String> componentAcs = new HashSet<String>(components.size());
+
+        for (Component comp : components){
+           componentAcs.add(comp.getAc());
+        }
         // all components minus the components which have been deleted
-        return CollectionUtils.subtract(componentsToMove, deletedComponents);
+        return componentAcs;
     }
 }
