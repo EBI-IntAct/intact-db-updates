@@ -276,7 +276,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         }
         // add a range which will be shifted (dupe3)
         Feature feature3 = getMockBuilder().createFeatureRandom();
-        feature.getRanges().clear();
+        feature3.getRanges().clear();
         Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
         feature3.addRange(range3);
         dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
