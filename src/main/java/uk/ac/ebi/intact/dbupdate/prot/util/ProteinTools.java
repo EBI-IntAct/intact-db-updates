@@ -43,7 +43,6 @@ public class ProteinTools {
      * @param sourceProtein : the protein for what we want to move the interactions
      */
     public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
-        DaoFactory factory = context.getDaoFactory();
 
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
         ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove, primaryUniprot);
@@ -107,7 +106,8 @@ public class ProteinTools {
      * @return the set of distinct uniprot identities attached to this protein
      */
     public static Set<InteractorXref> getDistinctUniprotIdentities(Protein prot){
-        Set<InteractorXref> uniprotIdentities = new HashSet<InteractorXref>();
+        Set<InteractorXref> uniprotIdentities = new HashSet<InteractorXref>(prot.getXrefs().size());
+        Set<String> uniqueUniprotAc = new HashSet<String>(prot.getXrefs().size());
 
         for (InteractorXref ref : prot.getXrefs()){
             CvDatabase database = ref.getCvDatabase();
@@ -117,7 +117,9 @@ public class ProteinTools {
                     CvXrefQualifier qualifier = ref.getCvXrefQualifier();
                     if (qualifier != null){
                         if (qualifier.getIdentifier().equals(CvXrefQualifier.IDENTITY_MI_REF)){
-                            uniprotIdentities.add(ref);
+                            if (uniqueUniprotAc.add(ref.getPrimaryId())){
+                                uniprotIdentities.add(ref);
+                            }
                         }
                     }
                 }
@@ -174,6 +176,14 @@ public class ProteinTools {
         }
     }
 
+    /**
+     * Will add intact secondary xref to the destination protein. Will copy all previous intact-secondary xref from source
+     * protein to destination protein and return them.
+     * @param original
+     * @param duplicate
+     * @param factory
+     * @return
+     */
     public static Collection<InteractorXref> addIntactSecondaryReferences(Protein original, Protein duplicate, DaoFactory factory){
 
         Collection<InteractorXref> addedIntactSecondary = new ArrayList<InteractorXref>();
@@ -224,8 +234,6 @@ public class ProteinTools {
             factory.getXrefDao(InteractorXref.class).persist(xref);
 
             original.addXref(xref);
-
-            addedIntactSecondary.add(xref);
         }
 
         Collection<InteractorXref> refsToRemove = new ArrayList(duplicate.getXrefs());
