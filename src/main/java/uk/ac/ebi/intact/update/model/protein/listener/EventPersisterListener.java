@@ -32,6 +32,7 @@ import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This listener will persist each event of the protein update using update-modal persistence unit
@@ -81,11 +82,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
         ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
 
         Protein originalProtein = evt.getReferenceProtein();
-        boolean sequenceUpdate = evt.hasShiftedRanges();
 
         for (Protein duplicate : evt.getProteins()){
 
-            Collection<String> movedInteractions = evt.getMovedInteractions().get(duplicate.getAc());
+            Set<String> movedInteractions = evt.getMovedInteractions().get(duplicate.getAc());
             RangeUpdateReport invalidRangeReport = evt.getComponentsWithFeatureConflicts().get(duplicate);
             Collection<String> updatedTranscripts = evt.getUpdatedTranscripts().get(duplicate.getAc());
             Collection<InteractorXref> movedXrefs = evt.getMovedXrefs().get(duplicate.getAc());
@@ -94,7 +94,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             boolean isMergeSuccessful = (invalidRangeReport == null);
 
-            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(updateProcess, duplicate, originalProtein, uniprotAc, sequenceUpdate, isMergeSuccessful);
+            DuplicatedProteinEvent duplicatedEvent = new DuplicatedProteinEvent(updateProcess, duplicate, originalProtein, uniprotAc, isMergeSuccessful);
 
             // add the moved interactions
             if (movedInteractions != null){
@@ -128,14 +128,16 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
                 String featureAc = entry.getKey();
 
-                if (!entry.getValue().getAddedAnnotations().isEmpty()){
-                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
-                }
-                if (!entry.getValue().getRemovedAnnotations().isEmpty()){
-                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
-                }
-                if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
-                    duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
+                if (featureAc != null){
+                    if (!entry.getValue().getAddedAnnotations().isEmpty()){
+                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
+                    }
+                    if (!entry.getValue().getRemovedAnnotations().isEmpty()){
+                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
+                    }
+                    if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
+                        duplicatedEvent.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
+                    }
                 }
             }
 
@@ -147,8 +149,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                 String oldPositions = updated.getOldRange() != null ? FeatureUtils.convertRangeIntoString(updated.getOldRange()) : null;
                 String newPositions = updated.getNewRange() != null ? FeatureUtils.convertRangeIntoString(updated.getNewRange()) : null;
 
-                PersistentUpdatedRange persistentRange = new PersistentUpdatedRange(duplicatedEvent, updated.getComponentAc(), updated.getFeatureAc(), updated.getInteractionAc(), updated.getRangeAc(), oldSequence, newSequence, oldPositions, newPositions);
-                duplicatedEvent.addRangeUpdate(persistentRange);
+                if (oldPositions != null && updated.getComponentAc() != null && updated.getFeatureAc() != null && updated.getInteractionAc() != null && updated.getRangeAc() != null){
+                    PersistentUpdatedRange persistentRange = new PersistentUpdatedRange(duplicatedEvent, updated.getComponentAc(), updated.getFeatureAc(), updated.getInteractionAc(), updated.getRangeAc(), oldSequence, newSequence, oldPositions, newPositions);
+                    duplicatedEvent.addRangeUpdate(persistentRange);
+                }
             }
         }
     }
@@ -268,14 +272,16 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
                 String featureAc = entry.getKey();
 
-                if (!entry.getValue().getAddedAnnotations().isEmpty()){
-                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
-                }
-                if (!entry.getValue().getRemovedAnnotations().isEmpty()){
-                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
-                }
-                if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
-                    protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
+                if (featureAc != null){
+                    if (!entry.getValue().getAddedAnnotations().isEmpty()){
+                        protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getAddedAnnotations(), UpdateStatus.added);
+                    }
+                    if (!entry.getValue().getRemovedAnnotations().isEmpty()){
+                        protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getRemovedAnnotations(), UpdateStatus.deleted);
+                    }
+                    if (!entry.getValue().getUpdatedAnnotations().isEmpty()){
+                        protEvt.addUpdatedFeatureAnnotationFromAnnotation(featureAc, entry.getValue().getUpdatedAnnotations(), UpdateStatus.updated);
+                    }
                 }
             }
 
@@ -291,8 +297,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                     String oldPositions = inv.getOldRange() != null ? FeatureUtils.convertRangeIntoString(inv.getOldRange()) : null;
                     String newPositions = inv.getNewRange() != null ? FeatureUtils.convertRangeIntoString(inv.getNewRange()) : null;
 
-                    PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, newSequence, inv.getFromStatus(), inv.getToStatus(), oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());
-                    protEvt.addRangeUpdate(persistentRange);
+                    if (oldPositions != null && inv.getComponentAc() != null && inv.getFeatureAc() != null && inv.getInteractionAc() != null && inv.getRangeAc() != null){
+                        PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, newSequence, inv.getFromStatus(), inv.getToStatus(), oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());
+                        protEvt.addRangeUpdate(persistentRange);
+                    }
                 }
             }
         }

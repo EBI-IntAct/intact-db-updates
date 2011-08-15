@@ -21,12 +21,11 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.errors.PersistentUpdateErrorFactory;
 import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
-import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentReportsFactory;
 import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentResultsFactory;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
 import uk.ac.ebi.intact.update.persistence.dao.protein.DuplicatedProteinEventDao;
-import uk.ac.ebi.intact.update.persistence.dao.protein.OutOfDateParticipantEventDao;
 
 import java.io.File;
 import java.util.Collection;
@@ -297,7 +296,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
 
         // interaction with duplicated component
-        Interaction interaction3 = getMockBuilder().createInteraction(dupe1, simple, dupe3);
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
         for (Component c : interaction3.getComponents()){
             c.getBindingDomains().clear();
         }
@@ -373,34 +372,36 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         DuplicatedProteinEventDao duplicatedEventDao = updateFactory.getDuplicatedProteinEventDao();
         List<DuplicatedProteinEvent> duplicatedEvents = duplicatedEventDao.getAll();
 
-        OutOfDateParticipantEventDao outOfDatePartDao = updateFactory.getOutOfDateParticipantEventDao();
-        List<OutOfDateParticipantEvent> outOfDatePartEvts = outOfDatePartDao.getAll();
-
         Assert.assertEquals(3, duplicatedEvents.size());
 
         for (DuplicatedProteinEvent evt : duplicatedEvents){
             Assert.assertEquals(dupe2.getAc(), evt.getOriginalProtein());
 
             if (evt.getProteinAc().equals(dupe1.getAc())){
-               Assert.assertFalse(evt.isMergeSuccessful());
-               Assert.assertTrue(evt.isSequenceUpdate());
-               Assert.assertEquals(0, evt.getUpdatedRanges().size());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
-               Assert.assertEquals(1, evt.getMovedInteractions().size());
+                Assert.assertFalse(evt.isMergeSuccessful());
+                Assert.assertEquals(0, evt.getUpdatedRanges().size());
+                Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+                // one interaction with invalid ranges so no interactions have been moved successfully
+                Assert.assertEquals(0, evt.getMovedInteractions().size());
+                Assert.assertEquals(0, evt.getMovedXrefs().size());
             }
             else if (evt.getProteinAc().equals(dupe2.getAc())){
-               Assert.assertTrue(evt.isMergeSuccessful());
-               Assert.assertFalse(evt.isSequenceUpdate());
-               Assert.assertEquals(0, evt.getUpdatedRanges().size());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
-               Assert.assertEquals(0, evt.getMovedInteractions().size());
+                Assert.assertTrue(evt.isMergeSuccessful());
+                Assert.assertEquals(0, evt.getUpdatedRanges().size());
+                Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+                Assert.assertEquals(0, evt.getMovedInteractions().size());
+                Assert.assertEquals(0, evt.getMovedXrefs().size());
             }
             else if (evt.getProteinAc().equals(dupe3.getAc())){
-               Assert.assertTrue(evt.isMergeSuccessful());
-               Assert.assertTrue(evt.isSequenceUpdate());
-               Assert.assertEquals(1, evt.getUpdatedRanges().size());
-               Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
-               Assert.assertEquals(1, evt.getMovedInteractions().size());
+                Assert.assertTrue(evt.isMergeSuccessful());
+                // one range successfully updated before merging
+                Assert.assertEquals(1, evt.getUpdatedRanges().size());
+                PersistentUpdatedRange updatedRange = evt.getUpdatedRanges().iterator().next();
+
+                Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
+                // the moved interaction plus the deleted one so only one moved interaction
+                Assert.assertEquals(1, evt.getMovedInteractions().size());
+                Assert.assertEquals(0, evt.getMovedXrefs().size());
             }
         }
 

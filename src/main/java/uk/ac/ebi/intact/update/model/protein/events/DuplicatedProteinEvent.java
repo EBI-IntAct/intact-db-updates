@@ -30,11 +30,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     private String originalProtein;
 
     /**
-     * Boolean value to know if the sequence has been updated during the merge
-     */
-    private boolean neededSequenceUpdate;
-
-    /**
      * Boolean value to know if the merge was successful
      */
     private boolean wasMergeSuccessful;
@@ -57,14 +52,12 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
     public DuplicatedProteinEvent(){
         super();
         this.originalProtein = null;
-        neededSequenceUpdate = false;
         wasMergeSuccessful = false;
     }
 
-    public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, String uniprotAc, boolean neededSequenceUpdate, boolean wasMergeSuccessful){
+    public DuplicatedProteinEvent(ProteinUpdateProcess updateProcess, Protein duplicatedProtein, Protein originalProtein, String uniprotAc, boolean wasMergeSuccessful){
         super(updateProcess, duplicatedProtein, uniprotAc);
         this.originalProtein = originalProtein != null ? originalProtein.getAc() : null;
-        this.neededSequenceUpdate = neededSequenceUpdate;
         this.wasMergeSuccessful = wasMergeSuccessful;
     }
 
@@ -75,16 +68,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
 
     public void setOriginalProtein(String originalProtein) {
         this.originalProtein = originalProtein;
-    }
-
-    @Column(name = "updated_seq")
-    @Type(type="yes_no")
-    public boolean isSequenceUpdate() {
-        return neededSequenceUpdate;
-    }
-
-    public void setSequenceUpdate(boolean neededSequenceUpdate) {
-        this.neededSequenceUpdate = neededSequenceUpdate;
     }
 
     @Column(name = "merged")
@@ -179,10 +162,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
             return false;
         }
 
-        if (neededSequenceUpdate != event.isSequenceUpdate()){
-            return false;
-        }
-
         if (isMergeSuccessful() != event.isMergeSuccessful()){
             return false;
         }
@@ -207,7 +186,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
             code = 29 * code + originalProtein.hashCode();
         }
 
-        code = 29 * code + Boolean.toString(isSequenceUpdate()).hashCode();
         code = 29 * code + Boolean.toString(isMergeSuccessful()).hashCode();
 
         return code;
@@ -228,10 +206,6 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
             }
         }
         else if (event.getOriginalProtein()!= null){
-            return false;
-        }
-
-        if (neededSequenceUpdate != event.isSequenceUpdate()){
             return false;
         }
 
@@ -257,7 +231,7 @@ public class DuplicatedProteinEvent extends ProteinEventWithShiftedRanges {
         buffer.append(super.toString() + "\n");
 
         buffer.append("Duplicate event : [Original proteinAc = " + originalProtein != null ? originalProtein : "none");
-        buffer.append("sequence update = "+isSequenceUpdate()+", merge successful = "+isMergeSuccessful()+"] \n");
+        buffer.append("merge successful = "+isMergeSuccessful()+"] \n");
 
         return buffer.toString();
     }
