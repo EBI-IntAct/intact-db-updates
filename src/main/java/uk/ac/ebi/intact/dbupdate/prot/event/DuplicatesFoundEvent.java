@@ -25,6 +25,7 @@ import uk.ac.ebi.intact.model.Protein;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Fired when duplicates are found
@@ -50,7 +51,7 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
     private Map<Protein, RangeUpdateReport> componentsWithFeatureConflicts = new HashMap<Protein, RangeUpdateReport>();
     private boolean hasShiftedRanges;
 
-    private Map<String, Collection<String>> movedInteractions = new HashMap<String, Collection<String>>();
+    private Map<String, Set<String>> movedInteractions = new HashMap<String, Set<String>>();
     private Map<String, Collection<String>> updatedTranscripts = new HashMap<String, Collection<String>>();
     private Map<String, Collection<InteractorXref>> movedXrefs = new HashMap<String, Collection<InteractorXref>>();
     private Map<String, Collection<Annotation>> addedAnnotations = new HashMap<String, Collection<Annotation>>();
@@ -120,11 +121,11 @@ public class DuplicatesFoundEvent extends MultiProteinEvent {
         this.hasShiftedRanges = hasShiftedRanges;
     }
 
-    public Map<String, Collection<String>> getMovedInteractions() {
+    public Map<String, Set<String>> getMovedInteractions() {
         return movedInteractions;
     }
 
-    public void setMovedInteractions(Map<String, Collection<String>> movedInteractions) {
+    public void setMovedInteractions(Map<String, Set<String>> movedInteractions) {
         this.movedInteractions = movedInteractions;
     }
 

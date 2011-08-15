@@ -477,11 +477,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 // don't process the original protein with itself
                 if ( ! duplicate.getAc().equals( originalProt.getAc() ) ) {
 
-                    // report the interactions to move before moving them
-                    reportMovedInteraction(duplicate, duplicate.getActiveInstances(), evt);
-
                     // move the interactions
-                    ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), evt.getPrimaryUniprotAc());
+                    Collection<String> movedInteractions = ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), evt.getPrimaryUniprotAc());
+
+                    // report the interactions to move
+                    reportMovedInteraction(duplicate, movedInteractions, evt);
 
                     // add the intact secondary references
                     Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
@@ -533,10 +533,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                         // components without conflicts to move on the original protein
                         Collection<Component> componentToMove = CollectionUtils.subtract(duplicate.getActiveInstances(), componentToFix);
 
-                        // report the interactions to move before moving them
-                        reportMovedInteraction(duplicate, componentToMove, evt);
                         // move components without conflicts
-                        ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
+                        Collection<String> movedInteractions = ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
+
+                        // report the interactions to move before moving them
+                        reportMovedInteraction(duplicate, movedInteractions, evt);
 
                         evt.getAddedAnnotations().put(duplicate.getAc(), addedAnnotations);
 
@@ -547,10 +548,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
-                        // report the interactions to move before moving them
-                        reportMovedInteraction(duplicate, duplicate.getActiveInstances(), evt);
+
                         // move the interactions
-                        ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor, evt.getPrimaryUniprotAc());
+                        Collection<String> movedInteractions = ProteinTools.moveInteractionsBetweenProteins(originalProt, duplicate, evt.getDataContext(), processor, evt.getPrimaryUniprotAc());
+
+                        // report the interactions to move before moving them
+                        reportMovedInteraction(duplicate, movedInteractions, evt);
 
                         // the duplicate will be deleted, add intact secondary references
                         Collection<InteractorXref> addedXRef = ProteinTools.addIntactSecondaryReferences(originalProt, duplicate, factory);
@@ -899,16 +902,14 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         this.duplicatesFinder = duplicatesFinder;
     }
 
-    private void reportMovedInteraction(Protein sourceProtein, Collection<Component> componentsToMove, DuplicatesFoundEvent evt) {
-        Map<String, Collection<String>> movedInteractions = evt.getMovedInteractions();
+    private void reportMovedInteraction(Protein sourceProtein, Collection<String> movedInteractionAcs, DuplicatesFoundEvent evt) {
+        Map<String, Set<String>> movedInteractions = evt.getMovedInteractions();
 
         if (!movedInteractions.containsKey(sourceProtein.getAc())){
-            Collection<String> moved = new ArrayList<String>(componentsToMove.size());
-            movedInteractions.put(sourceProtein.getAc(), moved);
+            movedInteractions.put(sourceProtein.getAc(), new HashSet(movedInteractionAcs));
         }
-
-        for (Component c : componentsToMove){
-            movedInteractions.get(sourceProtein.getAc()).add(c.getAc());
+        else {
+            movedInteractions.get(sourceProtein.getAc()).addAll(movedInteractionAcs);
         }
     }
 }

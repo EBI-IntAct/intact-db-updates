@@ -78,7 +78,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     String.valueOf(activeInstanceNumber),
                     protCollectionToString(evt.getProteins(), false, evt.getOriginalActiveInstancesCount()),
                     mapCollectionStringToString(evt.getUpdatedTranscripts()),
-                    mapCollectionStringToString(evt.getMovedInteractions()),
+                    mapSetStringToString(evt.getMovedInteractions()),
                     mapCollectionXrefsToString(evt.getMovedXrefs()),
                     mapCollectionAnnotationsToString(evt.getAddedAnnotations())
             );
@@ -106,6 +106,26 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
         int i = 1;
 
         for (Map.Entry<String, Collection<String>> entry : mapInfo.entrySet()){
+            buffer.append(entry.getKey());
+            buffer.append("[");
+            buffer.append(entry.getValue().size());
+            buffer.append("]");
+
+            if (i < mapInfo.size()){
+                buffer.append(", ");
+            }
+            i++;
+        }
+
+        return buffer.toString();
+    }
+
+    private String mapSetStringToString(Map<String, Set<String>> mapInfo){
+        StringBuffer buffer = new StringBuffer();
+
+        int i = 1;
+
+        for (Map.Entry<String, Set<String>> entry : mapInfo.entrySet()){
             buffer.append(entry.getKey());
             buffer.append("[");
             buffer.append(entry.getValue().size());

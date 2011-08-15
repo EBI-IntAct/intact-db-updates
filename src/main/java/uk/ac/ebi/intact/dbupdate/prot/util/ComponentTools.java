@@ -284,7 +284,18 @@ public class ComponentTools {
         interactionDao.update((InteractionImpl) interaction);
     }
 
-    public static void moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
+    /**
+     * Move the components from a source protein to a destination protein. If the destination protein already contains the component we try to move,
+     * just delete it. Returns the list of components which have been successfully moved.
+     * @param destinationProtein
+     * @param sourceProtein
+     * @param context
+     * @param processor
+     * @param componentsToMove
+     * @param uniprot
+     * @return
+     */
+    public static Collection<String> moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
         Collection<Component> deletedComponents = new ArrayList<Component>(componentsToMove.size());
@@ -326,5 +337,8 @@ public class ComponentTools {
 
         factory.getProteinDao().update((ProteinImpl) sourceProtein);
         factory.getProteinDao().update((ProteinImpl) destinationProtein);
+
+        // all components minus the components which have been deleted
+        return CollectionUtils.subtract(componentsToMove, deletedComponents);
     }
 }

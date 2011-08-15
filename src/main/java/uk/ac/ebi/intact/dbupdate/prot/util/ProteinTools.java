@@ -41,11 +41,13 @@ public class ProteinTools {
      * Move the interactions attached to the source protein to the destination protein
      * @param destinationProtein : protein where to move the interactions
      * @param sourceProtein : the protein for what we want to move the interactions
+     * @return the collection of interaction acs which have been moved from the cource protein to the destination protein
      */
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
+    public static Collection<String> moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
 
         List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
-        ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove, primaryUniprot);
+
+        return ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove, primaryUniprot);
     }
 
     /**

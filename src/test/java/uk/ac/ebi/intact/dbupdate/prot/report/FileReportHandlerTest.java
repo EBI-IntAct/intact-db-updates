@@ -299,7 +299,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
 
         // interaction with duplicated component
-        Interaction interaction3 = getMockBuilder().createInteraction(dupe1, simple, dupe3);
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
         for (Component c : interaction3.getComponents()){
             c.getBindingDomains().clear();
         }
