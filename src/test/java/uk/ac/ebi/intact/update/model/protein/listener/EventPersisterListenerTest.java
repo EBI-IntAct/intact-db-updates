@@ -28,7 +28,6 @@ import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
 import uk.ac.ebi.intact.update.persistence.dao.protein.DuplicatedProteinEventDao;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -273,7 +272,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         }
         // add a range which will be shifted (dupe3)
         Feature feature3 = getMockBuilder().createFeatureRandom();
-        feature.getRanges().clear();
+        feature3.getRanges().clear();
         Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
         feature3.addRange(range3);
         dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
@@ -315,8 +314,6 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         uniprotXref.setPrimaryId("P12345");
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
 
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
-
         Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
         InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
         uniprotXref2.setPrimaryId("P12345");
@@ -340,31 +337,9 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
         Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
 
-        ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
-        Assert.assertNotNull(dupe2FromDb);
-        ProteinImpl dupe1FromDb = getDaoFactory().getProteinDao().getByAc(dupe1.getAc());
-        Assert.assertNotNull(dupe1FromDb);
-        // xrefs: identity, intact-secondary and dip
-        Collection<InteractorXref> dupe2Xrefs = dupe2FromDb.getXrefs();
-
-        boolean intactSecondaryFound = false;
-        boolean dipFound = false;
-
-        for (InteractorXref xref : dupe2Xrefs) {
-            if (xref.getCvXrefQualifier() != null && "intact-secondary".equals(xref.getCvXrefQualifier().getShortLabel())) {
-                Assert.assertEquals(dupe3.getAc(), xref.getPrimaryId());
-                intactSecondaryFound = true;
-            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
-                dipFound = true;
-            }
-        }
-
-        Assert.assertTrue("An intact-secondary xref is expected in dupe2", intactSecondaryFound);
-        Assert.assertFalse("An dip xref (copied from dupe1) is not expected in dupe2 because not present in uniprot", dipFound);
-
-        Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
-
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
         // checks what has been saved
         UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
 
@@ -397,13 +372,29 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
                 // one range successfully updated before merging
                 Assert.assertEquals(1, evt.getUpdatedRanges().size());
                 PersistentUpdatedRange updatedRange = evt.getUpdatedRanges().iterator().next();
+                Assert.assertEquals("8..8-11..11", updatedRange.getOldPositions());
+                Assert.assertEquals("11..11-14..14", updatedRange.getNewPositions());
+                Assert.assertEquals(null, updatedRange.getOldSequence());
+                Assert.assertEquals("PPDP", updatedRange.getNewSequence());
+                Assert.assertEquals(range3.getAc(), updatedRange.getRangeAc());
+                Assert.assertEquals(feature3.getAc(), updatedRange.getFeatureAc());
+                Assert.assertEquals(feature3.getComponent().getAc(), updatedRange.getComponentAc());
+                Assert.assertEquals(feature3.getComponent().getInteraction().getAc(), updatedRange.getInteractionAc());
 
                 Assert.assertEquals(0, evt.getUpdatedFeatureAnnotations().size());
                 // the moved interaction plus the deleted one so only one moved interaction
                 Assert.assertEquals(1, evt.getMovedInteractions().size());
+                Assert.assertEquals(interaction4.getAc(), evt.getMovedInteractions().iterator().next());
+
                 Assert.assertEquals(0, evt.getMovedXrefs().size());
             }
+            else {
+                // this case is not expected
+                Assert.assertFalse(true);
+            }
         }
+
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
 
         /*
         // 3 : header plus one deleted because duplicate and one deleted because no interactions
@@ -436,7 +427,5 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         Assert.assertEquals(2, countLinesInFile(invalidIntactParentFile));
         // 2 : header plus dupe3 which is now a duplicated participant
         Assert.assertEquals(2, countLinesInFile(deletedComponentFile));*/
-
-        getDataContext().commitTransaction(status2);
     }
 }

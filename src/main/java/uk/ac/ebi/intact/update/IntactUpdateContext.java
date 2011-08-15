@@ -8,6 +8,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.config.ConfigurationException;
 import uk.ac.ebi.intact.core.context.IntactInitializationError;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
@@ -164,5 +170,69 @@ public class IntactUpdateContext implements DisposableBean, Serializable {
 
         if (log.isInfoEnabled()) log.debug("Destroying IntactUpdateContext");
         instance = null;
+    }
+
+    public TransactionStatus beginTransaction( int propagation, String transactionName ) {
+        PlatformTransactionManager transactionManager = getTransactionManager();
+
+        DefaultTransactionDefinition transactionDefinition = new DefaultTransactionDefinition(propagation);
+        transactionDefinition.setName(transactionName);
+
+        if (log.isDebugEnabled()) log.debug("Beginning transaction: "+transactionDefinition.getName()+" Propagation="+propagation);
+
+        return transactionManager.getTransaction(transactionDefinition);
+    }
+
+    public void commitTransaction( TransactionStatus transactionStatus ) throws IntactTransactionException {
+        if (transactionStatus.isCompleted()) {
+            if (log.isWarnEnabled()) log.warn("Transaction already committed. Cannot commit again");
+            return;
+        }
+
+        PlatformTransactionManager transactionManager = getTransactionManager();
+        try {
+            if (log.isDebugEnabled()) log.debug("Committing transaction");
+            transactionManager.commit(transactionStatus);
+        } catch (TransactionException e) {
+            rollbackTransaction(transactionStatus);
+            throw new IntactTransactionException( e );
+        }
+    }
+
+    public PlatformTransactionManager getTransactionManager() {
+        return (PlatformTransactionManager) this.springContext.getBean("updateTransactionManager");
+    }
+
+    public void rollbackTransaction( TransactionStatus transactionStatus ) throws IntactTransactionException {
+        if (transactionStatus.isCompleted()) {
+            if (log.isWarnEnabled()) log.warn("Transaction already complete. Cannot rollback");
+            return;
+        }
+
+        PlatformTransactionManager transactionManager = getTransactionManager();
+
+        try {
+            if (log.isDebugEnabled()) log.debug("Rolling back transaction");
+            transactionManager.rollback(transactionStatus);
+        } catch (TransactionException e) {
+            throw new IntactTransactionException(e);
+        }
+    }
+
+    public TransactionStatus beginTransaction() {
+        return beginTransaction( TransactionDefinition.PROPAGATION_REQUIRES_NEW, createTransactionName());
+    }
+
+    public TransactionStatus beginTransaction(String transactionName) {
+        return beginTransaction( TransactionDefinition.PROPAGATION_REQUIRES_NEW, transactionName);
+    }
+
+    public TransactionStatus beginTransaction( int propagation ) {
+        return beginTransaction(propagation, createTransactionName());
+    }
+
+    private String createTransactionName() {
+        final StackTraceElement stackTraceElement = Thread.currentThread().getStackTrace()[3];
+        return stackTraceElement.getClassName()+"."+stackTraceElement.getMethodName();
     }
 }
