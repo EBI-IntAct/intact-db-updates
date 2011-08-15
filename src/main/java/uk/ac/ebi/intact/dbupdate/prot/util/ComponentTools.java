@@ -337,12 +337,14 @@ public class ComponentTools {
         factory.getProteinDao().update((ProteinImpl) destinationProtein);
 
         Collection<Component> components = CollectionUtils.subtract(componentsToMove, deletedComponents);
-        Set<String> componentAcs = new HashSet<String>(components.size());
+        Set<String> interactionAcs = new HashSet<String>(components.size());
 
         for (Component comp : components){
-           componentAcs.add(comp.getAc());
+           if(comp.getInteraction() != null){
+               interactionAcs.add(comp.getInteraction().getAc());
+           }
         }
         // all components minus the components which have been deleted
-        return componentAcs;
+        return interactionAcs;
     }
 }
