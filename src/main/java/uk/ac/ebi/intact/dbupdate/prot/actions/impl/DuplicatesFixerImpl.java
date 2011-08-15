@@ -535,7 +535,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                         Set<String> movedInteractions = Collections.EMPTY_SET;
                         // move components without conflicts
-                        if (componentToMove.isEmpty()){
+                        if (!componentToMove.isEmpty()){
                             movedInteractions = ComponentTools.moveComponents(originalProt, duplicate, evt.getDataContext(), processor, componentToMove, evt.getPrimaryUniprotAc());
                         }
 
