@@ -150,7 +150,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             Protein protein = createMinimalisticProtein( uniprotProtein, evt.getDataContext() );
             updateProtein( protein, uniprotProtein, evt);
 
-            proteinCreated(protein, evt.getDataContext(), "No Intact master protein existed (or was valid) for the uniprot ac " + uniprotProtein.getPrimaryAc());
+            proteinCreated(protein, evt.getDataContext(), "No Intact master protein existed (or was valid) for the uniprot ac " + uniprotProtein.getPrimaryAc(), uniprotProtein.getPrimaryAc());
             evt.getPrimaryProteins().add(protein);
             evt.getProteins().add(protein.getAc());
 
@@ -246,7 +246,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                     evt.getPrimaryIsoforms().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
-                    proteinCreated(protein, evt.getDataContext(), "No IntAct splice variant existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
+                    proteinCreated(protein, evt.getDataContext(), "No IntAct splice variant existed (or was valid) for the uniprot ac " + ut.getPrimaryAc(), ut.getPrimaryAc());
                     evt.getProteins().add(protein.getAc());
                 }
             }
@@ -286,7 +286,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                     evt.getPrimaryFeatureChains().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
-                    proteinCreated(protein, evt.getDataContext(), "No IntAct feature chain existed (or was valid) for the uniprot ac " + ut.getPrimaryAc());
+                    proteinCreated(protein, evt.getDataContext(), "No IntAct feature chain existed (or was valid) for the uniprot ac " + ut.getPrimaryAc(), ut.getPrimaryAc());
                     evt.getProteins().add(protein.getAc());
                 }
             }
@@ -777,8 +777,10 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, context, protein, uniprot, oldSequence, newSequence, crc64, relativeConservation));
     }
 
-    private void proteinCreated(Protein protein, DataContext context, String message) {
-        processor.fireOnProteinCreated(new ProteinEvent(processor, context, protein, message));
+    private void proteinCreated(Protein protein, DataContext context, String message, String uniprot) {
+        ProteinEvent evt = new ProteinEvent(processor, context, protein, message);
+        evt.setUniprotIdentity(uniprot);
+        processor.fireOnProteinCreated(evt);
     }
 
     public BioSourceService getBioSourceService() {
