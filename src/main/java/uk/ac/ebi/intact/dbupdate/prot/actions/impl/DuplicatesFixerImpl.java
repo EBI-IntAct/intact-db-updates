@@ -497,7 +497,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     // and delete the duplicate if no active instances are attached to it
                     if (duplicate.getActiveInstances().isEmpty()) {
-                        deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
+                        ProteinEvent protEvt = new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc());
+                        protEvt.setUniprotIdentity(evt.getPrimaryUniprotAc());
+                        deleteProtein(protEvt);
                     }
                     else {
                         throw new ProcessorException("The duplicate " + duplicate.getAc() + " still have " + duplicate.getActiveInstances().size() + " active instances and should not.");
@@ -579,7 +581,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     // and delete the duplicate if no active instances are still attached to it
                     if (duplicate.getActiveInstances().isEmpty()) {
-                        deleteProtein(new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc()));
+                        ProteinEvent protEvt = new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc());
+                        protEvt.setUniprotIdentity(evt.getPrimaryUniprotAc());
+                        deleteProtein(protEvt);
                     }
                     else {
                         log.trace("The duplicate " + duplicate.getAc() + " still have " + duplicate.getActiveInstances().size() + " active instances and cannot be deleted.");
