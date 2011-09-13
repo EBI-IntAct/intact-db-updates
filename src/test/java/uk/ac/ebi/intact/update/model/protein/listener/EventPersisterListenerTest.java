@@ -20,12 +20,14 @@ import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.errors.PersistentUpdateErrorFactory;
-import uk.ac.ebi.intact.update.model.protein.events.DuplicatedProteinEvent;
+import uk.ac.ebi.intact.update.model.protein.events.*;
+import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentReportsFactory;
 import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentResultsFactory;
+import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
-import uk.ac.ebi.intact.update.persistence.dao.protein.DuplicatedProteinEventDao;
+import uk.ac.ebi.intact.update.persistence.dao.protein.*;
 
 import java.io.File;
 import java.util.Date;
@@ -147,7 +149,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         }
         getCorePersister().saveOrUpdate(interaction_4);
 
-        // one intact transcript without updateProcess with an interaction
+        // one intact transcript without parent with an interaction
         Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
         transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
         getCorePersister().saveOrUpdate(transcriptWithoutParent);
@@ -332,7 +334,6 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         protUpdateProcessor.updateAll();
 
         TransactionStatus status2 = getDataContext().beginTransaction();
-        Assert.assertEquals(2, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
         Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
         Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
@@ -351,6 +352,8 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
 
         for (DuplicatedProteinEvent evt : duplicatedEvents){
             Assert.assertEquals(dupe2.getAc(), evt.getOriginalProtein());
+            Assert.assertEquals("P12345", evt.getUniprotAc());
+            Assert.assertNull(evt.getMessage());
 
             if (evt.getProteinAc().equals(dupe1.getAc())){
                 Assert.assertFalse(evt.isMergeSuccessful());
@@ -394,27 +397,130 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             }
         }
 
+        // 2 deleted proteins : one duplicate and one without any interactions
+        DeletedProteinEventDao deletedProteinDao = updateFactory.getDeletedProteinEventDao();
+        List<DeletedProteinEvent> deletedEvents = deletedProteinDao.getAll();
+
+        Assert.assertEquals(2, deletedEvents.size());
+
+        for (DeletedProteinEvent evt : deletedEvents){
+            if (evt.getProteinAc().equals(noInteractions.getAc())){
+                Assert.assertEquals("P12348", evt.getUniprotAc());
+                Assert.assertEquals("Protein without any interactions", evt.getMessage());
+
+            }
+            else if (evt.getProteinAc().equals(dupe3.getAc())){
+                Assert.assertEquals("P12345", evt.getUniprotAc());
+                Assert.assertEquals("Duplicate of "+dupe2.getAc(), evt.getMessage());
+            }
+            else {
+                // error if another protein is deleted
+                Assert.assertFalse(true);
+            }
+        }
+
+        // 1 created protein because one transcript without parents
+        CreatedProteinEventDao createdProteinEvent = updateFactory.getCreatedProteinEventDao();
+        List<CreatedProteinEvent> createdEvents = createdProteinEvent.getAll();
+
+        Assert.assertEquals(1, createdEvents.size());
+
+        CreatedProteinEvent evt = createdEvents.iterator().next();
+        Assert.assertEquals("P18459", evt.getUniprotAc());
+        Assert.assertEquals("No Intact master protein existed (or was valid) for the uniprot ac P18459", evt.getMessage());
+
+        // 6 updated proteins : simple_protein, transcript without parent and its parent, secondary protein, one protein with a splice variant which doesn't exist in uniprot and duplicated prot
+        UniprotUpdateEventDao updateEventDao = updateFactory.getUniprotUpdateEventDao();
+        List<UniprotUpdateEvent> updateEvents = updateEventDao.getAll();
+
+        Assert.assertEquals(6, updateEvents.size());
+
+        for (UniprotUpdateEvent updateEvt : updateEvents){
+            Assert.assertNull(updateEvt.getMessage());
+            Assert.assertNotNull(updateEvt.getUpdatedFullName());
+            Assert.assertTrue(updateEvt.getUpdatedAnnotations().isEmpty());
+            Assert.assertFalse(updateEvt.getUpdatedAliases().isEmpty());
+            Assert.assertTrue(updateEvt.getUpdatedFeatureAnnotations().isEmpty());
+            Assert.assertTrue(updateEvt.getUpdatedRanges().isEmpty());
+
+            if (updateEvt.getProteinAc().equals(simple.getAc())){
+                Assert.assertNotNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P36872", updateEvt.getUniprotAc());
+                Assert.assertEquals("P36872", updateEvt.getUniprotQuery());
+                Assert.assertFalse(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else if (updateEvt.getProteinAc().equals(transcriptWithoutParent.getAc())){
+                Assert.assertNotNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P18459-2", updateEvt.getUniprotAc());
+                Assert.assertEquals("P18459-2", updateEvt.getUniprotQuery());
+                Assert.assertTrue(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else if (updateEvt.getUniprotAc().equals("P18459")){
+                Assert.assertNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P18459", updateEvt.getUniprotAc());
+                Assert.assertEquals("P18459-2", updateEvt.getUniprotQuery());
+                Assert.assertFalse(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else if (updateEvt.getProteinAc().equals(secondary.getAc())){
+                Assert.assertNotNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P26904", updateEvt.getUniprotAc());
+                Assert.assertEquals("O34373", updateEvt.getUniprotQuery());
+                Assert.assertFalse(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else if (updateEvt.getProteinAc().equals(parent.getAc())){
+                Assert.assertNotNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P12350", updateEvt.getUniprotAc());
+                Assert.assertEquals("P12350", updateEvt.getUniprotQuery());
+                Assert.assertFalse(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else if (updateEvt.getProteinAc().equals(dupe2.getAc())){
+                Assert.assertNotNull(updateEvt.getUpdatedShortLabel());
+                Assert.assertEquals("P12345", updateEvt.getUniprotAc());
+                Assert.assertEquals("P12345", updateEvt.getUniprotQuery());
+                Assert.assertFalse(updateEvt.getUpdatedXrefs().isEmpty());
+            }
+            else {
+                // error if another protein is deleted
+                Assert.assertFalse(true);
+            }
+        }
+
+        // 1 range updated while fixing duplicated proteins
+        Assert.assertEquals(1, updateFactory.getUpdatedRangeDao(PersistentUpdatedRange.class).countAll());
+
+        // 2 ranges which are invalids (one invalid and one out of date)
+        Assert.assertEquals(2, updateFactory.getUpdatedRangeDao(PersistentInvalidRange.class).countAll());
+
+        // 2 annotations added to the same feature for invalid range
+        Assert.assertEquals(2, updateFactory.getUpdatedAnnotationDao(FeatureUpdatedAnnotation.class).countAll());
+
+        // 2 dead proteins : one dead master protein and one non existing splice variant
+        DeadProteinEventDao deadProteinDao = updateFactory.getDeadProteinEventDao();
+        List<DeadProteinEvent> deadEvents = deadProteinDao.getAll();
+
+        Assert.assertEquals(2, deadEvents.size());
+
+        for (DeadProteinEvent deadEvt : deadEvents){
+            Assert.assertNull(deadEvt.getMessage());
+            Assert.assertTrue(deadEvt.getDeletedXrefs().isEmpty());
+
+            if (deadEvt.getProteinAc().equals(deadProtein.getAc())){
+                Assert.assertEquals("Pxxxx", deadEvt.getUniprotAc());
+
+            }
+            else if (deadEvt.getProteinAc().equals(isoform_no_uniprot.getAc())){
+                Assert.assertEquals("P12350-2", deadEvt.getUniprotAc());
+            }
+            else {
+                // error if another protein is dead
+                Assert.assertFalse(true);
+            }
+        }
+
         IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
 
         /*
-        // 3 : header plus one deleted because duplicate and one deleted because no interactions
-        Assert.assertEquals(3, countLinesInFile(deletedFile));
-        // 2 : header plus one master protein created because one transcript without parents
-        Assert.assertEquals(2, countLinesInFile(createdFile));
-        // 3 : header plus one 'non-uniprot' protein, plus one protein without uniprot
-        Assert.assertEquals(3, countLinesInFile(nonUniprotFile));
-        // 6 : header plus simple_protein, transcript without updateProcess, secondary protein, one protein with a splice variant which doesn't exist in uniprot and duplicated prot
-        Assert.assertEquals(6, countLinesInFile(updateCasesFile));
-        // 2 : header plus one range updated with dupe3
-        Assert.assertEquals(2, countLinesInFile(rangeChangedFile));
-        // 2 : header plus one invalid range attached to secondary proteins (the out of date range attached to a duplicated protein has not been updated because we kept the duplicate protein as a deprecated protein)
-        Assert.assertEquals(2, countLinesInFile(featureChangedFile));
-        // 2 : header plus invalid range attached to secondary protein
-        Assert.assertEquals(2, countLinesInFile(invalidRangeFile));
-        // 2 : header plus out of date range attached to one of the duplicated proteins
-        Assert.assertEquals(2, countLinesInFile(outOfDateRangeFile));
-        // 3 : header plus dead master protein and one non existing splice variant
-        Assert.assertEquals(3, countLinesInFile(deadProteinFile));
+
         // 3 : header plus secondary protein with invalid range and one of the duplicated protein having an out of date range
         Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
         // 5 : header plus one protein with several uniprot identities

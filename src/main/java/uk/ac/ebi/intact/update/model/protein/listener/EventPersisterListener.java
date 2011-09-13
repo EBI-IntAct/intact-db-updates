@@ -68,7 +68,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         // reattach the updateProcess to the entity manager
         ProteinUpdateProcess updateProcess = IntactUpdateContext.getCurrentInstance().getUpdateFactory().getEntityManager().merge(this.updateProcess);
-
         DeletedProteinEvent proteinEvt = new DeletedProteinEvent(updateProcess, protein, evt.getUniprotIdentity());
         proteinEvt.setMessage(evt.getMessage());
 
