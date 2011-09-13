@@ -758,7 +758,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     if (entry.getKey().getActiveInstances().isEmpty()){
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
-                        proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
+                        ProteinEvent protEvt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate");
+                        protEvt.setUniprotIdentity(duplEvt.getPrimaryUniprotAc());
+
+                        proteinDeleter.delete(protEvt);
                     }
                 }
             }
@@ -865,7 +868,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     if (entry.getKey().getActiveInstances().isEmpty()){
                         ProteinTools.addIntactSecondaryReferences(fixedProtein.getProtein(), entry.getKey(), caseEvent.getDataContext().getDaoFactory());
-                        proteinDeleter.delete(new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate"));
+                        ProteinEvent protEvt = new ProteinEvent(caseEvent.getSource(), caseEvent.getDataContext(), entry.getKey(), "Protein duplicate");
+                        protEvt.setUniprotIdentity(duplicateEvent.getPrimaryUniprotAc());
+
+                        proteinDeleter.delete(protEvt);
                     }
                 }
             }

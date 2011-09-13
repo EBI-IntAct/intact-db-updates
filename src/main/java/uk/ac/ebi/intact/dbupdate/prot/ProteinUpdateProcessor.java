@@ -417,6 +417,11 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             // to know if the protein should be deleted
             boolean toDelete = false;
 
+            InteractorXref uniprotIdentityXref = ProteinUtils.getUniprotXref(protToUpdate);
+            String uniprot = uniprotIdentityXref != null ? uniprotIdentityXref.getPrimaryId() : null;
+
+            processEvent.setUniprotIdentity(uniprot);
+
             // if we delete proteins without interactions
             if (config.isDeleteProtsWithoutInteractions()){
                 if (log.isTraceEnabled()) log.trace("Checking for protein interactions : "+protToUpdate.getShortLabel()+" ("+protToUpdate.getAc()+")");
@@ -430,8 +435,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 boolean isDeletedFromDatabase = proteinDeleter.delete(processEvent);
 
                 if (!isDeletedFromDatabase){
-                    InteractorXref uniprotIdentityXref = ProteinUtils.getUniprotXref(protToUpdate);
-                    String uniprot = uniprotIdentityXref != null ? uniprotIdentityXref.getPrimaryId() : null;
 
                     ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError(protToUpdate.getShortLabel(), "The protein " + protToUpdate.getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
 
@@ -547,11 +550,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                     boolean isDeletedFromDatabase = proteinDeleter.delete(protEvent);
 
                     if (!isDeletedFromDatabase){
-                        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(p);
-                        String uniprot = uniprotIdentity != null ? uniprotIdentity.getPrimaryId() : null;
 
                         ProteinUpdateError impossibleToDeleteEvent = errorFactory.createImpossibleToDeleteError(p.getShortLabel(), "The protein " + p.getShortLabel() + " cannot be deleted because doesn't have any intact ac.");
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleToDeleteEvent, p, uniprot));
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, caseEvent.getDataContext(), impossibleToDeleteEvent, p, processEvent.getUniprotIdentity()));
 
                     }
                 }
