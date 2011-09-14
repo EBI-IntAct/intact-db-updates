@@ -401,8 +401,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         Protein protein = evt.getProtein();
         String newParentAc = evt.getNewParentAc();
-        String oldParentAc = evt.getNewParentAc();
-        String uniprotAc= evt.getUniprotIdentity();
+        String oldParentAc = evt.getOldParentAc();
+
+        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(evt.getProtein());
+        String uniprotAc= uniprotXref != null ? uniprotXref.getPrimaryId() : null;
 
         IntactTranscriptUpdateEvent protEvt = new IntactTranscriptUpdateEvent(updateProcess, protein, uniprotAc, oldParentAc, newParentAc);
 

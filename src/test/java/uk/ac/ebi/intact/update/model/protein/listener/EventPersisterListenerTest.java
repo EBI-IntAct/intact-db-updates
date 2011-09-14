@@ -302,8 +302,13 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
 
         // interaction with duplicated component
         Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
         for (Component c : interaction3.getComponents()){
             c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
         }
 
         // persist the interactions
@@ -527,7 +532,6 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
 
         Assert.assertEquals(2, outOfDatePartevts.size());
 
-        Collection<FeatureUpdatedAnnotation> updatedFeatAnn = updateFactory.getUpdatedAnnotationDao(FeatureUpdatedAnnotation.class).getAll();
         for (OutOfDateParticipantEvent partEvt : outOfDatePartevts){
             Assert.assertNull(partEvt.getMessage());
             Assert.assertNull(partEvt.getRemappedProtein());
@@ -601,16 +605,48 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         Assert.assertEquals("O34373", secEvt.getSecondaryUniprotAc());
         Assert.assertNull(secEvt.getMessage());
 
+        // 1 protein having same sequence as another of its transcripts
+        SequenceIdenticalToTranscriptEventDao seqIdEvtDao = updateFactory.getSequenceIdenticalToTranscriptEventDao();
+        List<SequenceIdenticalToTranscriptEvent> seqIdEvts = seqIdEvtDao.getAll();
+
+        Assert.assertEquals(1, seqIdEvts.size());
+
+        SequenceIdenticalToTranscriptEvent seqIdEvt = seqIdEvts.iterator().next();
+        Assert.assertEquals(simple.getAc(), seqIdEvt.getProteinAc());
+        Assert.assertEquals("P36872", seqIdEvt.getUniprotAc());
+        Assert.assertEquals("P36872-2", seqIdEvt.getMatchingUniprotTranscript());
+        Assert.assertNull(seqIdEvt.getMessage());
+
+        // 1 protein without parent
+        IntactTranscriptUpdateEventDao transUpDao = updateFactory.getIntactTranscriptEventDao();
+        List<IntactTranscriptUpdateEvent> transUpEvts = transUpDao.getAll();
+
+        Assert.assertEquals(1, transUpEvts.size());
+
+        IntactTranscriptUpdateEvent transUpEvt = transUpEvts.iterator().next();
+        Assert.assertEquals(transcriptWithoutParent.getAc(), transUpEvt.getProteinAc());
+        Assert.assertEquals("P18459-2", transUpEvt.getUniprotAc());
+        Assert.assertNull(transUpEvt.getOldParentAc());
+        Assert.assertNotNull(transUpEvt.getNewParentAc());
+        Assert.assertNull(transUpEvt.getMessage());
+
+        // 1 deleted participant
+        DeletedComponentEventDao deletedComponentDao = updateFactory.getDeletedComponentEventDao();
+        List<DeletedComponentEvent> deletedComponents = deletedComponentDao.getAll();
+
+        Assert.assertEquals(1, deletedComponents.size());
+
+        DeletedComponentEvent deletedComp = deletedComponents.iterator().next();
+        Assert.assertEquals(dupe3.getAc(), deletedComp.getProteinAc());
+        Assert.assertEquals("P12345", deletedComp.getUniprotAc());
+        Assert.assertEquals(1, deletedComp.getDeletedComponents().size());
+        Assert.assertEquals(deletedComponent.getAc(), deletedComp.getDeletedComponents().iterator().next());
+        Assert.assertNull(deletedComp.getMessage());
+
         IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
 
         /*
         // 5 : header plus one protein with several uniprot identities
-        Assert.assertEquals(5, countLinesInFile(erroFile));
-        // 2 : header plus one simple protein haing the same sequence as one of its isoforms
-        Assert.assertEquals(2, countLinesInFile(transcriptWithSameSequenceFile));
-        // 2 : header plus protein transcript without intact updateProcess
-        Assert.assertEquals(2, countLinesInFile(invalidIntactParentFile));
-        // 2 : header plus dupe3 which is now a duplicated participant
-        Assert.assertEquals(2, countLinesInFile(deletedComponentFile));*/
+        Assert.assertEquals(5, countLinesInFile(erroFile));*/
     }
 }
