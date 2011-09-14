@@ -30,8 +30,8 @@ public class SecondaryProteinEvent extends PersistentProteinEvent {
     }
 
     public SecondaryProteinEvent(ProteinUpdateProcess updateProcess, Protein protein, String originalUniprotAc, String updatedPrimaryAc){
-        super(updateProcess,protein, originalUniprotAc);
-        this.secondaryUniprotAc = updatedPrimaryAc;
+        super(updateProcess,protein, updatedPrimaryAc);
+        this.secondaryUniprotAc = originalUniprotAc;
     }
 
     @Column(name = "secondary_uniprot")

@@ -589,13 +589,23 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             }
         }
 
+        // 1 secondary protein
+        SecondaryProteinEventDao secondaryEvtDao = updateFactory.getSecondaryProteinEventDao();
+        List<SecondaryProteinEvent> secondaryEvts = secondaryEvtDao.getAll();
+
+        Assert.assertEquals(1, secondaryEvts.size());
+
+        SecondaryProteinEvent secEvt = secondaryEvts.iterator().next();
+        Assert.assertEquals(secondary.getAc(), secEvt.getProteinAc());
+        Assert.assertEquals("P26904", secEvt.getUniprotAc());
+        Assert.assertEquals("O34373", secEvt.getSecondaryUniprotAc());
+        Assert.assertNull(secEvt.getMessage());
+
         IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
 
         /*
         // 5 : header plus one protein with several uniprot identities
         Assert.assertEquals(5, countLinesInFile(erroFile));
-        // 2 : header plus one secondary protein updated
-        Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
         // 2 : header plus one simple protein haing the same sequence as one of its isoforms
         Assert.assertEquals(2, countLinesInFile(transcriptWithSameSequenceFile));
         // 2 : header plus protein transcript without intact updateProcess
