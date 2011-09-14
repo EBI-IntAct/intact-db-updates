@@ -10,7 +10,6 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateAnnotation;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.UpdatedAlias;
 import uk.ac.ebi.intact.update.model.protein.UpdatedCrossReference;
-import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -258,11 +257,6 @@ public class UniprotUpdateEvent extends ProteinEventWithShiftedRanges {
         }
 
         return false;
-    }
-
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
-    public Collection<FeatureUpdatedAnnotation> getUpdatedFeatureAnnotations(){
-        return super.getUpdatedFeatureAnnotations();
     }
 
 

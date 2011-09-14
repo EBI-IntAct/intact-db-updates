@@ -52,7 +52,7 @@ public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange
         super(process, proteinAc, uniprotAc);
     }
 
-    @Transient
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
     public Collection<FeatureUpdatedAnnotation> getUpdatedFeatureAnnotations(){
         return updatedFeatureAnnotations;
     }
