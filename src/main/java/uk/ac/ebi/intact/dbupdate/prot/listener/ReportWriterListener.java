@@ -671,7 +671,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
                 final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
                 uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
-                oldRange = updatedRange.getOldRange().toString();
+                oldRange = updatedRange.getOldPositions();
                 featureLabel = feature.getShortLabel();
                 proteinLabel = interactor.getShortLabel();
             }
@@ -729,13 +729,13 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
                 final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
                 uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
-                oldRange = updatedRange.getOldRange().toString();
+                oldRange = dashIfNull(updatedRange.getOldPositions());
                 featureLabel = feature.getShortLabel();
                 proteinLabel = interactor.getShortLabel();
             }
 
             if (updatedRange.getNewRange() != null){
-                newRange = updatedRange.getNewRange().toString();
+                newRange = dashIfNull(updatedRange.getNewRangePositions());
             }
 
             String sequenceLength = updatedRange.getSequence() != null ? Integer.toString(updatedRange.getSequence().length()) : EMPTY_VALUE;

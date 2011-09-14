@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import uk.ac.ebi.intact.model.Range;
+import uk.ac.ebi.intact.model.util.FeatureUtils;
 
 /**
  * This class contains informations about the invalid range
@@ -37,6 +38,9 @@ public class InvalidRange extends UpdatedRange{
     private String fromStatus;
     private String toStatus;
 
+    String oldPositions;
+    String newRangePositions;
+
     public InvalidRange(Range range, Range newRange, String sequence, String message, String fromStatus, String toStatus, boolean outOfDate) {
         super(range, newRange);
 
@@ -48,6 +52,20 @@ public class InvalidRange extends UpdatedRange{
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
         this.isOutOfDate = outOfDate;
+
+        if (range != null){
+            oldPositions = FeatureUtils.convertRangeIntoString(range);
+        }
+        else{
+            oldPositions = null;
+        }
+
+        if (newRange != null){
+            newRangePositions = FeatureUtils.convertRangeIntoString(newRange);
+        }
+        else{
+            newRangePositions = null;
+        }
     }
 
     public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion, String fromStatus, String toStatus, boolean outOfDate) {
@@ -61,6 +79,20 @@ public class InvalidRange extends UpdatedRange{
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
         this.isOutOfDate = outOfDate;
+
+        if (range != null){
+            oldPositions = FeatureUtils.convertRangeIntoString(range);
+        }
+        else{
+            oldPositions = null;
+        }
+
+        if (newRange != null){
+            newRangePositions = FeatureUtils.convertRangeIntoString(newRange);
+        }
+        else{
+            newRangePositions = null;
+        }
     }
 
     public String getSequence() {
@@ -113,5 +145,13 @@ public class InvalidRange extends UpdatedRange{
 
     public boolean isOutOfDate() {
         return isOutOfDate;
+    }
+
+    public String getOldPositions() {
+        return oldPositions;
+    }
+
+    public String getNewRangePositions() {
+        return newRangePositions;
     }
 }
