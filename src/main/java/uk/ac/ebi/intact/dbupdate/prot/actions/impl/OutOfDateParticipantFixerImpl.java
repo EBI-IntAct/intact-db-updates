@@ -281,15 +281,16 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                     }
                 }
 
-                // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
-                rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
-
                 // log in 'out_of_date_participant.csv'
                 if (evt.getSource() instanceof ProteinUpdateProcessor){
                     ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
                     evt.setRemappedProteinAc(fixedProtein.getProtein().getAc());
                     processor.fireOnOutOfDateParticipantFound(evt);
                 }
+
+                // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
+                rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
+
                 return fixedProtein;
             }
             else {
@@ -304,27 +305,28 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         if (createDeprecatedParticipant){
             ProteinTranscript fixedProtein = createDeprecatedProtein(evt);
 
-            // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
-            rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
-
             // log in 'out_of_date_participant.csv'
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
                 processor.fireOnOutOfDateParticipantFound(evt);
             }
+
+            // If we had invalid ranges, we will fix them. If we had out of date ranges, we just log them
+            rangeFixer.processInvalidRanges(fixedProtein.getProtein(), evt.getDataContext(), uniprot, fixedProtein.getProtein().getSequence(), evt.getInvalidRangeReport(), fixedProtein, (ProteinUpdateProcessor)evt.getSource(), false);
+
             return fixedProtein;
         }
         // impossible to fix the conflict.
         else {
-            rangeFixer.processInvalidRanges(protein, evt.getDataContext(), uniprot, protein.getSequence(), evt.getInvalidRangeReport(), null, (ProteinUpdateProcessor)evt.getSource(), fixOutOfDateRanges);
-
             // log in 'out_of_date_participant.csv'
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
                 processor.fireOnOutOfDateParticipantFound(evt);
             }
+
+            rangeFixer.processInvalidRanges(protein, evt.getDataContext(), uniprot, protein.getSequence(), evt.getInvalidRangeReport(), null, (ProteinUpdateProcessor)evt.getSource(), fixOutOfDateRanges);
         }
 
         return null;
