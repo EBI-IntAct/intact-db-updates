@@ -293,8 +293,8 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
                     String oldSequence = inv.getOldRange() != null ? inv.getOldRange().getFullSequence() : null;
                     String newSequence = inv.getNewRange() != null ? inv.getNewRange().getFullSequence() : null;
 
-                    String oldPositions = inv.getOldRange() != null ? FeatureUtils.convertRangeIntoString(inv.getOldRange()) : null;
-                    String newPositions = inv.getNewRange() != null ? FeatureUtils.convertRangeIntoString(inv.getNewRange()) : null;
+                    String oldPositions = inv.getOldPositions();
+                    String newPositions = inv.getNewRangePositions();
 
                     if (oldPositions != null && inv.getComponentAc() != null && inv.getFeatureAc() != null && inv.getInteractionAc() != null && inv.getRangeAc() != null){
                         PersistentInvalidRange persistentRange = new PersistentInvalidRange(protEvt, inv.getComponentAc(), inv.getFeatureAc(), inv.getInteractionAc(), inv.getRangeAc(), oldSequence, newSequence, inv.getFromStatus(), inv.getToStatus(), oldPositions, newPositions, inv.getMessage(), inv.getValidSequenceVersion());

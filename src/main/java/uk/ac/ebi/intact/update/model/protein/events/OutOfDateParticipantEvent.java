@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.model.protein.events;
 
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
+import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 
 import javax.persistence.*;
@@ -80,6 +81,12 @@ public class OutOfDateParticipantEvent extends ProteinEventWithRangeUpdate<Persi
 
     public void setRemappedParent(String remapped_protein) {
         this.remappedParent = remapped_protein;
+    }
+
+    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    @Override
+    public Collection<FeatureUpdatedAnnotation> getUpdatedFeatureAnnotations(){
+        return super.getUpdatedFeatureAnnotations();
     }
 
     @Override

@@ -30,6 +30,7 @@ import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
 import uk.ac.ebi.intact.update.persistence.dao.protein.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -255,6 +256,8 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         getCorePersister().saveOrUpdate(dupe2);
         getCorePersister().saveOrUpdate(dupe3);
 
+        String dupe1Ac = dupe1.getAc();
+
         Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
         Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
         Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
@@ -283,6 +286,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         Feature feature2 = getMockBuilder().createFeatureRandom();
         feature2.getRanges().clear();
         Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
         feature2.addRange(range2);
 
         for (Component c : dupe1.getActiveInstances()){
@@ -517,12 +521,77 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             }
         }
 
+        // 2 out of date participants : secondary protein with invalid range and one of the duplicated protein having an out of date range
+        OutOfDateParticipantEventDao outOfDatePartDao = updateFactory.getOutOfDateParticipantEventDao();
+        List<OutOfDateParticipantEvent> outOfDatePartevts = outOfDatePartDao.getAll();
+
+        Assert.assertEquals(2, outOfDatePartevts.size());
+
+        Collection<FeatureUpdatedAnnotation> updatedFeatAnn = updateFactory.getUpdatedAnnotationDao(FeatureUpdatedAnnotation.class).getAll();
+        for (OutOfDateParticipantEvent partEvt : outOfDatePartevts){
+            Assert.assertNull(partEvt.getMessage());
+            Assert.assertNull(partEvt.getRemappedProtein());
+
+            if (partEvt.getProteinAc().equals(secondary.getAc())){
+                Assert.assertEquals("P26904", partEvt.getUniprotAc());
+                // parent = current protein because we can remap to one of its transcripts
+                Assert.assertEquals(secondary.getAc(), partEvt.getRemappedParent());
+
+                Assert.assertEquals(2, partEvt.getUpdatedFeatureAnnotations().size());
+
+                Collection<PersistentInvalidRange> invalidRanges = partEvt.getInvalidRanges();
+                Assert.assertEquals(1, invalidRanges.size());
+
+                PersistentInvalidRange invalidRange = invalidRanges.iterator().next();
+                Assert.assertEquals("11-8", invalidRange.getOldPositions());
+                Assert.assertEquals(null, invalidRange.getNewPositions());
+                Assert.assertEquals(null, invalidRange.getOldSequence());
+                Assert.assertEquals(null, invalidRange.getNewSequence());
+                Assert.assertEquals(range4.getAc(), invalidRange.getRangeAc());
+                Assert.assertEquals(feature4.getAc(), invalidRange.getFeatureAc());
+                Assert.assertEquals(feature4.getComponent().getAc(), invalidRange.getComponentAc());
+                Assert.assertEquals(feature4.getComponent().getInteraction().getAc(), invalidRange.getInteractionAc());
+
+                Assert.assertEquals(-1, invalidRange.getSequenceVersion());
+                Assert.assertEquals("range", invalidRange.getFromStatus());
+                Assert.assertEquals("range", invalidRange.getToStatus());
+                Assert.assertNotNull(invalidRange.getErrorMessage());
+            }
+            else if (partEvt.getProteinAc().equals(dupe1Ac)){
+                Assert.assertEquals("P12345", partEvt.getUniprotAc());
+                // parent = original protein
+                Assert.assertEquals(dupe2.getAc(), partEvt.getRemappedParent());
+
+                // the protein was not deleted so the range is intact
+                Assert.assertEquals(0, partEvt.getUpdatedFeatureAnnotations().size());
+
+                Collection<PersistentInvalidRange> invalidRanges = partEvt.getInvalidRanges();
+                Assert.assertEquals(1, invalidRanges.size());
+
+                PersistentInvalidRange invalidRange = invalidRanges.iterator().next();
+                Assert.assertEquals("1..1-4..4", invalidRange.getOldPositions());
+                Assert.assertEquals("0-0", invalidRange.getNewPositions());
+                Assert.assertEquals("LALA", invalidRange.getOldSequence());
+                Assert.assertEquals(null, invalidRange.getNewSequence());
+                Assert.assertEquals(range2.getAc(), invalidRange.getRangeAc());
+                Assert.assertEquals(feature2.getAc(), invalidRange.getFeatureAc());
+                Assert.assertEquals(feature2.getComponent().getAc(), invalidRange.getComponentAc());
+                Assert.assertEquals(feature2.getComponent().getInteraction().getAc(), invalidRange.getInteractionAc());
+
+                Assert.assertEquals(-1, invalidRange.getSequenceVersion());
+                Assert.assertEquals("range", invalidRange.getFromStatus());
+                Assert.assertEquals("range", invalidRange.getToStatus());
+                Assert.assertNotNull(invalidRange.getErrorMessage());
+            }
+            else {
+                // this case is not expected
+                Assert.assertFalse(true);
+            }
+        }
+
         IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
 
         /*
-
-        // 3 : header plus secondary protein with invalid range and one of the duplicated protein having an out of date range
-        Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
         // 5 : header plus one protein with several uniprot identities
         Assert.assertEquals(5, countLinesInFile(erroFile));
         // 2 : header plus one secondary protein updated

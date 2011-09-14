@@ -52,7 +52,7 @@ public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange
         super(process, proteinAc, uniprotAc);
     }
 
-    @OneToMany(mappedBy = "parent", orphanRemoval = true, cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE, CascadeType.REFRESH} )
+    @Transient
     public Collection<FeatureUpdatedAnnotation> getUpdatedFeatureAnnotations(){
         return updatedFeatureAnnotations;
     }
@@ -61,6 +61,7 @@ public abstract class ProteinEventWithRangeUpdate<T extends AbstractUpdatedRange
         for (uk.ac.ebi.intact.model.Annotation a : updatedAnn){
 
             FeatureUpdatedAnnotation annotation = new FeatureUpdatedAnnotation(featureAc, a, status);
+            annotation.setParent(this);
             this.updatedFeatureAnnotations.add(annotation);
         }
     }
