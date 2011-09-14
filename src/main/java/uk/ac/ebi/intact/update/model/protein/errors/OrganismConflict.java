@@ -224,7 +224,7 @@ public class OrganismConflict extends DefaultPersistentUpdateError  implements I
     public String toString() {
 
         if (this.proteinAc == null || this.intactTaxId == null || this.uniprotTaxId == null || this.uniprotAc == null){
-            return super.getErrorMessage();
+            return super.getReason();
         }
 
         StringBuffer error = new StringBuffer();

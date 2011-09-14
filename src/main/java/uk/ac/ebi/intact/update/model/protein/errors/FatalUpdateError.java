@@ -83,7 +83,7 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
     @Override
     public String toString(){
         if ((this.proteinAc == null && this.uniprotAc == null) || this.reason == null){
-            return super.getErrorMessage();
+            return super.getReason();
         }
 
         StringBuffer error = new StringBuffer();

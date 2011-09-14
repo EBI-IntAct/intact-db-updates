@@ -58,21 +58,25 @@ public abstract class DefaultPersistentUpdateError extends UpdateEventImpl imple
         return this.errorLabel;
     }
 
-    @Override
-    @Column(name = "message")
+    @Column(name = "reason")
     @Enumerated(EnumType.STRING)
-    public String getErrorMessage() {
+    public String getReason() {
         return this.reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    @Override
+    @Transient
+    public String getErrorMessage(){
+        return toString();
     }
 
     public void setErrorLabel(UpdateError errorLabel) {
         this.errorLabel = errorLabel;
     }
-
-    public void setErrorMessage(String reason) {
-        this.reason = reason;
-    }
-
 
     @Override
     public boolean equals( Object o ) {
@@ -92,11 +96,11 @@ public abstract class DefaultPersistentUpdateError extends UpdateEventImpl imple
         }
 
         if ( reason != null ) {
-            if (!reason.equals( process.getErrorMessage())){
+            if (!reason.equals( process.getReason())){
                 return false;
             }
         }
-        else if (process.getErrorMessage()!= null){
+        else if (process.getReason()!= null){
             return false;
         }
 
@@ -146,11 +150,11 @@ public abstract class DefaultPersistentUpdateError extends UpdateEventImpl imple
         }
 
         if ( reason != null ) {
-            if (!reason.equals( process.getErrorMessage())){
+            if (!reason.equals( process.getReason())){
                 return false;
             }
         }
-        else if (process.getErrorMessage()!= null){
+        else if (process.getReason()!= null){
             return false;
         }
 

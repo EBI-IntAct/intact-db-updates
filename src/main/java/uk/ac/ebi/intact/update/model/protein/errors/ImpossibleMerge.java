@@ -184,7 +184,7 @@ public class ImpossibleMerge extends DefaultPersistentUpdateError implements Int
     @Override
     public String toString() {
         if (this.reason == null || (this.proteinAc == null && this.uniprotAc == null)){
-            return super.getErrorMessage();
+            return super.getReason();
         }
 
         StringBuffer error = new StringBuffer();

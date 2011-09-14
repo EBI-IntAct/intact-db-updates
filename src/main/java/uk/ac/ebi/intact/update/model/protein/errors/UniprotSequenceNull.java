@@ -188,7 +188,7 @@ public class UniprotSequenceNull extends DefaultPersistentUpdateError  implement
     public String toString() {
 
         if (this.proteinAc == null || this.uniprotAc == null){
-            return super.getErrorMessage();
+            return super.getReason();
         }
 
         StringBuffer error = new StringBuffer();
