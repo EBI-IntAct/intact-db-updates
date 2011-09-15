@@ -19,7 +19,7 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
-import uk.ac.ebi.intact.update.model.protein.errors.PersistentUpdateErrorFactory;
+import uk.ac.ebi.intact.update.model.protein.errors.*;
 import uk.ac.ebi.intact.update.model.protein.events.*;
 import uk.ac.ebi.intact.update.model.protein.feature.FeatureUpdatedAnnotation;
 import uk.ac.ebi.intact.update.model.protein.mapping.factories.PersistentReportsFactory;
@@ -643,10 +643,58 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         Assert.assertEquals(deletedComponent.getAc(), deletedComp.getDeletedComponents().iterator().next());
         Assert.assertNull(deletedComp.getMessage());
 
-        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+        // one impossible merge because of range conflicts (dupe1)
+        Collection<ImpossibleMerge> impossibleMerges = updateFactory.getProteinUpdateErrorDao(ImpossibleMerge.class).getAll();
 
-        /*
-        // 5 : header plus one protein with several uniprot identities
-        Assert.assertEquals(5, countLinesInFile(erroFile));*/
+        Assert.assertEquals(1, impossibleMerges.size());
+
+        ImpossibleMerge impMerge = impossibleMerges.iterator().next();
+        Assert.assertEquals(dupe1.getAc(), impMerge.getProteinAc());
+        Assert.assertEquals(dupe2.getAc(), impMerge.getOriginalProtein());
+        Assert.assertEquals("P12345", impMerge.getUniprotAc());
+        Assert.assertNotNull(impMerge.getReason());
+
+        // one protein with multiple identities
+        Collection<MultiUniprotIdentities> multiUniprotIdentities = updateFactory.getProteinUpdateErrorDao(MultiUniprotIdentities.class).getAll();
+
+        Assert.assertEquals(1, multiUniprotIdentities.size());
+
+        MultiUniprotIdentities multiIdent = multiUniprotIdentities.iterator().next();
+        Assert.assertEquals(severalUniProtIdentity.getAc(), multiIdent.getProteinAc());
+        Assert.assertEquals(2, multiIdent.getUniprotIdentities().size());
+        Assert.assertNull(multiIdent.getReason());
+
+        for (String uniprot : multiIdent.getUniprotIdentities()){
+            // case which should not happen
+            if (!uniprot.equals("P12343") && !uniprot.equals("P12344")){
+                Assert.assertTrue(false);
+            }
+        }
+
+        // one protein with organism conflicts
+        Collection<OrganismConflict> organismConflicts = updateFactory.getProteinUpdateErrorDao(OrganismConflict.class).getAll();
+
+        Assert.assertEquals(1, organismConflicts.size());
+
+        OrganismConflict orgConf = organismConflicts.iterator().next();
+        Assert.assertEquals(bad_organism.getAc(), orgConf.getProteinAc());
+        Assert.assertEquals("P12349", orgConf.getUniprotAc());
+        Assert.assertEquals("9606", orgConf.getIntactTaxId());
+        Assert.assertEquals("7244", orgConf.getUniprotTaxId());
+        Assert.assertNull(orgConf.getReason());
+
+        // one protein transcript which does not exist in uniprot
+        Collection<NonExistingProteinTranscript> nonExTranscripts = updateFactory.getProteinUpdateErrorDao(NonExistingProteinTranscript.class).getAll();
+
+        Assert.assertEquals(1, nonExTranscripts.size());
+
+        NonExistingProteinTranscript nonExTrans = nonExTranscripts.iterator().next();
+        Assert.assertEquals(isoform_no_uniprot.getAc(), nonExTrans.getProteinAc());
+        Assert.assertEquals("P12350-2", nonExTrans.getDeadUniprot());
+        Assert.assertEquals("P12350", nonExTrans.getMasterUniprotAc());
+        Assert.assertEquals(parent.getAc(), nonExTrans.getMasterIntactAc());
+        Assert.assertNull(nonExTrans.getReason());
+
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
     }
 }
