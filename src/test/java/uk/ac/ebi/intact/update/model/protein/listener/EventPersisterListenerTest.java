@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
@@ -67,6 +68,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void simulation() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
