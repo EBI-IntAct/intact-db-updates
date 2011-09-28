@@ -358,11 +358,15 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
-        evt.addXrefUpdaterReport(reports);
+        if (!reports.getAddedXrefs().isEmpty() || !reports.getRemovedXrefs().isEmpty()){
+            evt.addXrefUpdaterReport(reports);
+        }
 
         // Aliases
         AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases(protein, uniprotProtein, evt.getDataContext(), processor);
-        evt.addAliasUpdaterReport(aliasReport);
+        if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
+            evt.addAliasUpdaterReport(aliasReport);
+        }
 
         // Sequence
         updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc());
@@ -614,11 +618,15 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // update all Xrefs
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
-        evt.addXrefUpdaterReport(reports);
+        if (!reports.getAddedXrefs().isEmpty() || !reports.getRemovedXrefs().isEmpty()){
+            evt.addXrefUpdaterReport(reports);
+        }
 
         // Update Aliases from the uniprot protein aliases
         AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
-        evt.addAliasUpdaterReport(aliasReport);
+        if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
+            evt.addAliasUpdaterReport(aliasReport);
+        }
 
         // Sequence
         if (uniprotTranscript.getSequence() != null){
