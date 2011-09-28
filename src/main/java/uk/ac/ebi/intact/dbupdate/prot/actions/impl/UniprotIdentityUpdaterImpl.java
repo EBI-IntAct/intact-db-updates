@@ -270,7 +270,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
 
-                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId.getPrimaryId(), evt.getProtein().getPrimaryAc(), primary.getAc());
+                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprotId != null ? uniprotId.getPrimaryId() : null, evt.getProtein().getPrimaryAc(), primary.getAc());
                             updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant, uniprotId.getPrimaryId()));
                         }
                     }
