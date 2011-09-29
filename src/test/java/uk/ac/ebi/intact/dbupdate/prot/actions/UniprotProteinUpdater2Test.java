@@ -132,7 +132,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         Assert.assertEquals(0, evt.getPrimaryIsoforms().size());
         Assert.assertEquals(1, evt.getSecondaryIsoforms().size());
         Assert.assertEquals(0, evt.getPrimaryFeatureChains().size());
-        Assert.assertEquals(2, evt.getXrefUpdaterReports().size());
+        Assert.assertEquals(1, evt.getXrefUpdaterReports().size());
 
         Protein updatedProtein = evt.getPrimaryProteins().iterator().next();
         Assert.assertEquals(protein.getAc(), updatedProtein.getAc());

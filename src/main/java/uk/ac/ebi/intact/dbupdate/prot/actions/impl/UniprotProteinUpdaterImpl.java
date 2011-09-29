@@ -358,7 +358,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
-        if (!reports.getAddedXrefs().isEmpty() || !reports.getRemovedXrefs().isEmpty()){
+        if (reports != null){
             evt.addXrefUpdaterReport(reports);
         }
 
@@ -618,7 +618,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // update all Xrefs
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
-        if (!reports.getAddedXrefs().isEmpty() || !reports.getRemovedXrefs().isEmpty()){
+        if (reports != null){
             evt.addXrefUpdaterReport(reports);
         }
 

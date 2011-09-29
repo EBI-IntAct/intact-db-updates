@@ -30,11 +30,14 @@ import java.util.Collection;
 public final class XrefUpdaterReport {
 
     private String protein;
-    private Collection<Xref> addedXrefs = new ArrayList<Xref>();
-    private Collection<Xref> removedXrefs = new ArrayList<Xref>();
+    private Collection<Xref> addedXrefs;
+    private Collection<Xref> removedXrefs;
 
     public XrefUpdaterReport(Protein protein, Xref[] addedXrefs, Xref[] removedXrefs) {
         this.protein = protein != null ? protein.getAc() : null;
+
+        this.addedXrefs  = new ArrayList<Xref>();
+        this.removedXrefs = new ArrayList<Xref>();
 
         for (Xref ref : addedXrefs){
             this.addedXrefs.add(ref);
@@ -42,6 +45,13 @@ public final class XrefUpdaterReport {
         for (Xref ref : removedXrefs){
             this.removedXrefs.add(ref);
         }
+    }
+
+        public XrefUpdaterReport(Protein protein, Collection<Xref> addedXrefs, Collection<Xref> removedXrefs) {
+        this.protein = protein != null ? protein.getAc() : null;
+
+        this.addedXrefs = addedXrefs;
+            this.removedXrefs = removedXrefs;
     }
 
     public String getProtein() {

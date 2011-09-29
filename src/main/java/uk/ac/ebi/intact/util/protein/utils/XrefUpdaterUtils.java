@@ -9,12 +9,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
+import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
@@ -69,6 +71,23 @@ public final class XrefUpdaterUtils {
         return xrefCluster;
     }
 
+    public static Map<String, Collection<InteractorXref>> clusterInteractorXrefByDatabaseName( Collection<InteractorXref> xrefs ) {
+
+        Map<String, Collection<InteractorXref>> xrefCluster = new HashMap<String, Collection<InteractorXref>>( xrefs.size() );
+
+        for ( InteractorXref cr : xrefs ) {
+            Collection<InteractorXref> c = xrefCluster.get( cr.getCvDatabase().getIdentifier());
+            if ( c == null ) {
+                // not found, add an entry
+                c = new ArrayList<InteractorXref>();
+                xrefCluster.put( cr.getCvDatabase().getIdentifier(), c );
+            }
+            c.add( cr );
+        }
+
+        return xrefCluster;
+    }
+
     public static XrefUpdaterReport updateAllProteinTranscriptXrefs( Protein protein,
                                                                      UniprotProteinTranscript uniprotTranscript,
                                                                      UniprotProtein uniprot,
@@ -78,12 +97,9 @@ public final class XrefUpdaterUtils {
 
         List<Xref> deletedXrefs = new ArrayList<Xref>();
 
-        //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( protein, uniprotTranscript, uniprot, context, processor );
-
         // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
-        Collection<InteractorXref> xrefs = new ArrayList(protein.getXrefs());
-        for (InteractorXref xref : xrefs) {
+        List<InteractorXref> refs = new ArrayList<InteractorXref>(protein.getXrefs());
+        for (InteractorXref xref : refs) {
 
             // Dont's check uniprot xref as those one have been done earlier and as anyway, the uniprot Xref won't have
             // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
@@ -100,7 +116,7 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        reports.getRemovedXrefs().addAll(deletedXrefs);
+        XrefUpdaterReport reports = new XrefUpdaterReport(protein, Collections.EMPTY_LIST, deletedXrefs);
 
         return reports;
     }
@@ -112,88 +128,114 @@ public final class XrefUpdaterUtils {
                                                     ProteinUpdateProcessor processor
     ) {
 
-        Map<String, Collection<UniprotXref>> xrefCluster = XrefUpdaterUtils.clusterByDatabaseName( uniprotProtein.getCrossReferences() );
+        Map<String, Collection<InteractorXref>> xrefCluster = XrefUpdaterUtils.clusterInteractorXrefByDatabaseName(protein.getXrefs());
+        Map<String, Collection<UniprotXref>> uniprotCluster = XrefUpdaterUtils.clusterByDatabaseName(uniprotProtein.getCrossReferences());
 
-        List<Xref> createdXrefs = new ArrayList<Xref>();
-        List<Xref> deletedXrefs = new ArrayList<Xref>();
+        List<Xref> createdXrefs = new ArrayList<Xref>(uniprotProtein.getCrossReferences().size());
+        List<Xref> deletedXrefs = new ArrayList<Xref>(protein.getXrefs().size());
+        DaoFactory daoFactory = context.getDaoFactory();
+        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
 
-        for ( Map.Entry<String, Collection<UniprotXref>> entry : xrefCluster.entrySet() ) {
+        // create missing xrefs
+        for ( Map.Entry<String, Collection<UniprotXref>> entry : uniprotCluster.entrySet() ) {
 
             String db = entry.getKey();
             Collection<UniprotXref> uniprotXrefs = entry.getValue();
 
-            DaoFactory daoFactory = context.getDaoFactory();
-            CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
-
             // search by shortlabel is dodgy ! Try mapping to MI:xxxx first.
             String mi = databaseName2mi.get( db.toLowerCase() );
-            CvDatabase cvDatabase = null;
-            if ( mi != null ) {
-                cvDatabase = dbDao.getByPsiMiRef( mi );
 
-                if( cvDatabase == null ) {
-                    log.error( "Could not find CvDatabase by label: " + db );
+            // we update xrefs excepted uniprot and intact
+            if (mi != null && !mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF)){
+
+                if (xrefCluster.containsKey(mi)){
+                    Collection<InteractorXref> interactorXrefs = xrefCluster.get(mi);
+
+                    CvDatabase database = interactorXrefs.iterator().next().getCvDatabase();
+
+                    // delete xrefs not in uniprot
+                    for (InteractorXref xref : interactorXrefs){
+
+                        String primaryId = xref.getPrimaryId();
+
+                        UniprotXref match = null;
+                        for (UniprotXref uniref : uniprotXrefs){
+                            if (uniref.getAccession().equalsIgnoreCase(primaryId)){
+                                match = uniref;
+                            }
+                        }
+
+                        if (match != null){
+                            deletedXrefs.add(xref);
+                            ProteinTools.deleteInteractorXRef(protein, context, xref);
+                        }
+                        else {
+                            // we can remove this uniprot ref, we don't need it anymore
+                            uniprotXrefs.remove(match);
+                        }
+                    }
+
+                    // create new xrefs with resting uniprot xrefs
+                    for (UniprotXref uniprotRef : uniprotXrefs){
+                        InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), database, uniprotRef.getAccession(), null);
+                        protein.addXref(newXref);
+
+                        daoFactory.getXrefDao(InteractorXref.class).persist(newXref);
+
+                        createdXrefs.add(newXref);
+                    }
                 }
-            }
+                else {
+                    CvDatabase database = dbDao.getByPsiMiRef( mi );
 
-            if(cvDatabase != null){
-                // Convert collection into Xref
-                Collection<Xref> xrefs = XrefUpdaterUtils.convert( uniprotXrefs, cvDatabase );
-                XrefUpdaterReport report = XrefUpdaterUtils.updateXrefCollection( protein, cvDatabase, xrefs, context, processor);
-                createdXrefs.addAll(report.getAddedXrefs());
-                deletedXrefs.addAll(report.getRemovedXrefs());
-            }else{
+                    if (database != null){
+
+                        for (UniprotXref ref : uniprotXrefs){
+                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), database, ref.getAccession(), null);
+                            protein.addXref(newXref);
+
+                            daoFactory.getXrefDao(InteractorXref.class).persist(newXref);
+
+                            createdXrefs.add(newXref);
+                        }
+
+                    }
+                    else {
+                        log.debug("We are not copying across xref to " + db);
+                    }
+                }
+
+            }
+            else {
                 log.debug("We are not copying across xref to " + db);
-            }
-        }
-        //UPDATE THE UNIPROT XREF (SECONDARY AND PRIMARY ID)
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context, processor );
 
-        // CONVERT ALL THE uniprotProtein crossReferences to intact protein InteractorXref and put them in the convertedXrefs
-        // collection.
-        CvObjectDao<CvDatabase> dbDao = context.getDaoFactory().getCvObjectDao(CvDatabase.class);
-        Collection<Xref> convertedXrefs = new ArrayList<Xref>();
-        for(UniprotXref uniprotXref : uniprotProtein.getCrossReferences()){
-            String db = uniprotXref.getDatabase().toLowerCase();
-            String mi = databaseName2mi.get( db );
-            CvDatabase cvDatabase = null;
-            if ( mi != null ) {
-                cvDatabase = dbDao.getByPsiMiRef( mi );
-
-                if( cvDatabase == null ) {
-                    log.error( "Could not find CvDatabase by label: " + db );
+                // delete xrefs if exist for this database
+                if (xrefCluster.containsKey(mi)){
+                    deletedXrefs.addAll(xrefCluster.get(mi));
                 }
             }
-            if(cvDatabase!=null){
-                convertedXrefs.add(XrefUpdaterUtils.convert(uniprotXref, cvDatabase));
-            }else{
-                log.debug("cvDatabase " + db + " could not be found, the uniprot crossRef won't be converted to intact xref");
+        }
+
+        // we delete all xrefs which are in intact but not in uniprot excepted intact plus uniprot
+        Collection<String> miToDelete = CollectionUtils.subtract(xrefCluster.keySet(), uniprotCluster.keySet());
+
+        for (String mi : miToDelete){
+            if (!mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF) && xrefCluster.containsKey(mi)){
+
+                for (InteractorXref x : xrefCluster.get(mi)){
+                    deletedXrefs.add(x);
+                    ProteinTools.deleteInteractorXRef(protein, context, x);
+                }
             }
         }
 
-        // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
-        Collection<InteractorXref> xrefs = new ArrayList(protein.getXrefs());
-        for (InteractorXref xref : xrefs) {
+        if (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty()){
+            XrefUpdaterReport report = new XrefUpdaterReport(protein, createdXrefs, deletedXrefs);
 
-            // Dont's check uniprot xref as those one have been done earlier and as anyway, the uniprot Xref won't have
-            // uniprot xref as intact protein does (the uniprot xref of the intact protein correspond to the primary and
-            // secondary ac of the proteins).
-            CvDatabase cvDb = xref.getCvDatabase();
-            String cvDbMi = cvDb.getMiIdentifier();
+            return report;
 
-            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi) || CvDatabase.INTACT_MI_REF.equals(cvDbMi)){
-                continue;
-            }
-            // If the protein xref does not exist in the uniprot entry anymore delete it.
-            if(!convertedXrefs.contains(xref)){
-                ProteinTools.deleteInteractorXRef(protein, context, xref);
-            }
         }
-
-        reports.getAddedXrefs().addAll(createdXrefs);
-        reports.getRemovedXrefs().addAll(deletedXrefs);
-
-        return reports;
+        return null;
     }
 
     /**
@@ -340,6 +382,9 @@ public final class XrefUpdaterUtils {
     public static XrefUpdaterReport updateUniprotXrefs( Protein protein, UniprotProtein uniprotProtein, DataContext context, ProteinUpdateProcessor processor ) {
         XrefUpdaterReport reports = null;
 
+        List<Xref> deletedXrefs = new ArrayList<Xref>(protein.getXrefs().size());
+        List<Xref> createdXrefs = new ArrayList<Xref>(uniprotProtein.getCrossReferences().size());
+
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
         if (uniprotIdentities.size() > 1){
             XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, protein, context, processor);
@@ -348,39 +393,73 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
-        CvXrefQualifier identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
-        CvXrefQualifier secondaryAcQual = CvHelper.getQualifierByMi( CvXrefQualifier.SECONDARY_AC_MI_REF );
-        Institution owner = CvHelper.getInstitution();
-
+        CvDatabase uniprot;
+        CvXrefQualifier identity;
+        CvXrefQualifier secondary = null;
         String dbRelease = uniprotProtein.getReleaseVersion();
 
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Building UniProt Xref collection prior to update of " + protein.getShortLabel() );
-        }
-        Collection<Xref> ux = new ArrayList<Xref>( uniprotProtein.getSecondaryAcs().size() + 1 );
-        ux.add( new InteractorXref( owner, uniprot, uniprotProtein.getPrimaryAc(), null, dbRelease, identity ) );
+        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
+        Institution owner = CvHelper.getInstitution();
 
-        log.debug( "Found " + uniprotProtein.getSecondaryAcs().size() + " secondary ACs" );
-        for ( String secondaryAc : uniprotProtein.getSecondaryAcs() ) {
-            InteractorXref interactorXref =   new InteractorXref( owner, uniprot, secondaryAc, null, dbRelease, secondaryAcQual );
-            interactorXref.setParent(protein);
-            ux.add( interactorXref );
+        if (uniprotXref != null){
+            uniprot = uniprotXref.getCvDatabase();
+            identity = uniprotXref.getCvXrefQualifier();
+            uniprotXref.setPrimaryId(uniprotProtein.getPrimaryAc());
+            uniprotXref.setDbRelease(dbRelease);
 
-        }
-
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Built " + ux.size() + " UniProt Xref(s)." );
-        }
-
-        XrefUpdaterReport lastReport = XrefUpdaterUtils.updateXrefCollection( protein, uniprot, ux, context, processor);
-
-        if (reports != null){
-            reports.getAddedXrefs().addAll(lastReport.getAddedXrefs());
-            reports.getRemovedXrefs().addAll(lastReport.getRemovedXrefs());
+            context.getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
         }
         else {
-            reports = lastReport;
+            uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
+            identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
+
+            uniprotXref = new InteractorXref( owner, uniprot, uniprotProtein.getPrimaryAc(), null, dbRelease, identity );
+            protein.addXref(uniprotXref);
+
+            context.getDaoFactory().getXrefDao(InteractorXref.class).persist(uniprotXref);
+
+            createdXrefs.add(uniprotXref);
+        }
+
+        log.debug( "Found " + uniprotProtein.getSecondaryAcs().size() + " secondary ACs" );
+        // update secondary xrefs
+        List<String> secondaryUniprot = new ArrayList<String>(uniprotProtein.getSecondaryAcs());
+        for ( InteractorXref xref : protein.getXrefs() ) {
+            if (xref.getCvDatabase() != null && xref.getCvDatabase().getIdentifier().equals(CvDatabase.UNIPROT_MI_REF)){
+                if (xref.getCvXrefQualifier() != null && xref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.SECONDARY_AC_MI_REF)){
+                    secondary = xref.getCvXrefQualifier();
+
+                    // secondary xref already exists
+                    if (secondaryUniprot.contains(xref.getPrimaryId())){
+                        secondaryUniprot.remove(xref.getPrimaryId());
+                    }
+                    // secondary xref does not exist, we dele it
+                    else {
+                        deletedXrefs.add(xref);
+                        ProteinTools.deleteInteractorXRef(protein, context, xref);
+                    }
+                }
+            }
+        }
+
+        if (secondary == null){
+            secondary = CvHelper.getQualifierByMi(CvXrefQualifier.SECONDARY_AC_MI_REF);
+        }
+        // create missing secondary xrefs
+        for (String secondaryToAdd : secondaryUniprot){
+            InteractorXref interactorXref =   new InteractorXref( owner, uniprot, secondaryToAdd, null, dbRelease, secondary );
+            protein.addXref(interactorXref);
+
+            context.getDaoFactory().getXrefDao(InteractorXref.class).persist(interactorXref);
+            createdXrefs.add( interactorXref );
+        }
+
+        if (reports == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
+            reports = new XrefUpdaterReport(protein, createdXrefs, deletedXrefs);
+        }
+        else {
+            reports.getAddedXrefs().addAll(createdXrefs);
+            reports.getRemovedXrefs().addAll(deletedXrefs);
         }
         return reports;
     }
@@ -392,6 +471,9 @@ public final class XrefUpdaterUtils {
                                                                          ProteinUpdateProcessor processor) {
         XrefUpdaterReport reports = null;
 
+        List<Xref> deletedXrefs = new ArrayList<Xref>(intactTranscript.getXrefs().size());
+        List<Xref> createdXrefs = new ArrayList<Xref>(uniprotProteinTranscript.getSecondaryAcs().size() + 1);
+
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(intactTranscript);
         if (uniprotIdentities.size() > 1){
             XrefUpdaterReport intermediary = fixDuplicateOfSameUniprotIdentity(uniprotIdentities, intactTranscript, context, processor);
@@ -400,37 +482,75 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        CvDatabase uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
-        CvXrefQualifier identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
-        CvXrefQualifier secondaryAc = CvHelper.getQualifierByMi( CvXrefQualifier.SECONDARY_AC_MI_REF );
-        Institution owner = CvHelper.getInstitution();
-
+        CvDatabase uniprot;
+        CvXrefQualifier identity;
+        CvXrefQualifier secondary = null;
         String dbRelease = uniprotProtein.getReleaseVersion();
 
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Building UniProt Xref collection prior to update of " + intactTranscript.getShortLabel() );
-        }
-        Collection<Xref> ux = new ArrayList<Xref>( uniprotProteinTranscript.getSecondaryAcs().size() + 1 );
-        ux.add( new InteractorXref( owner, uniprot, uniprotProteinTranscript.getPrimaryAc(), null, dbRelease, identity ) );
+        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(intactTranscript);
+        Institution owner = CvHelper.getInstitution();
 
-        for ( String ac : uniprotProteinTranscript.getSecondaryAcs() ) {
-            ux.add( new InteractorXref( owner, uniprot, ac, null, dbRelease, secondaryAc ) );
-        }
+        if (uniprotXref != null){
+            uniprot = uniprotXref.getCvDatabase();
+            identity = uniprotXref.getCvXrefQualifier();
+            uniprotXref.setPrimaryId(uniprotProteinTranscript.getPrimaryAc());
+            uniprotXref.setDbRelease(dbRelease);
 
-        if ( log.isDebugEnabled() ) {
-            log.debug( "Built " + ux.size() + " Xref(s)." );
-        }
-
-        XrefUpdaterReport lastReport = XrefUpdaterUtils.updateXrefCollection( intactTranscript, uniprot, ux, context, processor);
-
-        if (reports != null){
-            reports.getAddedXrefs().addAll(lastReport.getAddedXrefs());
-            reports.getRemovedXrefs().addAll(lastReport.getRemovedXrefs());
+            context.getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
         }
         else {
-            reports = lastReport;
+            uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
+            identity = CvHelper.getQualifierByMi( CvXrefQualifier.IDENTITY_MI_REF );
+
+            uniprotXref = new InteractorXref( owner, uniprot, uniprotProteinTranscript.getPrimaryAc(), null, dbRelease, identity );
+            intactTranscript.addXref(uniprotXref);
+
+            context.getDaoFactory().getXrefDao(InteractorXref.class).persist(uniprotXref);
+
+            createdXrefs.add(uniprotXref);
         }
 
+        log.debug("Found " + uniprotProteinTranscript.getSecondaryAcs().size() + " secondary ACs");
+        // update secondary xrefs
+        List<String> secondaryUniprot = new ArrayList<String>(uniprotProteinTranscript.getSecondaryAcs());
+        List<InteractorXref> refs = new ArrayList(intactTranscript.getXrefs()) ;
+        for ( InteractorXref xref : refs ) {
+            if (xref.getCvDatabase() != null && xref.getCvDatabase().getIdentifier().equals(CvDatabase.UNIPROT_MI_REF)){
+                if (xref.getCvXrefQualifier() != null && xref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.SECONDARY_AC_MI_REF)){
+                    secondary = xref.getCvXrefQualifier();
+
+                    // secondary xref already exists
+                    if (secondaryUniprot.contains(xref.getPrimaryId())){
+                        secondaryUniprot.remove(xref.getPrimaryId());
+                    }
+                    // secondary xref does not exist, we dele it
+                    else {
+                        deletedXrefs.add(xref);
+                        ProteinTools.deleteInteractorXRef(intactTranscript, context, xref);
+                    }
+                }
+            }
+        }
+
+        if (secondary == null){
+            secondary = CvHelper.getQualifierByMi(CvXrefQualifier.SECONDARY_AC_MI_REF);
+        }
+        // create missing secondary xrefs
+        for (String secondaryToAdd : secondaryUniprot){
+            InteractorXref interactorXref =   new InteractorXref( owner, uniprot, secondaryToAdd, null, dbRelease, secondary );
+            intactTranscript.addXref(interactorXref);
+
+            context.getDaoFactory().getXrefDao(InteractorXref.class).persist(interactorXref);
+            createdXrefs.add( interactorXref );
+        }
+
+        if (reports == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
+            reports = new XrefUpdaterReport(intactTranscript, createdXrefs, deletedXrefs);
+        }
+        else {
+            reports.getAddedXrefs().addAll(createdXrefs);
+            reports.getRemovedXrefs().addAll(deletedXrefs);
+        }
         return reports;
     }
 }

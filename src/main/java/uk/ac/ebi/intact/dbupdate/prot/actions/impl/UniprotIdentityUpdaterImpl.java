@@ -269,9 +269,10 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                     if (!hasFoundAc){
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                            String uniprot = uniprotId != null ? uniprotId.getPrimaryId() : null;
 
-                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), (uniprotId != null ? uniprotId.getPrimaryId() : null), evt.getProtein().getPrimaryAc(), primary.getAc());
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant, uniprotId.getPrimaryId()));
+                            ProteinUpdateError notMatchingIsoform = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprot, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingIsoform, variant, uniprot));
                         }
                     }
                 }
@@ -328,9 +329,10 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                     if (!hasFoundAc){
                         if (evt.getSource() instanceof ProteinUpdateProcessor) {
                             final ProteinUpdateProcessor updateProcessor = (ProteinUpdateProcessor) evt.getSource();
+                            String uniprot = uniprotId != null ? uniprotId.getPrimaryId() : null;
 
-                            ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), (uniprotId != null ? uniprotId.getPrimaryId() : null), evt.getProtein().getPrimaryAc(), primary.getAc());
-                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant));
+                            ProteinUpdateError notMatchingFeature = errorFactory.createNonExistingProteinTranscriptError(variant.getAc(), uniprot, evt.getProtein().getPrimaryAc(), primary.getAc());
+                            updateProcessor.fireOnProcessErrorFound(new UpdateErrorEvent(updateProcessor, evt.getDataContext(), notMatchingFeature, variant, uniprot));
                         }
                     }
                 }
