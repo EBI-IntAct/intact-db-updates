@@ -47,7 +47,7 @@ public class NonExistingProteinTranscript extends DeadUniprotAc {
             error.append(masterUniprotAc);
         }
         else {
-            error.append(" and does not have a 'no-uniprot-update' and or any uniprot identity which can be found in the uniprot entry ");
+            error.append(" and does not have any uniprot identity which can be found in the uniprot entry ");
             error.append(masterUniprotAc);
         }
 

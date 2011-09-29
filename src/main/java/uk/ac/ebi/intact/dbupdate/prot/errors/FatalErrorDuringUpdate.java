@@ -62,7 +62,7 @@ public class FatalErrorDuringUpdate extends DefaultProteinUpdateError implements
         error.append(exception.getMessage());
         error.append(" was thrown : ");
 
-        error.append(ExceptionUtils.getFullStackTrace(exception));
+        error.append(ExceptionUtils.getFullStackTrace(exception).replace("\n", ""));
 
         return error.toString();
     }

@@ -42,7 +42,7 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implement
         }
 
         StringBuffer error = new StringBuffer();
-        error.append("The protein (TaxId = "+(taxId != null ? taxId : "null")+"");
+        error.append("The protein (TaxId = "+(taxId != null ? taxId : "null")+" ");
         error.append(proteinAc);
         error.append(" has a uniprot ac (");
         error.append(uniprotAc);
