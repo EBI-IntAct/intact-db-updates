@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotIdentityUpdater;
@@ -16,8 +17,6 @@ import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.*;
-import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterReport;
-import uk.ac.ebi.intact.util.protein.utils.XrefUpdaterUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -354,18 +353,12 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
     public void updateAllSecondaryProteins(UpdateCaseEvent evt) {
 
         if (!evt.getSecondaryIsoforms().isEmpty() || !evt.getSecondaryProteins().isEmpty()){
-            // create a copy of the event because the secondary proteins are removed from the list of secondary and primary proteins
-            UpdateCaseEvent copyEvt = new UpdateCaseEvent(evt.getSource(), evt.getDataContext(), evt.getProtein(), Collections.EMPTY_LIST, new ArrayList(evt.getSecondaryProteins()), Collections.EMPTY_LIST, new ArrayList(evt.getSecondaryIsoforms()), Collections.EMPTY_LIST, evt.getQuerySentToService());
-
-            updateSecondaryAcsForProteins(evt);
-            updateSecondaryAcsForIsoforms(evt);
-
-            copyEvt.getXrefUpdaterReports().addAll(evt.getXrefUpdaterReports());
-
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                processor.fireOnSecondaryAcsFound(copyEvt);
+                processor.fireOnSecondaryAcsFound(evt);
             }
+            updateSecondaryAcsForProteins(evt);
+            updateSecondaryAcsForIsoforms(evt);
         }
     }
 
@@ -382,6 +375,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
 
         UniprotProtein uniprotProtein = evt.getProtein();
+        String dbRelease = uniprotProtein.getReleaseVersion();
 
         for (Protein prot : secondaryProteins){
             // check that organism is matching before updating uniprot ac
@@ -391,11 +385,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 Organism organism = uniprotProtein.getOrganism();
 
                 if (taxId.equals(String.valueOf(organism.getTaxid()))){
-                    if (evt.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
-                        evt.getXrefUpdaterReports().add(xrefReport);
-                    }
+                    updateSecondaryXref(prot, evt.getProtein().getPrimaryAc(), evt.getDataContext(), dbRelease);
                     primaryProteins.add(prot);
                 }
                 // cannot update the protein because of organism conflict
@@ -409,11 +399,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 }
             }
             else {
-                if (evt.getSource() instanceof ProteinUpdateProcessor){
-                    ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                    XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateUniprotXrefs(prot, uniprotProtein, evt.getDataContext(), processor);
-                    evt.getXrefUpdaterReports().add(xrefReport);
-                }
+                updateSecondaryXref(prot, evt.getProtein().getPrimaryAc(), evt.getDataContext(), dbRelease);
+
                 primaryProteins.add(prot);
             }
         }
@@ -434,6 +421,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();
 
         UniprotProtein uniprotProtein = evt.getProtein();
+        String dbRelease = uniprotProtein.getReleaseVersion();
 
         for (ProteinTranscript prot : secondaryProteins){
             UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();
@@ -446,11 +434,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                     Organism organism = uniprotProtein.getOrganism();
 
                     if (taxId.equals(String.valueOf(organism.getTaxid()))){
-                        if (evt.getSource() instanceof ProteinUpdateProcessor){
-                            ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                            XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
-                            evt.getXrefUpdaterReports().add(xrefReport);
-                        }
+                        updateSecondaryXref(prot.getProtein(), spliceVariant.getPrimaryAc(), evt.getDataContext(), dbRelease);
+
                         primaryProteins.add(prot);
                     }
                     // cannot update the protein because of organism conflict
@@ -464,16 +449,25 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                     }
                 }
                 else {
-                    if (evt.getSource() instanceof ProteinUpdateProcessor){
-                        ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-                        XrefUpdaterReport xrefReport = XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs(prot.getProtein(), spliceVariant, uniprotProtein, evt.getDataContext(), processor);
-                        evt.getXrefUpdaterReports().add(xrefReport);
-                    }
+                    updateSecondaryXref(prot.getProtein(), spliceVariant.getPrimaryAc(), evt.getDataContext(), dbRelease);
+
                     primaryProteins.add(prot);
                 }
             }
         }
 
         evt.getSecondaryIsoforms().clear();
+    }
+
+    private void updateSecondaryXref(Protein protein, String validPrimary, DataContext context, String dbRelease){
+
+        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
+
+        if (uniprotXref != null){
+            uniprotXref.setPrimaryId(validPrimary);
+            uniprotXref.setDbRelease(dbRelease);
+        }
+
+        context.getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
     }
 }

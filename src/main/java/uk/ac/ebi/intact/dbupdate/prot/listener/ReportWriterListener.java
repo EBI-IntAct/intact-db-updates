@@ -364,17 +364,13 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "IA secondary c.",
                     "IA secondary",
                     "IA isoform secondary c.",
-                    "IA isoform secondary",
-                    "Xrefs added",
-                    "Xrefs removed");
+                    "IA isoform secondary");
             String primaryId = evt.getProtein().getPrimaryAc();
             writer.writeColumnValues(primaryId,
                     String.valueOf(evt.getSecondaryProteins().size()),
-                    protCollectionToString(evt.getSecondaryProteins(), true),
+                    protXrefCollectionToString(evt.getSecondaryProteins(), primaryId),
                     String.valueOf(evt.getSecondaryIsoforms().size()),
-                    protTranscriptCollectionToString(evt.getSecondaryIsoforms(), true, null),
-                    xrefReportsAddedToString(evt.getXrefUpdaterReports()),
-                    xrefReportsRemovedToString(evt.getXrefUpdaterReports()));
+                    protTranscriptXrefCollectionToString(evt.getSecondaryIsoforms()));
             writer.flush();
         } catch (Exception e) {
             log.fatal("Problem writing secondary acs found to stream", e);
@@ -969,8 +965,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private static String protTranscriptCollectionToString(Collection<ProteinTranscript> protCollection,
-                                                           boolean showInteractionsCount,
-                                                           AdditionalInfoMap<?> additionalInfo) {
+                                                 boolean showInteractionsCount,
+                                                 AdditionalInfoMap<?> additionalInfo) {
         StringBuilder sb = new StringBuilder();
 
         for (Iterator<ProteinTranscript> iterator = protCollection.iterator(); iterator.hasNext();) {
@@ -984,6 +980,34 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
             if (additionalInfo != null && !additionalInfo.isEmpty()) {
                 sb.append("[").append(additionalInfo.get(protein.getAc())).append("]");
+            }
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        if (protCollection.isEmpty()) {
+            sb.append(EMPTY_VALUE);
+        }
+
+        return sb.toString();
+    }
+
+        private static String protTranscriptXrefCollectionToString(Collection<ProteinTranscript> protCollection) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<ProteinTranscript> iterator = protCollection.iterator(); iterator.hasNext();) {
+            ProteinTranscript p = iterator.next();
+            Protein protein = p.getProtein();
+
+            sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
+
+            InteractorXref ref = ProteinUtils.getUniprotXref(protein);
+            String primary = p.getUniprotVariant() != null ? p.getUniprotVariant().getPrimaryAc() : "-";
+
+            if (ref != null){
+                sb.append(" Old = " + ref.getPrimaryId() + ", New = " + primary);
             }
 
             if (iterator.hasNext()) {
@@ -1028,6 +1052,29 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
         return sb.toString();
     }
+
+    private static String protXrefCollectionToString(Collection<? extends Protein> protCollection, String primary) {
+        StringBuilder sb = new StringBuilder();
+
+        for (Iterator<? extends Protein> iterator = protCollection.iterator(); iterator.hasNext();) {
+            Protein protein = iterator.next();
+
+            sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
+
+            InteractorXref ref = ProteinUtils.getUniprotXref(protein);
+
+            if (ref != null){
+                sb.append(" old = " + ref.getPrimaryId() + ", new = " + primary);
+            }
+
+            if (iterator.hasNext()) {
+                sb.append(", ");
+            }
+        }
+
+        return sb.toString();
+    }
+
 
     private static String protCollectionToString(Collection<? extends Protein> protCollection,
                                                  boolean showInteractionsCount,

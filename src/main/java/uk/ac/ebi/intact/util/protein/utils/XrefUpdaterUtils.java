@@ -97,6 +97,9 @@ public final class XrefUpdaterUtils {
 
         List<Xref> deletedXrefs = new ArrayList<Xref>();
 
+        // UPDATE UNIPROT XREFS
+        XrefUpdaterReport reports = updateProteinTranscriptUniprotXrefs(protein, uniprotTranscript, uniprot, context, processor);
+
         // CHECK THAT ALL INTACT XREF STILL EXIST IN UNIPROT, OTHERWISE DELETE THEM
         List<InteractorXref> refs = new ArrayList<InteractorXref>(protein.getXrefs());
         for (InteractorXref xref : refs) {
@@ -116,7 +119,12 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        XrefUpdaterReport reports = new XrefUpdaterReport(protein, Collections.EMPTY_LIST, deletedXrefs);
+        if (reports == null && !deletedXrefs.isEmpty()){
+            reports = new XrefUpdaterReport(protein, Collections.EMPTY_LIST, deletedXrefs);
+        }
+        else if (reports != null && !deletedXrefs.isEmpty()){
+            reports.getRemovedXrefs().addAll(deletedXrefs);
+        }
 
         return reports;
     }
@@ -229,13 +237,19 @@ public final class XrefUpdaterUtils {
             }
         }
 
-        if (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty()){
-            XrefUpdaterReport report = new XrefUpdaterReport(protein, createdXrefs, deletedXrefs);
+        // update uniprot xrefs
 
-            return report;
+        XrefUpdaterReport report = updateUniprotXrefs(protein, uniprotProtein, context, processor);
+
+        if (report == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
+            report = new XrefUpdaterReport(protein, createdXrefs, deletedXrefs);
 
         }
-        return null;
+        else if (report != null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())) {
+            report.getAddedXrefs().addAll(createdXrefs);
+            report.getRemovedXrefs().addAll(deletedXrefs);
+        }
+        return report;
     }
 
     /**
@@ -404,10 +418,6 @@ public final class XrefUpdaterUtils {
         if (uniprotXref != null){
             uniprot = uniprotXref.getCvDatabase();
             identity = uniprotXref.getCvXrefQualifier();
-            uniprotXref.setPrimaryId(uniprotProtein.getPrimaryAc());
-            uniprotXref.setDbRelease(dbRelease);
-
-            context.getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
         }
         else {
             uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
@@ -457,7 +467,7 @@ public final class XrefUpdaterUtils {
         if (reports == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
             reports = new XrefUpdaterReport(protein, createdXrefs, deletedXrefs);
         }
-        else {
+        else if (reports != null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())) {
             reports.getAddedXrefs().addAll(createdXrefs);
             reports.getRemovedXrefs().addAll(deletedXrefs);
         }
@@ -493,10 +503,6 @@ public final class XrefUpdaterUtils {
         if (uniprotXref != null){
             uniprot = uniprotXref.getCvDatabase();
             identity = uniprotXref.getCvXrefQualifier();
-            uniprotXref.setPrimaryId(uniprotProteinTranscript.getPrimaryAc());
-            uniprotXref.setDbRelease(dbRelease);
-
-            context.getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
         }
         else {
             uniprot = CvHelper.getDatabaseByMi( CvDatabase.UNIPROT_MI_REF );
@@ -547,7 +553,7 @@ public final class XrefUpdaterUtils {
         if (reports == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
             reports = new XrefUpdaterReport(intactTranscript, createdXrefs, deletedXrefs);
         }
-        else {
+        else if (reports != null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
             reports.getAddedXrefs().addAll(createdXrefs);
             reports.getRemovedXrefs().addAll(deletedXrefs);
         }
