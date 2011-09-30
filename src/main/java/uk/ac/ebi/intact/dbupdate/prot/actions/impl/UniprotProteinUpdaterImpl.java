@@ -499,8 +499,6 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                             }
                         }
                     }
-
-                    updateProteinTranscript(fixedProtein.getProtein(), protein, fixedProtein.getUniprotVariant(), evt.getProtein(), evt);
                 }
             }
 

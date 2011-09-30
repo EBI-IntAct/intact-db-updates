@@ -67,7 +67,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
      * Update a protein in intact with the uniprot protein.
      * The protein has a sequence not up to date and is involved in one interaction with features to shift.
      * The ranges cannot be shifted properly : one protein transcript in uniprot has the same sequence and one intact secondary protein
-     * is matching this splice variant with a sequence up to date: it will be updated and the interactions will be attached to this transcript
+     * is matching this splice variant with a sequence up to date: it will NOT be updated (will be updated when processing the transcripts) but the interactions will be attached to this transcript
      */
     public void update_master_interaction_range_impossible_to_shift_existing_secondary_isoform() throws Exception{
         TransactionStatus status = getDataContext().beginTransaction();
