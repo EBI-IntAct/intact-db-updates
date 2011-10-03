@@ -462,6 +462,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                         factory.getXrefDao(InteractorXref.class).persist(parent);
                         t.addXref(parent);
 
+                        // update the transcript
                         factory.getProteinDao().update((ProteinImpl) t);
                     }
                 }

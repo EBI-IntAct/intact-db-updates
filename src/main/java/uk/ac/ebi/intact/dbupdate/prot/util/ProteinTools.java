@@ -258,8 +258,9 @@ public class ProteinTools {
             }
         }
 
-        factory.getProteinDao().update((ProteinImpl) duplicate);
-        factory.getProteinDao().update((ProteinImpl) original);
+        // the destination protein is updated later and the source protein will be deleted later
+        //factory.getProteinDao().update((ProteinImpl) duplicate);
+        //factory.getProteinDao().update((ProteinImpl) original);
 
         return addedIntactSecondary;
     }

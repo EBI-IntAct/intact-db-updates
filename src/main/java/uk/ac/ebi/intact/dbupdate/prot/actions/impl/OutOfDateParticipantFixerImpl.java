@@ -190,6 +190,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         // add the transcript parent xref which is the protein having range conflicts : it is the valid parent ac of the event
         InteractorXref parent = new InteractorXref(owner, db, parentXrefAc, qualifierParent);
         transcriptIntact.addXref(parent);
+        factory.getXrefDao(InteractorXref.class).persist(parent);
 
         String primaryAc = evt.getProtein() != null ? evt.getProtein().getPrimaryAc() : null;
         // move the components having range conflicts
@@ -290,6 +291,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
                     evt.setRemappedProteinAc(fixedProtein.getProtein().getAc());
                     processor.fireOnOutOfDateParticipantFound(evt);
                 }
+
+                // we update the created transcript and the protein having range conflicts
+                factory.getProteinDao().update((ProteinImpl) fixedProtein.getProtein());
+                factory.getProteinDao().update((ProteinImpl) protein);
+
                 return fixedProtein;
             }
             else {
@@ -313,6 +319,11 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
                 processor.fireOnOutOfDateParticipantFound(evt);
             }
+
+            // we update the created transcript and the protein having range conflicts
+            factory.getProteinDao().update((ProteinImpl) fixedProtein.getProtein());
+            factory.getProteinDao().update((ProteinImpl) protein);
+
             return fixedProtein;
         }
         // impossible to fix the conflict.
@@ -376,10 +387,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
             factory.getComponentDao().update(component);
         }
 
-        // update protein
-        factory.getProteinDao().update((ProteinImpl) protein);
-        factory.getProteinDao().update((ProteinImpl) noUniprotUpdate);
-
         // log in created.csv
         if (evt.getSource() instanceof ProteinUpdateProcessor){
             ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
@@ -432,7 +439,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         created.setCrc64(protein.getCrc64());
         created.setSequence(protein.getSequence());
 
-        factory.getProteinDao().update((ProteinImpl) created);
         return created;
     }
 
@@ -446,20 +452,15 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
     private Protein cloneProteinForTranscript(DaoFactory factory, Protein protein, String primaryAc) {
         Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel()+"_clone", protein.getCvInteractorType());
 
-        factory.getProteinDao().persist((ProteinImpl) created);
-
         InteractorXref identity = ProteinUtils.getUniprotXref(protein);
 
         InteractorXref copy = new InteractorXref(protein.getOwner(), identity.getCvDatabase(), primaryAc, identity.getCvXrefQualifier());
-        copy.setParent(created);
-        copy.setParentAc(created.getAc());
-        factory.getXrefDao(InteractorXref.class).persist(copy);
         created.addXref(copy);
 
         created.setCrc64(protein.getCrc64());
         created.setSequence(protein.getSequence());
 
-        factory.getProteinDao().update((ProteinImpl) created);
+        factory.getProteinDao().persist((ProteinImpl) created);
         return created;
     }
 
@@ -513,7 +514,5 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
 
             protein.addAnnotation(demerge);
         }
-
-        factory.getProteinDao().update((ProteinImpl) protein);
     }
 }

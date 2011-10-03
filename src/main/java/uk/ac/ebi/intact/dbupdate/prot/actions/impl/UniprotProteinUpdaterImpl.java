@@ -318,6 +318,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             return;
         }
 
+        boolean hasBeenUpdated = false;
+
         // Fullname
         String fullname = uniprotProtein.getDescription();
         if ( fullname != null && fullname.length() > 250 ) {
@@ -352,6 +354,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         if (shortLabel != null || fullname != null){
+            hasBeenUpdated = true;
+
             ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(protein.getAc(), shortLabel, fullname);
             evt.addNameUpdaterReport(nameReport);
         }
@@ -359,22 +363,30 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
         if (reports != null){
+            hasBeenUpdated = true;
+
             evt.addXrefUpdaterReport(reports);
         }
 
         // Aliases
         AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases(protein, uniprotProtein, evt.getDataContext(), processor);
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
+            hasBeenUpdated = true;
+
             evt.addAliasUpdaterReport(aliasReport);
         }
 
         // Sequence
-        updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc());
+        if (updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc())){
+            hasBeenUpdated = true;
+        }
 
         // Persist changes
-        DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
-        pdao.update( ( ProteinImpl ) protein );
+        if (hasBeenUpdated){
+            DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
+            ProteinDao pdao = daoFactory.getProteinDao();
+            pdao.update( ( ProteinImpl ) protein );
+        }
     }
 
     private boolean UpdateBioSource(Protein protein, Organism organism, String uniprotAc, DataContext context) {
@@ -403,7 +415,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         return true;
     }
 
-    private void updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) {
+    private boolean updateProteinSequence(Protein protein, String uniprotSequence, String uniprotCrC64, UpdateCaseEvent evt, String masterProteinAc) {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
@@ -523,6 +535,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false, true);
             }
         }
+
+        return sequenceToBeUpdated;
     }
 
     /**
@@ -531,12 +545,14 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      * @param transcript
      * @param uniprotTranscript
      */
-    private boolean updateProteinTranscript( Protein transcript, Protein master,
+    private void updateProteinTranscript( Protein transcript, Protein master,
                                              UniprotProteinTranscript uniprotTranscript,
                                              UniprotProtein uniprotProtein,
                                              UpdateCaseEvent evt) {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
+        boolean hasBeenUpdated = false;
 
         if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism(), uniprotTranscript.getPrimaryAc(), evt.getDataContext())){
             ProteinTranscript transcriptToRemove = null;
@@ -570,8 +586,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             else {
                 evt.getPrimaryIsoforms().remove(transcriptToRemove);
             }
-
-            return false;
+            return;
         }
 
         String shortLabel = uniprotTranscript.getPrimaryAc().toLowerCase();
@@ -610,6 +625,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // add a report if updated shortlabel or fullname
         if (shortLabel != null || fullName != null){
+            hasBeenUpdated = true;
+
             ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(transcript.getAc(), shortLabel, fullName);
             evt.addNameUpdaterReport(nameReport);
         }
@@ -617,18 +634,24 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         // update all Xrefs
         XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
         if (reports != null){
+            hasBeenUpdated = true;
+
             evt.addXrefUpdaterReport(reports);
         }
 
         // Update Aliases from the uniprot protein aliases
         AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
+            hasBeenUpdated = true;
+
             evt.addAliasUpdaterReport(aliasReport);
         }
 
         // Sequence
         if (uniprotTranscript.getSequence() != null){
-            updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc());
+            if (updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc())){
+                hasBeenUpdated = true;
+            }
         }
         else if (uniprotTranscript.isNullSequenceAllowed() && transcript.getSequence() != null){
             ProteinUpdateError sequenceNull = errorFactory.createUniprotSequenceNullError(transcript.getAc(), uniprotTranscript.getPrimaryAc(), transcript.getSequence());
@@ -669,6 +692,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
 
             if (!hasComment){
+
                 Annotation annotation = new Annotation( owner, comment );
                 annotation.setAnnotationText( note );
 
@@ -732,6 +756,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             CvObjectDao<CvTopic> cvTopicDao = factory.getCvObjectDao(CvTopic.class);
 
             if (!hasStartPosition){
+
                 CvTopic startPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_START);
 
                 if (startPosition == null){
@@ -746,6 +771,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 newAnnotations.add(start);
             }
             if (!hasEndPosition){
+
                 CvTopic endPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_END);
 
                 if (endPosition == null){
@@ -763,15 +789,17 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         // write new annotations in the report
         if (!newAnnotations.isEmpty()){
+            hasBeenUpdated = true;
+
             evt.addNewAnnotationReport(transcript.getAc(), newAnnotations);
         }
 
         // Persist changes
-        DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
-        ProteinDao pdao = daoFactory.getProteinDao();
-        pdao.update( ( ProteinImpl ) transcript );
-
-        return true;
+        if (hasBeenUpdated){
+            DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
+            ProteinDao pdao = daoFactory.getProteinDao();
+            pdao.update( ( ProteinImpl ) transcript );
+        }
     }
 
     private void sequenceChanged(Protein protein, String uniprot, String newSequence, String oldSequence, String crc64, DataContext context) {

@@ -333,8 +333,9 @@ public class ComponentTools {
 
         }
 
-        factory.getProteinDao().update((ProteinImpl) sourceProtein);
-        factory.getProteinDao().update((ProteinImpl) destinationProtein);
+        // the destination protein is updated later and the source protein will be deleted later
+        //factory.getProteinDao().update((ProteinImpl) sourceProtein);
+        //factory.getProteinDao().update((ProteinImpl) destinationProtein);
 
         Collection<Component> components = CollectionUtils.subtract(componentsToMove, deletedComponents);
         Set<String> interactionAcs = new HashSet<String>(components.size());

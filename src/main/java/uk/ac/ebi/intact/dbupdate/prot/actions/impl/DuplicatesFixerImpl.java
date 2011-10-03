@@ -138,6 +138,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 evt.getPrimaryProteins().clear();
                 evt.getSecondaryProteins().clear();
                 evt.getPrimaryProteins().add(masterProtein);
+
+                // updated the original protein
+                evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) masterProtein );
             }
 
             // log in 'duplicates.csv'
@@ -167,6 +170,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 UniprotProteinTranscript uniprotTranscript = UniprotProteinRetrieverImpl.findUniprotSpliceVariant(duplEvt.getPrimaryUniprotAc(), masterUniprot);
 
                 mergedIsoforms.add(new ProteinTranscript(duplEvt.getReferenceProtein(), uniprotTranscript));
+                // updated the original protein
+                evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) duplEvt.getReferenceProtein() );
             }
 
             // log in 'duplicates.csv'
@@ -193,6 +198,9 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 UniprotProteinTranscript uniprotTranscript = UniprotProteinRetrieverImpl.findUniprotFeatureChain(duplEvt.getPrimaryUniprotAc(), masterUniprot);
 
                 mergedChains.add(new ProteinTranscript(duplEvt.getReferenceProtein(), uniprotTranscript));
+
+                // updated the original protein
+                evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) duplEvt.getReferenceProtein() );
             }
 
             // log in 'duplicates.csv'
@@ -492,8 +500,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                     evt.getMovedXrefs().put(duplicate.getAc(), addedXRef);
                     evt.getUpdatedTranscripts().put(duplicate.getAc(), updatedTranscripts);
 
-                    // update the duplicate
-                    factory.getProteinDao().update((ProteinImpl) duplicate);
+                    // the duplicate will be deleted
+                    //factory.getProteinDao().update((ProteinImpl) duplicate);
 
                     // and delete the duplicate if no active instances are attached to it
                     if (duplicate.getActiveInstances().isEmpty()) {
@@ -546,10 +554,13 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                         evt.getAddedAnnotations().put(duplicate.getAc(), addedAnnotations);
 
-                        double relativeConservation = computesRequenceConservation(sequence, evt.getUniprotSequence());
+                        // the sequence is not updated because of range conflicts
+                        //double relativeConservation = computesRequenceConservation(sequence, evt.getUniprotSequence());
                         // if the sequence in uniprot is different than the one of the duplicate, need to update the sequence and shift the ranges
-                        processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getPrimaryUniprotAc(), evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
+                        //processor.fireOnProteinSequenceChanged(new ProteinSequenceChangeEvent(processor, evt.getDataContext(), duplicate, sequence, evt.getPrimaryUniprotAc(), evt.getUniprotSequence(), evt.getUniprotCrc64(), relativeConservation));
 
+                        // update duplicate which will be kept because of range conflicts
+                        factory.getProteinDao().update((ProteinImpl) duplicate);
                     }
                     // we don't have feature conflicts, we can merge the proteins normally
                     else {
@@ -576,9 +587,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     evt.getUpdatedTranscripts().put(duplicate.getAc(), updatedTranscripts);
 
-                    // update duplicate
-                    factory.getProteinDao().update((ProteinImpl) duplicate);
-
                     // and delete the duplicate if no active instances are still attached to it
                     if (duplicate.getActiveInstances().isEmpty()) {
                         ProteinEvent protEvt = new ProteinEvent(evt.getSource(), evt.getDataContext(), duplicate, "Duplicate of "+originalProt.getAc());
@@ -591,9 +599,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 }
             }
         }
-
-        // update the original protein
-        factory.getProteinDao().update((ProteinImpl) originalProt);
 
         return originalProt;
     }

@@ -6,7 +6,6 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
@@ -68,6 +67,9 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             // log the dead protein in 'dead_proteins.csv'
             updateProcessor.fireOnUniprotDeadEntry(deadEvt);
         }
+
+        // update the dead protein
+        evt.getDataContext().getDaoFactory().getProteinDao().update((ProteinImpl) protein);
     }
 
     /**
@@ -112,7 +114,6 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         }
 
         AnnotationDao annotationDao = factory.getAnnotationDao();
-        ProteinDao proteinDao = factory.getProteinDao();
 
         // if no 'no-uniprot-update' exists, add the annotation
         if (!has_no_uniprot_update){
@@ -128,8 +129,6 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
 
             protein.addAnnotation(obsolete);
         }
-
-        proteinDao.update((ProteinImpl) protein);
     }
 
     private Collection<InteractorXref> retrieveDuplicateOfSameUniprotIdentity(List<InteractorXref> uniprotIdentities){
@@ -244,9 +243,6 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         for (Xref refToRemove : xRefsToRemove){
             ProteinTools.deleteInteractorXRef(protein, context, (InteractorXref) refToRemove);
         }
-
-        // update the protein to be deleted
-        factory.getProteinDao().update((ProteinImpl) protein);
 
         deadEvt.setDeletedXrefs(xRefsToRemove);
     }
