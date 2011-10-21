@@ -144,6 +144,7 @@ public final class XrefUpdaterUtils {
         DaoFactory daoFactory = context.getDaoFactory();
         CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
 
+        Set<String> miInUniprot = new HashSet<String>(uniprotCluster.size());
         // create missing xrefs
         for ( Map.Entry<String, Collection<UniprotXref>> entry : uniprotCluster.entrySet() ) {
 
@@ -152,6 +153,10 @@ public final class XrefUpdaterUtils {
 
             // search by shortlabel is dodgy ! Try mapping to MI:xxxx first.
             String mi = databaseName2mi.get( db.toLowerCase() );
+
+            if (mi != null){
+                miInUniprot.add(mi);
+            }
 
             // we update xrefs excepted uniprot and intact
             if (mi != null && !mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF)){
@@ -170,10 +175,11 @@ public final class XrefUpdaterUtils {
                         for (UniprotXref uniref : uniprotXrefs){
                             if (uniref.getAccession().equalsIgnoreCase(primaryId)){
                                 match = uniref;
+                                break;
                             }
                         }
 
-                        if (match != null){
+                        if (match == null){
                             deletedXrefs.add(xref);
                             ProteinTools.deleteInteractorXRef(protein, context, xref);
                         }
@@ -225,7 +231,7 @@ public final class XrefUpdaterUtils {
         }
 
         // we delete all xrefs which are in intact but not in uniprot excepted intact plus uniprot
-        Collection<String> miToDelete = CollectionUtils.subtract(xrefCluster.keySet(), uniprotCluster.keySet());
+        Collection<String> miToDelete = CollectionUtils.subtract(xrefCluster.keySet(), miInUniprot);
 
         for (String mi : miToDelete){
             if (!mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF) && xrefCluster.containsKey(mi)){
