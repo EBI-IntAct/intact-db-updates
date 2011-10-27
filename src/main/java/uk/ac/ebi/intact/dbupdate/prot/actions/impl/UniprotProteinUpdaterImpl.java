@@ -369,7 +369,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases(protein, uniprotProtein, evt.getDataContext(), processor);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAliases(uniprotProtein, protein, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), evt.getDataContext());
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
             hasBeenUpdated = true;
 
@@ -640,7 +640,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAllAliases( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateIsoformAliases(uniprotProtein, uniprotTranscript, transcript, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), evt.getDataContext());
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
             hasBeenUpdated = true;
 

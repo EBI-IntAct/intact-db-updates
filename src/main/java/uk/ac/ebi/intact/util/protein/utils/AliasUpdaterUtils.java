@@ -17,9 +17,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Utilities for updating Aliases.
@@ -178,6 +176,42 @@ public class AliasUpdaterUtils {
         return report;
     }
 
+    private static Map<String, Collection<InteractorAlias>> clusterExistingAliases(Protein protein){
+
+        if (protein.getAliases().isEmpty()){
+            return Collections.EMPTY_MAP;
+        }
+
+        Map<String, Collection<InteractorAlias>> map = new HashMap<String, Collection<InteractorAlias>> (protein.getAliases().size());
+
+        for (InteractorAlias alias : protein.getAliases()){
+            CvAliasType type = alias.getCvAliasType();
+
+            if (type == null){
+                if (map.containsKey("null")){
+                    map.get("null").add(alias);
+                }
+                else {
+                    Collection<InteractorAlias> aliases = new ArrayList<InteractorAlias>();
+                    aliases.add(alias);
+                    map.put("null", aliases);
+                }
+            }
+            else {
+                if (map.containsKey(type.getIdentifier())){
+                    map.get(type.getIdentifier()).add(alias);
+                }
+                else {
+                    Collection<InteractorAlias> aliases = new ArrayList<InteractorAlias>();
+                    aliases.add(alias);
+                    map.put(type.getIdentifier(), aliases);
+                }
+            }
+        }
+
+        return map;
+    }
+
     /**
      * Read the uniprot protein and create a collection of Alias we want to update on the given protein.
      *
@@ -216,6 +250,234 @@ public class AliasUpdaterUtils {
         return aliases;
     }
 
+    public static AliasUpdateReport updateAliases( UniprotProtein uniprotProtein, Protein protein, AliasDao aliasDao, DataContext context) {
+
+        Institution owner = protein.getOwner();
+
+        CvAliasType geneNameAliasType = null;
+        CvAliasType geneNameSynonymAliasType = null;
+        CvAliasType locusNameAliasType = null;
+        CvAliasType orfNameAliasType = null;
+
+        Map<String, Collection<InteractorAlias>> existingAliases = clusterExistingAliases(protein);
+        Set<String> namesToCreate = new HashSet<String>(uniprotProtein.getGenes());
+
+        AliasUpdateReport report = new AliasUpdateReport(protein);
+
+        if (existingAliases.containsKey(CvAliasType.GENE_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.GENE_NAME_MI_REF);
+
+            geneNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String geneName : uniprotProtein.getGenes() ) {
+                    if (geneName.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(geneName);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String geneName : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameAliasType, geneName );
+                    aliasDao.persist(newAlias);
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(geneNameAliasType.getIdentifier());
+        }
+        else {
+            geneNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.GENE_NAME_MI_REF );
+
+            for ( String geneName : uniprotProtein.getGenes() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameAliasType, geneName );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+        namesToCreate.clear();
+        namesToCreate.addAll(uniprotProtein.getSynomyms());
+
+        if (existingAliases.containsKey(CvAliasType.GENE_NAME_SYNONYM_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.GENE_NAME_SYNONYM_MI_REF);
+
+            geneNameSynonymAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String geneNameSynonym : uniprotProtein.getSynomyms() ) {
+                    if (geneNameSynonym.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(geneNameSynonym);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String geneNameSynonym : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameSynonymAliasType, geneNameSynonym );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(geneNameSynonymAliasType.getIdentifier());
+        }
+        else {
+            geneNameSynonymAliasType = CvHelper.getAliasTypeByMi( CvAliasType.GENE_NAME_SYNONYM_MI_REF );
+
+            for ( String geneNameSynonym : uniprotProtein.getSynomyms() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameSynonymAliasType, geneNameSynonym );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        namesToCreate.clear();
+        namesToCreate.addAll(uniprotProtein.getOrfs());
+
+        if (existingAliases.containsKey(CvAliasType.ORF_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.ORF_NAME_MI_REF);
+
+            orfNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String orf : uniprotProtein.getOrfs() ) {
+                    if (orf.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(orf);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String orf : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, orfNameAliasType, orf );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(orfNameAliasType.getIdentifier());
+        }
+        else {
+            orfNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.ORF_NAME_MI_REF );
+            for ( String orf : uniprotProtein.getOrfs() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, orfNameAliasType, orf );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        namesToCreate.clear();
+        namesToCreate.addAll(uniprotProtein.getLocuses());
+        if (existingAliases.containsKey(CvAliasType.LOCUS_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.LOCUS_NAME_MI_REF);
+
+            locusNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String locus : uniprotProtein.getLocuses() ) {
+                    if (locus.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(locus);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String locus : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, locusNameAliasType, locus );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(locusNameAliasType.getIdentifier());
+        }
+        else {
+            locusNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.LOCUS_NAME_MI_REF );
+            for ( String locus : uniprotProtein.getLocuses() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, locusNameAliasType, locus );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        for (Map.Entry<String, Collection<InteractorAlias>> entry : existingAliases.entrySet()){
+            for (InteractorAlias alias : entry.getValue()){
+                ProteinTools.deleteAlias(protein, context, alias);
+                aliasDao.delete(alias);
+            }
+        }
+        return report;
+    }
+
+
     /**
      * Read the splice variant and create a collection of Alias we want to update on the given protein.
      *
@@ -238,5 +500,284 @@ public class AliasUpdaterUtils {
         aliases.addAll(buildAliases(master, protein));
 
         return aliases;
+    }
+
+    public static AliasUpdateReport updateIsoformAliases( UniprotProtein master, UniprotProteinTranscript uniprotProteinTranscript, Protein protein, AliasDao aliasDao, DataContext context ) {
+
+        CvAliasType isoformSynonym = null;
+        CvAliasType geneNameAliasType = null;
+        CvAliasType geneNameSynonymAliasType = null;
+        CvAliasType locusNameAliasType = null;
+        CvAliasType orfNameAliasType = null;
+
+        Institution owner = protein.getOwner();
+
+        Map<String, Collection<InteractorAlias>> existingAliases = clusterExistingAliases(protein);
+        Set<String> namesToCreate = new HashSet<String>(master.getGenes());
+
+        AliasUpdateReport report = new AliasUpdateReport(protein);
+
+        if (existingAliases.containsKey(CvAliasType.GENE_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.GENE_NAME_MI_REF);
+
+            geneNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String geneName : master.getGenes() ) {
+                    if (geneName.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(geneName);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String geneName : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameAliasType, geneName );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(geneNameAliasType.getIdentifier());
+        }
+        else {
+        geneNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.GENE_NAME_MI_REF );
+
+            for ( String geneName : master.getGenes() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameAliasType, geneName );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+        namesToCreate.clear();
+        namesToCreate.addAll(master.getSynomyms());
+
+        if (existingAliases.containsKey(CvAliasType.GENE_NAME_SYNONYM_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.GENE_NAME_SYNONYM_MI_REF);
+
+            geneNameSynonymAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String geneNameSynonym : master.getSynomyms() ) {
+                    if (geneNameSynonym.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(geneNameSynonym);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String geneNameSynonym : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameSynonymAliasType, geneNameSynonym );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(geneNameSynonymAliasType.getIdentifier());
+        }
+        else {
+        geneNameSynonymAliasType = CvHelper.getAliasTypeByMi( CvAliasType.GENE_NAME_SYNONYM_MI_REF );
+            for ( String geneNameSynonym : master.getSynomyms() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, geneNameSynonymAliasType, geneNameSynonym );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        namesToCreate.clear();
+        namesToCreate.addAll(master.getOrfs());
+
+        if (existingAliases.containsKey(CvAliasType.ORF_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.ORF_NAME_MI_REF);
+
+            orfNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String orf : master.getOrfs() ) {
+                    if (orf.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(orf);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String orf : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, orfNameAliasType, orf );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(orfNameAliasType.getIdentifier());
+        }
+        else {
+        orfNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.ORF_NAME_MI_REF );
+            for ( String orf : master.getOrfs() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, orfNameAliasType, orf );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        namesToCreate.clear();
+        namesToCreate.addAll(master.getLocuses());
+        if (existingAliases.containsKey(CvAliasType.LOCUS_NAME_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.LOCUS_NAME_MI_REF);
+
+            locusNameAliasType = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String locus : master.getLocuses() ) {
+                    if (locus.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(locus);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String locus : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, locusNameAliasType, locus );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(locusNameAliasType.getIdentifier());
+        }
+        else {
+        locusNameAliasType = CvHelper.getAliasTypeByMi( CvAliasType.LOCUS_NAME_MI_REF );
+            for ( String locus : master.getLocuses() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, locusNameAliasType, locus );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        namesToCreate.clear();
+        namesToCreate.addAll(uniprotProteinTranscript.getSynomyms());
+        if (existingAliases.containsKey(CvAliasType.ISOFORM_SYNONYM_MI_REF)){
+            Collection<InteractorAlias> aliases = existingAliases.get(CvAliasType.ISOFORM_SYNONYM_MI_REF);
+
+            isoformSynonym = aliases.iterator().next().getCvAliasType();
+
+            for (InteractorAlias alias : aliases){
+                boolean hasFound = false;
+
+                for ( String syn : uniprotProteinTranscript.getSynomyms() ) {
+                    if (syn.equals(alias.getName())){
+                        hasFound = true;
+                        namesToCreate.remove(syn);
+                        break;
+                    }
+                }
+
+                if (!hasFound){
+                    ProteinTools.deleteAlias(protein, context, alias);
+                    report.getRemovedAliases().add(alias);
+                }
+            }
+
+            if (!namesToCreate.isEmpty()){
+                for ( String syn : namesToCreate ) {
+
+                    InteractorAlias newAlias = new InteractorAlias( owner, protein, isoformSynonym, syn );
+                    aliasDao.persist(newAlias);
+
+                    report.getAddedAliases().add(newAlias);
+
+                    protein.addAlias(newAlias);
+                }
+            }
+
+            existingAliases.remove(isoformSynonym.getIdentifier());
+        }
+        else {
+         isoformSynonym = CvHelper.getAliasTypeByMi( CvAliasType.ISOFORM_SYNONYM_MI_REF );
+            for ( String syn : uniprotProteinTranscript.getSynomyms() ) {
+
+                InteractorAlias newAlias = new InteractorAlias( owner, protein, isoformSynonym, syn );
+                aliasDao.persist(newAlias);
+
+                report.getAddedAliases().add(newAlias);
+
+                protein.addAlias(newAlias);
+            }
+        }
+
+        for (Map.Entry<String, Collection<InteractorAlias>> entry : existingAliases.entrySet()){
+            for (InteractorAlias alias : entry.getValue()){
+                ProteinTools.deleteAlias(protein, context, alias);
+                report.getRemovedAliases().add(alias);
+            }
+        }
+        return report;
     }
 }

@@ -114,7 +114,7 @@ public abstract class ProteinProcessor {
                     }
 
                     // load annotations (to avoid lazyinitializationexceptions later)
-                    Hibernate.initialize(prot.getXrefs());
+                    /*Hibernate.initialize(prot.getXrefs());
                     Hibernate.initialize(prot.getAnnotations());
                     Hibernate.initialize(prot.getAliases());
                     for (Component c : prot.getActiveInstances()){
@@ -133,7 +133,7 @@ public abstract class ProteinProcessor {
                         Hibernate.initialize(c.getExperimentalPreparations());
                         Hibernate.initialize(c.getParameters());
                         Hibernate.initialize(c.getParticipantDetectionMethods());
-                    }
+                    }*/
 
                     processedIntactProteins.addAll(update(prot, dataContext));
 

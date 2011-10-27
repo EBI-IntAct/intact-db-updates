@@ -295,7 +295,7 @@ public class ProteinTools {
 
         final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
 
-        ProteinTools.loadCollections(isoforms);
+        //ProteinTools.loadCollections(isoforms);
 
         for ( ProteinImpl isoform : isoforms ) {
 
@@ -311,7 +311,7 @@ public class ProteinTools {
 
         final List<ProteinImpl> proteinChains = factory.getProteinDao().getProteinChains( duplicate );
 
-        ProteinTools.loadCollections(proteinChains);
+        //ProteinTools.loadCollections(proteinChains);
 
         for ( ProteinImpl chain : proteinChains ) {
             // each chain should now point to the original protein

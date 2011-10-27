@@ -70,7 +70,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
 
         // load collections to avoid lazy initialization later
-        ProteinTools.loadCollections(proteinsInIntact);
+        //ProteinTools.loadCollections(proteinsInIntact);
 
         // the proteins are added to the list of primary proteins to update
         primaryProteins.addAll(proteinsInIntact);
@@ -83,7 +83,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             proteinsInIntact.clear();
             proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
             // load collections to avoid lazy initialization later
-            ProteinTools.loadCollections(proteinsInIntact);
+            //ProteinTools.loadCollections(proteinsInIntact);
 
             // the proteins are added to the list of secondary proteins to update
             secondaryProteins.addAll(proteinsInIntact);
@@ -147,7 +147,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotTranscript.getPrimaryAc());
 
         // load
-        ProteinTools.loadCollections(proteinsInIntact);
+        //ProteinTools.loadCollections(proteinsInIntact);
 
         // for each isoform in intact having this primary ac
         for (ProteinImpl p : proteinsInIntact){
@@ -163,7 +163,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
             for (String secondaryAc : uniprotTranscript.getSecondaryAcs()) {
                 proteinsInIntact.clear();
                 proteinsInIntact = proteinDao.getByUniprotId(secondaryAc);
-                ProteinTools.loadCollections(proteinsInIntact);
+                //ProteinTools.loadCollections(proteinsInIntact);
 
                 for (ProteinImpl p : proteinsInIntact){
                     // if it is not a splice variant, it means that the protein doesn't have isoform parent which should be added later
@@ -238,7 +238,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         for (Protein primary : proteins){
             List<ProteinImpl> spliceVariants = proteinDao.getSpliceVariants( primary );
 
-            ProteinTools.loadCollections(spliceVariants);
+            //ProteinTools.loadCollections(spliceVariants);
 
             if (!spliceVariants.isEmpty()){
                 for (Protein variant : spliceVariants){
@@ -304,7 +304,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         for (Protein primary : proteins){
             List<ProteinImpl> featureChains = proteinDao.getProteinChains( primary );
 
-            ProteinTools.loadCollections(featureChains);
+            //ProteinTools.loadCollections(featureChains);
 
             if (!featureChains.isEmpty()){
                 for (Protein variant : featureChains){
