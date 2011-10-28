@@ -105,4 +105,9 @@ public class MockUniprotService extends AbstractUniprotService {
     public Collection<UniprotFeatureChain> retrieveFeatureChain(String ac) {
         return null;
     }
+
+    @Override
+    public void close() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

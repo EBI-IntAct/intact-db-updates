@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.util.protein;
 
-import static org.junit.Assert.*;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
@@ -15,6 +13,8 @@ import uk.ac.ebi.intact.uniprot.service.AbstractUniprotService;
 
 import java.util.Collection;
 import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * ProteinLoaderServiceFactory Tester.
@@ -84,6 +84,11 @@ public class ProteinServiceFactoryTest extends IntactBasicTestCase {
         @Override
         public Collection<UniprotFeatureChain> retrieveFeatureChain(String ac) {
             return null;
+        }
+
+        @Override
+        public void close() {
+            //To change body of implemented methods use File | Settings | File Templates.
         }
     }
 

@@ -17,19 +17,13 @@ package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Hibernate;
 import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.dbupdate.prot.actions.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
-import uk.ac.ebi.intact.model.Component;
-import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 
@@ -55,6 +49,8 @@ public abstract class ProteinProcessor {
     private boolean finalizationRequested;
 
     protected Protein currentProtein;
+
+    protected int COMMIT_INTERVAL = 50;
 
     public ProteinProcessor() {
 
@@ -94,57 +90,68 @@ public abstract class ProteinProcessor {
         registerListenersIfNotDoneYet();
 
         Set<String> processedIntactProteins = new HashSet<String>();
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-        for (String protAc : protACsToUpdate) {
-            DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-            if (!processedIntactProteins.contains(protAc)){
-                TransactionStatus transactionStatus = dataContext.beginTransaction();
+        Iterator<String> protAcsIterator = protACsToUpdate.iterator();
+        int currentIndex = 0;
+        ProteinImpl prot = null;
+        String protAc = null;
 
-                try {
-                    ProteinImpl prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
+        while (protAcsIterator.hasNext()){
+            TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-                    if (prot == null) {
-                        if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
-                        try {
-                            dataContext.commitTransaction(transactionStatus);
-                        } catch (IntactTransactionException e) {
-                            throw new ProcessorException(e);
+            try {
+
+                while (currentIndex < COMMIT_INTERVAL && protAcsIterator.hasNext()){
+                    protAc = protAcsIterator.next();
+
+                    if (!processedIntactProteins.contains(protAc)){
+
+                        prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
+
+                        if (prot != null){
+                            processedIntactProteins.addAll(update(prot, dataContext));
                         }
-                        continue;
-                    }
-
-                    // load annotations (to avoid lazyinitializationexceptions later)
-                    /*Hibernate.initialize(prot.getXrefs());
-                    Hibernate.initialize(prot.getAnnotations());
-                    Hibernate.initialize(prot.getAliases());
-                    for (Component c : prot.getActiveInstances()){
-                        Hibernate.initialize(c.getXrefs());
-                        Hibernate.initialize(c.getAnnotations());
-
-                        for (Feature f : c.getBindingDomains()){
-                            Hibernate.initialize(f.getAnnotations());
-                            Hibernate.initialize(f.getRanges());
-                            Hibernate.initialize(f.getAliases());
-                            Hibernate.initialize(f.getXrefs());
+                        else {
+                            if (log.isWarnEnabled()) log.warn("Protein was not found in the database. Probably it was deleted already? "+protAc);
+                            processedIntactProteins.add(protAc);
                         }
 
-                        Hibernate.initialize(c.getExperimentalRoles());
-                        Hibernate.initialize(c.getAliases());
-                        Hibernate.initialize(c.getExperimentalPreparations());
-                        Hibernate.initialize(c.getParameters());
-                        Hibernate.initialize(c.getParticipantDetectionMethods());
-                    }*/
+                        // load annotations (to avoid lazyinitializationexceptions later)
+                        /*Hibernate.initialize(prot.getXrefs());
+                        Hibernate.initialize(prot.getAnnotations());
+                        Hibernate.initialize(prot.getAliases());
+                        for (Component c : prot.getActiveInstances()){
+                            Hibernate.initialize(c.getXrefs());
+                            Hibernate.initialize(c.getAnnotations());
 
-                    processedIntactProteins.addAll(update(prot, dataContext));
+                            for (Feature f : c.getBindingDomains()){
+                                Hibernate.initialize(f.getAnnotations());
+                                Hibernate.initialize(f.getRanges());
+                                Hibernate.initialize(f.getAliases());
+                                Hibernate.initialize(f.getXrefs());
+                            }
 
-                    dataContext.commitTransaction(transactionStatus);
-                } catch (Exception e) {
-                    log.fatal("We failed to update the protein " + protAc, e);
-                    if (!transactionStatus.isCompleted()){
-                        dataContext.rollbackTransaction(transactionStatus);
+                            Hibernate.initialize(c.getExperimentalRoles());
+                            Hibernate.initialize(c.getAliases());
+                            Hibernate.initialize(c.getExperimentalPreparations());
+                            Hibernate.initialize(c.getParameters());
+                            Hibernate.initialize(c.getParticipantDetectionMethods());
+                        }*/
                     }
+                    currentIndex ++;
+                }
+
+                dataContext.commitTransaction(transactionStatus);
+            } catch (Exception e) {
+                log.fatal("We failed to update the protein " + protAc , e);
+
+                if (!transactionStatus.isCompleted()){
+                    dataContext.rollbackTransaction(transactionStatus);
                 }
             }
+
+            currentIndex = 0;
         }
 
         List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
@@ -264,5 +271,13 @@ public abstract class ProteinProcessor {
 
     public Protein getCurrentProtein() {
         return currentProtein;
+    }
+
+    public int getCOMMIT_INTERVAL() {
+        return COMMIT_INTERVAL;
+    }
+
+    public void setCOMMIT_INTERVAL(int COMMIT_INTERVAL) {
+        this.COMMIT_INTERVAL = COMMIT_INTERVAL;
     }
 }

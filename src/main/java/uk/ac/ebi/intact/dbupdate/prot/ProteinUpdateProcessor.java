@@ -129,6 +129,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
         super.updateAll();
 
+        // close the cache
+        this.uniprotRetriever.getUniprotService().close();
+
         ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate( global );
 
         // update db info accordingly
@@ -386,6 +389,8 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
                 }
             }
         }
+
+        this.uniprotRetriever.getUniprotService().close();
 
         return intactProteins;
     }
