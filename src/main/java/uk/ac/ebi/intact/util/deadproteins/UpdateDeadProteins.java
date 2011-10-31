@@ -15,7 +15,7 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.uniprot.UniprotServiceException;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.SimpleUniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 import java.io.BufferedWriter;
@@ -78,7 +78,7 @@ public class UpdateDeadProteins {
     }
 
     private String pickLongestUniprotSequence( Collection<String> liveIds ) throws UniprotServiceException {
-        UniprotService uniprot = new UniprotRemoteService();
+        UniprotService uniprot = new SimpleUniprotRemoteService();
         int maxLen = 0;
         String selectedId = null;
 
@@ -107,7 +107,7 @@ public class UpdateDeadProteins {
     }
 
     private boolean isLiveUniprot( String id, int taxidFilter ) throws UniprotServiceException {
-        UniprotService uniprot = new UniprotRemoteService();
+        UniprotService uniprot = new SimpleUniprotRemoteService();
         Collection<UniprotProtein> uniprotProteins = uniprot.retrieve( id );
         for ( Iterator<UniprotProtein> iterator = uniprotProteins.iterator(); iterator.hasNext(); ) {
             UniprotProtein protein = iterator.next();

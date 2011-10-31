@@ -14,7 +14,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinLike;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.SimpleUniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
@@ -52,7 +52,7 @@ public class ProteinServiceImpl implements ProteinService{
     private Map<String, String> databaseName2mi = new HashMap<String, String>();
 
     public ProteinServiceImpl(){
-        this.uniprotService = new UniprotRemoteService();
+        this.uniprotService = new SimpleUniprotRemoteService();
         this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
 
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
@@ -67,7 +67,7 @@ public class ProteinServiceImpl implements ProteinService{
         }
         else {
             log.warn("No uniprot service is given, a default remote service will be used");
-            this.uniprotService = new UniprotRemoteService();
+            this.uniprotService = new SimpleUniprotRemoteService();
         }
 
         if (biosourceService != null){

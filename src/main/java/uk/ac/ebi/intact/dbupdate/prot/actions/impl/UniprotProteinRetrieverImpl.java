@@ -23,7 +23,7 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.service.CachedUniprotService;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.SimpleUniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 import java.util.ArrayList;
@@ -70,7 +70,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             this.uniprotService = uniprotService;
         }
         else {
-            this.uniprotService = new CachedUniprotService(new UniprotRemoteService());
+            this.uniprotService = new CachedUniprotService(new SimpleUniprotRemoteService());
         }
 
         if (deadProteinfixer != null){

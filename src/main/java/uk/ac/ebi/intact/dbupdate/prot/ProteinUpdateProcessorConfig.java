@@ -23,7 +23,7 @@ import uk.ac.ebi.intact.protein.mapping.factories.ReportsFactory;
 import uk.ac.ebi.intact.protein.mapping.factories.ResultsFactory;
 import uk.ac.ebi.intact.protein.mapping.factories.impl.DefaultReportsFactory;
 import uk.ac.ebi.intact.protein.mapping.factories.impl.DefaultResultsFactory;
-import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
+import uk.ac.ebi.intact.uniprot.service.SimpleUniprotRemoteService;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
@@ -74,7 +74,7 @@ public class ProteinUpdateProcessorConfig {
     private ReportsFactory proteinMappingReportFactory;
 
     public ProteinUpdateProcessorConfig() {
-        this.uniprotService = new UniprotRemoteService();
+        this.uniprotService = new SimpleUniprotRemoteService();
         final BioSourceService bioSourceService = BioSourceServiceFactory.getInstance().buildBioSourceService();
         this.taxonomyService = bioSourceService.getTaxonomyService();
         this.errorFactory = new DefaultProteinUpdateErrorFactory();
