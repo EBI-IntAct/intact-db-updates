@@ -11,15 +11,10 @@ public class ProteinUpdateContext {
 
     private ProteinUpdateProcessorConfig config;
 
-    private static ThreadLocal<ProteinUpdateContext> instance = new ThreadLocal<ProteinUpdateContext>() {
-        @Override
-        protected ProteinUpdateContext initialValue() {
-            return new ProteinUpdateContext();
-        }
-    };
+    private static ProteinUpdateContext ourInstance = new ProteinUpdateContext();
 
     public static ProteinUpdateContext getInstance() {
-        return instance.get();
+        return ourInstance;
     }
 
     private ProteinUpdateContext() {
