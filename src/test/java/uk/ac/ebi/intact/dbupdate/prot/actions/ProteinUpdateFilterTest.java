@@ -20,6 +20,7 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
     @Before
     public void before() throws Exception {
-        filter = new ProteinUpdateFilterImpl(new UniprotProteinMapperImpl());
+        filter = new ProteinUpdateFilterImpl(new UniprotProteinMapperImpl(new UniprotRemoteService()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

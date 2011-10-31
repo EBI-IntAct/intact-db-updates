@@ -84,7 +84,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
             this.proteinMappingManager = proteinMapper;
         }
         else {
-            this.proteinMappingManager = new UniprotProteinMapperImpl();
+            this.proteinMappingManager = new UniprotProteinMapperImpl(uniprotService);
         }
     }
 

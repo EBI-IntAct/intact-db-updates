@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.service.UniprotRemoteService;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
             proteinMappingManager = uniprotProteinMapper;
         }
         else{
-            proteinMappingManager = new UniprotProteinMapperImpl();
+            proteinMappingManager = new UniprotProteinMapperImpl(new UniprotRemoteService());
         }
     }
 

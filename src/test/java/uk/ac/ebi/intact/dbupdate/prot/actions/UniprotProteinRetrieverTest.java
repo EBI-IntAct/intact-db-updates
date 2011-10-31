@@ -38,7 +38,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
     @Before
     public void before() throws Exception {
         UniprotService uniprotService = new MockUniprotService();
-        retriever = new UniprotProteinRetrieverImpl(uniprotService, new UniprotProteinMapperImpl(), new DeadUniprotProteinFixerImpl());
+        retriever = new UniprotProteinRetrieverImpl(uniprotService, new UniprotProteinMapperImpl(uniprotService), new DeadUniprotProteinFixerImpl());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

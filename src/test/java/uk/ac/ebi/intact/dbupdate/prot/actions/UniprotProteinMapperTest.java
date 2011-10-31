@@ -37,7 +37,7 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
     public void setUp(){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setBlastEnabled(false);
-        mapper = new UniprotProteinMapperImpl();
+        mapper = new UniprotProteinMapperImpl(config.getUniprotService());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

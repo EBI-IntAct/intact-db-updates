@@ -21,6 +21,7 @@ import uk.ac.ebi.intact.protein.mapping.model.contexts.UpdateContext;
 import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
 import uk.ac.ebi.intact.protein.mapping.strategies.StrategyForProteinUpdate;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
+import uk.ac.ebi.intact.uniprot.service.UniprotService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,10 +58,10 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
     /**
      * create a new ProteinUpdate manager.The strategy for update doesn't take into account the isoforms and keep the canonical sequence.
      */
-    public UniprotProteinMapperImpl(){
+    public UniprotProteinMapperImpl(UniprotService service){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
-        this.strategy = new StrategyForProteinUpdate();
+        this.strategy = new StrategyForProteinUpdate(service);
         this.strategy.enableIsoforms(false);
         this.strategy.setBasicBlastProcessRequired(config.isBlastEnabled());
         this.strategy.setReportsFactory(config.getProteinMappingReportFactory());

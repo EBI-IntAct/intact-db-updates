@@ -23,7 +23,8 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DbInfoDao;
 import uk.ac.ebi.intact.dbupdate.prot.actions.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
-import uk.ac.ebi.intact.dbupdate.prot.errors.*;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
@@ -99,7 +100,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         this.proteinDeleter = new ProteinDeleterImpl();
-        this.proteinMappingManager = new UniprotProteinMapperImpl();
+        this.proteinMappingManager = new UniprotProteinMapperImpl(config.getUniprotService());
         this.deadUniprotProteinFixer = new DeadUniprotProteinFixerImpl();
         this.uniprotIdentityUpdater = new UniprotIdentityUpdaterImpl();
         this.duplicatesFinder = new DuplicatesFinderImpl();
@@ -119,6 +120,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
     public ProteinUpdateProcessor(ProteinUpdateProcessorConfig configUpdate){
         this();
         ProteinUpdateContext.getInstance().setConfig( configUpdate );
+        initDefaultActionsAndListeners();
     }
 
     @Override
@@ -390,7 +392,7 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
             }
         }
 
-        this.uniprotRetriever.getUniprotService().close();
+        config.getUniprotService().close();
 
         return intactProteins;
     }
