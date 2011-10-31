@@ -337,20 +337,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
         for (Protein prot : secondaryProteins){
 
-            InteractorXref updatedPrimary = ProteinUtils.getUniprotXref(prot);
-            String updatedAc = updatedPrimary != null ? updatedPrimary.getPrimaryId() : null;
+            InteractorXref oldPrimary = ProteinUtils.getUniprotXref(prot);
+            String oldAc = oldPrimary != null ? oldPrimary.getPrimaryId() : null;
 
-            String secondaryAc = null;
-
-            for (XrefUpdaterReport rep : secondaryXrefReports){
-                if (prot.getAc().equals(rep.getProtein())){
-                    if (rep.getRemovedXrefs() != null && !rep.getRemovedXrefs().isEmpty()){
-                        secondaryAc = rep.getRemovedXrefs().iterator().next().getPrimaryId();
-                    }
-                }
-            }
-
-            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, secondaryAc, updatedAc);
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, oldAc, evt.getProtein().getPrimaryAc());
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
@@ -359,20 +349,10 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
             Protein prot = protTrans.getProtein();
 
-            InteractorXref updatedPrimary = ProteinUtils.getUniprotXref(prot);
-            String primaryAc = updatedPrimary != null ? updatedPrimary.getPrimaryId() : null;
+            InteractorXref oldPrimary = ProteinUtils.getUniprotXref(prot);
+            String oldAc = oldPrimary != null ? oldPrimary.getPrimaryId() : null;
 
-            String secondaryAc = null;
-
-            for (XrefUpdaterReport rep : secondaryXrefReports){
-                if (prot.getAc().equals(rep.getProtein())){
-                    if (rep.getRemovedXrefs() != null && !rep.getRemovedXrefs().isEmpty()){
-                        secondaryAc = rep.getRemovedXrefs().iterator().next().getPrimaryId();
-                    }
-                }
-            }
-
-            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, secondaryAc, primaryAc);
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, oldAc, protTrans.getUniprotVariant().getPrimaryAc());
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }
