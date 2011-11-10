@@ -343,6 +343,8 @@ public class ObsoleteCvRemapper {
                 }
             }
         }
+
+        return couldRemap;
     }
 
     public Map<String, String> getOntologyIdToDatabase() {
