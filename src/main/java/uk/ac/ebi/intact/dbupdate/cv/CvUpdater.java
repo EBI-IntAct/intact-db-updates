@@ -40,7 +40,7 @@ public class CvUpdater {
         ontologyIdToDatabase.put("MOD", CvDatabase.PSI_MOD_MI_REF);
     }
 
-    public void updateTerm(CvDagObject term, OntologyAccessTemplate<IntactOntologyTermI> ontologyAccess, String ontologyID, DaoFactory factory){
+    public void updateTerm(CvDagObject term, IntactOntologyTermI ontologyTerm, OntologyAccessTemplate<IntactOntologyTermI> ontologyAccess, String ontologyID, DaoFactory factory){
         String database = ontologyIdToDatabase.get(ontologyID);
 
         if (database == null){
@@ -69,31 +69,29 @@ public class CvUpdater {
             term.addXref(cvXref);
         }
 
-        IntactOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(identifier);
+        processedTerms.add(identifier);
 
-        if (ontologyTerm != null){
-            processedTerms.add(identifier);
+        // update shortLabel
+        term.setShortLabel(ontologyTerm.getShortLabel());
 
-            // update shortLabel
-            term.setShortLabel(ontologyTerm.getShortLabel());
+        // update fullName
+        term.setFullName(ontologyTerm.getFullName());
 
-            // update fullName
-            term.setFullName(ontologyTerm.getFullName());
+        // update xrefs
+        updateXrefs(term, ontologyTerm, factory);
 
-            // update xrefs
-            updateXrefs(term, ontologyTerm, factory);
+        // update aliases
+        updateAliases(term, ontologyTerm, factory);
 
-            // update aliases
-            updateAliases(term, ontologyTerm, factory);
+        // update annotations
+        updateAnnotations(term, ontologyTerm, factory);
 
-            // update annotations
-            updateAnnotations(term, ontologyTerm, factory);
-
-            // update parents
-            if (!ontologyAccess.isObsolete(ontologyTerm)){
-                updateParents(term, ontologyTerm, ontologyAccess, factory, database, ontologyID);
-            }
+        // update parents
+        if (!ontologyAccess.isObsolete(ontologyTerm)){
+            updateParents(term, ontologyTerm, ontologyAccess, factory, database, ontologyID);
         }
+
+        factory.getCvObjectDao(CvDagObject.class).update(term);
     }
 
     public void updateParents(CvDagObject term, IntactOntologyTermI ontologyTerm,
