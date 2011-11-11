@@ -10,7 +10,6 @@ import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -28,7 +27,7 @@ public class CvUpdater {
 
     public final static String ALIAS_TYPE="database alias";
 
-    public CvUpdater() throws IOException {
+    public CvUpdater() {
         missingParents = new HashMap<String, List<CvDagObject>>();
         processedTerms = new HashSet<String>();
     }
@@ -69,7 +68,7 @@ public class CvUpdater {
         term.setFullName(ontologyTerm.getFullName());
 
         // update xrefs
-        updateXrefs(term, ontologyTerm, factory);
+        updateXrefs(term, ontologyTerm, ontologyAccess, factory);
 
         // update aliases
         updateAliases(term, ontologyTerm, factory);
@@ -353,7 +352,7 @@ public class CvUpdater {
         factory.getAnnotationDao().persist(newAnnotation);
     }
 
-    public void updateXrefs(CvDagObject term, IntactOntologyTermI ontologyTerm, DaoFactory factory){
+    public void updateXrefs(CvDagObject term, IntactOntologyTermI ontologyTerm, IntactOntologyAccess access, DaoFactory factory){
 
         Map<String, Collection<TermDbXref>> ontologyCluster = clusterOntologyReferences(ontologyTerm);
         Map<String, Collection<CvObjectXref>> cvCluster = clusterCvReferences(term);
@@ -389,8 +388,16 @@ public class CvUpdater {
                     }
                     // xref to delete
                     else {
-                        term.removeXref(ref);
-                        xrefDao.delete(ref);
+                        if (ref.getCvDatabase() == null
+                                || (ref.getCvDatabase() != null && !ref.getCvDatabase().getIdentifier().equals(access.getDatabaseIdentifier()))){
+                            term.removeXref(ref);
+                            xrefDao.delete(ref);
+                        }
+                        else if (ref.getCvXrefQualifier() == null
+                                || (ref.getCvXrefQualifier() != null && !ref.getCvXrefQualifier().getIdentifier().equals(CvXrefQualifier.IDENTITY_MI_REF))){
+                            term.removeXref(ref);
+                            xrefDao.delete(ref);
+                        }
                     }
                 }
 

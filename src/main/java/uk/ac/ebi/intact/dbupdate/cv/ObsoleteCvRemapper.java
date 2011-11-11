@@ -27,7 +27,7 @@ public class ObsoleteCvRemapper {
 
     private Map<String, String> ontologyIdToDatabase;
 
-    public ObsoleteCvRemapper() throws IOException {
+    public ObsoleteCvRemapper() {
         ontologyIdToDatabase = new HashMap<String, String>();
         initializeOntologyIDToDatabase();
     }

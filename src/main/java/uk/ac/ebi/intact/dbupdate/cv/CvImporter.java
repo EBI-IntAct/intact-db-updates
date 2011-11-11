@@ -31,6 +31,8 @@ public class CvImporter {
 
     private Set<String> rootTermsToExclude;
 
+    private CvDagObject importedTerm;
+
     public CvImporter(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
         initializeClassMap();
@@ -67,9 +69,17 @@ public class CvImporter {
     }
 
     public void importCv(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, boolean importChildren, DaoFactory factory) throws InstantiationException, IllegalAccessException {
-        processedTerms.clear();
 
         Class<? extends CvDagObject> termClass = findCvClassFor(ontologyTerm, ontologyAccess);
+
+        importCv(ontologyTerm, ontologyAccess, importChildren, factory, termClass);
+    }
+
+    public void importCv(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, boolean importChildren, DaoFactory factory, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException {
+        processedTerms.clear();
+        importedTerm = null;
+
+        CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
 
         if (termClass == null){
             throw new IllegalArgumentException("Impossible to instantiate a CVObject for the term " + ontologyTerm.getTermAccession() + " because no class has been defined for this term or one of its parents.");
@@ -79,21 +89,34 @@ public class CvImporter {
             Set<IntactOntologyTermI> deepestNodes = collectDeepestChildren(ontologyAccess, ontologyTerm);
 
             for (IntactOntologyTermI child : deepestNodes){
-                CvDagObject cvObject = createCvObjectFrom(child, ontologyAccess, termClass, factory, false);
+
+                CvDagObject cvObject = cvDao.getByIdentifier(child.getTermAccession());
+                if (cvObject == null){
+                    cvObject = createCvObjectFrom(child, ontologyAccess, termClass, factory, false);
+                }
+
+                processedTerms.add(child.getTermAccession());
 
                 // update/ create parents
                 importParents(cvObject, child, termClass, ontologyAccess, factory, ontologyTerm.getTermAccession());
             }
         }
         else {
-            CvDagObject cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, factory, false);
+            CvDagObject cvObject = cvDao.getByIdentifier(ontologyTerm.getTermAccession());
+            if (cvObject == null){
+                cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, factory, false);
+            }
+
+            processedTerms.add(ontologyTerm.getTermAccession());
 
             // update/ create parents
-            importParents(cvObject, ontologyTerm, termClass, ontologyAccess, factory, ontologyTerm.getTermAccession());
+            importParents(cvObject, ontologyTerm, termClass, ontologyAccess, factory, true);
+
+            importedTerm = cvObject;
         }
     }
 
-    private Class<? extends CvDagObject> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
+    public Class<? extends CvDagObject> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
 
         if (classMap.containsKey(ontologyTerm.getTermAccession())){
             return classMap.get(ontologyTerm.getTermAccession());
@@ -250,8 +273,12 @@ public class CvImporter {
         if (!parents.isEmpty()){
 
             for (IntactOntologyTermI parent : parents){
-                if (!rootTermsToExclude.contains(parent.getTermAccession())){
-                    CvDagObject cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, hideParents);
+                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !processedTerms.contains(parent.getTermAccession())){
+                    CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
+                    if (cvObject == null){
+                        cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, hideParents);
+                    }
+                    processedTerms.add(parent.getTermAccession());
 
                     // update children
                     cvObject.addChild(cvChild);
@@ -273,11 +300,15 @@ public class CvImporter {
         if (!parents.isEmpty()){
 
             for (IntactOntologyTermI parent : parents){
-                if (!rootTermsToExclude.contains(parent.getTermAccession())){
+                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !processedTerms.contains(parent.getTermAccession())){
 
                     if (parent.getTermAccession().equals(currentTerm)){
 
-                        CvDagObject cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
+                        CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
+                        if (cvObject == null){
+                            cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
+                        }
+                        processedTerms.add(parent.getTermAccession());
 
                         // update children
                         cvObject.addChild(cvChild);
@@ -285,9 +316,15 @@ public class CvImporter {
 
                         // update/ create parents
                         importParents(cvObject, parent, termClass, ontologyAccess, factory, true);
+
+                        importedTerm = cvObject;
                     }
                     else {
-                        CvDagObject cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
+                        CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
+                        if (cvObject == null){
+                            cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
+                        }
+                        processedTerms.add(parent.getTermAccession());
 
                         // update children
                         cvObject.addChild(cvChild);
@@ -301,7 +338,7 @@ public class CvImporter {
         }
     }
 
-    private Set<IntactOntologyTermI> collectDeepestChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI parent){
+    public Set<IntactOntologyTermI> collectDeepestChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI parent){
 
         Set<IntactOntologyTermI> directChildren = ontologyAccess.getDirectChildren(parent);
 
@@ -334,5 +371,9 @@ public class CvImporter {
         c.addAnnotation(newAnnotation);
 
         factory.getAnnotationDao().persist(newAnnotation);
+    }
+
+    public CvDagObject getImportedTerm() {
+        return importedTerm;
     }
 }
