@@ -26,7 +26,7 @@ public class CvUpdater {
     private Map<String, List<CvDagObject>> missingParents;
     private Set<String> processedTerms;
 
-    private final static String ALIAS_TYPE="database alias";
+    public final static String ALIAS_TYPE="database alias";
 
     public CvUpdater() throws IOException {
         missingParents = new HashMap<String, List<CvDagObject>>();
