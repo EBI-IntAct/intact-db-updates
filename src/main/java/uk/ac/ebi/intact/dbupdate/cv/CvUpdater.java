@@ -1,8 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
-import psidev.psi.tools.ontology_manager.interfaces.OntologyAccessTemplate;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
+import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -25,27 +25,16 @@ public class CvUpdater {
 
     private Map<String, List<CvDagObject>> missingParents;
     private Set<String> processedTerms;
-    private Map<String, String> ontologyIdToDatabase;
 
     private final static String ALIAS_TYPE="database alias";
 
     public CvUpdater() throws IOException {
         missingParents = new HashMap<String, List<CvDagObject>>();
         processedTerms = new HashSet<String>();
-        ontologyIdToDatabase = new HashMap<String, String>();
     }
 
-    private void initializeOntologyIDToDatabase(){
-        ontologyIdToDatabase.put("MI", CvDatabase.PSI_MI_MI_REF);
-        ontologyIdToDatabase.put("MOD", CvDatabase.PSI_MOD_MI_REF);
-    }
-
-    public void updateTerm(CvDagObject term, IntactOntologyTermI ontologyTerm, OntologyAccessTemplate<IntactOntologyTermI> ontologyAccess, String ontologyID, DaoFactory factory){
-        String database = ontologyIdToDatabase.get(ontologyID);
-
-        if (database == null){
-            throw new IllegalArgumentException("The cv object " + term.getShortLabel() + " cannot be updated because ontologyId is not recognised " + ontologyID);
-        }
+    public void updateTerm(CvDagObject term, IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, DaoFactory factory){
+        String database = ontologyAccess.getDatabaseIdentifier();
 
         CvObjectXref cvXref = XrefUtils.getIdentityXref(term, database);
         String identifier;
@@ -88,14 +77,14 @@ public class CvUpdater {
 
         // update parents
         if (!ontologyAccess.isObsolete(ontologyTerm)){
-            updateParents(term, ontologyTerm, ontologyAccess, factory, database, ontologyID);
+            updateParents(term, ontologyTerm, ontologyAccess, factory);
         }
 
         factory.getCvObjectDao(CvDagObject.class).update(term);
     }
 
     public void updateParents(CvDagObject term, IntactOntologyTermI ontologyTerm,
-                              OntologyAccessTemplate<IntactOntologyTermI> ontologyAccess, DaoFactory factory, String database, String ontologyID){
+                              IntactOntologyAccess ontologyAccess, DaoFactory factory){
 
         Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(ontologyTerm);
         Set<IntactOntologyTermI> missingParents = new HashSet<IntactOntologyTermI>(parents);
@@ -105,9 +94,9 @@ public class CvUpdater {
         // when updating parents, we only update parents from current ontology so we can filter parents which need to be excluded
         for (CvDagObject parent : cvParents){
 
-            CvObjectXref identity = XrefUtils.getIdentityXref(parent, database);
+            CvObjectXref identity = XrefUtils.getIdentityXref(parent, ontologyAccess.getDatabaseIdentifier());
             // this parent cannot be updated because is not from the same ontology
-            if (identity == null && !parent.getIdentifier().startsWith(ontologyID + ":")){
+            if (identity == null && !parent.getIdentifier().startsWith(ontologyAccess.getOntologyID()+ ":")){
                 continue;
             }
             // check if parent exist
@@ -171,48 +160,147 @@ public class CvUpdater {
 
     public void updateAnnotations(CvDagObject term, IntactOntologyTermI ontologyTerm, DaoFactory factory){
         Collection<Annotation> cvannotations = new ArrayList<Annotation>(term.getAnnotations());
+        Collection<TermAnnotation> ontologyAnnotations = new ArrayList<TermAnnotation>(ontologyTerm.getAnnotations());
+        Set<String> comments = new HashSet<String>(ontologyTerm.getComments());
 
-        for (TermAnnotation termAnnotation : ontologyTerm.getAnnotations()){
-            String topicId = termAnnotation.getTopicId();
+        boolean hasFoundURL = false;
+        boolean hasFoundDefinition = false;
+        CvTopic comment = null;
 
-            boolean hasFound = false;
-            CvTopic cvTopic = null;
+        for (Annotation a : term.getAnnotations()){
+            String cvTopicId = a.getCvTopic() != null ? a.getCvTopic().getIdentifier() : null;
+            String cvTopicLabel = a.getCvTopic() != null ? a.getCvTopic().getShortLabel() : null;
 
-            for (Annotation a : term.getAnnotations()){
-                String cvTopicId = a.getCvTopic() != null ? a.getCvTopic().getIdentifier() : null;
+            if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopicLabel)){
+                if (!hasFoundDefinition){
+                    hasFoundDefinition = true;
+                    cvannotations.remove(a);
 
-                if (topicId.equalsIgnoreCase(cvTopicId)){
-                    cvTopic = a.getCvTopic();
+                    if (!ontologyTerm.getDefinition().equalsIgnoreCase(a.getAnnotationText())){
+                        a.setAnnotationText(ontologyTerm.getDefinition());
 
-                    if (termAnnotation.getDescription().equalsIgnoreCase(a.getAnnotationText())){
-                        hasFound = true;
-                        cvannotations.remove(a);
+                        factory.getAnnotationDao().update(a);
                     }
                 }
-                // we don't delete other annotations from other topics
-                else {
+            }
+            else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTopicId)){
+                comment = a.getCvTopic();
+
+                // comment exist
+                if (comments.contains(a.getAnnotationText())){
                     cvannotations.remove(a);
+                    comments.remove(a.getAnnotationText());
+                }
+                // comment does not exist but can be updated
+                else if (!comments.contains(a.getAnnotationText()) && comments.size() > 0){
+                    a.setAnnotationText(comments.iterator().next());
+                    factory.getAnnotationDao().update(a);
+
+                    cvannotations.remove(a);
+                    comments.remove(a.getAnnotationText());
                 }
             }
+            else if (CvTopic.URL_MI_REF.equalsIgnoreCase(cvTopicId)){
+                if (!hasFoundURL){
+                    hasFoundURL = true;
+                    cvannotations.remove(a);
 
-            // create new annotation
-            if (!hasFound){
-                if (cvTopic == null){
-                    cvTopic = factory.getCvObjectDao(CvTopic.class).getByPsiMiRef(topicId);
+                    if (!ontologyTerm.getDefinition().equalsIgnoreCase(a.getAnnotationText())){
+                        a.setAnnotationText(ontologyTerm.getDefinition());
+
+                        factory.getAnnotationDao().update(a);
+                    }
+                }
+            }
+            else {
+                boolean hasFoundAnnotation = false;
+                boolean hasFoundTopic = false;
+                TermAnnotation ontAnnot = null;
+
+                for (TermAnnotation termAnnotation : ontologyAnnotations){
+                    String topicId = termAnnotation.getTopicId();
+
+                    if (topicId.equalsIgnoreCase(cvTopicId)){
+                        ontAnnot = termAnnotation;
+                        hasFoundTopic = true;
+
+                        if (termAnnotation.getDescription().equalsIgnoreCase(a.getAnnotationText())){
+                            hasFoundAnnotation = true;
+                            break;
+                        }
+                    }
                 }
 
-                Annotation newAnnotation = new Annotation(cvTopic, termAnnotation.getDescription());
-                term.addAnnotation(newAnnotation);
+                // the topic does not exist in the term, we don't touch it
+                if (!hasFoundTopic){
+                    cvannotations.remove(a);
+                }
+                // exact annotation already exists, no need to update it
+                else if (hasFoundTopic && hasFoundAnnotation){
+                    cvannotations.remove(a);
+                    ontologyAnnotations.remove(ontAnnot);
+                }
+                // the topic exist but the text is not exactly the same and needs to be updated
+                else if (hasFoundTopic && !hasFoundAnnotation && ontAnnot != null){
 
-                factory.getAnnotationDao().persist(newAnnotation);
+                    a.setAnnotationText(ontAnnot.getDescription());
+                    factory.getAnnotationDao().update(a);
+
+                    cvannotations.remove(a);
+                    ontologyAnnotations.remove(ontAnnot);
+                }
             }
         }
 
-        // remove all annotations having a topic present in new term but with different description
+        // remove all annotations having a topic present in new term but which needs to be deleted because out of date
         for (Annotation a : cvannotations){
             term.removeAnnotation(a);
 
             factory.getAnnotationDao().delete(a);
+        }
+
+        // create missing annotations
+        for (TermAnnotation termAnnotation : ontologyAnnotations){
+            CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(termAnnotation.getTopicId());
+
+            Annotation newAnnotation = new Annotation(topicFromDb, termAnnotation.getDescription());
+            term.addAnnotation(newAnnotation);
+
+            factory.getAnnotationDao().persist(newAnnotation);
+        }
+
+        // create missing definition
+        if (!hasFoundDefinition && ontologyTerm.getDefinition() != null){
+            CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.DEFINITION);
+
+            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getDefinition());
+            term.addAnnotation(newAnnotation);
+
+            factory.getAnnotationDao().persist(newAnnotation);
+        }
+
+        // create missing url
+        if (!hasFoundURL && ontologyTerm.getURL() != null){
+            CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.URL_MI_REF);
+
+            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getURL());
+            term.addAnnotation(newAnnotation);
+
+            factory.getAnnotationDao().persist(newAnnotation);
+        }
+
+        // create missing comments
+        if (!comments.isEmpty()){
+            if (comment == null){
+                comment = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.COMMENT_MI_REF);
+            }
+
+            for (String com : comments){
+                Annotation newAnnotation = new Annotation(comment, com);
+                term.addAnnotation(newAnnotation);
+
+                factory.getAnnotationDao().persist(newAnnotation);
+            }
         }
     }
 
@@ -378,9 +466,5 @@ public class CvUpdater {
 
     public Set<String> getProcessedTerms() {
         return processedTerms;
-    }
-
-    public Map<String, String> getOntologyIdToDatabase() {
-        return ontologyIdToDatabase;
     }
 }
