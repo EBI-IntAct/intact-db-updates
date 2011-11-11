@@ -1,6 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.apache.lucene.index.Term;
 import psidev.psi.tools.ontology_manager.interfaces.OntologyAccessTemplate;
+import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
@@ -27,6 +29,7 @@ public class ObsoleteCvRemapper {
 
     public ObsoleteCvRemapper() throws IOException {
         ontologyIdToDatabase = new HashMap<String, String>();
+        initializeOntologyIDToDatabase();
     }
 
     private void initializeOntologyIDToDatabase(){
@@ -35,31 +38,24 @@ public class ObsoleteCvRemapper {
     }
 
     public boolean remapObsoleteCvTerm(CvDagObject term, IntactOntologyTermI ontologyTerm,
-                                    OntologyAccessTemplate<IntactOntologyTermI> ontologyAccess, String ontologyID, DaoFactory factory){
-        String database = ontologyIdToDatabase.get(ontologyID);
-        boolean couldRemap = false;
-
-        if (database == null){
-            throw new IllegalArgumentException("The cv object " + term.getShortLabel() + " cannot be remapped because ontologyId is not recognised " + ontologyID);
-        }
+                                       IntactOntologyAccess ontologyAccess, DaoFactory factory){
+        String database = ontologyAccess.getDatabaseIdentifier();
+        boolean couldRemap = true;
 
         if (ontologyTerm.getRemappedTerm() != null){
             CvDagObject termFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(ontologyTerm.getRemappedTerm());
 
             if (termFromDb == null){
-                couldRemap = true;
                 term.setIdentifier(ontologyTerm.getRemappedTerm());
 
                 Collection<CvObjectXref> identities = XrefUtils.getIdentityXrefs(term);
 
                 if (identities.isEmpty()){
                     CvXrefQualifier identity = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
-                    String remappedDb = null;
+                    String remappedDb = ontologyAccess.getDatabaseIdentifier();
 
-                    if (ontologyTerm.getRemappedTerm().startsWith(ontologyID)){
-                        remappedDb = this.ontologyIdToDatabase.get(ontologyID);
-                    }
-                    else if (ontologyTerm.getRemappedTerm().contains(":")) {
+                    if (!ontologyTerm.getRemappedTerm().startsWith(ontologyAccess.getOntologyID())
+                    && ontologyTerm.getRemappedTerm().contains(":")) {
                         String[] refInfo = ontologyTerm.getRemappedTerm().split(":");
 
                         String newOntologyId = refInfo[0];
@@ -80,7 +76,7 @@ public class ObsoleteCvRemapper {
                     for (CvObjectXref ref : identities){
                         if (ontologyTerm.getTermAccession().equalsIgnoreCase(ref.getPrimaryId())){
 
-                            if (ontologyTerm.getRemappedTerm().startsWith(ontologyID)){
+                            if (ontologyTerm.getRemappedTerm().startsWith(ontologyAccess.getOntologyID())){
                                 ref.setPrimaryId(ontologyTerm.getRemappedTerm());
                                 factory.getXrefDao(CvObjectXref.class).update(ref);
                             }
@@ -105,7 +101,6 @@ public class ObsoleteCvRemapper {
             // merge current term with new term
             else {
                 int resultUpdate = 0;
-                boolean canDelete = true;
 
                 if (term instanceof CvAliasType && termFromDb instanceof CvAliasType){
                     Query query = factory.getEntityManager().createQuery("update Alias a set a.cvAliasType = :type" +
@@ -334,14 +329,12 @@ public class ObsoleteCvRemapper {
                 }
                 else {
                     // do something
-                    canDelete = false;
-                }
-
-                if (canDelete){
-                    couldRemap = true;
-                    factory.getCvObjectDao(CvDagObject.class).delete(term);
+                    couldRemap = false;
                 }
             }
+        }
+        else {
+            couldRemap = false;
         }
 
         return couldRemap;

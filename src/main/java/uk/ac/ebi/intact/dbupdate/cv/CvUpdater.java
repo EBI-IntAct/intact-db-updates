@@ -58,6 +58,8 @@ public class CvUpdater {
             term.addXref(cvXref);
         }
 
+        boolean isObsolete = ontologyAccess.isObsolete(ontologyTerm);
+
         processedTerms.add(identifier);
 
         // update shortLabel
@@ -73,10 +75,10 @@ public class CvUpdater {
         updateAliases(term, ontologyTerm, factory);
 
         // update annotations
-        updateAnnotations(term, ontologyTerm, factory);
+        updateAnnotations(term, ontologyTerm, isObsolete, factory);
 
         // update parents
-        if (!ontologyAccess.isObsolete(ontologyTerm)){
+        if (!isObsolete){
             updateParents(term, ontologyTerm, ontologyAccess, factory);
         }
 
@@ -158,13 +160,16 @@ public class CvUpdater {
         }
     }
 
-    public void updateAnnotations(CvDagObject term, IntactOntologyTermI ontologyTerm, DaoFactory factory){
+    public void updateAnnotations(CvDagObject term, IntactOntologyTermI ontologyTerm, boolean isObsolete, DaoFactory factory){
         Collection<Annotation> cvannotations = new ArrayList<Annotation>(term.getAnnotations());
         Collection<TermAnnotation> ontologyAnnotations = new ArrayList<TermAnnotation>(ontologyTerm.getAnnotations());
         Set<String> comments = new HashSet<String>(ontologyTerm.getComments());
 
         boolean hasFoundURL = false;
         boolean hasFoundDefinition = false;
+        boolean hasFondObsolete = false;
+        boolean isHidden = false;
+
         CvTopic comment = null;
 
         for (Annotation a : term.getAnnotations()){
@@ -182,6 +187,26 @@ public class CvUpdater {
                         factory.getAnnotationDao().update(a);
                     }
                 }
+            }
+            else if (CvTopic.OBSOLETE_MI_REF.equalsIgnoreCase(cvTopicId)){
+                if (!hasFondObsolete && isObsolete){
+                    hasFondObsolete = true;
+                    cvannotations.remove(a);
+
+                    if (ontologyTerm.getObsoleteMessage() ==  null && a.getAnnotationText() != null){
+                        a.setAnnotationText(null);
+
+                        factory.getAnnotationDao().update(a);
+                    }
+                    else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(a.getAnnotationText())){
+                        a.setAnnotationText(ontologyTerm.getDefinition());
+
+                        factory.getAnnotationDao().update(a);
+                    }
+                }
+            }
+            else if (CvTopic.HIDDEN.equalsIgnoreCase(cvTopicLabel)){
+                isHidden = true;
             }
             else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTopicId)){
                 comment = a.getCvTopic();
@@ -231,7 +256,7 @@ public class CvUpdater {
                     }
                 }
 
-                // the topic does not exist in the term, we don't touch it
+                // the topic does not exist in the term , we don't touch it
                 if (!hasFoundTopic){
                     cvannotations.remove(a);
                 }
@@ -289,6 +314,21 @@ public class CvUpdater {
             factory.getAnnotationDao().persist(newAnnotation);
         }
 
+        // create missing obsolete
+        if (!hasFondObsolete && isObsolete){
+            CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.OBSOLETE_MI_REF);
+
+            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getObsoleteMessage());
+            term.addAnnotation(newAnnotation);
+
+            factory.getAnnotationDao().persist(newAnnotation);
+        }
+
+        // hide term if obsolete
+        if (isObsolete && !isHidden){
+            hideTerm(term, "obsolete term", factory);
+        }
+
         // create missing comments
         if (!comments.isEmpty()){
             if (comment == null){
@@ -302,6 +342,15 @@ public class CvUpdater {
                 factory.getAnnotationDao().persist(newAnnotation);
             }
         }
+    }
+
+    public void hideTerm(CvDagObject c, String message, DaoFactory factory){
+        CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.HIDDEN);
+
+        Annotation newAnnotation = new Annotation(topicFromDb, message);
+        c.addAnnotation(newAnnotation);
+
+        factory.getAnnotationDao().persist(newAnnotation);
     }
 
     public void updateXrefs(CvDagObject term, IntactOntologyTermI ontologyTerm, DaoFactory factory){
