@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.*;
 import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.CvDagObject;
 import uk.ac.ebi.intact.model.CvObjectAlias;
 import uk.ac.ebi.intact.model.CvObjectXref;
 
@@ -111,7 +112,7 @@ public class ReportWriterListener implements CvUpdateListener{
             String message = evt.getMessage()!= null ? evt.getMessage() : EMPTY_VALUE;
 
             StringBuffer buffer = new StringBuffer(1024);
-            writeStrings(buffer, evt.getPossibleTerms());
+            writeParents(buffer, evt.getPossibleTerms());
 
             writeColumnValues(writer, obsoleteId, intactAc, intactLabel, message, buffer.toString());
 
@@ -168,10 +169,10 @@ public class ReportWriterListener implements CvUpdateListener{
             writeAnnotations(deletedAnnotations, evt.getDeletedAnnotations());
 
             StringBuffer createdParents = new StringBuffer(1024);
-            writeStrings(createdParents, evt.getCreatedParents());
+            writeParents(createdParents, evt.getCreatedParents());
 
             StringBuffer deletedParents = new StringBuffer(1024);
-            writeStrings(deletedParents, evt.getDeletedParents());
+            writeParents(deletedParents, evt.getDeletedParents());
 
             writeColumnValues(writer, termAccession, intactAc, updatedLabel, updatedFullName, createdXrefs.toString(),
                     updatedXrefs.toString(), deletedXrefs.toString(), createdAliases.toString(), updatedAliases.toString(),
@@ -252,7 +253,7 @@ public class ReportWriterListener implements CvUpdateListener{
         }
     }
 
-    private void writeStrings(StringBuffer buffer, Collection<String> collection) {
+    private void writeParents(StringBuffer buffer, Collection<CvDagObject> collection) {
         int index = 0;
         int size = collection.size();
 
@@ -260,9 +261,13 @@ public class ReportWriterListener implements CvUpdateListener{
             buffer.append(EMPTY_VALUE);
         }
         else {
-            for (String annot : collection){
+            for (CvDagObject annot : collection){
 
-                buffer.append(annot);
+                buffer.append(annot.getAc());
+                buffer.append(":");
+                buffer.append(annot.getShortLabel());
+                buffer.append(":");
+                buffer.append(annot.getIdentifier());
 
                 if (index < size - 1){
                     buffer.append(", ");

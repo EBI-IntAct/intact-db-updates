@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.events;
 
+import uk.ac.ebi.intact.model.CvDagObject;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventObject;
@@ -20,7 +22,7 @@ public class ObsoleteTermImpossibleToRemapEvent extends EventObject {
 
     private String message;
 
-    private Collection<String> possibleTerms = new ArrayList<String>();
+    private Collection<CvDagObject> possibleTerms = new ArrayList<CvDagObject>();
 
     /**
      * Constructs a prototypical Event.
@@ -52,7 +54,7 @@ public class ObsoleteTermImpossibleToRemapEvent extends EventObject {
         return message;
     }
 
-    public Collection<String> getPossibleTerms() {
+    public Collection<CvDagObject> getPossibleTerms() {
         return possibleTerms;
     }
 }
