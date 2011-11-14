@@ -127,7 +127,7 @@ public class ReportWriterListener implements CvUpdateListener{
             FileWriter writer = updatedCvWriter;
 
             if (!isUpdatedCvTermStarted){
-                writeHeader(writer, "Term accession", "Intact Ac", "Updated shortLabel", "Updated fullName",
+                writeHeader(writer, "Term accession", "Intact Ac", "Updated shortLabel", "Updated fullName", "Identifier updated",
                         "Created xrefs", "Updated xrefs", "Deleted xrefs",
                         "Created aliases", "Updated aliases", "Deleted aliases",
                         "Created annotations", "Updated annotations", "Deleted annotations",
@@ -138,6 +138,7 @@ public class ReportWriterListener implements CvUpdateListener{
             String intactAc = evt.getIntactAc() != null ? evt.getIntactAc() : EMPTY_VALUE;
             String updatedLabel = evt.getUpdatedShortLabel()!= null ? evt.getUpdatedShortLabel() : EMPTY_VALUE;
             String updatedFullName = evt.getUpdatedFullName()!= null ? evt.getUpdatedFullName() : EMPTY_VALUE;
+            String updatedIdentifier= Boolean.toString(evt.hasUpdatedIdentifier());
 
             StringBuffer createdXrefs = new StringBuffer(1024);
             writeXrefs(createdXrefs, evt.getCreatedXrefs());

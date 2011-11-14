@@ -9,4 +9,6 @@ package uk.ac.ebi.intact.dbupdate.cv.errors;
  */
 
 public enum UpdateError {
+
+    non_existing_term
 }

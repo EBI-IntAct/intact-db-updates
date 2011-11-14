@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.events;
 
 import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.CvDagObject;
 import uk.ac.ebi.intact.model.CvObjectAlias;
 import uk.ac.ebi.intact.model.CvObjectXref;
 
@@ -23,6 +24,8 @@ public class UpdatedEvent extends EventObject {
     private String updatedShortLabel;
     private String updatedFullName;
 
+    private boolean hasUpdatedIdentifier = false;
+
     private Collection<CvObjectXref> createdXrefs = new ArrayList<CvObjectXref>();
     private Collection<CvObjectXref> updatedXrefs = new ArrayList<CvObjectXref>();
     private Collection<CvObjectXref> deletedXrefs = new ArrayList<CvObjectXref>();
@@ -35,15 +38,15 @@ public class UpdatedEvent extends EventObject {
     private Collection<Annotation> updatedAnnotations = new ArrayList<Annotation>();
     private Collection<Annotation> deletedAnnotations = new ArrayList<Annotation>();
 
-    private Collection<String> createdParents = new ArrayList<String>();
-    private Collection<String> deletedParents = new ArrayList<String>();
+    private Collection<CvDagObject> createdParents = new ArrayList<CvDagObject>();
+    private Collection<CvDagObject> deletedParents = new ArrayList<CvDagObject>();
     /**
      * Constructs a prototypical Event.
      *
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public UpdatedEvent(Object source, String termAc, String intactAc, String updatedLabel, String updatedFullName) {
+    public UpdatedEvent(Object source, String termAc, String intactAc, String updatedLabel, String updatedFullName, boolean hasUpdatedIdentifier) {
         super(source);
 
         this.termAccession = termAc;
@@ -104,11 +107,47 @@ public class UpdatedEvent extends EventObject {
         return deletedAnnotations;
     }
 
-    public Collection<String> getCreatedParents() {
+    public Collection<CvDagObject> getCreatedParents() {
         return createdParents;
     }
 
-    public Collection<String> getDeletedParents() {
+    public Collection<CvDagObject> getDeletedParents() {
         return deletedParents;
+    }
+
+    public boolean hasUpdatedIdentifier() {
+        return hasUpdatedIdentifier;
+    }
+
+    public boolean isTermUpdated(){
+        if (updatedShortLabel != null){
+            return true;
+        }
+
+        if (updatedFullName != null){
+            return true;
+        }
+
+        if (hasUpdatedIdentifier){
+            return true;
+        }
+
+        if (!createdXrefs.isEmpty() || !updatedXrefs.isEmpty() || !deletedXrefs.isEmpty()){
+            return true;
+        }
+
+        if (!createdAliases.isEmpty() || !updatedAliases.isEmpty() || !deletedAliases.isEmpty()){
+            return true;
+        }
+
+        if (!createdAnnotations.isEmpty() || !updatedAnnotations.isEmpty() || !deletedAnnotations.isEmpty()){
+            return true;
+        }
+
+        if (!createdParents.isEmpty() || !deletedParents.isEmpty()){
+            return true;
+        }
+
+        return false;
     }
 }

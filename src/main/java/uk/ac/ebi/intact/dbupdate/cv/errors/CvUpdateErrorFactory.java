@@ -9,4 +9,6 @@ package uk.ac.ebi.intact.dbupdate.cv.errors;
  */
 
 public interface CvUpdateErrorFactory {
+
+    public CvUpdateError createCvUpdateError(UpdateError errorLabel, String errorMessage, String termAc, String intactAc, String shortLabel);
 }
