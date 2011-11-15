@@ -112,7 +112,7 @@ public class ReportWriterListener implements CvUpdateListener{
             String message = evt.getMessage()!= null ? evt.getMessage() : EMPTY_VALUE;
 
             StringBuffer buffer = new StringBuffer(1024);
-            writeParents(buffer, evt.getPossibleTerms());
+            writeStrings(buffer, evt.getPossibleTerms());
 
             writeColumnValues(writer, obsoleteId, intactAc, intactLabel, message, buffer.toString());
 
@@ -268,6 +268,26 @@ public class ReportWriterListener implements CvUpdateListener{
                 buffer.append(annot.getShortLabel());
                 buffer.append(":");
                 buffer.append(annot.getIdentifier());
+
+                if (index < size - 1){
+                    buffer.append(", ");
+                }
+                index ++;
+            }
+        }
+    }
+
+    private void writeStrings(StringBuffer buffer, Collection<String> collection) {
+        int index = 0;
+        int size = collection.size();
+
+        if (collection.isEmpty()){
+            buffer.append(EMPTY_VALUE);
+        }
+        else {
+            for (String annot : collection){
+
+                buffer.append(annot);
 
                 if (index < size - 1){
                     buffer.append(", ");

@@ -10,5 +10,5 @@ package uk.ac.ebi.intact.dbupdate.cv.errors;
 
 public enum UpdateError {
 
-    non_existing_term
+    non_existing_term, ontology_database_no_found, cv_impossible_merge
 }

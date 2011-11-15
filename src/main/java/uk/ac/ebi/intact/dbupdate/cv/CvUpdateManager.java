@@ -13,6 +13,8 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory;
+import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteRemappedEvent;
+import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteTermImpossibleToRemapEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
 import uk.ac.ebi.intact.dbupdate.cv.listener.*;
@@ -262,7 +264,7 @@ public class CvUpdateManager {
                 boolean hasBeenRemapped = false;
 
                 if (isObsolete){
-                    hasBeenRemapped = cvRemapper.remapObsoleteCvTerm(cvObject, ontologyTerm, ontologyAccess, factory);
+                    cvRemapper.remapObsoleteCvTerm(updateContext);
                 }
 
                 if (!isObsolete || (isObsolete && !hasBeenRemapped)){
@@ -334,10 +336,24 @@ public class CvUpdateManager {
         }
     }
 
-        public void fireOnUpdateCase(UpdatedEvent evt){
+    public void fireOnUpdateCase(UpdatedEvent evt){
 
         for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
             listener.onUpdatedCvTerm(evt);
+        }
+    }
+
+    public void fireOnObsoleteImpossibleToRemap(ObsoleteTermImpossibleToRemapEvent evt){
+
+        for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
+            listener.onObsoleteTermImpossibleToRemap(evt);
+        }
+    }
+
+    public void fireOnRemappedObsolete(ObsoleteRemappedEvent evt){
+
+        for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
+            listener.onObsoleteRemappedTerm(evt);
         }
     }
 }
