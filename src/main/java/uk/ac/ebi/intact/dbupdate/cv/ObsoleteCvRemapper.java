@@ -28,9 +28,13 @@ public class ObsoleteCvRemapper {
 
     private Map<String, String> ontologyIdToDatabase;
 
+    private Map<String, Set<CvDagObject>> remappedCvToUpdate;
+
     public ObsoleteCvRemapper() {
         ontologyIdToDatabase = new HashMap<String, String>();
         initializeOntologyIDToDatabase();
+
+        remappedCvToUpdate = new HashMap<String, Set<CvDagObject>>();
     }
 
     private void initializeOntologyIDToDatabase(){
@@ -48,6 +52,7 @@ public class ObsoleteCvRemapper {
 
         // boolean value to know if the term has been remapped or not
         boolean couldRemap = true;
+        String newOntologyId = null;
 
         // the term can be remapped to another term
         if (ontologyTerm.getRemappedTerm() != null){
@@ -60,7 +65,7 @@ public class ObsoleteCvRemapper {
 
                 String[] refInfo = ontologyTerm.getRemappedTerm().split(":");
 
-                String newOntologyId = refInfo[0];
+                newOntologyId = refInfo[0];
                 remappedDb = this.ontologyIdToDatabase.get(newOntologyId);
 
                 // the remapped term is not known by this remapper so we cannot remap it
@@ -94,7 +99,8 @@ public class ObsoleteCvRemapper {
             if (couldRemap){
                 CvDagObject termFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(ontologyTerm.getRemappedTerm());
 
-                // the term does not exist in the db, we just need to update the identifier and identity xref. We will update the context as well
+                // the term does not exist in the db, we just need to update the identifier and identity xref.
+                // the remapped term will need to be updated
                 if (termFromDb == null){
 
                     // update identifier
@@ -135,6 +141,18 @@ public class ObsoleteCvRemapper {
                     // the term is not obsolete anymore and was successfully remapped to a new ontology term
                     updateContext.setTermObsolete(false);
                     updateContext.setOntologyTerm(ontologyTerm);
+
+                    // remapped to another ontology, needs to be updated later
+                    if (ontologyTerm == null && newOntologyId != null){
+                        if (remappedCvToUpdate.containsKey(newOntologyId)){
+                            remappedCvToUpdate.get(newOntologyId).add(term);
+                        }
+                        else {
+                            Set<CvDagObject> cvs = new HashSet<CvDagObject>();
+                            cvs.add(term);
+                            remappedCvToUpdate.put(newOntologyId, cvs);
+                        }
+                    }
                 }
                 // merge current term with new term
                 else {
@@ -539,5 +557,13 @@ public class ObsoleteCvRemapper {
 
     public Map<String, String> getOntologyIdToDatabase() {
         return ontologyIdToDatabase;
+    }
+
+    public Map<String, Set<CvDagObject>> getRemappedCvToUpdate() {
+        return remappedCvToUpdate;
+    }
+
+    public void clear(){
+        this.remappedCvToUpdate.clear();
     }
 }
