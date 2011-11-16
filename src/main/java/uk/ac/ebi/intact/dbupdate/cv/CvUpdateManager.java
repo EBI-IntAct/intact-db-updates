@@ -226,7 +226,7 @@ public class CvUpdateManager {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void hideTerms(Collection<CvObject> cvs, String message){
-
+        clear();
         for (CvObject cv : cvs){
             boolean hasHidden = false;
 
@@ -244,7 +244,7 @@ public class CvUpdateManager {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void removeHiddenFrom(Collection<CvObject> cvs, String message){
-
+        clear();
         for (CvObject cv : cvs){
             Collection<Annotation> annotations = new ArrayList<Annotation>(cv.getAnnotations());
 
@@ -254,6 +254,40 @@ public class CvUpdateManager {
                 }
             }
         }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public CvDagObject importCvTerm(String identifier, String ontologyId, boolean includeChildren){
+        clear();
+
+        if (ontologyId == null){
+            throw new IllegalArgumentException("The ontology id is mandatory. Can be MI or MOD");
+        }
+        if (identifier == null){
+            throw new IllegalArgumentException("The identifier id is mandatory. Can be from MI or MOD");
+        }
+
+        IntactOntologyAccess access = intactOntologyManager.getOntologyAccess(ontologyId);
+        if (access == null){
+            throw new IllegalArgumentException("The ontology identifier " + ontologyId + " is not recognized and we cannot import the cv object.");
+        }
+        updateContext.setOntologyAccess(access);
+
+        IntactOntologyTermI ontologyTerm = access.getTermForAccession(identifier);
+        if (ontologyTerm == null){
+            throw new IllegalArgumentException("The term identifier " + identifier + " cannot be found in ontology " + ontologyId);
+        }
+        updateContext.setOntologyTerm(ontologyTerm);
+
+        try {
+            cvImporter.importCv(updateContext, includeChildren);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return updateContext.getCvTerm();
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
