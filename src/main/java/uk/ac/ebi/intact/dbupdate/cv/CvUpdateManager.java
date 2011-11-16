@@ -231,13 +231,27 @@ public class CvUpdateManager {
             boolean hasHidden = false;
 
             for (Annotation annotation : cv.getAnnotations()){
-                 if (annotation.getCvTopic() != null && CvTopic.HIDDEN.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
-                     hasHidden = true;
-                 }
+                if (annotation.getCvTopic() != null && CvTopic.HIDDEN.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                    hasHidden = true;
+                }
             }
 
             if (!hasHidden){
                 CvUpdateUtils.hideTerm(cv, message);
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void removeHiddenFrom(Collection<CvObject> cvs, String message){
+
+        for (CvObject cv : cvs){
+            Collection<Annotation> annotations = new ArrayList<Annotation>(cv.getAnnotations());
+
+            for (Annotation annotation : annotations){
+                if (annotation.getCvTopic() != null && CvTopic.HIDDEN.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                    cv.removeAnnotation(annotation);
+                }
             }
         }
     }
