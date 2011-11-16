@@ -13,10 +13,7 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory;
-import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteRemappedEvent;
-import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteTermImpossibleToRemapEvent;
-import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
-import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
+import uk.ac.ebi.intact.dbupdate.cv.events.*;
 import uk.ac.ebi.intact.dbupdate.cv.listener.*;
 import uk.ac.ebi.intact.model.CvDagObject;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
@@ -189,14 +186,12 @@ public class CvUpdateManager {
         CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
 
         for (Map.Entry<String, List<CvDagObject>> missing : cvUpdater.getMissingParents().entrySet()){
-            IntactOntologyTermI ontologyTerm = access.getTermForAccession(missing.getKey());
+            cvImporter.importCv(updateContext, false);
 
-            cvImporter.importCv(ontologyTerm, access, false, factory);
-
-            if (cvImporter.getImportedTerm() != null){
+            if (updateContext.getCvTerm() != null){
                 for (CvDagObject child : missing.getValue()){
-                    child.addParent(cvImporter.getImportedTerm());
-                    cvDao.update(cvImporter.getImportedTerm());
+                    child.addParent(updateContext.getCvTerm());
+                    cvDao.update(updateContext.getCvTerm());
                     cvDao.update(child);
                 }
             }
@@ -207,14 +202,11 @@ public class CvUpdateManager {
     private void createMissingTerms(IntactOntologyAccess access) throws IllegalAccessException, InstantiationException {
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
-
         String root = rooTerms.get(access.getOntologyID());
 
         if (root != null){
-            IntactOntologyTermI ontologyTermRoot = access.getTermForAccession(root);
 
-            cvImporter.importCv(ontologyTermRoot, access, true, factory);
+            cvImporter.importCv(updateContext, true);
         }
     }
 
@@ -354,6 +346,13 @@ public class CvUpdateManager {
 
         for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
             listener.onObsoleteRemappedTerm(evt);
+        }
+    }
+
+    public void fireOnCreatedTerm(CreatedTermEvent evt){
+
+        for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
+            listener.onCreatedCvTerm(evt);
         }
     }
 }

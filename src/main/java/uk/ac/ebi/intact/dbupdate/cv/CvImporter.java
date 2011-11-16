@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -7,7 +9,10 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
+import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import java.util.HashMap;
@@ -22,7 +27,7 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>10/11/11</pre>
  */
-
+@org.springframework.stereotype.Component
 public class CvImporter {
 
     private Map<String, Class<? extends CvDagObject>> classMap;
@@ -30,8 +35,6 @@ public class CvImporter {
     private Set<String> processedTerms;
 
     private Set<String> rootTermsToExclude;
-
-    private CvDagObject importedTerm;
 
     public CvImporter(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
@@ -68,52 +71,94 @@ public class CvImporter {
         rootTermsToExclude.add("MOD:00000");
     }
 
-    public void importCv(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, boolean importChildren, DaoFactory factory) throws InstantiationException, IllegalAccessException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void importCv(CvUpdateContext updateContext, boolean importChildren) throws InstantiationException, IllegalAccessException {
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
         Class<? extends CvDagObject> termClass = findCvClassFor(ontologyTerm, ontologyAccess);
 
-        importCv(ontologyTerm, ontologyAccess, importChildren, factory, termClass);
+        importCv(updateContext, importChildren, termClass);
     }
 
-    public void importCv(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, boolean importChildren, DaoFactory factory, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException {
-        processedTerms.clear();
-        importedTerm = null;
-
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void importCv(CvUpdateContext updateContext, boolean importChildren, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException {
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
 
         if (termClass == null){
             throw new IllegalArgumentException("Impossible to instantiate a CVObject for the term " + ontologyTerm.getTermAccession() + " because no class has been defined for this term or one of its parents.");
         }
 
+        // if we import the children, we collect the deepest children first to go back to the top parent
         if (importChildren){
+            // collect deepest children
             Set<IntactOntologyTermI> deepestNodes = collectDeepestChildren(ontologyAccess, ontologyTerm);
 
+            // for each child, create term and then create parent recursively
             for (IntactOntologyTermI child : deepestNodes){
 
-                CvDagObject cvObject = cvDao.getByIdentifier(child.getTermAccession());
-                if (cvObject == null){
-                    cvObject = createCvObjectFrom(child, ontologyAccess, termClass, factory, false);
-                }
-
-                processedTerms.add(child.getTermAccession());
-
-                // update/ create parents
-                importParents(cvObject, child, termClass, ontologyAccess, factory, ontologyTerm.getTermAccession());
+                updateOrCreateChild(updateContext, termClass, child);
             }
         }
+        // we just create this term and its parent if they don't exist
         else {
             CvDagObject cvObject = cvDao.getByIdentifier(ontologyTerm.getTermAccession());
             if (cvObject == null){
-                cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, factory, false);
+                cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, false);
             }
 
             processedTerms.add(ontologyTerm.getTermAccession());
 
             // update/ create parents
-            importParents(cvObject, ontologyTerm, termClass, ontologyAccess, factory, true);
+            importParents(cvObject, ontologyTerm, termClass, updateContext, true);
 
-            importedTerm = cvObject;
+            // we update the context to set the cv term which has been created
+            updateContext.setCvTerm(cvObject);
         }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child) throws IllegalAccessException, InstantiationException {
+        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+
+        if (!processedTerms.contains(child.getTermAccession())){
+            processedTerms.add(child.getTermAccession());
+
+            CvDagObject cvObject = cvDao.getByIdentifier(child.getTermAccession());
+            if (cvObject == null){
+                cvObject = createAndPersistNewCv(updateContext, termClass, child, false);
+            }
+
+            if (child.getTermAccession().equals(updateContext.getIdentifier())){
+                updateContext.setCvTerm(cvObject);
+                // import parents and hide them
+                importParents(cvObject, child, termClass, updateContext, true);
+            }
+            else {
+                // import parents without hidding them
+                importParents(cvObject, child, termClass, updateContext, ontologyTerm.getTermAccession());
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    private CvDagObject createAndPersistNewCv(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, boolean hide) throws IllegalAccessException, InstantiationException {
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+
+        CvDagObject cvObject;
+        cvObject = createCvObjectFrom(child, ontologyAccess, termClass, false);
+        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvObject);
+
+        // fire evt
+        CvUpdateManager manager = updateContext.getManager();
+
+        CreatedTermEvent evt = new CreatedTermEvent(this, child.getTermAccession(), cvObject.getShortLabel(), cvObject.getAc(), hide, "Created child term");
+        manager.fireOnCreatedTerm(evt);
+        return cvObject;
     }
 
     public Class<? extends CvDagObject> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
@@ -139,8 +184,7 @@ public class CvImporter {
         return null;
     }
 
-    private CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, DaoFactory factory, boolean hideParents) throws IllegalAccessException, InstantiationException {
-        IntactContext context = IntactContext.getCurrentInstance();
+    public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents) throws IllegalAccessException, InstantiationException {
 
         String accession = ontologyTerm.getTermAccession();
 
@@ -155,17 +199,11 @@ public class CvImporter {
         // set identifier
         cvObject.setIdentifier(accession);
 
-        CvXrefQualifier identity = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
-        CvDatabase db = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(ontologyAccess.getDatabaseIdentifier());
-        CvObjectXref cvXref = XrefUtils.createIdentityXref(null, accession, identity, db);
-        factory.getXrefDao(CvObjectXref.class).persist(cvXref);
-        cvObject.addXref(cvXref);
+        CvObjectXref identity = CvUpdateUtils.createIdentityXref(cvObject, ontologyAccess.getDatabaseIdentifier(), CvXrefQualifier.IDENTITY_MI_REF);
 
         Map<String, CvDatabase> processedDatabases = new HashMap<String, CvDatabase>();
-        processedDatabases.put(ontologyAccess.getDatabaseIdentifier(), db);
 
         Map<String, CvXrefQualifier> processedXrefQualifiers = new HashMap<String, CvXrefQualifier>();
-        processedXrefQualifiers.put(CvXrefQualifier.IDENTITY_MI_REF, identity);
 
         // create xrefs
         for (TermDbXref termRef : ontologyTerm.getDbXrefs()){
@@ -174,7 +212,7 @@ public class CvImporter {
                 database = processedDatabases.get(termRef.getDatabaseId());
             }
             else {
-                database = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(termRef.getDatabaseId());
+                database = CvObjectUtils.createCvObject(cvObject.getOwner(), CvDatabase.class, termRef.getDatabaseId(), termRef.getDatabase());
                 processedDatabases.put(termRef.getDatabaseId(), database);
             }
 
@@ -183,155 +221,153 @@ public class CvImporter {
                 qualifier = processedXrefQualifiers.get(termRef.getQualifierId());
             }
             else {
-                qualifier = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(termRef.getQualifierId());
+                qualifier = CvObjectUtils.createCvObject(cvObject.getOwner(), CvXrefQualifier.class, termRef.getQualifierId(), termRef.getQualifier());
                 processedXrefQualifiers.put(termRef.getQualifierId(), qualifier);
             }
 
             CvObjectXref ref = XrefUtils.createIdentityXref(null, termRef.getAccession(), qualifier, database);
-            factory.getXrefDao(CvObjectXref.class).persist(ref);
             cvObject.addXref(ref);
         }
 
         // create aliases
-        CvAliasType aliasType = factory.getCvObjectDao(CvAliasType.class).getByShortLabel(CvUpdater.ALIAS_TYPE);
+        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvUpdater.ALIAS_TYPE);
 
         for (String alias : ontologyTerm.getAliases()){
 
-            CvObjectAlias aliasObject = new CvObjectAlias(context.getInstitution(), null, aliasType, alias);
-            factory.getAliasDao(CvObjectAlias.class).persist(aliasObject);
+            CvObjectAlias aliasObject = new CvObjectAlias(cvObject.getOwner(), null, aliasType, alias);
             cvObject.addAlias(aliasObject);
         }
 
         // create annotations
         for (TermAnnotation annotation : ontologyTerm.getAnnotations()){
 
-            CvTopic topic = factory.getCvObjectDao(CvTopic.class).getByIdentifier(annotation.getTopicId());
+            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, annotation.getTopicId(), annotation.getTopic());
 
             Annotation annotationObject = new Annotation(topic, annotation.getDescription());
-            factory.getAnnotationDao().persist(annotationObject);
             cvObject.addAnnotation(annotationObject);
         }
 
         // create definition
         if (ontologyTerm.getDefinition() != null){
-            CvTopic topic = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.DEFINITION);
+            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, null, CvTopic.DEFINITION);
 
             Annotation annotationObject = new Annotation(topic, ontologyTerm.getDefinition());
-            factory.getAnnotationDao().persist(annotationObject);
             cvObject.addAnnotation(annotationObject);
         }
 
         // create url
         if (ontologyTerm.getURL() != null){
-            CvTopic topic = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.URL_MI_REF);
+            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, CvTopic.URL_MI_REF, CvTopic.URL);
 
             Annotation annotationObject = new Annotation(topic, ontologyTerm.getURL());
-            factory.getAnnotationDao().persist(annotationObject);
             cvObject.addAnnotation(annotationObject);
         }
 
         // create comments
         if (!ontologyTerm.getComments().isEmpty()){
-            CvTopic topic = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.COMMENT_MI_REF);
+            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
 
             for (String comment : ontologyTerm.getComments()){
                 Annotation annotationObject = new Annotation(topic, comment);
-                factory.getAnnotationDao().persist(annotationObject);
                 cvObject.addAnnotation(annotationObject);
             }
         }
 
-        boolean hidden = false;
+        // parents should not be obsolete. An obsolete term does not have parents children anymore
 
-        // create obsolete
-        if (ontologyAccess.isObsolete(ontologyTerm)){
-            CvTopic topic = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.OBSOLETE_MI_REF);
-
-            Annotation annotationObject = new Annotation(topic, ontologyTerm.getObsoleteMessage());
-            factory.getAnnotationDao().persist(annotationObject);
-            cvObject.addAnnotation(annotationObject);
-
-            hideTerm(cvObject, "obsolete term", factory);
-            hidden = true;
+        if (hideParents){
+            CvUpdateUtils.hideTerm(cvObject, "term not used");
         }
-
-        if (!hidden && hideParents){
-            hideTerm(cvObject, "unused term", factory);
-        }
-
-        factory.getCvObjectDao(CvDagObject.class).persist(cvObject);
 
         return cvObject;
     }
 
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, IntactOntologyAccess ontologyAccess, DaoFactory factory, boolean hideParents) throws InstantiationException, IllegalAccessException {
+    @Transactional(propagation = Propagation.SUPPORTS)
+    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents) throws InstantiationException, IllegalAccessException {
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);
 
-        CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
 
         if (!parents.isEmpty()){
 
+            // create parents or update them
             for (IntactOntologyTermI parent : parents){
+                // if the parent is not excluded from the import
                 if (!rootTermsToExclude.contains(parent.getTermAccession()) && !processedTerms.contains(parent.getTermAccession())){
+                    boolean needToImportParents = true;
+
+                    // the parent was not already processed so we need to process the parents
+                    if (!processedTerms.contains(parent.getTermAccession())){
+                        processedTerms.add(parent.getTermAccession());
+                    }
+                    // the parent was already processed, we just need to update the parent if it does not contain this child
+                    // we can stop processing the parents as this term was already processed
+                    else {
+                        needToImportParents = false;
+                    }
+
                     CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
                     if (cvObject == null){
-                        cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, hideParents);
+                        cvObject = createAndPersistNewCv(updateContext, termClass, parent, hideParents);
                     }
-                    processedTerms.add(parent.getTermAccession());
 
-                    // update children
+                    // add children (only if it didn't exist)
                     cvObject.addChild(cvChild);
                     cvDao.update(cvChild);
 
                     // update/ create parents
-                    importParents(cvObject, parent, termClass, ontologyAccess, factory, hideParents);
+                    if (needToImportParents){
+                        importParents(cvObject, parent, termClass, updateContext, hideParents);
+
+                    }
                 }
             }
         }
     }
 
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, IntactOntologyAccess ontologyAccess, DaoFactory factory, String currentTerm) throws InstantiationException, IllegalAccessException {
+    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, String currentTerm) throws InstantiationException, IllegalAccessException {
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);
 
-        CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
 
         if (!parents.isEmpty()){
 
             for (IntactOntologyTermI parent : parents){
                 if (!rootTermsToExclude.contains(parent.getTermAccession()) && !processedTerms.contains(parent.getTermAccession())){
+                    boolean needToImportParents = true;
+
+                    if (!this.processedTerms.contains(parent.getTermAccession())){
+                        processedTerms.add(parent.getTermAccession());
+                    }
+                    else {
+                        needToImportParents = false;
+                    }
+
+                    CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
+                    if (cvObject == null){
+                        cvObject = createAndPersistNewCv(updateContext, termClass, parent, false);
+                    }
+
+                    // update children
+                    cvObject.addChild(cvChild);
+                    cvDao.update(cvChild);
 
                     if (parent.getTermAccession().equals(currentTerm)){
 
-                        CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
-                        if (cvObject == null){
-                            cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
+                        updateContext.setCvTerm(cvObject);
+
+                        // update/ create parents and hide them
+                        if (needToImportParents){
+                            importParents(cvObject, parent, termClass, updateContext, true);
                         }
-                        processedTerms.add(parent.getTermAccession());
-
-                        // update children
-                        cvObject.addChild(cvChild);
-                        cvDao.update(cvChild);
-
-                        // update/ create parents
-                        importParents(cvObject, parent, termClass, ontologyAccess, factory, true);
-
-                        importedTerm = cvObject;
                     }
-                    else {
-                        CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
-                        if (cvObject == null){
-                            cvObject = createCvObjectFrom(parent, ontologyAccess, termClass, factory, false);
-                        }
-                        processedTerms.add(parent.getTermAccession());
-
-                        // update children
-                        cvObject.addChild(cvChild);
-                        cvDao.update(cvChild);
-
+                    else if (needToImportParents) {
                         // update/ create parents
-                        importParents(cvObject, parent, termClass, ontologyAccess, factory, currentTerm);
+                        importParents(cvObject, parent, termClass, updateContext, currentTerm);
                     }
                 }
             }
@@ -373,7 +409,7 @@ public class CvImporter {
         factory.getAnnotationDao().persist(newAnnotation);
     }
 
-    public CvDagObject getImportedTerm() {
-        return importedTerm;
+    public void clear(){
+        this.processedTerms.clear();
     }
 }
