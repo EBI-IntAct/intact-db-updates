@@ -170,6 +170,24 @@ public class CvUpdateManager {
 
         // update all remapped terms to other ontologies
         updateTermsRemappedToOtherOntologies();
+
+        // check if duplicated terms exist
+        checkDuplicatedCvTerms(ontologyAccess);
+    }
+
+    public void checkDuplicatedCvTerms(IntactOntologyAccess access){
+        List<Object[]> duplicatedTerms = getDuplicatedCvObjects(access);
+
+        for (Object [] object : duplicatedTerms){
+            String duplicate1 = (String) object[0];
+            String duplicate2 = (String) object[1];
+
+            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.duplicated_cv, duplicate1 + " is a duplicate of " + duplicate2 + "in the ontology " + access.getOntologyID(), null, null, null);
+
+            UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+            fireOnUpdateError(evt);
+        }
+
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -195,8 +213,12 @@ public class CvUpdateManager {
 
         // update all remapped terms to other ontologies
         updateTermsRemappedToOtherOntologies();
+
+        // check if duplicated terms exist
+        checkDuplicatedCvTerms(ontologyAccess);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAll() throws IllegalAccessException, InstantiationException {
         clear();
 
@@ -318,6 +340,22 @@ public class CvUpdateManager {
         query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
         query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
         query.setParameter("ontologyLikeId", ontologyAccess.getDatabaseRegexp().pattern());
+
+        return query.getResultList();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private List<Object[]> getDuplicatedCvObjects(IntactOntologyAccess ontologyAccess){
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+        Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x, CvDagObject c2 left join c2.xrefs as x2 " +
+                "where c.ac <> c2.ac " +
+                "and (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and " +
+                "((x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x.primaryId = x2.primaryId) or x.primaryId = c2.identifier))" +
+                "or (x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and " +
+                "x2.primaryId = c.identifier) or (c2.identifier = c.identifier and REGEXP_LIKE( c.identifier, :ontologyLikeId ))");
+        query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
+        query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
 
         return query.getResultList();
     }
