@@ -71,7 +71,6 @@ public class ObsoleteCvRemapper {
                 // the remapped term is not known by this remapper so we cannot remap it
                 if (remappedDb == null){
                     couldRemap = false;
-                    updateContext.setTermObsolete(true);
 
                     CvUpdateManager manager = updateContext.getManager();
 
@@ -140,10 +139,10 @@ public class ObsoleteCvRemapper {
 
                     // the term is not obsolete anymore and was successfully remapped to a new ontology term
                     updateContext.setTermObsolete(false);
-                    updateContext.setOntologyTerm(ontologyTerm);
+                    updateContext.setOntologyTerm(remappedTerm);
 
                     // remapped to another ontology, needs to be updated later
-                    if (ontologyTerm == null && newOntologyId != null){
+                    if (remappedTerm == null && newOntologyId != null){
                         if (remappedCvToUpdate.containsKey(newOntologyId)){
                             remappedCvToUpdate.get(newOntologyId).add(term);
                         }
