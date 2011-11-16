@@ -20,10 +20,8 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.*;
 import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
-import uk.ac.ebi.intact.model.CvDagObject;
-import uk.ac.ebi.intact.model.CvObjectXref;
-import uk.ac.ebi.intact.model.CvXrefQualifier;
-import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
@@ -224,6 +222,24 @@ public class CvUpdateManager {
 
         updateAndCreateAllTerms("MI");
         updateAllTerms("MOD");
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void hideTerms(Collection<CvObject> cvs, String message){
+
+        for (CvObject cv : cvs){
+            boolean hasHidden = false;
+
+            for (Annotation annotation : cv.getAnnotations()){
+                 if (annotation.getCvTopic() != null && CvTopic.HIDDEN.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
+                     hasHidden = true;
+                 }
+            }
+
+            if (!hasHidden){
+                CvUpdateUtils.hideTerm(cv, message);
+            }
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

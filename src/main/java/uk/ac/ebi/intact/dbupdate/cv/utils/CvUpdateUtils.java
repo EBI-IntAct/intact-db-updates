@@ -16,7 +16,7 @@ import uk.ac.ebi.intact.model.util.XrefUtils;
 
 public class CvUpdateUtils {
 
-    public static Annotation hideTerm(CvDagObject c, String message){
+    public static Annotation hideTerm(CvObject c, String message){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
         CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.HIDDEN);
