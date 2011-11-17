@@ -16,6 +16,7 @@ import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * this class is for updating a cv
@@ -210,23 +211,30 @@ public class CvUpdater {
 
         // when updating parents, we only update parents from current ontology so we can filter parents which need to be excluded
         for (CvDagObject parent : cvParents){
+            String identityValue = null;
 
             CvObjectXref identity = XrefUtils.getIdentityXref(parent, ontologyAccess.getDatabaseIdentifier());
             // this parent cannot be updated because is not from the same ontology
-            if (identity == null && !parent.getIdentifier().startsWith(ontologyAccess.getOntologyID()+ ":")){
-                continue;
+            if (identity == null){
+                Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(parent.getIdentifier());
+
+                if (matcher.find() && matcher.group().equalsIgnoreCase(parent.getIdentifier())){
+                     identityValue = parent.getIdentifier();
+                }
+                else {
+                    continue;
+                }
+            }
+            else {
+                identityValue = identity.getPrimaryId();
             }
             // check if parent exist
-            else {
+            if (identity != null) {
                 boolean hasFound = false;
 
                 // try to find a match in the ontology
                 for (IntactOntologyTermI ontologyTermI : parents){
-                    if (parent.getIdentifier().equalsIgnoreCase(ontologyTermI.getTermAccession())){
-                        missingParents.remove(ontologyTermI);
-                        hasFound = true;
-                    }
-                    else if (identity != null && ontologyTermI.getTermAccession().equalsIgnoreCase(identity.getPrimaryId())){
+                    if (identityValue.equalsIgnoreCase(ontologyTermI.getTermAccession())){
                         missingParents.remove(ontologyTermI);
                         hasFound = true;
                     }
@@ -235,7 +243,7 @@ public class CvUpdater {
                 // parent which should be removed
                 if (!hasFound){
                     // get term in the ontology
-                    IntactOntologyTermI parentInOntology = ontologyAccess.getTermForAccession(parent.getIdentifier());
+                    IntactOntologyTermI parentInOntology = ontologyAccess.getTermForAccession(identityValue);
 
                     if (parentInOntology == null && identity != null){
                         parentInOntology = ontologyAccess.getTermForAccession(identity.getPrimaryId());
@@ -245,7 +253,7 @@ public class CvUpdater {
                     if (parentInOntology == null){
                         CvUpdateManager updateManager = updateContext.getManager();
 
-                        CvUpdateError error = updateManager.getErrorFactory().createCvUpdateError(UpdateError.non_existing_term, "The term " + updateContext.getIdentifier() + " has a parent " + parent.getIdentifier() + " which does not exist in the ontology.", parent.getIdentifier(), parent.getAc(), parent.getShortLabel());
+                        CvUpdateError error = updateManager.getErrorFactory().createCvUpdateError(UpdateError.non_existing_term, "The term " + updateContext.getIdentifier() + " has a parent " + identityValue + " which does not exist in the ontology.", identityValue, parent.getAc(), parent.getShortLabel());
                         UpdateErrorEvent errorEvt = new UpdateErrorEvent(this, error);
 
                         updateManager.fireOnUpdateError(errorEvt);

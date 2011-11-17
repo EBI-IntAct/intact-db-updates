@@ -9,16 +9,17 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
+import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
+import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import javax.persistence.Query;
+import java.util.*;
 
 /**
  * This class allows to import a Cv object to a database
@@ -105,44 +106,102 @@ public class CvImporter {
         }
         // we just create this term and its parent if they don't exist
         else {
-            CvDagObject cvObject = cvDao.getByIdentifier(ontologyTerm.getTermAccession());
-            if (cvObject == null){
+
+            List<CvDagObject> cvObjects = fetchIntactCv(ontologyTerm.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+
+            CvDagObject cvObject = null;
+
+            if (cvObjects.isEmpty()){
                 cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, false);
+            }
+            else if (cvObjects.size() == 1){
+                cvObject = cvObjects.iterator().next();
             }
 
             processedTerms.add(ontologyTerm.getTermAccession());
 
             // update/ create parents
-            importParents(cvObject, ontologyTerm, termClass, updateContext, true);
+            for (CvDagObject dagObject : cvObjects){
+                importParents(dagObject, ontologyTerm, termClass, updateContext, true);
+            }
 
             // we update the context to set the cv term which has been created
-            updateContext.setCvTerm(cvObject);
+            if (cvObject != null){
+                updateContext.setCvTerm(cvObject);
+            }
+            else {
+                CvUpdateManager cvManager = updateContext.getManager();
+
+                CvUpdateError error = cvManager.getErrorFactory().createCvUpdateError(UpdateError.duplicated_cv, "Cv object " + ontologyTerm.getTermAccession() + " can match " + cvObjects.size() + " in Intact and the import parent has been done on all these terms.", ontologyTerm.getTermAccession(), null, null);
+
+                UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                cvManager.fireOnUpdateError(evt);
+            }
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child) throws IllegalAccessException, InstantiationException {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
-        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         if (!processedTerms.contains(child.getTermAccession())){
             processedTerms.add(child.getTermAccession());
 
-            CvDagObject cvObject = cvDao.getByIdentifier(child.getTermAccession());
-            if (cvObject == null){
-                cvObject = createAndPersistNewCv(updateContext, termClass, child, false);
+            List<CvDagObject> cvObjects = fetchIntactCv(child.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+
+            CvDagObject cvObject = null;
+
+            if (cvObjects.isEmpty()){
+                cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, false);
+            }
+            else if (cvObjects.size() == 1){
+                cvObject = cvObjects.iterator().next();
+            }
+            else {
+                CvUpdateManager cvManager = updateContext.getManager();
+
+                CvUpdateError error = cvManager.getErrorFactory().createCvUpdateError(UpdateError.duplicated_cv, "Cv object " + child.getTermAccession() + " can match " + cvObjects.size() + " in Intact and the import parent has been done on all these terms.", ontologyTerm.getTermAccession(), null, null);
+
+                UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                cvManager.fireOnUpdateError(evt);
             }
 
             if (child.getTermAccession().equals(updateContext.getIdentifier())){
                 updateContext.setCvTerm(cvObject);
                 // import parents and hide them
-                importParents(cvObject, child, termClass, updateContext, true);
+                for (CvDagObject dagObject : cvObjects){
+                    importParents(dagObject, child, termClass, updateContext, true);
+                }
             }
             else {
                 // import parents without hidding them
-                importParents(cvObject, child, termClass, updateContext, ontologyTerm.getTermAccession());
+                for (CvDagObject dagObject : cvObjects){
+                    importParents(dagObject, child, termClass, updateContext, ontologyTerm.getTermAccession());
+                }
             }
         }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    private List<CvDagObject> fetchIntactCv(String id, String db){
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+        Query query = factory.getEntityManager().createQuery("select distinct c from CvDagObject c left join c.xrefs as x " +
+                "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and x.primaryId = :identifier) " +
+                "or (" +
+                "c.identifier = :identifier and " +
+                "(" +
+                "(x.ac not in " +
+                "(select x2.ac from CvObjectXref x2 where x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity))" +
+                " or c.xrefs is empty" +
+                ") " +
+                ")");
+        query.setParameter("database", db);
+        query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
+        query.setParameter("identifier", id);
+
+        return query.getResultList();
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -308,19 +367,28 @@ public class CvImporter {
                         needToImportParents = false;
                     }
 
-                    CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
-                    if (cvObject == null){
-                        cvObject = createAndPersistNewCv(updateContext, termClass, parent, hideParents);
+                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+
+                    if (cvObjects.size() > 1){
+                        CvUpdateManager cvManager = updateContext.getManager();
+
+                        CvUpdateError error = cvManager.getErrorFactory().createCvUpdateError(UpdateError.duplicated_cv, "Cv object " + parent.getTermAccession() + " can match " + cvObjects.size() + " in Intact and the import parent has been done on all these terms.", parent.getTermAccession(), null, null);
+
+                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                        cvManager.fireOnUpdateError(evt);
                     }
 
-                    // add children (only if it didn't exist)
-                    cvObject.addChild(cvChild);
-                    cvDao.update(cvChild);
-
                     // update/ create parents
-                    if (needToImportParents){
-                        importParents(cvObject, parent, termClass, updateContext, hideParents);
+                    for (CvDagObject dagObject : cvObjects){
+                        // add children (only if it didn't exist)
+                        dagObject.addChild(cvChild);
+                        cvDao.update(cvChild);
 
+                        // update/ create parents
+                        if (needToImportParents){
+                            importParents(dagObject, parent, termClass, updateContext, hideParents);
+
+                        }
                     }
                 }
             }
@@ -347,27 +415,40 @@ public class CvImporter {
                         needToImportParents = false;
                     }
 
-                    CvDagObject cvObject = cvDao.getByIdentifier(parent.getTermAccession());
-                    if (cvObject == null){
-                        cvObject = createAndPersistNewCv(updateContext, termClass, parent, false);
+                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+
+                    if (cvObjects.size() > 1){
+                        CvUpdateManager cvManager = updateContext.getManager();
+
+                        CvUpdateError error = cvManager.getErrorFactory().createCvUpdateError(UpdateError.duplicated_cv, "Cv object " + parent.getTermAccession() + " can match " + cvObjects.size() + " in Intact and the import parent has been done on all these terms.", parent.getTermAccession(), null, null);
+
+                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                        cvManager.fireOnUpdateError(evt);
                     }
 
-                    // update children
-                    cvObject.addChild(cvChild);
-                    cvDao.update(cvChild);
+                    // update/ create parents
+                    int size = cvObjects.size();
 
-                    if (parent.getTermAccession().equals(currentTerm)){
+                    for (CvDagObject dagObject : cvObjects){
+                        // update children
+                        dagObject.addChild(cvChild);
+                        cvDao.update(cvChild);
 
-                        updateContext.setCvTerm(cvObject);
+                        if (parent.getTermAccession().equals(currentTerm)){
 
-                        // update/ create parents and hide them
-                        if (needToImportParents){
-                            importParents(cvObject, parent, termClass, updateContext, true);
+                            if (size == 1){
+                                updateContext.setCvTerm(dagObject);
+                            }
+
+                            // update/ create parents and hide them
+                            if (needToImportParents){
+                                importParents(dagObject, parent, termClass, updateContext, true);
+                            }
                         }
-                    }
-                    else if (needToImportParents) {
-                        // update/ create parents
-                        importParents(cvObject, parent, termClass, updateContext, currentTerm);
+                        else if (needToImportParents) {
+                            // update/ create parents
+                            importParents(dagObject, parent, termClass, updateContext, currentTerm);
+                        }
                     }
                 }
             }

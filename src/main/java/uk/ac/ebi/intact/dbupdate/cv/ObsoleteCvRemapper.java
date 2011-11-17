@@ -15,6 +15,7 @@ import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import javax.persistence.Query;
 import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * This class will try to remap an obsolete term
@@ -59,14 +60,18 @@ public class ObsoleteCvRemapper {
             String remappedDb = ontologyAccess.getDatabaseIdentifier();
 
             IntactOntologyTermI remappedTerm = null;
+            Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(ontologyTerm.getRemappedTerm());
 
             // the remapped term is not from this ontology, so we need to know which database it is remapped to
-            if (!ontologyTerm.getRemappedTerm().startsWith(ontologyAccess.getOntologyID())){
+            if (!matcher.find() || (matcher.find() && matcher.group().equalsIgnoreCase(ontologyTerm.getRemappedTerm()))){
+                remappedDb = null;
 
-                String[] refInfo = ontologyTerm.getRemappedTerm().split(":");
+                if (ontologyTerm.getRemappedTerm().contains(":")){
+                    String[] refInfo = ontologyTerm.getRemappedTerm().split(":");
 
-                newOntologyId = refInfo[0];
-                remappedDb = this.ontologyIdToDatabase.get(newOntologyId);
+                    newOntologyId = refInfo[0];
+                    remappedDb = this.ontologyIdToDatabase.get(newOntologyId);
+                }
 
                 // the remapped term is not known by this remapper so we cannot remap it
                 if (remappedDb == null){
@@ -96,12 +101,29 @@ public class ObsoleteCvRemapper {
 
             // if it is possible to remap the obsolete term
             if (couldRemap){
-                CvDagObject termFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(ontologyTerm.getRemappedTerm());
+                CvUpdateManager manager = updateContext.getManager();
+
+                Query remapQuery = factory.getEntityManager().createQuery("select distinct c from CvDagObject c left join c.xrefs as x " +
+                        "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and x.primaryId = :identifier) " +
+                        "or (" +
+                        "c.identifier = :identifier and " +
+                        "(" +
+                        "(x.ac not in " +
+                        "(select x2.ac from CvObjectXref x2 where x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity))" +
+                        " or c.xrefs is empty" +
+                        ") " +
+                        ")");
+                remapQuery.setParameter("database", remappedDb);
+                remapQuery.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
+                remapQuery.setParameter("identifier", ontologyTerm.getRemappedTerm());
+
+                List<CvDagObject> existingObjects = remapQuery.getResultList();
+
+                CvDagObject termFromDb = null;
 
                 // the term does not exist in the db, we just need to update the identifier and identity xref.
                 // the remapped term will need to be updated
-                if (termFromDb == null){
-
+                if (existingObjects.isEmpty()){
                     // update identifier
                     term.setIdentifier(ontologyTerm.getRemappedTerm());
 
@@ -116,24 +138,23 @@ public class ObsoleteCvRemapper {
                     }
                     // one to several identity refs exist, we need to retrieve the one we need to update
                     else {
-                        if (ontologyTerm.getRemappedTerm().startsWith(ontologyAccess.getOntologyID())){
+                        // same ontology, just update the xref
+                        if (newOntologyId == null){
                             identityXref.setPrimaryId(ontologyTerm.getRemappedTerm());
                             factory.getXrefDao(CvObjectXref.class).update(identityXref);
                         }
-                        else if (ontologyTerm.getRemappedTerm().contains(":")) {
+                        else {
 
-                            if (remappedDb != null){
-                                CvDatabase remappedCvDb = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(remappedDb);
+                            CvDatabase remappedCvDb = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(remappedDb);
 
-                                if (remappedCvDb == null){
-                                    remappedCvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, remappedDb, remappedDb);
-                                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(remappedCvDb);
-                                }
-
-                                identityXref.setCvDatabase(remappedCvDb);
-                                identityXref.setPrimaryId(ontologyTerm.getRemappedTerm());
-                                factory.getXrefDao(CvObjectXref.class).update(identityXref);
+                            if (remappedCvDb == null){
+                                remappedCvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, remappedDb, remappedDb);
+                                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(remappedCvDb);
                             }
+
+                            identityXref.setCvDatabase(remappedCvDb);
+                            identityXref.setPrimaryId(ontologyTerm.getRemappedTerm());
+                            factory.getXrefDao(CvObjectXref.class).update(identityXref);
                         }
                     }
 
@@ -154,9 +175,10 @@ public class ObsoleteCvRemapper {
                     }
                 }
                 // merge current term with new term
-                else {
+                else if (existingObjects.size() == 1){
+                    termFromDb = existingObjects.iterator().next();
+
                     int resultUpdate = 0;
-                    CvUpdateManager manager = updateContext.getManager();
 
                     if (term instanceof CvAliasType && termFromDb instanceof CvAliasType){
                         Query query = factory.getEntityManager().createQuery("update Alias a set a.cvAliasType = :type" +
@@ -515,6 +537,16 @@ public class ObsoleteCvRemapper {
 
                         manager.fireOnUpdateError(evt);
                     }
+                }
+                else {
+                    // do something
+                    couldRemap = false;
+
+                    // fire event
+                    CvUpdateError error = manager.getErrorFactory().createCvUpdateError(UpdateError.cv_impossible_merge, ontologyTerm.getRemappedTerm() + " can match " + existingObjects.size() + " existing cv objects so we cannot remap it properly.", updateContext.getIdentifier(), term.getAc(), term.getShortLabel());
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+
+                    manager.fireOnUpdateError(evt);
                 }
             }
         }

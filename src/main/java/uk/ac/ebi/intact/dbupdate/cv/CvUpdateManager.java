@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.cv;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +45,10 @@ public class CvUpdateManager {
     private static final Log log = LogFactory.getLog(CvUpdateManager.class);
 
     private CvUpdater cvUpdater;
+
+    @Autowired
     private CvImporter cvImporter;
+
     private ObsoleteCvRemapper cvRemapper;
 
     private IntactOntologyManager intactOntologyManager;
@@ -71,7 +75,6 @@ public class CvUpdateManager {
         intactOntologyManager = new IntactOntologyManager(ontology);
 
         cvUpdater = new CvUpdater();
-        cvImporter = new CvImporter();
         cvRemapper = new ObsoleteCvRemapper();
 
         rooTerms = new HashMap<String, String>();
@@ -91,7 +94,6 @@ public class CvUpdateManager {
         intactOntologyManager = new IntactOntologyManager(ontology);
 
         cvUpdater = new CvUpdater();
-        cvImporter = new CvImporter();
         cvRemapper = new ObsoleteCvRemapper();
 
         rooTerms = new HashMap<String, String>();
@@ -110,7 +112,10 @@ public class CvUpdateManager {
         intactOntologyManager = new IntactOntologyManager(ontology);
 
         this.cvUpdater = cvUpdater != null ? cvUpdater : new CvUpdater();
-        this.cvImporter = cvImporter != null ? cvImporter : new CvImporter();
+        if(cvImporter != null){
+            this.cvImporter = cvImporter;
+        }
+
         this.cvRemapper = cvRemapper != null ? cvRemapper : new ObsoleteCvRemapper();
 
         rooTerms = new HashMap<String, String>();
@@ -126,7 +131,9 @@ public class CvUpdateManager {
         intactOntologyManager = new IntactOntologyManager(ontology);
 
         this.cvUpdater = cvUpdater != null ? cvUpdater : new CvUpdater();
-        this.cvImporter = cvImporter != null ? cvImporter : new CvImporter();
+        if(cvImporter != null){
+            this.cvImporter = cvImporter;
+        }
         this.cvRemapper = cvRemapper != null ? cvRemapper : new ObsoleteCvRemapper();
 
         rooTerms = new HashMap<String, String>();
