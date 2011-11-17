@@ -103,7 +103,7 @@ public class ObsoleteCvRemapper {
             if (couldRemap){
                 CvUpdateManager manager = updateContext.getManager();
 
-                Query remapQuery = factory.getEntityManager().createQuery("select distinct c from CvDagObject c left join c.xrefs as x " +
+                Query remapQuery = factory.getEntityManager().createQuery("select distinct c from "+term.getClass().getSimpleName()+" c left join c.xrefs as x " +
                         "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and x.primaryId = :identifier) " +
                         "or (" +
                         "c.identifier = :identifier and " +

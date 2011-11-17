@@ -107,7 +107,7 @@ public class CvImporter {
         // we just create this term and its parent if they don't exist
         else {
 
-            List<CvDagObject> cvObjects = fetchIntactCv(ontologyTerm.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+            List<CvDagObject> cvObjects = fetchIntactCv(ontologyTerm.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
             CvDagObject cvObject = null;
 
@@ -148,7 +148,7 @@ public class CvImporter {
         if (!processedTerms.contains(child.getTermAccession())){
             processedTerms.add(child.getTermAccession());
 
-            List<CvDagObject> cvObjects = fetchIntactCv(child.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+            List<CvDagObject> cvObjects = fetchIntactCv(child.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
             CvDagObject cvObject = null;
 
@@ -184,10 +184,10 @@ public class CvImporter {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private List<CvDagObject> fetchIntactCv(String id, String db){
+    private List<CvDagObject> fetchIntactCv(String id, String db, String cvClass){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        Query query = factory.getEntityManager().createQuery("select distinct c from CvDagObject c left join c.xrefs as x " +
+        Query query = factory.getEntityManager().createQuery("select distinct c from "+cvClass+" c left join c.xrefs as x " +
                 "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and x.primaryId = :identifier) " +
                 "or (" +
                 "c.identifier = :identifier and " +
@@ -367,7 +367,7 @@ public class CvImporter {
                         needToImportParents = false;
                     }
 
-                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
                     if (cvObjects.size() > 1){
                         CvUpdateManager cvManager = updateContext.getManager();
@@ -415,7 +415,7 @@ public class CvImporter {
                         needToImportParents = false;
                     }
 
-                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier());
+                    List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
                     if (cvObjects.size() > 1){
                         CvUpdateManager cvManager = updateContext.getManager();

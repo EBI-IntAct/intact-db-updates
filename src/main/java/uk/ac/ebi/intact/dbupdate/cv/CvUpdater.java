@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -28,13 +29,13 @@ import java.util.regex.Matcher;
 
 public class CvUpdater {
 
-    private Map<String, List<CvDagObject>> missingParents;
+    private Map<String, Set<CvDagObject>> missingParents;
     private Set<String> processedTerms;
 
     public final static String ALIAS_TYPE="database alias";
 
     public CvUpdater() {
-        missingParents = new HashMap<String, List<CvDagObject>>();
+        missingParents = new HashMap<String, Set<CvDagObject>>();
         processedTerms = new HashSet<String>();
     }
 
@@ -202,8 +203,16 @@ public class CvUpdater {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
+        // root terms to exclude
+        Collection<IntactOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
+
         // parents of the term in the ontology
-        Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(ontologyTerm);
+        Set<IntactOntologyTermI> allParents = ontologyAccess.getDirectParents(ontologyTerm);
+        // parents of the term in the ontology which are not root terms
+        Set<IntactOntologyTermI> parents = new HashSet<IntactOntologyTermI>(CollectionUtils.disjunction(allParents, rootTerms));
+        // parents of the term in the ontology which are not root terms
+        Set<IntactOntologyTermI> rootParents = new HashSet<IntactOntologyTermI>(CollectionUtils.intersection(allParents, rootTerms));
+
         // missing parents to create
         Set<IntactOntologyTermI> missingParents = new HashSet<IntactOntologyTermI>(parents);
         // parents to delete
@@ -219,7 +228,7 @@ public class CvUpdater {
                 Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(parent.getIdentifier());
 
                 if (matcher.find() && matcher.group().equalsIgnoreCase(parent.getIdentifier())){
-                     identityValue = parent.getIdentifier();
+                    identityValue = parent.getIdentifier();
                 }
                 else {
                     continue;
@@ -277,7 +286,7 @@ public class CvUpdater {
                     this.missingParents.get(parent.getTermAccession()).add(term);
                 }
                 else {
-                    List<CvDagObject> objects = new ArrayList<CvDagObject>();
+                    Set<CvDagObject> objects = new HashSet<CvDagObject>();
                     objects.add(term);
 
                     this.missingParents.put(parent.getTermAccession(), objects);
@@ -286,6 +295,44 @@ public class CvUpdater {
             else {
                 term.addParent(parentFromDb);
                 updateEvt.getCreatedParents().add(parentFromDb);
+            }
+        }
+
+        // update parents from other ontology
+        if (ontologyAccess.getParentFromOtherOntology() != null && !rootParents.isEmpty()){
+            String parentFromOtherOntology = ontologyAccess.getParentFromOtherOntology();
+            boolean hasFoundParent = false;
+
+            for (CvDagObject parent : cvParents){
+
+                Collection<CvObjectXref> identities = XrefUtils.getIdentityXrefs(parent);
+                // this parent cannot be updated because is not from the same ontology
+                if (identities.isEmpty()){
+                    if (parent.getIdentifier().equalsIgnoreCase(parentFromOtherOntology)){
+                        hasFoundParent = true;
+                    }
+                }
+                else {
+                    for (CvObjectXref identit : identities){
+                        if (identit.getPrimaryId().equals(parentFromOtherOntology)){
+                            hasFoundParent = true;
+                        }
+                    }
+
+                    hasFoundParent = parent.getIdentifier().equalsIgnoreCase(parentFromOtherOntology);
+                }
+            }
+
+            if (!hasFoundParent){
+                if (this.missingParents.containsKey(parentFromOtherOntology)){
+                    this.missingParents.get(parentFromOtherOntology).add(term);
+                }
+                else {
+                    Set<CvDagObject> objects = new HashSet<CvDagObject>();
+                    objects.add(term);
+
+                    this.missingParents.put(parentFromOtherOntology, objects);
+                }
             }
         }
     }
@@ -732,7 +779,7 @@ public class CvUpdater {
         return cluster;
     }
 
-    public Map<String, List<CvDagObject>> getMissingParents() {
+    public Map<String, Set<CvDagObject>> getMissingParents() {
         return missingParents;
     }
 

@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * The cv update manager
@@ -306,43 +307,67 @@ public class CvUpdateManager {
         CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
 
         // import missing parents and update children
-        for (Map.Entry<String, List<CvDagObject>> missing : cvUpdater.getMissingParents().entrySet()){
+        for (Map.Entry<String, Set<CvDagObject>> missing : cvUpdater.getMissingParents().entrySet()){
             updateContext.clear();
-            updateContext.setOntologyAccess(access);
 
-            IntactOntologyTermI ontologyTerm = access.getTermForAccession(missing.getKey());
+            boolean hasFoundOntology = false;
 
-            if (ontologyTerm != null){
-                updateContext.setOntologyTerm(ontologyTerm);
+            for (String ontologyId : intactOntologyManager.getOntologyIDs()){
+                IntactOntologyAccess otherAccess = intactOntologyManager.getOntologyAccess(ontologyId);
 
-                log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
-                cvImporter.importCv(updateContext, false);
+                Matcher matcher = otherAccess.getDatabaseRegexp().matcher(missing.getKey());
 
-                if (updateContext.getCvTerm() != null){
-                    for (CvDagObject child : missing.getValue()){
-                        log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
+                if (matcher.find() && matcher.group().equalsIgnoreCase(missing.getKey())){
+                    hasFoundOntology = true;
 
-                        IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().merge(child);
+                    updateContext.setOntologyAccess(otherAccess);
 
-                        child.addParent(updateContext.getCvTerm());
-                        cvDao.update(updateContext.getCvTerm());
-                        cvDao.update(child);
+                    IntactOntologyTermI ontologyTerm = otherAccess.getTermForAccession(missing.getKey());
+
+                    if (ontologyTerm != null){
+                        updateContext.setOntologyTerm(ontologyTerm);
+
+                        log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
+                        cvImporter.importCv(updateContext, false);
+
+                        if (updateContext.getCvTerm() != null){
+                            for (CvDagObject child : missing.getValue()){
+                                log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
+
+                                IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().merge(child);
+
+                                child.addParent(updateContext.getCvTerm());
+                                cvDao.update(updateContext.getCvTerm());
+                                cvDao.update(child);
+                            }
+
+                            processedIntactAcs.add(updateContext.getCvTerm().getAc());
+                        }
+                        else {
+                            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + missing.getKey() + " cannot be imported into the database", missing.getKey(), null, null);
+
+                            UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                            fireOnUpdateError(evt);
+                        }
                     }
+                    else {
+                        CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.non_existing_term, "Cv object " + missing.getKey() + " does not exist in the ontology " + otherAccess.getOntologyID(), missing.getKey(), null, null);
 
-                    processedIntactAcs.add(updateContext.getCvTerm().getAc());
+                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                        fireOnUpdateError(evt);
+
+                    }
                 }
-                else {
-                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + missing.getKey() + " cannot be imported into the database", missing.getKey(), null, null);
+            }
+
+            if (!hasFoundOntology){
+                if (!hasFoundOntology){
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.ontology_access_not_found, "Cv object " + missing.getKey() + " cannot be remapped to an existing ontology and " + missing.getValue().size() + " children cannot be updated.", missing.getKey(), null, null);
 
                     UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                     fireOnUpdateError(evt);
-                }
-            }
-            else {
-                CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.non_existing_term, "Cv object " + missing.getKey() + " does not exist in the ontology " + access.getOntologyID(), missing.getKey(), null, null);
 
-                UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
-                fireOnUpdateError(evt);
+                }
             }
         }
     }
@@ -421,6 +446,7 @@ public class CvUpdateManager {
 
         Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x, CvDagObject c2 left join c2.xrefs as x2 " +
                 "where c.ac <> c2.ac " +
+                "and c.objClass <> c2.objClass " +
                 "and (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and " +
                 "((x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x.primaryId = x2.primaryId) or x.primaryId = c2.identifier))" +
                 "or (x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and " +
