@@ -300,7 +300,6 @@ public class CvUpdateManager {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void createMissingParents() throws IllegalAccessException, InstantiationException {
-        IntactOntologyAccess access = this.updateContext.getOntologyAccess();
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -395,6 +394,73 @@ public class CvUpdateManager {
 
                 UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                 fireOnUpdateError(evt);
+            }
+        }
+
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+
+        // update missing parents from other ontologies
+        for (Map.Entry<String, Set<CvDagObject>> entry : cvImporter.getMissingRootParents().entrySet()){
+            updateContext.clear();
+
+            boolean hasFoundOntology = false;
+
+            for (String ontologyId : intactOntologyManager.getOntologyIDs()){
+                IntactOntologyAccess otherAccess = intactOntologyManager.getOntologyAccess(ontologyId);
+
+                Matcher matcher = otherAccess.getDatabaseRegexp().matcher(entry.getKey());
+
+                if (matcher.find() && matcher.group().equalsIgnoreCase(entry.getKey())){
+                    hasFoundOntology = true;
+
+                    updateContext.setOntologyAccess(otherAccess);
+
+                    IntactOntologyTermI ontologyTerm = otherAccess.getTermForAccession(entry.getKey());
+
+                    if (ontologyTerm != null){
+                        updateContext.setOntologyTerm(ontologyTerm);
+
+                        log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
+                        cvImporter.importCv(updateContext, false);
+
+                        if (updateContext.getCvTerm() != null){
+                            for (CvDagObject child : entry.getValue()){
+                                log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
+
+                                IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().merge(child);
+
+                                child.addParent(updateContext.getCvTerm());
+                                cvDao.update(updateContext.getCvTerm());
+                                cvDao.update(child);
+                            }
+
+                            processedIntactAcs.add(updateContext.getCvTerm().getAc());
+                        }
+                        else {
+                            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + entry.getKey() + " cannot be imported into the database", entry.getKey(), null, null);
+
+                            UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                            fireOnUpdateError(evt);
+                        }
+                    }
+                    else {
+                        CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.non_existing_term, "Cv object " + entry.getKey() + " does not exist in the ontology " + otherAccess.getOntologyID(), entry.getKey(), null, null);
+
+                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                        fireOnUpdateError(evt);
+
+                    }
+                }
+            }
+
+            if (!hasFoundOntology){
+                if (!hasFoundOntology){
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.ontology_access_not_found, "Cv object " + entry.getKey() + " cannot be remapped to an existing ontology and " + entry.getValue().size() + " children cannot be updated.", entry.getKey(), null, null);
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    fireOnUpdateError(evt);
+
+                }
             }
         }
     }
@@ -531,21 +597,37 @@ public class CvUpdateManager {
             IntactOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(cvObject.getIdentifier());
 
             if (ontologyTerm != null){
-                // set obsolete and ontology term of the context
-                boolean isObsolete = ontologyAccess.isObsolete(ontologyTerm);
+                Class<? extends CvDagObject> classForTerm = cvImporter.findCvClassFor(ontologyTerm, ontologyAccess);
 
-                this.updateContext.setOntologyTerm(ontologyTerm);
-                this.updateContext.setTermObsolete(isObsolete);
+                if (classForTerm != null && cvObject.getClass().equals(classForTerm)){
+                    // set obsolete and ontology term of the context
+                    boolean isObsolete = ontologyAccess.isObsolete(ontologyTerm);
 
-                if (isObsolete){
-                    cvRemapper.remapObsoleteCvTerm(updateContext);
+                    this.updateContext.setOntologyTerm(ontologyTerm);
+                    this.updateContext.setTermObsolete(isObsolete);
+
+                    if (isObsolete){
+                        cvRemapper.remapObsoleteCvTerm(updateContext);
+                    }
+
+                    // if it has been remapped successfully to an existing cv but from another ontology so we stop the update of this cv here
+                    // and finish later
+                    if (updateContext.getOntologyTerm() != null){
+                        cvUpdater.updateTerm(this.updateContext);
+                        processedIntactAcs.add(cvObject.getAc());
+                    }
                 }
+                else if (classForTerm == null){
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.cv_class_not_found, "Impossible to find a cv class for cv identity " + identity, identity, cvObject.getAc(), cvObject.getShortLabel());
 
-                // if it has been remapped successfully to an existing cv but from another ontology so we stop the update of this cv here
-                // and finish later
-                if (updateContext.getOntologyTerm() != null){
-                    cvUpdater.updateTerm(this.updateContext);
-                    processedIntactAcs.add(cvObject.getAc());
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    fireOnUpdateError(evt);
+                }
+                else {
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.invalid_cv_class, "The cv " + cvObject.getAc() + " is of type " + cvObject.getClass().getCanonicalName() + " but the valid class type should be " + classForTerm.getCanonicalName(), identity, cvObject.getAc(), cvObject.getShortLabel());
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    fireOnUpdateError(evt);
                 }
             }
             else {
