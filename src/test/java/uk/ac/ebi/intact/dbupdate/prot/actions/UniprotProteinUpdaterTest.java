@@ -126,7 +126,8 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(createdProtein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(12, createdProtein.getXrefs().size());
+        // 4 uniprot + 10 other xrefs
+        Assert.assertEquals(14, createdProtein.getXrefs().size());
         Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(createdProtein.getAc()));
 
         getDataContext().commitTransaction(status);
@@ -464,7 +465,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(12, updatedProtein.getXrefs().size());
+        Assert.assertEquals(14, updatedProtein.getXrefs().size());
         Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
         Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 

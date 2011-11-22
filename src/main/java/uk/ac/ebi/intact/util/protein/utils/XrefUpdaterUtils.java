@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
+import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -21,6 +22,8 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.util.protein.CvHelper;
+import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
+import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.*;
 
@@ -52,40 +55,6 @@ public final class XrefUpdaterUtils {
             xrefs.add( convert( uniprotXref, db ) );
         }
         return xrefs;
-    }
-
-    public static Map<String, Collection<UniprotXref>> clusterByDatabaseName( Collection<UniprotXref> xrefs ) {
-
-        Map<String, Collection<UniprotXref>> xrefCluster = new HashMap<String, Collection<UniprotXref>>( xrefs.size() );
-
-        for ( UniprotXref cr : xrefs ) {
-            Collection<UniprotXref> c = xrefCluster.get( cr.getDatabase() );
-            if ( c == null ) {
-                // not found, add an entry
-                c = new ArrayList<UniprotXref>();
-                xrefCluster.put( cr.getDatabase(), c );
-            }
-            c.add( cr );
-        }
-
-        return xrefCluster;
-    }
-
-    public static Map<String, Collection<InteractorXref>> clusterInteractorXrefByDatabaseName( Collection<InteractorXref> xrefs ) {
-
-        Map<String, Collection<InteractorXref>> xrefCluster = new HashMap<String, Collection<InteractorXref>>( xrefs.size() );
-
-        for ( InteractorXref cr : xrefs ) {
-            Collection<InteractorXref> c = xrefCluster.get( cr.getCvDatabase().getIdentifier());
-            if ( c == null ) {
-                // not found, add an entry
-                c = new ArrayList<InteractorXref>();
-                xrefCluster.put( cr.getCvDatabase().getIdentifier(), c );
-            }
-            c.add( cr );
-        }
-
-        return xrefCluster;
     }
 
     public static XrefUpdaterReport updateAllProteinTranscriptXrefs( Protein protein,
@@ -133,118 +102,198 @@ public final class XrefUpdaterUtils {
                                                     UniprotProtein uniprotProtein,
                                                     Map<String, String> databaseName2mi,
                                                     DataContext context,
-                                                    ProteinUpdateProcessor processor
+                                                    ProteinUpdateProcessor processor,
+                                                    InteractorXrefComparator interactorXrefComparator,
+                                                    UniprotXrefComparator uniprotXrefComparator
     ) {
 
-        Map<String, Collection<InteractorXref>> xrefCluster = XrefUpdaterUtils.clusterInteractorXrefByDatabaseName(protein.getXrefs());
-        Map<String, Collection<UniprotXref>> uniprotCluster = XrefUpdaterUtils.clusterByDatabaseName(uniprotProtein.getCrossReferences());
+        TreeSet<InteractorXref> sortedXrefs = new TreeSet<InteractorXref>(interactorXrefComparator);
+        sortedXrefs.addAll(protein.getXrefs());
+        Iterator<InteractorXref> intactIterator = sortedXrefs.iterator();
+
+        TreeSet<UniprotXref> sortedUniprotXrefs = new TreeSet<UniprotXref>(uniprotXrefComparator);
+        sortedUniprotXrefs.addAll(uniprotProtein.getCrossReferences());
+        Iterator<UniprotXref> uniprotIterator = sortedUniprotXrefs.iterator();
 
         List<Xref> createdXrefs = new ArrayList<Xref>(uniprotProtein.getCrossReferences().size());
         List<Xref> deletedXrefs = new ArrayList<Xref>(protein.getXrefs().size());
+
         DaoFactory daoFactory = context.getDaoFactory();
         CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
+        XrefDao<InteractorXref> refDao = daoFactory.getXrefDao(InteractorXref.class);
 
-        Set<String> miInUniprot = new HashSet<String>(uniprotCluster.size());
-        // create missing xrefs
-        for ( Map.Entry<String, Collection<UniprotXref>> entry : uniprotCluster.entrySet() ) {
+        InteractorXref currentIntact = null;
+        UniprotXref currentUniprot = null;
+        String db = null;
 
-            String db = entry.getKey();
-            Collection<UniprotXref> uniprotXrefs = entry.getValue();
+        if (intactIterator.hasNext() && uniprotIterator.hasNext()){
+            currentIntact = intactIterator.next();
+            currentUniprot = uniprotIterator.next();
+            db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
 
-            // search by shortlabel is dodgy ! Try mapping to MI:xxxx first.
-            String mi = databaseName2mi.get( db.toLowerCase() );
+            if (db != null){
+                do{
+                    int dbComparator = currentIntact.getCvDatabase().getIdentifier().compareTo(db);
 
-            if (mi != null){
-                miInUniprot.add(mi);
-            }
+                    if (dbComparator == 0) {
+                        int acComparator = currentIntact.getPrimaryId().compareTo(currentUniprot.getAccession());
 
-            // we update xrefs excepted uniprot and intact
-            if (mi != null && !mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF)){
-
-                if (xrefCluster.containsKey(mi)){
-                    Collection<InteractorXref> interactorXrefs = xrefCluster.get(mi);
-
-                    CvDatabase database = interactorXrefs.iterator().next().getCvDatabase();
-
-                    // delete xrefs not in uniprot
-                    for (InteractorXref xref : interactorXrefs){
-
-                        String primaryId = xref.getPrimaryId();
-
-                        UniprotXref match = null;
-                        for (UniprotXref uniref : uniprotXrefs){
-                            if (uniref.getAccession().equalsIgnoreCase(primaryId)){
-                                match = uniref;
-                                break;
+                        if (acComparator == 0) {
+                            if (intactIterator.hasNext() && uniprotIterator.hasNext()){
+                                currentIntact = intactIterator.next();
+                                currentUniprot = uniprotIterator.next();
+                            }
+                            else {
+                                currentIntact = null;
+                                currentUniprot = null;
                             }
                         }
+                        else if (acComparator > 0) {
+                            //intact has no match in uniprot
+                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                                deletedXrefs.add(currentIntact);
+                                protein.removeXref(currentIntact);
 
-                        if (match == null){
-                            deletedXrefs.add(xref);
-                            ProteinTools.deleteInteractorXRef(protein, context, xref);
+                                refDao.delete(currentIntact);
+                            }
+
+                            if (intactIterator.hasNext()){
+                                currentIntact = intactIterator.next();
+                            }
+                            else {
+                                currentIntact = null;
+                            }
                         }
                         else {
-                            // we can remove this uniprot ref, we don't need it anymore
-                            uniprotXrefs.remove(match);
-                        }
-                    }
+                            //uniprot has no match in intact
+                            CvDatabase cvDb = currentIntact.getCvDatabase();
 
-                    // create new xrefs with resting uniprot xrefs
-                    for (UniprotXref uniprotRef : uniprotXrefs){
-                        InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), database, uniprotRef.getAccession(), null);
-                        protein.addXref(newXref);
-
-                        daoFactory.getXrefDao(InteractorXref.class).persist(newXref);
-
-                        createdXrefs.add(newXref);
-                    }
-                }
-                else {
-                    CvDatabase database = dbDao.getByPsiMiRef( mi );
-
-                    if (database != null){
-
-                        for (UniprotXref ref : uniprotXrefs){
-                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), database, ref.getAccession(), null);
+                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprot.getAccession(), null);
                             protein.addXref(newXref);
 
-                            daoFactory.getXrefDao(InteractorXref.class).persist(newXref);
+                            refDao.persist(newXref);
 
                             createdXrefs.add(newXref);
+
+                            if (uniprotIterator.hasNext()){
+                                currentUniprot = uniprotIterator.next();
+                                db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+                            }
+                            else {
+                                currentUniprot = null;
+                                db = null;
+                            }
                         }
+                    }
+                    else if (dbComparator > 0) {
+                        //intact has no match in uniprot
+                        if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                            deletedXrefs.add(currentIntact);
+                            protein.removeXref(currentIntact);
+
+                            refDao.delete(currentIntact);
+                        }
+                        if (intactIterator.hasNext()){
+                            currentIntact = intactIterator.next();
+                        }
+                        else {
+                            currentIntact = null;
+                        }
+                    }
+                    else {
+                        //uniprot has no match in intact
+                        CvDatabase cvDb = dbDao.getByIdentifier(db);
+
+                        if (cvDb != null){
+
+                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprot.getAccession(), null);
+                            protein.addXref(newXref);
+
+                            refDao.persist(newXref);
+
+                            createdXrefs.add(newXref);
+
+                        }
+                        else {
+                            log.debug("We are not copying across xref to " + db);
+                        }
+
+                        if (uniprotIterator.hasNext()){
+                            currentUniprot = uniprotIterator.next();
+                            db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+                        }
+                        else {
+                            currentUniprot = null;
+                            db = null;
+                        }
+                    }
+                } while (currentIntact != null && currentUniprot != null && db != null);
+            }
+        }
+
+        if (currentIntact != null || intactIterator.hasNext()){
+            if (currentIntact == null ){
+                currentIntact = intactIterator.next();
+            }
+
+            do {
+                //intact has no match in uniprot
+                if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                    deletedXrefs.add(currentIntact);
+
+                    protein.removeXref(currentIntact);
+
+                    refDao.delete(currentIntact);
+                }
+
+                if (intactIterator.hasNext()){
+                    currentIntact = intactIterator.next();
+                }
+                else {
+                    currentIntact = null;
+                }
+            }while (currentIntact != null);
+        }
+
+        if (currentUniprot != null || uniprotIterator.hasNext()){
+            if (currentUniprot == null ){
+                currentUniprot = uniprotIterator.next();
+                db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+            }
+
+            if (db != null){
+                do {
+                    //uniprot has no match in intact
+                    CvDatabase cvDb = dbDao.getByIdentifier(db);
+
+                    if (cvDb != null){
+
+                        InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprot.getAccession(), null);
+                        protein.addXref(newXref);
+
+                        refDao.persist(newXref);
+
+                        createdXrefs.add(newXref);
 
                     }
                     else {
                         log.debug("We are not copying across xref to " + db);
                     }
+
+                    if (uniprotIterator.hasNext()){
+                        currentUniprot = uniprotIterator.next();
+                        db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+                    }
+                    else {
+                        currentUniprot = null;
+                        db = null;
+                    }
                 }
-
-            }
-            else {
-                log.debug("We are not copying across xref to " + db);
-
-                // delete xrefs if exist for this database
-                if (xrefCluster.containsKey(mi)){
-                    deletedXrefs.addAll(xrefCluster.get(mi));
-                }
-            }
-        }
-
-        // we delete all xrefs which are in intact but not in uniprot excepted intact plus uniprot
-        Collection<String> miToDelete = CollectionUtils.subtract(xrefCluster.keySet(), miInUniprot);
-
-        for (String mi : miToDelete){
-            if (!mi.equals(CvDatabase.UNIPROT_MI_REF) && !mi.equals(CvDatabase.INTACT_MI_REF) && xrefCluster.containsKey(mi)){
-
-                for (InteractorXref x : xrefCluster.get(mi)){
-                    deletedXrefs.add(x);
-                    ProteinTools.deleteInteractorXRef(protein, context, x);
-                }
+                while (currentUniprot != null && db != null);
             }
         }
 
         // update uniprot xrefs
-
         XrefUpdaterReport report = updateUniprotXrefs(protein, uniprotProtein, context, processor);
 
         if (report == null && (!createdXrefs.isEmpty() || !deletedXrefs.isEmpty())){
@@ -565,4 +614,22 @@ public final class XrefUpdaterUtils {
         }
         return reports;
     }
+
+    public static Map<String, Collection<UniprotXref>> clusterByDatabaseName( Collection<UniprotXref> xrefs ) {
+
+        Map<String, Collection<UniprotXref>> xrefCluster = new HashMap<String, Collection<UniprotXref>>( xrefs.size() );
+
+        for ( UniprotXref cr : xrefs ) {
+            Collection<UniprotXref> c = xrefCluster.get( cr.getDatabase() );
+            if ( c == null ) {
+                // not found, add an entry
+                c = new ArrayList<UniprotXref>();
+                xrefCluster.put( cr.getDatabase(), c );
+            }
+            c.add( cr );
+        }
+
+        return xrefCluster;
+    }
+
 }

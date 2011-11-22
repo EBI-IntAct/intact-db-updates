@@ -48,6 +48,8 @@ import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.CvHelper;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.intact.util.protein.utils.*;
+import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
+import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,6 +84,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private BioSourceService bioSourceService;
     private OutOfDateParticipantFixer participantFixer;
 
+    private InteractorXrefComparator interactorXrefComparator;
+    private UniprotXrefComparator uniprotXrefComparator;
+
     public UniprotProteinUpdaterImpl(TaxonomyService taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
@@ -114,6 +119,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             this.participantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
         }
+
+        interactorXrefComparator = new InteractorXrefComparator();
+        uniprotXrefComparator = new UniprotXrefComparator(databaseName2mi);
     }
 
     /**
@@ -361,7 +369,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor );
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor, this.interactorXrefComparator, this.uniprotXrefComparator );
         if (reports != null){
             hasBeenUpdated = true;
 

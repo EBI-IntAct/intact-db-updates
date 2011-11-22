@@ -39,6 +39,8 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvInteractorType.class, CvInteractorType.DNA, CvInteractorType.DNA_MI_REF);
         getCvObject(CvDatabase.class, CvDatabase.UNIPROT, CvDatabase.UNIPROT_MI_REF);
         getCvObject(CvDatabase.class, CvDatabase.INTERPRO, CvDatabase.INTERPRO_MI_REF);
+        getCvObject(CvDatabase.class, CvDatabase.PDB, CvDatabase.PDB_MI_REF);
+        getCvObject(CvDatabase.class, CvDatabase.ENSEMBL, CvDatabase.ENSEMBL_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.SECONDARY_AC, CvXrefQualifier.SECONDARY_AC_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT, CvXrefQualifier.ISOFORM_PARENT_MI_REF);
         getCvObject(CvXrefQualifier.class, "chain-parent", "MI:0951");

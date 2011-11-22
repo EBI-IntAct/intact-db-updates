@@ -37,6 +37,8 @@ import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.protein.utils.*;
+import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
+import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.*;
 
@@ -771,7 +773,7 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor);
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor, new InteractorXrefComparator(), new UniprotXrefComparator(databaseName2mi));
 
         uniprotServiceResult.addXrefUpdaterReport(reports);
 
