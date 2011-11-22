@@ -249,7 +249,7 @@ public final class XrefUpdaterUtils {
 
             do {
                 //intact has no match in uniprot
-                if (cvDatabase == null || (cvDatabase != null && !CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()))){
+                if (cvDatabase == null || (cvDatabase != null && !CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()))){
                     deletedXrefs.add(currentIntact);
 
                     protein.removeXref(currentIntact);
@@ -259,9 +259,11 @@ public final class XrefUpdaterUtils {
 
                 if (intactIterator.hasNext()){
                     currentIntact = intactIterator.next();
+                    cvDatabase = currentIntact.getCvDatabase();
                 }
                 else {
                     currentIntact = null;
+                    cvDatabase = null;
                 }
             }while (currentIntact != null);
         }
