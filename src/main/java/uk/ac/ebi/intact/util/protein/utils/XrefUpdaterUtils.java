@@ -125,15 +125,17 @@ public final class XrefUpdaterUtils {
         InteractorXref currentIntact = null;
         UniprotXref currentUniprot = null;
         String db = null;
+        CvDatabase cvDatabase = null;
 
         if (intactIterator.hasNext() && uniprotIterator.hasNext()){
             currentIntact = intactIterator.next();
             currentUniprot = uniprotIterator.next();
             db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+            cvDatabase = currentIntact.getCvDatabase();
 
-            if (db != null){
+            if (db != null && cvDatabase != null){
                 do{
-                    int dbComparator = currentIntact.getCvDatabase().getIdentifier().compareTo(db);
+                    int dbComparator = cvDatabase.getIdentifier().compareTo(db);
 
                     if (dbComparator == 0) {
                         int acComparator = currentIntact.getPrimaryId().compareTo(currentUniprot.getAccession());
@@ -142,15 +144,19 @@ public final class XrefUpdaterUtils {
                             if (intactIterator.hasNext() && uniprotIterator.hasNext()){
                                 currentIntact = intactIterator.next();
                                 currentUniprot = uniprotIterator.next();
+                                db = databaseName2mi.get(currentUniprot.getDatabase().toLowerCase());
+                                cvDatabase = currentIntact.getCvDatabase();
                             }
                             else {
                                 currentIntact = null;
                                 currentUniprot = null;
+                                db = null;
+                                cvDatabase = null;
                             }
                         }
                         else if (acComparator > 0) {
                             //intact has no match in uniprot
-                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
                                 deletedXrefs.add(currentIntact);
                                 protein.removeXref(currentIntact);
 
@@ -159,14 +165,16 @@ public final class XrefUpdaterUtils {
 
                             if (intactIterator.hasNext()){
                                 currentIntact = intactIterator.next();
+                                cvDatabase = currentIntact.getCvDatabase();
                             }
                             else {
                                 currentIntact = null;
+                                cvDatabase = null;
                             }
                         }
                         else {
                             //uniprot has no match in intact
-                            CvDatabase cvDb = currentIntact.getCvDatabase();
+                            CvDatabase cvDb = cvDatabase;
 
                             InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprot.getAccession(), null);
                             protein.addXref(newXref);
@@ -195,9 +203,11 @@ public final class XrefUpdaterUtils {
                         }
                         if (intactIterator.hasNext()){
                             currentIntact = intactIterator.next();
+                            cvDatabase = currentIntact.getCvDatabase();
                         }
                         else {
                             currentIntact = null;
+                            cvDatabase = null;
                         }
                     }
                     else {
@@ -227,18 +237,19 @@ public final class XrefUpdaterUtils {
                             db = null;
                         }
                     }
-                } while (currentIntact != null && currentUniprot != null && db != null);
+                } while (currentIntact != null && currentUniprot != null && db != null && cvDatabase != null);
             }
         }
 
         if (currentIntact != null || intactIterator.hasNext()){
             if (currentIntact == null ){
                 currentIntact = intactIterator.next();
+                cvDatabase = currentIntact.getCvDatabase();
             }
 
             do {
                 //intact has no match in uniprot
-                if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                if (cvDatabase == null || (cvDatabase != null && !CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()))){
                     deletedXrefs.add(currentIntact);
 
                     protein.removeXref(currentIntact);

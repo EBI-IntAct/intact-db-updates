@@ -45,7 +45,7 @@ public class UniprotXrefComparator implements Comparator<UniprotXref>{
             return BEFORE;
         }
         else {
-            return o1.getAccession().toLowerCase().compareTo(o2.getAccession().toLowerCase());
+            return EQUAL;
         }
     }
 }
