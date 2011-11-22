@@ -27,7 +27,18 @@ public class InteractorAliasComparator implements Comparator<InteractorAlias>{
             return BEFORE;
         }
         else if (o1.getCvAliasType() == null && o2.getCvAliasType() == null){
-            return EQUAL;
+            if (o1.getName() == null && o2.getName() != null){
+                return AFTER;
+            }
+            else if (o1.getName() == null && o2.getName() != null){
+                return BEFORE;
+            }
+            else if (o1.getName() == null && o2.getName() == null){
+                return EQUAL;
+            }
+            else {
+                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+            }
         }
         else {
             String identifier1 = o1.getCvAliasType().getIdentifier();
@@ -78,7 +89,7 @@ public class InteractorAliasComparator implements Comparator<InteractorAlias>{
                 return AFTER;
             }
             else {
-                return EQUAL;
+                return identifier1.compareTo(identifier2);
             }
         }
     }
