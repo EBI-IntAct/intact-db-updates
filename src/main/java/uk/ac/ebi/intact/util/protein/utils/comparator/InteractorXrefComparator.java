@@ -36,7 +36,7 @@ public class InteractorXrefComparator implements Comparator<InteractorXref>{
             return BEFORE;
         }
         else {
-            return EQUAL;
+            return o1.getPrimaryId().toLowerCase().compareTo(o2.getPrimaryId().toLowerCase());
         }
     }
 }
