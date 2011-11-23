@@ -2,15 +2,12 @@ package uk.ac.ebi.intact.dbupdate.cv;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
-import psidev.psi.tools.ontology_manager.interfaces.OntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.IntactOntologyManager;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -23,7 +20,6 @@ import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import javax.persistence.Query;
@@ -31,6 +27,7 @@ import javax.swing.event.EventListenerList;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 
@@ -41,13 +38,11 @@ import java.util.regex.Matcher;
  * @version $Id$
  * @since <pre>11/11/11</pre>
  */
-@Component
 public class CvUpdateManager {
     private static final Log log = LogFactory.getLog(CvUpdateManager.class);
 
     private CvUpdater cvUpdater;
 
-    @Autowired
     private CvImporter cvImporter;
 
     private ObsoleteCvRemapper cvRemapper;
@@ -67,8 +62,13 @@ public class CvUpdateManager {
 
     private Set<String> processedIntactAcs = new HashSet<String>();
 
-    public CvUpdateManager() throws IOException, OntologyLoaderException {
-        InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
+    public CvUpdateManager(URL ontologyConfigPath) throws IOException, OntologyLoaderException {
+
+        if (ontologyConfigPath == null){
+            throw new IllegalArgumentException("The url to the ontology config file cannot be null.");
+        }
+
+        InputStream ontology = ontologyConfigPath.openStream();
 
         reportDirectory = new File("reports");
         registerBasicListeners(reportDirectory);
@@ -86,8 +86,15 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
-    public CvUpdateManager(String reportDirectoryName) throws IOException, OntologyLoaderException {
-        InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
+    public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName) throws IOException, OntologyLoaderException {
+        if (ontologyConfigPath == null){
+            throw new IllegalArgumentException("The url to the ontology config file cannot be null.");
+        }
+        if (reportDirectoryName == null){
+            throw new IllegalArgumentException("The name of the directory where to write the reports cannot be null.");
+        }
+
+        InputStream ontology = ontologyConfigPath.openStream();
 
         reportDirectory = new File(reportDirectoryName);
         registerBasicListeners(reportDirectory);
@@ -104,8 +111,15 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
-    public CvUpdateManager(String reportDirectoryName, CvUpdater cvUpdater, CvImporter cvImporter, ObsoleteCvRemapper cvRemapper) throws IOException, OntologyLoaderException {
-        InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
+    public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName, CvUpdater cvUpdater, CvImporter cvImporter, ObsoleteCvRemapper cvRemapper) throws IOException, OntologyLoaderException {
+        if (ontologyConfigPath == null){
+            throw new IllegalArgumentException("The url to the ontology config file cannot be null.");
+        }
+        if (reportDirectoryName == null){
+            throw new IllegalArgumentException("The name of the directory where to write the reports cannot be null.");
+        }
+
+        InputStream ontology = ontologyConfigPath.openStream();
 
         reportDirectory = new File(reportDirectoryName);
         registerBasicListeners(reportDirectory);
@@ -149,7 +163,6 @@ public class CvUpdateManager {
         rooTerms.put("MOD", "MOD:00000");
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAndCreateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -196,7 +209,6 @@ public class CvUpdateManager {
 
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -224,7 +236,6 @@ public class CvUpdateManager {
         checkDuplicatedCvTerms(ontologyAccess);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAll() throws IllegalAccessException, InstantiationException {
         clear();
 
@@ -232,7 +243,6 @@ public class CvUpdateManager {
         updateAllTerms("MOD");
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void hideTerms(Collection<CvObject> cvs, String message){
         clear();
         for (CvObject cv : cvs){
@@ -250,7 +260,6 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void removeHiddenFrom(Collection<CvObject> cvs, String message){
         clear();
         for (CvObject cv : cvs){
@@ -264,7 +273,6 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     public CvDagObject importCvTerm(String identifier, String ontologyId, boolean includeChildren){
         clear();
 
@@ -298,15 +306,16 @@ public class CvUpdateManager {
         return updateContext.getCvTerm();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void createMissingParents() throws IllegalAccessException, InstantiationException {
-
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
         CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
 
         // import missing parents and update children
         for (Map.Entry<String, Set<CvDagObject>> missing : cvUpdater.getMissingParents().entrySet()){
+            TransactionStatus status = dataContext.beginTransaction();
+
             updateContext.clear();
 
             boolean hasFoundOntology = false;
@@ -368,17 +377,22 @@ public class CvUpdateManager {
 
                 }
             }
+
+            dataContext.commitTransaction(status);
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void createMissingTerms() throws IllegalAccessException, InstantiationException {
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
         cvImporter.getProcessedTerms().addAll(cvUpdater.getProcessedTerms());
 
         IntactOntologyAccess ontologyAccess = this.updateContext.getOntologyAccess();
         Collection<IntactOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
 
         for (IntactOntologyTermI root : rootTerms){
+            TransactionStatus status = dataContext.beginTransaction();
+
             updateContext.clear();
             updateContext.setOntologyAccess(ontologyAccess);
             updateContext.setOntologyTerm(root);
@@ -388,6 +402,8 @@ public class CvUpdateManager {
 
             if (updateContext.getCvTerm() != null){
                 processedIntactAcs.add(updateContext.getCvTerm().getAc());
+
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
             }
             else {
                 CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + root.getTermAccession() + " cannot be imported into the database", root.getTermAccession(), null, null);
@@ -395,12 +411,16 @@ public class CvUpdateManager {
                 UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                 fireOnUpdateError(evt);
             }
+
+            dataContext.commitTransaction(status);
         }
 
         CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
 
         // update missing parents from other ontologies
         for (Map.Entry<String, Set<CvDagObject>> entry : cvImporter.getMissingRootParents().entrySet()){
+            TransactionStatus status = dataContext.beginTransaction();
+
             updateContext.clear();
 
             boolean hasFoundOntology = false;
@@ -424,6 +444,8 @@ public class CvUpdateManager {
                         cvImporter.importCv(updateContext, false);
 
                         if (updateContext.getCvTerm() != null){
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
+
                             for (CvDagObject child : entry.getValue()){
                                 log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
 
@@ -451,6 +473,8 @@ public class CvUpdateManager {
 
                     }
                 }
+
+                dataContext.commitTransaction(status);
             }
 
             if (!hasFoundOntology){
@@ -465,11 +489,14 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void updateTermsRemappedToOtherOntologies() throws IllegalAccessException, InstantiationException {
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
         updateContext.clear();
 
         for (Map.Entry<String, Set<CvDagObject>> entry : cvRemapper.getRemappedCvToUpdate().entrySet()){
+            TransactionStatus status = dataContext.beginTransaction();
+
             IntactOntologyAccess ontologyAccess = intactOntologyManager.getOntologyAccess(entry.getKey());
 
             if (ontologyAccess != null){
@@ -489,12 +516,16 @@ public class CvUpdateManager {
                 UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                 fireOnUpdateError(evt);
             }
+
+            dataContext.commitTransaction(status);
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private List<String> getValidCvObjects(IntactOntologyAccess ontologyAccess){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
+        TransactionStatus status = dataContext.beginTransaction();
 
         Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c left join c.xrefs as x " +
                 "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity) " +
@@ -503,13 +534,16 @@ public class CvUpdateManager {
         query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
         query.setParameter("ontologyLikeId", ontologyAccess.getDatabaseRegexp().pattern());
 
+        dataContext.commitTransaction(status);
+
         return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private List<Object[]> getDuplicatedCvObjects(IntactOntologyAccess ontologyAccess){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
+        TransactionStatus status = dataContext.beginTransaction();
         Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x, CvDagObject c2 left join c2.xrefs as x2 " +
                 "where c.ac <> c2.ac " +
                 "and c.objClass <> c2.objClass " +
@@ -520,10 +554,11 @@ public class CvUpdateManager {
         query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
         query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
 
+        dataContext.commitTransaction(status);
+
         return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void updateExistingTerms(){
         IntactOntologyAccess currentOntologyAccess = updateContext.getOntologyAccess();
 
@@ -539,11 +574,12 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void updateCv(String cvObjectAc, IntactOntologyAccess ontologyAccess){
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
+        TransactionStatus status = dataContext.beginTransaction();
         CvDagObject cvObject = factory.getCvObjectDao(CvDagObject.class).getByAc(cvObjectAc);
 
         if (cvObject != null){
@@ -556,9 +592,10 @@ public class CvUpdateManager {
             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
             fireOnUpdateError(evt);
         }
+
+        dataContext.commitTransaction(status);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void updateCv(CvDagObject cvObject, IntactOntologyAccess ontologyAccess){
 
         log.info("Update cv " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
@@ -733,6 +770,10 @@ public class CvUpdateManager {
         for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
             listener.onCreatedCvTerm(evt);
         }
+    }
+
+    public IntactOntologyManager getIntactOntologyManager() {
+        return intactOntologyManager;
     }
 
     public void clear(){
