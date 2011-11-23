@@ -11,7 +11,7 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
-import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
+import uk.ac.ebi.intact.dbupdate.cv.utils.*;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
@@ -34,9 +34,20 @@ public class CvUpdater {
 
     public final static String ALIAS_TYPE="database alias";
 
+    private CvXrefComparator cvXrefComparator;
+    private OntologyXrefComparator ontologyXrefComparator;
+    private CvAliasComparator aliasComparator;
+    private CvAnnotationComparator cvAnnotationComparator;
+    private OntologyAnnotationComparator ontologyAnnotationComparator;
+
     public CvUpdater() {
         missingParents = new HashMap<String, Set<CvDagObject>>();
         processedTerms = new HashSet<String>();
+        cvXrefComparator = new CvXrefComparator();
+        ontologyXrefComparator = new OntologyXrefComparator();
+        aliasComparator = new CvAliasComparator();
+        cvAnnotationComparator = new CvAnnotationComparator();
+        ontologyAnnotationComparator = new OntologyAnnotationComparator();
     }
 
     public void updateTerm(CvUpdateContext updateContext){
@@ -344,159 +355,335 @@ public class CvUpdater {
         CvDagObject term = updateContext.getCvTerm();
         boolean isObsolete = updateContext.isTermObsolete();
 
-        // The annotations to delete
-        Collection<Annotation> cvAnnotations = new ArrayList<Annotation>(term.getAnnotations());
-        // The annotations to create
-        Collection<TermAnnotation> ontologyAnnotations = new ArrayList<TermAnnotation>(ontologyTerm.getAnnotations());
-        // the comments to create
-        Set<String> comments = new HashSet<String>(ontologyTerm.getComments());
+        TreeSet<Annotation> sortedAnnotations = new TreeSet<Annotation>(this.cvAnnotationComparator);
+        sortedAnnotations.addAll(term.getAnnotations());
+        Iterator<Annotation> intactIterator = sortedAnnotations.iterator();
+
+        TreeSet<TermAnnotation> sortedOntologyXrefs = new TreeSet<TermAnnotation>(this.ontologyAnnotationComparator);
+        sortedOntologyXrefs.addAll(ontologyTerm.getAnnotations());
+        Iterator<TermAnnotation> ontologyIterator = sortedOntologyXrefs.iterator();
 
         // boolean value to know if url is in the annotations
         boolean hasFoundURL = false;
         // boolean value to know if definition is in the annotations
         boolean hasFoundDefinition = false;
         // boolean value to know if obsolete is in the annotations
-        boolean hasFondObsolete = false;
+        boolean hasFoundObsolete = false;
         // boolean value to know if hidden is in the annotations
         boolean isHidden = false;
+
+        AnnotationDao annotationDao = factory.getAnnotationDao();
+
+        Annotation currentIntact = null;
+        TermAnnotation currentOntologyRef = null;
+        CvTopic cvTopic = null;
+
+        // the comments to create
+        Set<String> comments = new HashSet<String>(ontologyTerm.getComments());
 
         // the CvTopic for comment
         CvTopic comment = null;
 
-        // for each existing annotation, check if it exists in the ontology. If the annotation and its topic are not in the ontology, we don't touch it
-        // because can be an annotation manually added by a curator (used in class and hidden topics for instance)
-        for (Annotation a : term.getAnnotations()){
-            String cvTopicId = a.getCvTopic() != null ? a.getCvTopic().getIdentifier() : null;
-            String cvTopicLabel = a.getCvTopic() != null ? a.getCvTopic().getShortLabel() : null;
+        if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+            currentIntact = intactIterator.next();
+            currentOntologyRef = ontologyIterator.next();
+            cvTopic = currentIntact.getCvTopic();
 
-            // we have a definition. Only one is allowed
-            if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopicLabel)){
-                if (!hasFoundDefinition){
-                    hasFoundDefinition = true;
-                    cvAnnotations.remove(a);
+            if (cvTopic != null){
+                do{
+                    int topicComparator = cvTopic.getIdentifier().compareTo(currentOntologyRef.getTopicId());
 
-                    // we update existing definition
-                    if (!ontologyTerm.getDefinition().equalsIgnoreCase(a.getAnnotationText())){
-                        a.setAnnotationText(ontologyTerm.getDefinition());
+                    // we have a db match
+                    if (topicComparator == 0) {
 
-                        updateEvt.getUpdatedAnnotations().add(a);
+                        int acComparator = currentIntact.getAnnotationText().compareTo(currentOntologyRef.getDescription());
+
+                        // we have a primary id match
+                        if (acComparator == 0) {
+                            if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+                                currentIntact = intactIterator.next();
+                                currentOntologyRef = ontologyIterator.next();
+                                cvTopic = currentIntact.getCvTopic();
+                            }
+                            else {
+                                currentIntact = null;
+                                currentOntologyRef = null;
+                                cvTopic = null;
+                            }
+                        }
+                        //intact has no match in ontology
+                        else if (acComparator > 0) {
+                            updateEvt.getDeletedAnnotations().add(currentIntact);
+                            term.removeAnnotation(currentIntact);
+
+                            if (intactIterator.hasNext()){
+                                currentIntact = intactIterator.next();
+                                cvTopic = currentIntact.getCvTopic();
+                            }
+                            else {
+                                currentIntact = null;
+                                cvTopic = null;
+                            }
+                        }
+                        //ontology has no match in intact
+                        else {
+                            CvTopic cvTop = cvTopic;
+
+                            Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                            term.addAnnotation(newAnnot);
+
+                            updateEvt.getCreatedAnnotations().add(newAnnot);
+
+                            if (ontologyIterator.hasNext()){
+                                currentOntologyRef = ontologyIterator.next();
+                            }
+                            else {
+                                currentOntologyRef = null;
+                            }
+                        }
+                    }
+                    //intact has no match in ontology, we delete it excepted the identity xref
+                    else if (topicComparator > 0) {
+                        // we have a definition. Only one is allowed
+                        if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopic.getShortLabel())){
+                            if (!hasFoundDefinition){
+                                hasFoundDefinition = true;
+
+                                // we update existing definition
+                                if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                }
+                            }
+                            else{
+                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                term.removeAnnotation(currentIntact);
+                            }
+                        }
+                        // we have an obsolete annotation. Only one is allowed
+                        else if (CvTopic.OBSOLETE_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                            if (!hasFoundObsolete && isObsolete){
+                                hasFoundObsolete = true;
+
+                                if (ontologyTerm.getObsoleteMessage() ==  null && currentIntact.getAnnotationText() != null){
+                                    currentIntact.setAnnotationText(null);
+
+                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                }
+                                else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                }
+                            }
+                            else{
+                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                term.removeAnnotation(currentIntact);
+                            }
+                        }
+                        // the term is hidden. We do nothing for now
+                        else if (CvTopic.HIDDEN.equalsIgnoreCase(cvTopic.getShortLabel())){
+                            isHidden = true;
+                        }
+                        // we have a comment. Checks that it exists in the ontology
+                        else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                            comment = cvTopic;
+
+                            // comment exist
+                            if (comments.contains(currentIntact.getAnnotationText())){
+                                comments.remove(currentIntact.getAnnotationText());
+                            }
+                            // comment does not exist but can be updated
+                            else if (!comments.contains(currentIntact.getAnnotationText()) && comments.size() > 0){
+                                currentIntact.setAnnotationText(comments.iterator().next());
+                                updateEvt.getUpdatedAnnotations().add(currentIntact);
+
+                                comments.remove(currentIntact.getAnnotationText());
+                            }
+                            // delete the comment
+                            else {
+                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                term.removeAnnotation(currentIntact);
+                            }
+                        }
+                        // we have a url. Only one url is allowed
+                        else if (CvTopic.URL_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                            if (!hasFoundURL){
+                                hasFoundURL = true;
+
+                                if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                }
+                            }
+                        }
+                        // checks specific annotations?
+                        else {
+
+                        }
+
+                        if (intactIterator.hasNext()){
+                            currentIntact = intactIterator.next();
+                            cvTopic = currentIntact.getCvTopic();
+                        }
+                        else {
+                            currentIntact = null;
+                            cvTopic = null;
+                        }
+                    }
+                    //ontology xref has no match in intact, needs to create it
+                    else {
+                        CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopicId());
+
+                        if (cvTop == null){
+                            cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopicId(), currentOntologyRef.getTopic());
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvTop);
+                        }
+
+                        Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                        term.addAnnotation(newAnnot);
+
+                        updateEvt.getCreatedAnnotations().add(newAnnot);
+
+                        if (ontologyIterator.hasNext()){
+                            currentOntologyRef = ontologyIterator.next();
+                        }
+                        else {
+                            currentOntologyRef = null;
+                        }   currentOntologyRef = null;
+                    }
+                } while (currentIntact != null && currentOntologyRef != null && cvTopic != null);
+            }
+        }
+
+        // need to delete specific remaining intact annotations, keeps the others
+        if (currentIntact != null || intactIterator.hasNext()){
+            if (currentIntact == null ){
+                currentIntact = intactIterator.next();
+                cvTopic = currentIntact.getCvTopic();
+            }
+
+            do {
+                // we have a definition. Only one is allowed
+                if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopic.getShortLabel())){
+                    if (!hasFoundDefinition){
+                        hasFoundDefinition = true;
+
+                        // we update existing definition
+                        if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                        }
+                    }
+                    else{
+                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        term.removeAnnotation(currentIntact);
                     }
                 }
-            }
-            // we have an obsolete annotation. Only one is allowed
-            else if (CvTopic.OBSOLETE_MI_REF.equalsIgnoreCase(cvTopicId)){
-                if (!hasFondObsolete && isObsolete){
-                    hasFondObsolete = true;
-                    cvAnnotations.remove(a);
+                // we have an obsolete annotation. Only one is allowed
+                else if (CvTopic.OBSOLETE_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                    if (!hasFoundObsolete && isObsolete){
+                        hasFoundObsolete = true;
 
-                    if (ontologyTerm.getObsoleteMessage() ==  null && a.getAnnotationText() != null){
-                        a.setAnnotationText(null);
+                        if (ontologyTerm.getObsoleteMessage() ==  null && currentIntact.getAnnotationText() != null){
+                            currentIntact.setAnnotationText(null);
 
-                        updateEvt.getUpdatedAnnotations().add(a);
+                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                        }
+                        else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                        }
                     }
-                    else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(a.getAnnotationText())){
-                        a.setAnnotationText(ontologyTerm.getDefinition());
-
-                        updateEvt.getUpdatedAnnotations().add(a);
-                    }
-                }
-            }
-            // the term is hidden. We do nothing for now
-            else if (CvTopic.HIDDEN.equalsIgnoreCase(cvTopicLabel)){
-                isHidden = true;
-            }
-            // we have a comment. Checks that it exists in the ontology
-            else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTopicId)){
-                comment = a.getCvTopic();
-
-                // comment exist
-                if (comments.contains(a.getAnnotationText())){
-                    cvAnnotations.remove(a);
-                    comments.remove(a.getAnnotationText());
-                }
-                // comment does not exist but can be updated
-                else if (!comments.contains(a.getAnnotationText()) && comments.size() > 0){
-                    a.setAnnotationText(comments.iterator().next());
-                    updateEvt.getUpdatedAnnotations().add(a);
-
-                    cvAnnotations.remove(a);
-                    comments.remove(a.getAnnotationText());
-                }
-            }
-            // we have a url. Only one url is allowed
-            else if (CvTopic.URL_MI_REF.equalsIgnoreCase(cvTopicId)){
-                if (!hasFoundURL){
-                    hasFoundURL = true;
-                    cvAnnotations.remove(a);
-
-                    if (!ontologyTerm.getDefinition().equalsIgnoreCase(a.getAnnotationText())){
-                        a.setAnnotationText(ontologyTerm.getDefinition());
-
-                        updateEvt.getUpdatedAnnotations().add(a);
+                    else{
+                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        term.removeAnnotation(currentIntact);
                     }
                 }
-            }
-            // checks that the annotations is in the ontology annotations
-            else {
-                boolean hasFoundAnnotation = false;
-                boolean hasFoundTopic = false;
-                TermAnnotation ontAnnot = null;
+                // the term is hidden. We do nothing for now
+                else if (CvTopic.HIDDEN.equalsIgnoreCase(cvTopic.getShortLabel())){
+                    isHidden = true;
+                }
+                // we have a comment. Checks that it exists in the ontology
+                else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                    comment = cvTopic;
 
-                for (TermAnnotation termAnnotation : ontologyAnnotations){
-                    String topicId = termAnnotation.getTopicId();
+                    // comment exist
+                    if (comments.contains(currentIntact.getAnnotationText())){
+                        comments.remove(currentIntact.getAnnotationText());
+                    }
+                    // comment does not exist but can be updated
+                    else if (!comments.contains(currentIntact.getAnnotationText()) && comments.size() > 0){
+                        currentIntact.setAnnotationText(comments.iterator().next());
+                        updateEvt.getUpdatedAnnotations().add(currentIntact);
 
-                    if (topicId.equalsIgnoreCase(cvTopicId)){
-                        ontAnnot = termAnnotation;
-                        hasFoundTopic = true;
+                        comments.remove(currentIntact.getAnnotationText());
+                    }
+                    // delete the comment
+                    else {
+                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        term.removeAnnotation(currentIntact);
+                    }
+                }
+                // we have a url. Only one url is allowed
+                else if (CvTopic.URL_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())){
+                    if (!hasFoundURL){
+                        hasFoundURL = true;
 
-                        if (termAnnotation.getDescription().equalsIgnoreCase(a.getAnnotationText())){
-                            hasFoundAnnotation = true;
-                            break;
+                        if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+
+                            updateEvt.getUpdatedAnnotations().add(currentIntact);
                         }
                     }
                 }
+                // checks specific annotations?
+                else {
 
-                // the topic does not exist in the term , we don't touch it
-                if (!hasFoundTopic){
-                    cvAnnotations.remove(a);
                 }
-                // exact annotation already exists, no need to update it
-                else if (hasFoundTopic && hasFoundAnnotation){
-                    cvAnnotations.remove(a);
-                    ontologyAnnotations.remove(ontAnnot);
-                }
-                // the topic exist but the text is not exactly the same and needs to be updated
-                else if (hasFoundTopic && !hasFoundAnnotation && ontAnnot != null){
 
-                    a.setAnnotationText(ontAnnot.getDescription());
-                    updateEvt.getUpdatedAnnotations().add(a);
-
-                    cvAnnotations.remove(a);
-                    ontologyAnnotations.remove(ontAnnot);
+                if (intactIterator.hasNext()){
+                    currentIntact = intactIterator.next();
+                    cvTopic = currentIntact.getCvTopic();
                 }
-            }
+                else {
+                    currentIntact = null;
+                    cvTopic = null;
+                }
+            }while (currentIntact != null && cvTopic != null);
         }
 
-        // remove all annotations having a topic present in new term but which needs to be deleted because out of date
-        for (Annotation a : cvAnnotations){
-            term.removeAnnotation(a);
-
-            updateEvt.getDeletedAnnotations().add(a);
-        }
-
-        // create missing annotations
-        for (TermAnnotation termAnnotation : ontologyAnnotations){
-            CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(termAnnotation.getTopicId());
-
-            if (topicFromDb == null){
-                topicFromDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, termAnnotation.getTopicId(), termAnnotation.getTopic());
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(topicFromDb);
+        if (currentOntologyRef != null || ontologyIterator.hasNext()){
+            if (currentOntologyRef == null ){
+                currentOntologyRef = ontologyIterator.next();
             }
 
-            Annotation newAnnotation = new Annotation(topicFromDb, termAnnotation.getDescription());
-            term.addAnnotation(newAnnotation);
+            do {
+                //ontology has no match in intact
+                CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopicId());
 
-            updateEvt.getCreatedAnnotations().add(newAnnotation);
+                if (cvTop == null){
+                    cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopicId(), currentOntologyRef.getTopic());
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvTop);
+                }
+
+                Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                term.addAnnotation(newAnnot);
+
+                updateEvt.getCreatedAnnotations().add(newAnnot);
+
+                if (ontologyIterator.hasNext()){
+                    currentOntologyRef = ontologyIterator.next();
+                }
+                else {
+                    currentOntologyRef = null;
+                }   currentOntologyRef = null;
+            }
+            while (currentOntologyRef != null);
         }
 
         // create missing definition
@@ -530,7 +717,7 @@ public class CvUpdater {
         }
 
         // create missing obsolete
-        if (!hasFondObsolete && isObsolete){
+        if (!hasFoundObsolete && isObsolete){
             CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.OBSOLETE_MI_REF);
 
             if (topicFromDb == null){
@@ -576,108 +763,239 @@ public class CvUpdater {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
-        // cluster ontology term xrefs
-        Map<String, Collection<TermDbXref>> ontologyCluster = clusterOntologyReferences(ontologyTerm);
-        // cluster Cvobject xrefs
-        Map<String, Collection<CvObjectXref>> cvCluster = clusterCvReferences(term, ontologyAccess.getDatabaseIdentifier());
+        TreeSet<CvObjectXref> sortedXrefs = new TreeSet<CvObjectXref>(this.cvXrefComparator);
+        sortedXrefs.addAll(term.getXrefs());
+        Iterator<CvObjectXref> intactIterator = sortedXrefs.iterator();
 
-        // for each existing xref, compare if exist in ontology otherwise delete
-        for (Map.Entry<String, Collection<CvObjectXref>> cvRef : cvCluster.entrySet()){
+        TreeSet<TermDbXref> sortedOntologyXrefs = new TreeSet<TermDbXref>(this.ontologyXrefComparator);
+        sortedOntologyXrefs.addAll(ontologyTerm.getDbXrefs());
+        Iterator<TermDbXref> ontologyIterator = sortedOntologyXrefs.iterator();
 
-            // the xref is in the ontology cluster
-            if (ontologyCluster.containsKey(cvRef.getKey())){
-                // get the cvDatabase
-                CvDatabase cvDatabase = cvRef.getValue().iterator().next().getCvDatabase();
-                // get the xrefs from ontology
-                Collection<TermDbXref> ontologyReferences = ontologyCluster.get(cvRef.getKey());
+        XrefDao<CvObjectXref> refDao = factory.getXrefDao(CvObjectXref.class);
 
-                // for each xref in the database, find the one in the ontology matching the existing xref if it exists
-                for (CvObjectXref ref : cvRef.getValue()){
-                    // the matching term in the ontology
-                    TermDbXref match = null;
+        CvObjectXref currentIntact = null;
+        TermDbXref currentOntologyRef = null;
+        CvDatabase cvDatabase = null;
+        CvXrefQualifier cvQualifier = null;
 
-                    for (TermDbXref ontRef : ontologyReferences){
-                        // the database accession is matching
-                        if (ontRef.getAccession().equalsIgnoreCase(ref.getPrimaryId())){
+        if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+            currentIntact = intactIterator.next();
+            currentOntologyRef = ontologyIterator.next();
+            cvDatabase = currentIntact.getCvDatabase();
+            cvQualifier = currentIntact.getCvXrefQualifier();
 
-                            match = ontRef;
-                            String qualifierId = ref.getCvXrefQualifier() != null ? ref.getCvXrefQualifier().getIdentifier() : null;
+            if (cvDatabase != null && cvQualifier != null){
+                do{
+                    int dbComparator = cvDatabase.getIdentifier().compareTo(currentOntologyRef.getDatabaseId());
 
-                            // the qualifier is not matching, meaning that the xref needs to be updated
-                            if (!ontRef.getQualifierId().equalsIgnoreCase(qualifierId)){
-                                CvXrefQualifier qualifierFromDb = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(ontRef.getQualifierId());
+                    // we have a db match
+                    if (dbComparator == 0) {
 
-                                if (qualifierFromDb == null){
-                                    qualifierFromDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, ontRef.getQualifierId(), ontRef.getQualifier());
-                                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(qualifierFromDb);
+                        int qualifierComparator = cvQualifier.getIdentifier().compareTo(currentOntologyRef.getQualifierId());
+
+                        // we have a qualifier match
+                        if (qualifierComparator == 0) {
+                            int acComparator = currentIntact.getPrimaryId().compareTo(currentOntologyRef.getAccession());
+
+                            // we have a primary id match
+                            if (acComparator == 0) {
+                                if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+                                    currentIntact = intactIterator.next();
+                                    currentOntologyRef = ontologyIterator.next();
+                                    cvDatabase = currentIntact.getCvDatabase();
+                                    cvQualifier = currentIntact.getCvXrefQualifier();
                                 }
-                                ref.setCvXrefQualifier(qualifierFromDb);
-
-                                updateEvt.getUpdatedXrefs().add(ref);
+                                else {
+                                    currentIntact = null;
+                                    currentOntologyRef = null;
+                                    cvDatabase = null;
+                                    cvQualifier = null;
+                                }
                             }
-                            break;
+                            //intact has no match in ontology
+                            else if (acComparator > 0) {
+                                if (!currentIntact.equals(updateContext.getIdentityXref())){
+                                    updateEvt.getDeletedXrefs().add(currentIntact);
+                                    term.removeXref(currentIntact);
+                                }
+
+                                if (intactIterator.hasNext()){
+                                    currentIntact = intactIterator.next();
+                                    cvDatabase = currentIntact.getCvDatabase();
+                                    cvQualifier = currentIntact.getCvXrefQualifier();
+                                }
+                                else {
+                                    currentIntact = null;
+                                    cvDatabase = null;
+                                    cvQualifier = null;
+                                }
+                            }
+                            //ontology has no match in intact
+                            else {
+                                CvDatabase cvDb = cvDatabase;
+                                CvXrefQualifier cvQ = cvQualifier;
+
+                                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                                term.addXref(newXref);
+
+                                updateEvt.getCreatedXrefs().add(newXref);
+
+                                if (ontologyIterator.hasNext()){
+                                    currentOntologyRef = ontologyIterator.next();
+                                }
+                                else {
+                                    currentOntologyRef = null;
+                                }
+                            }
+                        }
+                        else if (qualifierComparator > 0) {
+                            //intact has no match in ontology
+                            if (!currentIntact.equals(updateContext.getIdentityXref())){
+                                updateEvt.getDeletedXrefs().add(currentIntact);
+                                term.removeXref(currentIntact);
+                            }
+
+                            if (intactIterator.hasNext()){
+                                currentIntact = intactIterator.next();
+                                cvDatabase = currentIntact.getCvDatabase();
+                                cvQualifier = currentIntact.getCvXrefQualifier();
+                            }
+                            else {
+                                currentIntact = null;
+                                cvDatabase = null;
+                                cvQualifier = null;
+                            }
+                        }
+                        else {
+                            //otology has no match in intact
+                            CvDatabase cvDb = cvDatabase;
+                            CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+
+                            if (cvQ== null){
+                                cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
+                            }
+
+                            CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                            term.addXref(newXref);
+
+                            updateEvt.getCreatedXrefs().add(newXref);
+
+                            if (ontologyIterator.hasNext()){
+                                currentOntologyRef = ontologyIterator.next();
+                            }
+                            else {
+                                currentOntologyRef = null;
+                            }
                         }
                     }
+                    //intact has no match in ontology, we delete it excepted the identity xref
+                    else if (dbComparator > 0) {
+                        if (!currentIntact.equals(updateContext.getIdentityXref())){
+                            updateEvt.getDeletedXrefs().add(currentIntact);
+                            term.removeXref(currentIntact);
+                        }
 
-                    // we found the xref in the ontology so we can remove it from the xref to create
-                    if (match != null){
-                        ontologyReferences.remove(match);
+                        if (intactIterator.hasNext()){
+                            currentIntact = intactIterator.next();
+                            cvDatabase = currentIntact.getCvDatabase();
+                            cvQualifier = currentIntact.getCvXrefQualifier();
+                        }
+                        else {
+                            currentIntact = null;
+                            cvDatabase = null;
+                            cvQualifier = null;
+                        }
                     }
-                    // we didn't found the xref in the ontology so it need to be removed
+                    //ontology xref has no match in intact, needs to create it
                     else {
-                        term.removeXref(ref);
-                        updateEvt.getDeletedXrefs().add(ref);
+                        CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabaseId());
+
+                        if (cvDb == null){
+                            cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabaseId(), currentOntologyRef.getDatabase());
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDb);
+                        }
+
+                        CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+
+                        if (cvQ== null){
+                            cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
+                        }
+
+                        CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                        term.addXref(newXref);
+
+                        updateEvt.getCreatedXrefs().add(newXref);
+
+                        if (ontologyIterator.hasNext()){
+                            currentOntologyRef = ontologyIterator.next();
+                        }
+                        else {
+                            currentOntologyRef = null;
+                        }
                     }
-                }
-
-                // create missing xrefs for this db
-                for (TermDbXref termRef : ontologyReferences){
-                    CvXrefQualifier qualifierFromDb = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(termRef.getQualifierId());
-
-                    if (qualifierFromDb == null){
-                        qualifierFromDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, termRef.getQualifierId(), termRef.getQualifier());
-                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(qualifierFromDb);
-                    }
-
-                    CvObjectXref newRef = new CvObjectXref(term.getOwner(), cvDatabase, termRef.getAccession(), null, null, qualifierFromDb);
-                    term.addXref(newRef);
-
-                    updateEvt.getCreatedXrefs().add(newRef);
-                }
-
-                // remove the xrefs for this database id from the ontology cluster
-                ontologyCluster.remove(cvRef.getKey());
-            }
-            // the xref does not exist in the ontology
-            else {
-                Collection<CvObjectXref> refsToDelete = cvRef.getValue();
-
-                for (CvObjectXref r : refsToDelete){
-                    term.removeXref(r);
-
-                    updateEvt.getDeletedXrefs().add(r);
-                }
+                } while (currentIntact != null && currentOntologyRef != null && cvDatabase != null && cvQualifier != null);
             }
         }
 
-        // create missing db xrefs
-        for (Map.Entry<String, Collection<TermDbXref>> entry : ontologyCluster.entrySet()){
-            CvDatabase cvDatabase = factory.getCvObjectDao(CvDatabase.class).getByPsiMiRef(entry.getKey());
+        // need to delete remaining intact xrefs
+        if (currentIntact != null || intactIterator.hasNext()){
+            if (currentIntact == null ){
+                currentIntact = intactIterator.next();
+            }
 
-            // create missing xrefs for this db
-            for (TermDbXref termRef : entry.getValue()){
-                CvXrefQualifier qualifierFromDb = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(termRef.getQualifierId());
+            do {
+                //intact has no match in uniprot
+                if (!currentIntact.equals(updateContext.getIdentityXref())){
+                    updateEvt.getDeletedXrefs().add(currentIntact);
 
-                if (qualifierFromDb == null){
-                    qualifierFromDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, termRef.getQualifierId(), termRef.getQualifier());
-                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(qualifierFromDb);
+                    term.removeXref(currentIntact);
                 }
 
-                CvObjectXref newRef = new CvObjectXref(term.getOwner(), cvDatabase, termRef.getAccession(), null, null, qualifierFromDb);
-                term.addXref(newRef);
+                if (intactIterator.hasNext()){
+                    currentIntact = intactIterator.next();
+                }
+                else {
+                    currentIntact = null;
+                }
+            }while (currentIntact != null);
+        }
 
-                updateEvt.getCreatedXrefs().add(newRef);
+        if (currentOntologyRef != null || ontologyIterator.hasNext()){
+            if (currentOntologyRef == null ){
+                currentOntologyRef = ontologyIterator.next();
             }
+
+            do {
+                //ontology has no match in intact
+                CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabaseId());
+
+                if (cvDb == null){
+                    cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabaseId(), currentOntologyRef.getDatabase());
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDb);
+                }
+
+                CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+
+                if (cvQ == null){
+                    cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
+                }
+
+                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                term.addXref(newXref);
+
+                updateEvt.getCreatedXrefs().add(newXref);
+
+                if (ontologyIterator.hasNext()){
+                    currentOntologyRef = ontologyIterator.next();
+                }
+                else {
+                    currentOntologyRef = null;
+                }
+            }
+            while (currentOntologyRef != null);
         }
     }
 
@@ -695,88 +1013,109 @@ public class CvUpdater {
         }
 
         // the aliases in the ontology to create
-        Set<String> aliasesToCreate = new HashSet<String>(ontologyTerm.getAliases());
+        TreeSet<String> ontologyAliases = new TreeSet<String>(ontologyTerm.getAliases());
+        Iterator<String> ontologyIterator = ontologyAliases.iterator();
 
-        // for each existing alias in db, find if it exists in the ontology, delete it otherwise
-        for (CvObjectAlias alias : term.getAliases()){
-            // only one alias type is allowed
-            // the alias exists, we can remove it from the aliases to create and to delete
-            if (aliasesToCreate.contains(alias.getName())) {
-                // we may need to update the alias type
-                if (alias.getCvAliasType() == null || (alias.getCvAliasType() != null && !alias.getCvAliasType().getShortLabel().equalsIgnoreCase(ALIAS_TYPE))){
-                    alias.setCvAliasType(aliasType);
+        TreeSet<CvObjectAlias> sortedAliases = new TreeSet<CvObjectAlias>(this.aliasComparator);
+        sortedAliases.addAll(term.getAliases());
+        Iterator<CvObjectAlias> intactIterator = sortedAliases.iterator();
 
-                    updateEvt.getUpdatedAliases().add(alias);
+        AliasDao<CvObjectAlias> aliasDao = factory.getAliasDao(CvObjectAlias.class);
+
+        CvObjectAlias currentIntact = null;
+        String currentOntologyAlias = null;
+
+        if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+            currentIntact = intactIterator.next();
+            currentOntologyAlias = ontologyIterator.next();
+
+            if (currentIntact.getName() != null){
+                do{
+                    int nameComparator = currentIntact.getName().compareTo(currentOntologyAlias);
+
+                    // we have a name match
+                    if (nameComparator == 0) {
+                        if (intactIterator.hasNext() && ontologyIterator.hasNext()){
+                            currentIntact = intactIterator.next();
+                            currentOntologyAlias = ontologyIterator.next();
+                        }
+                        else {
+                            currentIntact = null;
+                            currentOntologyAlias = null;
+                        }
+                    }
+                    //intact has no match in ontology
+                    else if (nameComparator > 0) {
+                        updateEvt.getDeletedAliases().add(currentIntact);
+                        term.removeAlias(currentIntact);
+
+                        if (intactIterator.hasNext()){
+                            currentIntact = intactIterator.next();
+                        }
+                        else {
+                            currentIntact = null;
+                        }
+                    }
+                    //ontology has no match in intact
+                    else {
+
+                        CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), null, aliasType, currentOntologyAlias);
+                        term.addAlias(newAlias);
+
+                        updateEvt.getCreatedAliases().add(newAlias);
+
+                        if (ontologyIterator.hasNext()){
+                            currentOntologyAlias = ontologyIterator.next();
+                        }
+                        else {
+                            currentOntologyAlias = null;
+                        }
+                    }
+                } while (currentIntact != null && currentOntologyAlias != null);
+            }
+        }
+
+        // need to delete remaining intact xrefs
+        if (currentIntact != null || intactIterator.hasNext()){
+            if (currentIntact == null ){
+                currentIntact = intactIterator.next();
+            }
+
+            do {
+                //intact has no match in ontology
+                updateEvt.getDeletedAliases().add(currentIntact);
+                term.removeAlias(currentIntact);
+
+                if (intactIterator.hasNext()){
+                    currentIntact = intactIterator.next();
                 }
-
-                aliasesToCreate.remove(alias.getName());
-            }
-            // the alias does not exist, we need to delete it
-            else {
-                term.removeAlias(alias);
-
-                updateEvt.getDeletedAliases().add(alias);
-            }
+                else {
+                    currentIntact = null;
+                }
+            }while (currentIntact != null);
         }
 
-        // Create the missing aliases
-        for (String aliasToCreate : aliasesToCreate){
-            CvObjectAlias newAlias = new CvObjectAlias(term.getOwner(), term, aliasType, aliasToCreate);
-            term.addAlias(newAlias);
-
-            updateEvt.getCreatedAliases().add(newAlias);
-        }
-    }
-
-    private Map<String, Collection<TermDbXref>> clusterOntologyReferences(IntactOntologyTermI ontologyTerm){
-
-        if (ontologyTerm.getDbXrefs().isEmpty()){
-            return Collections.EMPTY_MAP;
-        }
-
-        Map<String, Collection<TermDbXref>> cluster = new HashMap<String, Collection<TermDbXref>>();
-
-        for (TermDbXref ref : ontologyTerm.getDbXrefs()){
-            String databaseId = ref.getDatabaseId() != null ? ref.getDatabaseId() : "null";
-            if (cluster.containsKey(databaseId)){
-                cluster.get(databaseId).add(ref);
+        if (currentOntologyAlias != null || ontologyIterator.hasNext()){
+            if (currentOntologyAlias == null ){
+                currentOntologyAlias = ontologyIterator.next();
             }
-            else {
-                Collection<TermDbXref> refs = new ArrayList<TermDbXref>();
-                refs.add(ref);
-                cluster.put(databaseId, refs);
+
+            do {
+                //ontology has no match in intact
+                CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), null, aliasType, currentOntologyAlias);
+                term.addAlias(newAlias);
+
+                updateEvt.getCreatedAliases().add(newAlias);
+
+                if (ontologyIterator.hasNext()){
+                    currentOntologyAlias = ontologyIterator.next();
+                }
+                else {
+                    currentOntologyAlias = null;
+                }
             }
+            while (currentOntologyAlias != null);
         }
-
-        return cluster;
-    }
-
-    private Map<String, Collection<CvObjectXref>> clusterCvReferences(CvObject term, String database){
-
-        if (term.getXrefs().isEmpty()){
-            return Collections.EMPTY_MAP;
-        }
-
-        Map<String, Collection<CvObjectXref>> cluster = new HashMap<String, Collection<CvObjectXref>>();
-
-        for (CvObjectXref ref : term.getXrefs()){
-            if (cluster.containsKey(ref.getCvDatabase().getIdentifier())){
-                cluster.get(ref.getCvDatabase().getIdentifier()).add(ref);
-            }
-            else if (ref.getCvDatabase() != null && !ref.getCvDatabase().getIdentifier().equals(database)){
-                Collection<CvObjectXref> refs = new ArrayList<CvObjectXref>();
-                refs.add(ref);
-                cluster.put(ref.getCvDatabase().getIdentifier(), refs);
-            }
-            else {
-                String db = ref.getCvDatabase() != null ? ref.getCvDatabase().getIdentifier() : "null";
-                Collection<CvObjectXref> refs = new ArrayList<CvObjectXref>();
-                refs.add(ref);
-                cluster.put(db, refs);
-            }
-        }
-
-        return cluster;
     }
 
     public Map<String, Set<CvDagObject>> getMissingParents() {
