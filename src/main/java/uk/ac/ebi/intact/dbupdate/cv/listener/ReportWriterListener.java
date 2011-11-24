@@ -174,7 +174,7 @@ public class ReportWriterListener implements CvUpdateListener{
             StringBuffer deletedParents = new StringBuffer(1024);
             writeParents(deletedParents, evt.getDeletedParents());
 
-            writeColumnValues(writer, termAccession, intactAc, updatedLabel, updatedFullName, createdXrefs.toString(),
+            writeColumnValues(writer, termAccession, intactAc, updatedLabel, updatedFullName, updatedIdentifier, createdXrefs.toString(),
                     updatedXrefs.toString(), deletedXrefs.toString(), createdAliases.toString(), updatedAliases.toString(),
                     deletedAliases.toString(), createdAnnotations.toString(), updatedAnnotations.toString(), deletedAnnotations.toString(),
                     createdParents.toString(), deletedParents.toString());

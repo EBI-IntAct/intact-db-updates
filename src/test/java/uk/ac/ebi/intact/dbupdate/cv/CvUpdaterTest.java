@@ -30,7 +30,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
     @Before
     public void clear() throws IOException, OntologyLoaderException {
-        cvManager = new CvUpdateManager(CvUpdaterTest.class.getResource("/ontologies.xml"), "targets/reports");
+        cvManager = new CvUpdateManager(CvUpdaterTest.class.getResource("/ontologies.xml"), "target/reports");
     }
 
     @Test
@@ -101,11 +101,13 @@ public class CvUpdaterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_noIdentityXref_xrefsRemoved_aliasRemoved_annotationsRemoved_existingParent(){
+    public void test_update_noIdentityXref_xrefsRemoved_aliasRemoved_annotationsRemoved_existingParent_removeParent(){
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0664", "interaction attribute name");
         CvDagObject parent2 = getMockBuilder().createCvObject(CvTopic.class, "IA:12345", "other attribute name");
+        CvDagObject parent3 = getMockBuilder().createCvObject(CvTopic.class, CvTopic.AUTHOR_CONFIDENCE_MI_REF, CvTopic.AUTHOR_CONFIDENCE);
+
         CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
         cv.getXrefs().clear();
 
@@ -118,6 +120,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         cv.addParent(parent);
         cv.addParent(parent2);
+        cv.addParent(parent3);
         getCorePersister().saveOrUpdate(parent, cv);
 
         getDataContext().commitTransaction(status);
