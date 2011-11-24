@@ -34,20 +34,22 @@ public class CvUpdater {
 
     public final static String ALIAS_TYPE="database alias";
 
-    private CvXrefComparator cvXrefComparator;
-    private OntologyXrefComparator ontologyXrefComparator;
-    private CvAliasComparator aliasComparator;
-    private CvAnnotationComparator cvAnnotationComparator;
-    private OntologyAnnotationComparator ontologyAnnotationComparator;
+    private TreeSet<CvObjectXref> sortedCvXrefs;
+    private TreeSet<TermDbXref> sortedOntologyXrefs;
+    private TreeSet<CvObjectAlias> sortedCvAliases;
+    private TreeSet<String> sortedOntologyAliases;
+    private TreeSet<TermAnnotation> sortedOntologyAnnotations;
+    private TreeSet<Annotation> sortedCvAnnotations;
 
     public CvUpdater() {
         missingParents = new HashMap<String, Set<CvDagObject>>();
         processedTerms = new HashSet<String>();
-        cvXrefComparator = new CvXrefComparator();
-        ontologyXrefComparator = new OntologyXrefComparator();
-        aliasComparator = new CvAliasComparator();
-        cvAnnotationComparator = new CvAnnotationComparator();
-        ontologyAnnotationComparator = new OntologyAnnotationComparator();
+        sortedCvXrefs = new TreeSet<CvObjectXref>(new CvXrefComparator());
+        sortedOntologyXrefs = new TreeSet<TermDbXref>(new OntologyXrefComparator());
+        sortedCvAliases = new TreeSet<CvObjectAlias>(new CvAliasComparator());
+        sortedOntologyAliases = new TreeSet<String>();
+        sortedCvAnnotations = new TreeSet<Annotation>(new CvAnnotationComparator());
+        sortedOntologyAnnotations = new TreeSet<TermAnnotation>(new OntologyAnnotationComparator());
     }
 
     public void updateTerm(CvUpdateContext updateContext){
@@ -355,13 +357,13 @@ public class CvUpdater {
         CvDagObject term = updateContext.getCvTerm();
         boolean isObsolete = updateContext.isTermObsolete();
 
-        TreeSet<Annotation> sortedAnnotations = new TreeSet<Annotation>(this.cvAnnotationComparator);
-        sortedAnnotations.addAll(term.getAnnotations());
-        Iterator<Annotation> intactIterator = sortedAnnotations.iterator();
+        sortedCvAnnotations.clear();
+        sortedCvAnnotations.addAll(term.getAnnotations());
+        Iterator<Annotation> intactIterator = sortedCvAnnotations.iterator();
 
-        TreeSet<TermAnnotation> sortedOntologyXrefs = new TreeSet<TermAnnotation>(this.ontologyAnnotationComparator);
-        sortedOntologyXrefs.addAll(ontologyTerm.getAnnotations());
-        Iterator<TermAnnotation> ontologyIterator = sortedOntologyXrefs.iterator();
+        sortedOntologyAnnotations.clear();
+        sortedOntologyAnnotations.addAll(ontologyTerm.getAnnotations());
+        Iterator<TermAnnotation> ontologyIterator = sortedOntologyAnnotations.iterator();
 
         // boolean value to know if url is in the annotations
         boolean hasFoundURL = false;
@@ -754,6 +756,9 @@ public class CvUpdater {
                 updateEvt.getCreatedAnnotations().add(newAnnotation);
             }
         }
+
+        sortedOntologyAnnotations.clear();
+        sortedCvAnnotations.clear();
     }
 
     public void updateXrefs(CvUpdateContext updateContext, UpdatedEvent updateEvt){
@@ -763,11 +768,11 @@ public class CvUpdater {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
-        TreeSet<CvObjectXref> sortedXrefs = new TreeSet<CvObjectXref>(this.cvXrefComparator);
-        sortedXrefs.addAll(term.getXrefs());
-        Iterator<CvObjectXref> intactIterator = sortedXrefs.iterator();
+        sortedCvXrefs.clear();
+        sortedCvXrefs.addAll(term.getXrefs());
+        Iterator<CvObjectXref> intactIterator = sortedCvXrefs.iterator();
 
-        TreeSet<TermDbXref> sortedOntologyXrefs = new TreeSet<TermDbXref>(this.ontologyXrefComparator);
+        sortedOntologyXrefs.clear();
         sortedOntologyXrefs.addAll(ontologyTerm.getDbXrefs());
         Iterator<TermDbXref> ontologyIterator = sortedOntologyXrefs.iterator();
 
@@ -997,6 +1002,9 @@ public class CvUpdater {
             }
             while (currentOntologyRef != null);
         }
+
+        sortedCvXrefs.clear();
+        sortedOntologyXrefs.clear();
     }
 
     public void updateAliases(CvUpdateContext updateContext, UpdatedEvent updateEvt){
@@ -1013,14 +1021,13 @@ public class CvUpdater {
         }
 
         // the aliases in the ontology to create
-        TreeSet<String> ontologyAliases = new TreeSet<String>(ontologyTerm.getAliases());
-        Iterator<String> ontologyIterator = ontologyAliases.iterator();
+        sortedOntologyAliases.clear();
+        sortedOntologyAliases.addAll(ontologyTerm.getAliases());
+        Iterator<String> ontologyIterator = sortedOntologyAliases.iterator();
 
-        TreeSet<CvObjectAlias> sortedAliases = new TreeSet<CvObjectAlias>(this.aliasComparator);
-        sortedAliases.addAll(term.getAliases());
-        Iterator<CvObjectAlias> intactIterator = sortedAliases.iterator();
-
-        AliasDao<CvObjectAlias> aliasDao = factory.getAliasDao(CvObjectAlias.class);
+        sortedCvAliases.clear();
+        sortedCvAliases.addAll(term.getAliases());
+        Iterator<CvObjectAlias> intactIterator = sortedCvAliases.iterator();
 
         CvObjectAlias currentIntact = null;
         String currentOntologyAlias = null;
@@ -1116,6 +1123,9 @@ public class CvUpdater {
             }
             while (currentOntologyAlias != null);
         }
+
+        sortedCvAliases.clear();
+        sortedOntologyAliases.clear();
     }
 
     public Map<String, Set<CvDagObject>> getMissingParents() {
