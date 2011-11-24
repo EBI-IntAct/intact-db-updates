@@ -16,7 +16,6 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.util.protein.CvHelper;
-import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorAliasComparator;
 
 import java.util.*;
 
@@ -251,9 +250,9 @@ public class AliasUpdaterUtils {
         return aliases;
     }
 
-    public static AliasUpdateReport updateAliases( UniprotProtein uniprotProtein, Protein protein, AliasDao aliasDao, InteractorAliasComparator aliasComparator) {
+    public static AliasUpdateReport updateAliases( UniprotProtein uniprotProtein, Protein protein, AliasDao aliasDao, TreeSet<InteractorAlias> sortedAliases) {
 
-        TreeSet<InteractorAlias> sortedAliases = new TreeSet<InteractorAlias>(aliasComparator);
+        sortedAliases.clear();
         sortedAliases.addAll(protein.getAliases());
         Iterator<InteractorAlias> intactIterator = sortedAliases.iterator();
 
@@ -300,6 +299,7 @@ public class AliasUpdaterUtils {
             }while (currentIntact != null);
         }
 
+        sortedAliases.clear();
         return report;
     }
 
@@ -462,9 +462,9 @@ public class AliasUpdaterUtils {
         return currentAlias;
     }
 
-    public static AliasUpdateReport updateIsoformAliases( UniprotProtein master, UniprotProteinTranscript uniprotProteinTranscript, Protein protein, AliasDao aliasDao, InteractorAliasComparator aliasComparator) {
+    public static AliasUpdateReport updateIsoformAliases( UniprotProtein master, UniprotProteinTranscript uniprotProteinTranscript, Protein protein, AliasDao aliasDao, TreeSet<InteractorAlias> sortedAliases) {
 
-        TreeSet<InteractorAlias> sortedAliases = new TreeSet<InteractorAlias>(aliasComparator);
+        sortedAliases.clear();
         sortedAliases.addAll(protein.getAliases());
         Iterator<InteractorAlias> intactIterator = sortedAliases.iterator();
 
@@ -518,6 +518,7 @@ public class AliasUpdaterUtils {
             }while (currentIntact != null);
         }
 
+        sortedAliases.clear();
         return report;
     }
 }

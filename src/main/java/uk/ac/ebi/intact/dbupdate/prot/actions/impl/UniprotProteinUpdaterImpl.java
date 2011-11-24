@@ -37,10 +37,7 @@ import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.Organism;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.*;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
@@ -52,10 +49,7 @@ import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorAliasComparator;
 import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
 import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Updates the current protein in the database, using information from uniprot.
@@ -85,9 +79,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private BioSourceService bioSourceService;
     private OutOfDateParticipantFixer participantFixer;
 
-    private InteractorXrefComparator interactorXrefComparator;
-    private UniprotXrefComparator uniprotXrefComparator;
-    private InteractorAliasComparator aliasComparator;
+    private TreeSet<InteractorXref> sortedInteractorXrefs;
+    private TreeSet<UniprotXref> sortedUniprotXrefs;
+    private TreeSet<InteractorAlias> sortedInteractorAliases;
 
     public UniprotProteinUpdaterImpl(TaxonomyService taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
@@ -95,9 +89,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
         this.participantFixer = outOfDateParticipantFixer;
         this.rangeFixer = this.participantFixer.getRangeFixer();
-        aliasComparator = new InteractorAliasComparator();
-        interactorXrefComparator = new InteractorXrefComparator();
-        uniprotXrefComparator = new UniprotXrefComparator(databaseName2mi);
+        sortedInteractorAliases = new TreeSet<InteractorAlias>(new InteractorAliasComparator());
+        sortedInteractorXrefs = new TreeSet<InteractorXref>(new InteractorXrefComparator());
+        sortedUniprotXrefs = new TreeSet<UniprotXref>(new UniprotXrefComparator(databaseName2mi));
     }
 
     public UniprotProteinUpdaterImpl(OutOfDateParticipantFixer outOfDateParticipantFixer) {
@@ -125,9 +119,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             this.participantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
         }
 
-        interactorXrefComparator = new InteractorXrefComparator();
-        uniprotXrefComparator = new UniprotXrefComparator(databaseName2mi);
-        aliasComparator = new InteractorAliasComparator();
+        sortedInteractorAliases = new TreeSet<InteractorAlias>(new InteractorAliasComparator());
+        sortedInteractorXrefs = new TreeSet<InteractorXref>(new InteractorXrefComparator());
+        sortedUniprotXrefs = new TreeSet<UniprotXref>(new UniprotXrefComparator(databaseName2mi));
     }
 
     /**
@@ -375,7 +369,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor, this.interactorXrefComparator, this.uniprotXrefComparator );
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor, this.sortedInteractorXrefs, this.sortedUniprotXrefs );
         if (reports != null){
             hasBeenUpdated = true;
 
@@ -383,7 +377,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAliases(uniprotProtein, protein, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), aliasComparator);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAliases(uniprotProtein, protein, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
             hasBeenUpdated = true;
 
@@ -654,7 +648,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
 
         // Update Aliases from the uniprot protein aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateIsoformAliases(uniprotProtein, uniprotTranscript, transcript, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), aliasComparator);
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateIsoformAliases(uniprotProtein, uniprotTranscript, transcript, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
             hasBeenUpdated = true;
 

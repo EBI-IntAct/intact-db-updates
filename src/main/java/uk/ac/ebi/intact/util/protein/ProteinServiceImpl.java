@@ -31,6 +31,7 @@ import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.uniprot.service.IdentifierChecker;
 import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.Crc64;
@@ -773,7 +774,7 @@ public class ProteinServiceImpl implements ProteinService {
         protein.setShortLabel( generateProteinShortlabel( uniprotProtein ) );
 
         // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor, new InteractorXrefComparator(), new UniprotXrefComparator(databaseName2mi));
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, IntactContext.getCurrentInstance().getDataContext(), processor, new TreeSet<InteractorXref>(new InteractorXrefComparator()), new TreeSet<UniprotXref>(new UniprotXrefComparator(databaseName2mi)));
 
         uniprotServiceResult.addXrefUpdaterReport(reports);
 

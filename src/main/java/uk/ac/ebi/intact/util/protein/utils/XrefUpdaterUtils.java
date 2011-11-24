@@ -22,8 +22,6 @@ import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.util.protein.CvHelper;
-import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
-import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.*;
 
@@ -103,15 +101,15 @@ public final class XrefUpdaterUtils {
                                                     Map<String, String> databaseName2mi,
                                                     DataContext context,
                                                     ProteinUpdateProcessor processor,
-                                                    InteractorXrefComparator interactorXrefComparator,
-                                                    UniprotXrefComparator uniprotXrefComparator
+                                                    TreeSet<InteractorXref> sortedXrefs,
+                                                    TreeSet<UniprotXref> sortedUniprotXrefs
     ) {
 
-        TreeSet<InteractorXref> sortedXrefs = new TreeSet<InteractorXref>(interactorXrefComparator);
+        sortedXrefs.clear();
         sortedXrefs.addAll(protein.getXrefs());
         Iterator<InteractorXref> intactIterator = sortedXrefs.iterator();
 
-        TreeSet<UniprotXref> sortedUniprotXrefs = new TreeSet<UniprotXref>(uniprotXrefComparator);
+        sortedUniprotXrefs.clear();
         sortedUniprotXrefs.addAll(uniprotProtein.getCrossReferences());
         Iterator<UniprotXref> uniprotIterator = sortedUniprotXrefs.iterator();
 
@@ -317,6 +315,10 @@ public final class XrefUpdaterUtils {
             report.getAddedXrefs().addAll(createdXrefs);
             report.getRemovedXrefs().addAll(deletedXrefs);
         }
+
+        sortedXrefs.clear();
+        sortedUniprotXrefs.clear();
+
         return report;
     }
 
