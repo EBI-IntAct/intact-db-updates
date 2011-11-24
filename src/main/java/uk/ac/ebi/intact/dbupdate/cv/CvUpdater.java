@@ -101,6 +101,7 @@ public class CvUpdater {
         if (identityXref == null) {
             identityXref = CvUpdateUtils.createIdentityXref(term, database, identifier);
             updateEvt.getCreatedXrefs().add(identityXref);
+            updateContext.setIdentityXref(identityXref);
         }
         else if (!identifier.equalsIgnoreCase(identityXref.getPrimaryId()) || !database.equalsIgnoreCase(identityXref.getCvDatabase().getIdentifier())
                 || !CvXrefQualifier.IDENTITY_MI_REF.equalsIgnoreCase(identityXref.getCvXrefQualifier().getIdentifier())){
@@ -144,8 +145,6 @@ public class CvUpdater {
         if (!isObsolete){
             updateParents(updateContext, updateEvt);
         }
-
-        doUpdate(updateContext, factory, term, updateEvt);
     }
 
     public void doUpdate(CvUpdateContext updateContext, DaoFactory factory, CvDagObject term, UpdatedEvent updateEvt) {
@@ -775,8 +774,6 @@ public class CvUpdater {
         sortedOntologyXrefs.clear();
         sortedOntologyXrefs.addAll(ontologyTerm.getDbXrefs());
         Iterator<TermDbXref> ontologyIterator = sortedOntologyXrefs.iterator();
-
-        XrefDao<CvObjectXref> refDao = factory.getXrefDao(CvObjectXref.class);
 
         CvObjectXref currentIntact = null;
         TermDbXref currentOntologyRef = null;
