@@ -11,8 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.model.CvDagObject;
-import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.*;
 
 import java.io.IOException;
 
@@ -37,7 +36,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_identifiers(){
+    public void test_update_wrongIdentifier_xrefsAdded_annotationsAdded_parentsMissing(){
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
@@ -61,10 +60,40 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         cvManager.getCvUpdater().updateTerm(context);
 
+        getDataContext().commitTransaction(status2);
+
         Assert.assertEquals(CvTopic.COMMENT_MI_REF, cv.getIdentifier());
         Assert.assertEquals(2, cv.getXrefs().size());
 
-        getDataContext().commitTransaction(status2);
+        for (CvObjectXref ref : cv.getXrefs()){
+            if (ref.getPrimaryId().equals("14755292")){
+                Assert.assertEquals(CvDatabase.PUBMED_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.PRIMARY_REFERENCE_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else if (ref.getPrimaryId().equals(CvTopic.COMMENT_MI_REF)){
+                Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.IDENTITY_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else {
+                Assert.assertTrue(false);
+            }
+        }
+
+        Assert.assertEquals(1, cv.getAnnotations().size());
+        Annotation def = cv.getAnnotations().iterator().next();
+        Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
+        Assert.assertEquals(def.getAnnotationText(), "Comment for public view. This attribute can be associated to interaction, experiment, CV term, an organism and any participant.");
+
+        Assert.assertTrue(cv.getAliases().isEmpty());
+
+        Assert.assertEquals(6, cvManager.getCvUpdater().getMissingParents().size());
+
+        for (String term : cvManager.getCvUpdater().getMissingParents().keySet()){
+             if (!"MI:0664".equals(term) && !"MI:0665".equals(term) && !"MI:0666".equals(term) && !"MI:0667".equals(term)
+                     && !"MI:0668".equals(term) && !"MI:0669".equals(term)){
+                  Assert.assertTrue(false);
+             }
+        }
     }
 
 }

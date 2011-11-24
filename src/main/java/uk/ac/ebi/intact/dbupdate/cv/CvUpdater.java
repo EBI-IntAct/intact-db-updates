@@ -222,7 +222,7 @@ public class CvUpdater {
         // parents of the term in the ontology
         Set<IntactOntologyTermI> allParents = ontologyAccess.getDirectParents(ontologyTerm);
         // parents of the term in the ontology which are not root terms
-        Set<IntactOntologyTermI> parents = new HashSet<IntactOntologyTermI>(CollectionUtils.disjunction(allParents, rootTerms));
+        Set<IntactOntologyTermI> parents = new HashSet<IntactOntologyTermI>(CollectionUtils.subtract(allParents, rootTerms));
         // parents of the term in the ontology which are not root terms
         Set<IntactOntologyTermI> rootParents = new HashSet<IntactOntologyTermI>(CollectionUtils.intersection(allParents, rootTerms));
 
