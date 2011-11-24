@@ -186,4 +186,67 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         Assert.assertEquals(0, getDaoFactory().getAliasDao(CvObjectAlias.class).getAll().size());
     }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_update_wrongIdentifier_aliasAdded_createdParent(){
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0091", "chromatography technology");
+        CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, "MI:0004", "affinity chromatography technology");
+
+        getCorePersister().saveOrUpdate(cv, parent);
+
+        getDataContext().commitTransaction(status);
+
+        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+
+        CvDagObject term = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cv.getAc());
+
+        CvUpdateContext context = new CvUpdateContext(this.cvManager);
+        context.setOntologyAccess(access);
+        context.setOntologyTerm(access.getTermForAccession("MI:0004"));
+        context.setIdentifier("MI:0004");
+        context.setCvTerm(term);
+        context.setIdentityXref(cv.getXrefs().iterator().next());
+
+        cvManager.getCvUpdater().updateTerm(context);
+
+        getDataContext().commitTransaction(status2);
+
+        Assert.assertEquals(2, term.getXrefs().size());
+
+        for (CvObjectXref ref : term.getXrefs()){
+            if (ref.getPrimaryId().equals("7708014")){
+                Assert.assertEquals(CvDatabase.PUBMED_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.PRIMARY_REFERENCE_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else if (ref.getPrimaryId().equals("MI:0004")){
+                Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.IDENTITY_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else {
+                Assert.assertTrue(false);
+            }
+        }
+
+        Assert.assertEquals(1, term.getAnnotations().size());
+        Annotation def = term.getAnnotations().iterator().next();
+        Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
+        Assert.assertEquals(def.getAnnotationText(), "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins.");
+
+        Assert.assertEquals(1, term.getAliases().size());
+        Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
+        Assert.assertEquals(1, term.getParents().size());
+        Assert.assertEquals(1, cvManager.getCvUpdater().getMissingParents().size());
+
+        for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
+            if (!"MI:0400".equals(t)){
+                Assert.assertTrue(false);
+            }
+        }
+    }
 }

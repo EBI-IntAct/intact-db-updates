@@ -1065,7 +1065,7 @@ public class CvUpdater {
                     //ontology has no match in intact
                     else {
 
-                        CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), null, aliasType, currentOntologyAlias);
+                        CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), term, aliasType, currentOntologyAlias);
                         term.addAlias(newAlias);
 
                         updateEvt.getCreatedAliases().add(newAlias);
@@ -1108,7 +1108,7 @@ public class CvUpdater {
 
             do {
                 //ontology has no match in intact
-                CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), null, aliasType, currentOntologyAlias);
+                CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), term, aliasType, currentOntologyAlias);
                 term.addAlias(newAlias);
 
                 updateEvt.getCreatedAliases().add(newAlias);
