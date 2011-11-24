@@ -145,12 +145,14 @@ public class CvUpdater {
         if (!isObsolete){
             updateParents(updateContext, updateEvt);
         }
+
+        doUpdate(updateContext, factory, term, updateEvt);
     }
 
     public void doUpdate(CvUpdateContext updateContext, DaoFactory factory, CvDagObject term, UpdatedEvent updateEvt) {
         if (updateEvt.isTermUpdated()){
             // update/persist/delete xrefs
-            XrefDao<CvObjectXref> xrefDao = factory.getXrefDao(CvObjectXref.class);
+            /*XrefDao<CvObjectXref> xrefDao = factory.getXrefDao(CvObjectXref.class);
 
             for (CvObjectXref updated : updateEvt.getUpdatedXrefs()){
                 xrefDao.update(updated);
@@ -199,7 +201,7 @@ public class CvUpdater {
             }
 
             // update term
-            factory.getCvObjectDao(CvDagObject.class).update(term);
+            factory.getCvObjectDao(CvDagObject.class).update(term);*/
 
             // fire event
             CvUpdateManager manager = updateContext.getManager();
