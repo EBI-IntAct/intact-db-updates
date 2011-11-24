@@ -87,7 +87,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         Assert.assertEquals(def.getAnnotationText(), "Comment for public view. This attribute can be associated to interaction, experiment, CV term, an organism and any participant.");
 
         Assert.assertTrue(term.getAliases().isEmpty());
-
+        Assert.assertEquals(0, term.getParents().size());
         Assert.assertEquals(6, cvManager.getCvUpdater().getMissingParents().size());
 
         for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
@@ -105,6 +105,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0664", "interaction attribute name");
+        CvDagObject parent2 = getMockBuilder().createCvObject(CvTopic.class, "IA:12345", "other attribute name");
         CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
         cv.getXrefs().clear();
 
@@ -116,6 +117,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         cv.getAnnotations().add(getMockBuilder().createAnnotation("InteractionImpl", getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.USED_IN_CLASS)));
 
         cv.addParent(parent);
+        cv.addParent(parent2);
         getCorePersister().saveOrUpdate(parent, cv);
 
         getDataContext().commitTransaction(status);
@@ -176,6 +178,8 @@ public class CvUpdaterTest extends IntactBasicTestCase{
                 Assert.assertTrue(false);
             }
         }
+
+        Assert.assertEquals(2, term.getParents().size());
 
         Assert.assertEquals(0, getDaoFactory().getAliasDao(CvObjectAlias.class).getAll().size());
     }
