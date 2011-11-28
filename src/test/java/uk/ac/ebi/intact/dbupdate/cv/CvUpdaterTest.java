@@ -241,6 +241,10 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         Assert.assertEquals(1, term.getAliases().size());
         Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
         Assert.assertEquals(1, term.getParents().size());
+
+        for (CvDagObject p : term.getParents()){
+            Assert.assertEquals(parent.getAc(), p.getAc());
+        }
         Assert.assertEquals(1, cvManager.getCvUpdater().getMissingParents().size());
 
         for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
