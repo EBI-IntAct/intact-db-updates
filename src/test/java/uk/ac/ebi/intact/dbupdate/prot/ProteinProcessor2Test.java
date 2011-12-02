@@ -128,7 +128,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(13, protein.getXrefs().size());
+        Assert.assertEquals(15, protein.getXrefs().size());
         Assert.assertTrue(hasXRef(protein, secondary.getAc(), CvDatabase.INTACT, "intact-secondary"));
 
         context.commitTransaction(status);
@@ -206,7 +206,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(12, protein.getXrefs().size());
+        Assert.assertEquals(14, protein.getXrefs().size());
         Assert.assertFalse(hasXRef(protein, secondary.getAc(), CvDatabase.INTACT, "intact-secondary"));
 
         // reset
