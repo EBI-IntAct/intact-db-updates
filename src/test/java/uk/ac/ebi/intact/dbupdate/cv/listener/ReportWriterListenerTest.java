@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.cv.listener;
+//package uk.ac.ebi.intact.dbupdate.cv.listener;
 
 /**
  * TODO comment this
@@ -8,5 +8,5 @@ package uk.ac.ebi.intact.dbupdate.cv.listener;
  * @since <pre>28/11/11</pre>
  */
 
-public class ReportWriterListenerTest {
-}
+//public class ReportWriterListenerTest {
+//}

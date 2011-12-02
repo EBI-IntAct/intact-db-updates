@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.cv;
+//package uk.ac.ebi.intact.dbupdate.cv;
 
 /**
  * Cv remapper test
@@ -8,5 +8,5 @@ package uk.ac.ebi.intact.dbupdate.cv;
  * @since <pre>28/11/11</pre>
  */
 
-public class ObsoleteCvRemapperTest {
-}
+//public class ObsoleteCvRemapperTest {
+//}
