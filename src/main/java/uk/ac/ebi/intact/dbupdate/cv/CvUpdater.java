@@ -818,7 +818,7 @@ public class CvUpdater {
                             }
                             //intact has no match in ontology
                             else if (acComparator > 0) {
-                                if (!currentIntact.equals(updateContext.getIdentityXref())){
+                                if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
                                     updateEvt.getDeletedXrefs().add(currentIntact);
                                     term.removeXref(currentIntact);
                                 }
@@ -854,7 +854,7 @@ public class CvUpdater {
                         }
                         else if (qualifierComparator > 0) {
                             //intact has no match in ontology
-                            if (!currentIntact.equals(updateContext.getIdentityXref())){
+                            if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
                                 updateEvt.getDeletedXrefs().add(currentIntact);
                                 term.removeXref(currentIntact);
                             }
@@ -947,11 +947,13 @@ public class CvUpdater {
         if (currentIntact != null || intactIterator.hasNext()){
             if (currentIntact == null ){
                 currentIntact = intactIterator.next();
+                cvDatabase = currentIntact.getCvDatabase();
+                cvQualifier = currentIntact.getCvXrefQualifier();
             }
 
             do {
-                //intact has no match in uniprot
-                if (!currentIntact.equals(updateContext.getIdentityXref())){
+                //intact has no match in ontology and it is not a secondary xref or the identity xref
+                if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
                     updateEvt.getDeletedXrefs().add(currentIntact);
 
                     term.removeXref(currentIntact);
@@ -959,9 +961,13 @@ public class CvUpdater {
 
                 if (intactIterator.hasNext()){
                     currentIntact = intactIterator.next();
+                    cvDatabase = currentIntact.getCvDatabase();
+                    cvQualifier = currentIntact.getCvXrefQualifier();
                 }
                 else {
                     currentIntact = null;
+                    cvDatabase = null;
+                    cvQualifier = null;
                 }
             }while (currentIntact != null);
         }
