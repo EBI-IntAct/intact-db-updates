@@ -152,7 +152,7 @@ public final class XrefUpdaterUtils {
                                 cvDatabase = null;
                             }
                         }
-                        else if (acComparator > 0) {
+                        else if (acComparator < 0) {
                             //intact has no match in uniprot
                             if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
                                 deletedXrefs.add(currentIntact);
@@ -191,7 +191,7 @@ public final class XrefUpdaterUtils {
                             }
                         }
                     }
-                    else if (dbComparator > 0) {
+                    else if (dbComparator < 0) {
                         //intact has no match in uniprot
                         if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
                             deletedXrefs.add(currentIntact);

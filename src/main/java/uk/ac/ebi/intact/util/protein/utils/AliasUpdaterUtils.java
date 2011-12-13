@@ -375,7 +375,7 @@ public class AliasUpdaterUtils {
                             }
                         }
                         // alias not in uniprot, needs to be deleted
-                        else if (nameComparator > 0){
+                        else if (nameComparator < 0){
                             protein.removeAlias(currentAlias);
                             report.getRemovedAliases().add(currentAlias);
 
