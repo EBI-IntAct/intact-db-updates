@@ -92,8 +92,18 @@ public class CvParentUpdater {
                     }
                     // intact has a parent which is not in the ontology and which should be deleted because from same ontology
                     else if (idComparator < 0) {
-                        updateEvt.getDeletedParents().add(currentIntactParent);
-                        term.removeParent(currentIntactParent);
+                        IntactOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
+
+                        // the term does not exist in the ontology, we can delete it
+                        if (parentNotInOntology == null){
+                            updateEvt.getDeletedParents().add(currentIntactParent);
+                            term.removeParent(currentIntactParent);
+                        }
+                        // the term parent exists and is not obsolete so we can remove it from the parents. We keep obsolete terms hierarchy
+                        else if (parentNotInOntology != null && !ontologyAccess.isObsolete(parentNotInOntology)){
+                            updateEvt.getDeletedParents().add(currentIntactParent);
+                            term.removeParent(currentIntactParent);
+                        }
 
                         if (intactIterator.hasNext()){
                             currentIntactParent = intactIterator.next();
@@ -150,9 +160,18 @@ public class CvParentUpdater {
             if (currentIdentity != null){
                 do {
                     //intact has no match in ontology and should be deleted
-                    updateEvt.getDeletedParents().add(currentIntactParent);
+                    IntactOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
 
-                    term.removeParent(currentIntactParent);
+                    // the term does not exist in the ontology, we can delete it
+                    if (parentNotInOntology == null){
+                        updateEvt.getDeletedParents().add(currentIntactParent);
+                        term.removeParent(currentIntactParent);
+                    }
+                    // the term parent exists and is not obsolete so we can remove it from the parents. We keep obsolete terms hierarchy
+                    else if (parentNotInOntology != null && !ontologyAccess.isObsolete(parentNotInOntology)){
+                        updateEvt.getDeletedParents().add(currentIntactParent);
+                        term.removeParent(currentIntactParent);
+                    }
 
                     if (intactIterator.hasNext()){
                         currentIntactParent = intactIterator.next();

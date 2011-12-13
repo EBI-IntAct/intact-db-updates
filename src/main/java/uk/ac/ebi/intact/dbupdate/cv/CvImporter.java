@@ -286,7 +286,7 @@ public class CvImporter {
         }
 
         // create aliases
-        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvUpdater.ALIAS_TYPE);
+        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvAliasUpdater.ALIAS_TYPE);
 
         for (String alias : ontologyTerm.getAliases()){
 
