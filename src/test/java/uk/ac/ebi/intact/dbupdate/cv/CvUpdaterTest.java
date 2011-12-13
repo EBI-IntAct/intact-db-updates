@@ -106,6 +106,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0664", "interaction attribute name");
         CvDagObject parent2 = getMockBuilder().createCvObject(CvTopic.class, "IA:12345", "other attribute name");
+        parent2.getXrefs().iterator().next().getCvDatabase().setIdentifier(CvDatabase.INTACT_MI_REF);
         CvDagObject parent3 = getMockBuilder().createCvObject(CvTopic.class, CvTopic.AUTHOR_CONFIDENCE_MI_REF, CvTopic.AUTHOR_CONFIDENCE);
 
         CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);

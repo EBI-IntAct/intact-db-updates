@@ -1,23 +1,18 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
-import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.*;
-import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
-import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
-import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
 import uk.ac.ebi.intact.dbupdate.cv.utils.*;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import java.util.*;
-import java.util.regex.Matcher;
 
 /**
  * this class is for updating a cv
@@ -29,7 +24,7 @@ import java.util.regex.Matcher;
 
 public class CvUpdater {
 
-    private Map<String, Set<CvDagObject>> missingParents;
+    private CvParentUpdater cvParentUpdater;
     private Set<String> processedTerms;
 
     public final static String ALIAS_TYPE="database alias";
@@ -42,7 +37,8 @@ public class CvUpdater {
     private TreeSet<Annotation> sortedCvAnnotations;
 
     public CvUpdater() {
-        missingParents = new HashMap<String, Set<CvDagObject>>();
+        cvParentUpdater = new CvParentUpdater();
+
         processedTerms = new HashSet<String>();
         sortedCvXrefs = new TreeSet<CvObjectXref>(new CvXrefComparator());
         sortedOntologyXrefs = new TreeSet<TermDbXref>(new OntologyXrefComparator());
@@ -146,62 +142,11 @@ public class CvUpdater {
             updateParents(updateContext, updateEvt);
         }
 
-        doUpdate(updateContext, factory, term, updateEvt);
+        doUpdate(updateContext, updateEvt);
     }
 
-    public void doUpdate(CvUpdateContext updateContext, DaoFactory factory, CvDagObject term, UpdatedEvent updateEvt) {
+    public void doUpdate(CvUpdateContext updateContext, UpdatedEvent updateEvt) {
         if (updateEvt.isTermUpdated()){
-            // update/persist/delete xrefs
-            /*XrefDao<CvObjectXref> xrefDao = factory.getXrefDao(CvObjectXref.class);
-
-            for (CvObjectXref updated : updateEvt.getUpdatedXrefs()){
-                xrefDao.update(updated);
-            }
-            for (CvObjectXref created : updateEvt.getCreatedXrefs()){
-                xrefDao.persist(created);
-            }
-            for (CvObjectXref deleted : updateEvt.getDeletedXrefs()){
-                xrefDao.delete(deleted);
-            }
-
-            // update/persist/delete aliases
-            AliasDao<CvObjectAlias> aliasDao = factory.getAliasDao(CvObjectAlias.class);
-
-            for (CvObjectAlias updated : updateEvt.getUpdatedAliases()){
-                aliasDao.update(updated);
-            }
-            for (CvObjectAlias created : updateEvt.getCreatedAliases()){
-                aliasDao.persist(created);
-            }
-            for (CvObjectAlias deleted : updateEvt.getDeletedAliases()){
-                aliasDao.delete(deleted);
-            }
-
-            // update/persist/delete annotations
-            AnnotationDao annotationDao = factory.getAnnotationDao();
-
-            for (Annotation updated : updateEvt.getUpdatedAnnotations()){
-                annotationDao.update(updated);
-            }
-            for (Annotation created : updateEvt.getCreatedAnnotations()){
-                annotationDao.persist(created);
-            }
-            for (Annotation deleted : updateEvt.getDeletedAnnotations()){
-                annotationDao.delete(deleted);
-            }
-
-            // update parents
-            CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
-
-            for (CvDagObject created : updateEvt.getCreatedParents()){
-                cvDao.update(created);
-            }
-            for (CvDagObject deleted : updateEvt.getDeletedParents()){
-                cvDao.update(deleted);
-            }
-
-            // update term
-            factory.getCvObjectDao(CvDagObject.class).update(term);*/
 
             // fire event
             CvUpdateManager manager = updateContext.getManager();
@@ -211,144 +156,7 @@ public class CvUpdater {
 
     public void updateParents(CvUpdateContext updateContext, UpdatedEvent updateEvt){
 
-        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
-
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
-        CvDagObject term = updateContext.getCvTerm();
-
-        // root terms to exclude
-        Collection<IntactOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
-
-        // parents of the term in the ontology
-        Set<IntactOntologyTermI> allParents = ontologyAccess.getDirectParents(ontologyTerm);
-        // parents of the term in the ontology which are not root terms
-        Set<IntactOntologyTermI> parents = new HashSet<IntactOntologyTermI>(CollectionUtils.subtract(allParents, rootTerms));
-        // parents of the term in the ontology which are not root terms
-        Set<IntactOntologyTermI> rootParents = new HashSet<IntactOntologyTermI>(CollectionUtils.intersection(allParents, rootTerms));
-
-        // missing parents to create
-        Set<IntactOntologyTermI> missingParents = new HashSet<IntactOntologyTermI>(parents);
-        // parents to delete
-        Collection<CvDagObject> cvParents = new ArrayList<CvDagObject>(term.getParents());
-
-        // when updating parents, we only update parents from current ontology so we can filter parents which need to be excluded
-        for (CvDagObject parent : cvParents){
-            String identityValue = null;
-
-            CvObjectXref identity = XrefUtils.getIdentityXref(parent, ontologyAccess.getDatabaseIdentifier());
-            // this parent cannot be updated because is not from the same ontology
-            if (identity == null){
-                Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(parent.getIdentifier());
-
-                if (matcher.find() && matcher.group().equalsIgnoreCase(parent.getIdentifier())){
-                    identityValue = parent.getIdentifier();
-                }
-                else {
-                    continue;
-                }
-            }
-            else {
-                identityValue = identity.getPrimaryId();
-            }
-            // check if parent exist
-            if (identity != null) {
-                boolean hasFound = false;
-
-                // try to find a match in the ontology
-                for (IntactOntologyTermI ontologyTermI : parents){
-                    if (identityValue.equalsIgnoreCase(ontologyTermI.getTermAccession())){
-                        missingParents.remove(ontologyTermI);
-                        hasFound = true;
-                    }
-                }
-
-                // parent which should be removed
-                if (!hasFound){
-                    // get term in the ontology
-                    IntactOntologyTermI parentInOntology = ontologyAccess.getTermForAccession(identityValue);
-
-                    if (parentInOntology == null && identity != null){
-                        parentInOntology = ontologyAccess.getTermForAccession(identity.getPrimaryId());
-                    }
-
-                    // if term does not exist, we fire an error
-                    if (parentInOntology == null){
-                        CvUpdateManager updateManager = updateContext.getManager();
-
-                        CvUpdateError error = updateManager.getErrorFactory().createCvUpdateError(UpdateError.non_existing_term, "The term " + updateContext.getIdentifier() + " has a parent " + identityValue + " which does not exist in the ontology.", identityValue, parent.getAc(), parent.getShortLabel());
-                        UpdateErrorEvent errorEvt = new UpdateErrorEvent(this, error);
-
-                        updateManager.fireOnUpdateError(errorEvt);
-                    }
-                    // if term is not obsolete, we remove it from the parents
-                    else if (!ontologyAccess.isObsolete(parentInOntology)){
-                        term.removeParent(parent);
-
-                        updateEvt.getDeletedParents().add(parent);
-                    }
-                }
-            }
-        }
-
-        // update parents for current ontology
-        for (IntactOntologyTermI parent : missingParents){
-            CvDagObject parentFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(parent.getTermAccession());
-
-            if (parentFromDb == null){
-                if (this.missingParents.containsKey(parent.getTermAccession())){
-                    this.missingParents.get(parent.getTermAccession()).add(term);
-                }
-                else {
-                    Set<CvDagObject> objects = new HashSet<CvDagObject>();
-                    objects.add(term);
-
-                    this.missingParents.put(parent.getTermAccession(), objects);
-                }
-            }
-            else {
-                term.addParent(parentFromDb);
-                updateEvt.getCreatedParents().add(parentFromDb);
-            }
-        }
-
-        // update parents from other ontology
-        if (ontologyAccess.getParentFromOtherOntology() != null && !rootParents.isEmpty()){
-            String parentFromOtherOntology = ontologyAccess.getParentFromOtherOntology();
-            boolean hasFoundParent = false;
-
-            for (CvDagObject parent : cvParents){
-
-                Collection<CvObjectXref> identities = XrefUtils.getIdentityXrefs(parent);
-                // this parent cannot be updated because is not from the same ontology
-                if (identities.isEmpty()){
-                    if (parent.getIdentifier().equalsIgnoreCase(parentFromOtherOntology)){
-                        hasFoundParent = true;
-                    }
-                }
-                else {
-                    for (CvObjectXref identit : identities){
-                        if (identit.getPrimaryId().equals(parentFromOtherOntology)){
-                            hasFoundParent = true;
-                        }
-                    }
-
-                    hasFoundParent = parent.getIdentifier().equalsIgnoreCase(parentFromOtherOntology);
-                }
-            }
-
-            if (!hasFoundParent){
-                if (this.missingParents.containsKey(parentFromOtherOntology)){
-                    this.missingParents.get(parentFromOtherOntology).add(term);
-                }
-                else {
-                    Set<CvDagObject> objects = new HashSet<CvDagObject>();
-                    objects.add(term);
-
-                    this.missingParents.put(parentFromOtherOntology, objects);
-                }
-            }
-        }
+        cvParentUpdater.updateParents(updateContext, updateEvt);
     }
 
     public void updateAnnotations(CvUpdateContext updateContext, UpdatedEvent updateEvt){
@@ -415,7 +223,7 @@ public class CvUpdater {
                             }
                         }
                         //intact has no match in ontology
-                        else if (acComparator > 0) {
+                        else if (acComparator < 0) {
                             updateEvt.getDeletedAnnotations().add(currentIntact);
                             term.removeAnnotation(currentIntact);
 
@@ -446,7 +254,7 @@ public class CvUpdater {
                         }
                     }
                     //intact has no match in ontology, we delete it excepted the identity xref
-                    else if (topicComparator > 0) {
+                    else if (topicComparator < 0) {
                         // we have a definition. Only one is allowed
                         if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopic.getShortLabel())){
                             if (!hasFoundDefinition){
@@ -817,7 +625,7 @@ public class CvUpdater {
                                 }
                             }
                             //intact has no match in ontology
-                            else if (acComparator > 0) {
+                            else if (acComparator < 0) {
                                 if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
                                     updateEvt.getDeletedXrefs().add(currentIntact);
                                     term.removeXref(currentIntact);
@@ -852,7 +660,7 @@ public class CvUpdater {
                                 }
                             }
                         }
-                        else if (qualifierComparator > 0) {
+                        else if (qualifierComparator < 0) {
                             //intact has no match in ontology
                             if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
                                 updateEvt.getDeletedXrefs().add(currentIntact);
@@ -894,7 +702,7 @@ public class CvUpdater {
                         }
                     }
                     //intact has no match in ontology, we delete it excepted the identity xref
-                    else if (dbComparator > 0) {
+                    else if (dbComparator < 0) {
                         if (!currentIntact.equals(updateContext.getIdentityXref())){
                             updateEvt.getDeletedXrefs().add(currentIntact);
                             term.removeXref(currentIntact);
@@ -1057,7 +865,7 @@ public class CvUpdater {
                         }
                     }
                     //intact has no match in ontology
-                    else if (nameComparator > 0) {
+                    else if (nameComparator < 0) {
                         updateEvt.getDeletedAliases().add(currentIntact);
                         term.removeAlias(currentIntact);
 
@@ -1134,15 +942,23 @@ public class CvUpdater {
     }
 
     public Map<String, Set<CvDagObject>> getMissingParents() {
-        return missingParents;
+        return cvParentUpdater.getMissingParents();
     }
 
     public Set<String> getProcessedTerms() {
         return processedTerms;
     }
 
+    public CvParentUpdater getCvParentUpdater() {
+        return cvParentUpdater;
+    }
+
+    public void setCvParentUpdater(CvParentUpdater cvParentUpdater) {
+        this.cvParentUpdater = cvParentUpdater;
+    }
+
     public void clear(){
-        this.missingParents.clear();
+        this.cvParentUpdater.clear();
         this.processedTerms.clear();
     }
 }
