@@ -23,21 +23,21 @@ public class InteractorAliasComparator implements Comparator<InteractorAlias>{
         if (o1.getCvAliasType() == null && o2.getCvAliasType() != null){
             return AFTER;
         }
-        else if (o1.getCvAliasType() == null && o2.getCvAliasType() != null){
+        else if (o1.getCvAliasType() != null && o2.getCvAliasType() == null){
             return BEFORE;
         }
         else if (o1.getCvAliasType() == null && o2.getCvAliasType() == null){
             if (o1.getName() == null && o2.getName() != null){
                 return AFTER;
             }
-            else if (o1.getName() == null && o2.getName() != null){
+            else if (o1.getName() != null && o2.getName() == null){
                 return BEFORE;
             }
             else if (o1.getName() == null && o2.getName() == null){
                 return EQUAL;
             }
             else {
-                return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+                return o1.getName().compareTo(o2.getName());
             }
         }
         else {
@@ -48,14 +48,14 @@ public class InteractorAliasComparator implements Comparator<InteractorAlias>{
                 if (o1.getName() == null && o2.getName() != null){
                     return AFTER;
                 }
-                else if (o1.getName() == null && o2.getName() != null){
+                else if (o1.getName() != null && o2.getName() == null){
                     return BEFORE;
                 }
                 else if (o1.getName() == null && o2.getName() == null){
                     return EQUAL;
                 }
                 else {
-                    return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
+                    return o1.getName().compareTo(o2.getName());
                 }
             }
             else if (CvAliasType.GENE_NAME_MI_REF.equalsIgnoreCase(identifier1)){

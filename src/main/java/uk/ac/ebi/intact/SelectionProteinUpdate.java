@@ -6,9 +6,7 @@ import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.report.FileReportHandler;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,20 +25,20 @@ public class SelectionProteinUpdate {
         public static void main(String [] args){
 
         // three possible arguments
-        if( args.length != 4 ) {
+        /*if( args.length != 4 ) {
             System.err.println( "Usage: GlobalUpdate <database> <folder> <blast> <inputFile>" );
             System.exit( 1 );
-        }
-        final String database = args[0];
-        final String filename = args[1];
-            final String fileInputName = args[3];
+        } */
+        final String database = "enzpro";
+        final String filename = "/home/marine/Desktop/update-test";
+            //final String fileInputName = args[3];
 
-        boolean isBlastEnabled = Boolean.parseBoolean(args[2]);
+        boolean isBlastEnabled = false;
 
         System.out.println( "folder where are the log files = " + filename );
         System.out.println( "database = " + database );
         System.out.println( "Blast enabled = " + isBlastEnabled );
-        System.out.println( "File containing protein acs to update = " + fileInputName );
+        //System.out.println( "File containing protein acs to update = " + fileInputName );
 
         IntactContext.initContext(new String[]{"/META-INF/" + database + ".spring.xml"});
 
@@ -55,7 +53,7 @@ public class SelectionProteinUpdate {
             System.out.println("Reading file containing protein acs to update...");
             List<String> proteinAcs = new ArrayList<String>();
 
-            File inputFile = new File(fileInputName);
+            /*File inputFile = new File(fileInputName);
             BufferedReader reader = new BufferedReader(new FileReader(inputFile));
 
             String line = reader.readLine();
@@ -65,7 +63,8 @@ public class SelectionProteinUpdate {
                 line = reader.readLine();
             }
 
-            reader.close();
+            reader.close();*/
+            proteinAcs.add("EBI-78738");
 
             config.setReportHandler(new FileReportHandler(new File(filename)));
 
