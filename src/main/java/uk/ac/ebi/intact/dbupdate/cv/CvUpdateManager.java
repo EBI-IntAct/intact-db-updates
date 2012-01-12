@@ -605,7 +605,7 @@ public class CvUpdateManager {
 
         // set the identity and identity xref
         String identity = null;
-        Collection<CvObjectXref> identities = extractIdentityXrefFrom(cvObject, ontologyAccess.getDatabaseIdentifier());
+        Collection<CvObjectXref> identities = CvUpdateUtils.extractIdentityXrefFrom(cvObject, ontologyAccess.getDatabaseIdentifier());
 
         if (identities.isEmpty()){
             identity = cvObject.getIdentifier();
@@ -674,19 +674,6 @@ public class CvUpdateManager {
                 fireOnUpdateError(evt);
             }
         }
-    }
-
-    private Collection<CvObjectXref> extractIdentityXrefFrom(CvDagObject cv, String databaseId){
-        Collection<CvObjectXref> existingIdentities = XrefUtils.getIdentityXrefs(cv);
-        Collection<CvObjectXref> identities = new ArrayList<CvObjectXref>(existingIdentities.size());
-
-        for (CvObjectXref ref : existingIdentities){
-            if (ref.getCvDatabase() != null && ref.getCvDatabase().getIdentifier().equalsIgnoreCase(databaseId)){
-                identities.add(ref);
-            }
-        }
-
-        return identities;
     }
 
     public CvUpdater getCvUpdater() {
