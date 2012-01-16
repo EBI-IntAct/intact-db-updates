@@ -1,8 +1,10 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
@@ -63,8 +65,10 @@ public class ObsoleteCvRemapper {
             IntactOntologyTermI remappedTerm = null;
             Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(ontologyTerm.getRemappedTerm());
 
+            boolean isMatchingRegexp = matcher.find();
+
             // the remapped term is not from this ontology, so we need to know which database it is remapped to
-            if (!matcher.find()){
+            if (!isMatchingRegexp){
 
                 if (ontologyTerm.getRemappedTerm().contains(":")){
                     String[] refInfo = ontologyTerm.getRemappedTerm().split(":");
@@ -84,9 +88,9 @@ public class ObsoleteCvRemapper {
                 }
             }
             // the remapped term is from the same ontology as the obsolete term so we can get the ontologyTerm
-            else if (matcher.find() && matcher.group().equalsIgnoreCase(ontologyTerm.getRemappedTerm())){
+            else if (isMatchingRegexp && matcher.group().equalsIgnoreCase(ontologyTerm.getRemappedTerm())){
                 remappedDb = ontologyAccess.getDatabaseIdentifier();
-                remappedTerm = ontologyAccess.getTermForAccession(ontologyTerm.getTermAccession());
+                remappedTerm = ontologyAccess.getTermForAccession(ontologyTerm.getRemappedTerm());
 
                 // the remapped term cannot be found in the ontology so we cannot do the remapping
                 if (remappedTerm == null){
@@ -184,6 +188,9 @@ public class ObsoleteCvRemapper {
                     // we can now delete the obsolete term and add a secondary xref (intact and ontology term accession)
                     if (couldRemap){
 
+                        // update parent children references
+                        updateParentChildrenReferences(term, termFromDb);
+
                         // create secondary xrefs
                         CvObjectXref secondaryXref = CvUpdateUtils.createSecondaryXref(termFromDb, ontologyAccess.getDatabaseIdentifier(), ontologyTerm.getTermAccession());
                         factory.getXrefDao(CvObjectXref.class).persist(secondaryXref);
@@ -211,11 +218,11 @@ public class ObsoleteCvRemapper {
                         // remapped to another ontology, needs to be updated later
                         if (remappedTerm == null && newOntologyId != null){
                             if (remappedCvToUpdate.containsKey(newOntologyId)){
-                                remappedCvToUpdate.get(newOntologyId).add(term);
+                                remappedCvToUpdate.get(newOntologyId).add(termFromDb);
                             }
                             else {
                                 Set<CvDagObject> cvs = new HashSet<CvDagObject>();
-                                cvs.add(term);
+                                cvs.add(termFromDb);
                                 remappedCvToUpdate.put(newOntologyId, cvs);
                             }
                         }
@@ -247,6 +254,31 @@ public class ObsoleteCvRemapper {
 
             manager.fireOnObsoleteImpossibleToRemap(evt);
         }
+    }
+
+    private void updateParentChildrenReferences(CvDagObject obsolete, CvDagObject remapped){
+
+        Collection<CvDagObject> obsoleteParents = new ArrayList<CvDagObject>(obsolete.getParents());
+
+        Collection<CvDagObject> obsoleteChildren = new ArrayList<CvDagObject>(obsolete.getChildren());
+
+        CvObjectDao<CvDagObject> dao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+
+        for (CvDagObject parent : obsoleteParents){
+            obsolete.removeParent(parent);
+            remapped.addParent(parent);
+
+            dao.update(parent);
+        }
+
+        for (CvDagObject child : obsoleteChildren){
+            obsolete.removeChild(child);
+            remapped.addChild(child);
+
+            dao.update(child);
+        }
+
+        dao.update(remapped);
     }
 
     private boolean updateReferencesToObsoleteTerm(CvUpdateContext updateContext, DaoFactory factory, IntactOntologyTermI ontologyTerm, CvDagObject term, boolean couldRemap, CvUpdateManager manager, CvDagObject termFromDb, int resultUpdate) {

@@ -1,0 +1,265 @@
+format-version: 1.2
+date: 03:01:2012 16:25
+saved-by: orchard
+auto-generated-by: OBO-Edit 2.1-rc2
+subsetdef: Drugable "Drugable Genome Project"
+subsetdef: PSI-MI_slim "Subset of PSI-MI"
+subsetdef: PSI-MOD_slim "subset of protein modifications"
+synonymtypedef: DeltaMass-label "Label from MS DeltaMass" EXACT
+synonymtypedef: PSI-MI-alternate "Alternate label curated by PSI-MI" EXACT
+synonymtypedef: PSI-MI-short "Unique short label curated by PSI-MI" EXACT
+synonymtypedef: PSI-MOD-alternate "Alternate label curated by PSI-MOD" EXACT
+synonymtypedef: PSI-MOD-short "Unique short label curated by PSI-MOD" EXACT
+synonymtypedef: PSI-MS-label "Agreed label from MS community" RELATED
+synonymtypedef: RESID-alternate "Alternate name from RESID" EXACT
+synonymtypedef: RESID-misnomer "Misnomer label from RESID" RELATED
+synonymtypedef: RESID-name "Name from RESID" EXACT
+synonymtypedef: RESID-systematic "Systematic name from RESID" EXACT
+synonymtypedef: UniMod-alternate "Alternate name from UniMod" RELATED
+synonymtypedef: UniMod-description "Description (full_name) from UniMod" RELATED
+synonymtypedef: UniMod-interim "Interim label from UniMod" RELATED
+synonymtypedef: UniMod-label "Label (title) from UniMod" RELATED
+synonymtypedef: UniProt-feature "Protein feature description from UniProtKB" EXACT
+default-namespace: file:D:/luisa/mergeMIsubsets/MI_MOD_MAP_final.obo
+remark: Notes:
+remark: Each of the top level terms in this file is the root term of an independent controlled vocabulary
+remark: mapping an element of the PSI Molecular Interaction XML schema.
+remark: The correct use of these vocabularies in the PSI Molecular Interaction XML schema is
+remark: formalized in a mapping file available at http://www.psidev.info/files/validator/xml/MI-CVMapping.xml.
+remark: The PSI MI schema defines short labels for controlled vocabulary terms
+remark: short labels are reported as PSI-MI-short synonyms that are created when a term is more than 20 characteres long.
+remark: The last accession number used in this file is stored in a separate file,
+remark: psi-mi.lastac. It MUST be updated when this file is updated.
+remark: The maintenance of this file is ensured by Sandra Orchard orchard@ebi.ac.uk and Luisa Montecchi Palazzi luisa@ebi.ac.uk
+remark: coverage: This file collect controlled vocabularies describing different aspects of molecular interactions.
+remark: publisher: This file is published by the PSI MI working group see http://psidev.info/MI
+remark: CVversion: 2.5.5
+
+[Term]
+id: MI:0000
+name: molecular interaction
+namespace: PSI-MI
+def: "Controlled vocabularies originally created for protein protein interactions, extended to other molecules interactions." [PMID:14755292]
+subset: Drugable
+subset: PSI-MI_slim
+synonym: "mi" EXACT PSI-MI-short []
+
+[Term]
+id: MI:0590
+name: attribute name
+namespace: PSI-MI
+def: "Collection of topics describing the free text stored as an attribute value." [PMID:14755292]
+subset: Drugable
+subset: PSI-MI_slim
+synonym: "CvTopic" EXACT PSI-MI-alternate []
+relationship: part_of MI:0000 ! molecular interaction
+
+[Term]
+id: MI:0664
+name: interaction attribute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to an interaction element." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "interaction att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0665
+name: experiment attibute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to an experiment element." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "experiment att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0666
+name: participant attribute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to a participant element." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "participant att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0667
+name: controlled vocabulary attribute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to a CV term." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "cv att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0668
+name: feature attribute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to a feature element." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "feature att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0669
+name: organism attribute name
+namespace: PSI-MI
+def: "Attribute name of annotation associated to an organism element." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "organism att name" EXACT PSI-MI-short []
+is_a: MI:0590 ! attribute name
+
+[Term]
+id: MI:0612
+name: comment
+namespace: PSI-MI
+def: "Comment for public view. This attribute can be associated to interaction, experiment, CV term, an organism and any participant." [PMID:14755292]
+subset: PSI-MI_slim
+is_a: MI:0664 ! interaction attribute name
+is_a: MI:0665 ! experiment attibute name
+is_a: MI:0666 ! participant attribute name
+is_a: MI:0667 ! controlled vocabulary attribute name
+is_a: MI:0668 ! feature attribute name
+is_a: MI:0669 ! organism attribute name
+
+[Term]
+id: MI:0001
+name: interaction detection method
+namespace: PSI-MI
+def: "Method to determine the interaction." [PMID:14755292]
+subset: Drugable
+subset: PSI-MI_slim
+synonym: "interaction detect" EXACT PSI-MI-short []
+relationship: part_of MI:0000 ! molecular interaction
+
+[Term]
+id: MI:0045
+name: experimental interaction detection
+namespace: PSI-MI
+def: "Methods based on laboratory experiments to determine an interaction." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "experimental interac" EXACT PSI-MI-short []
+is_a: MI:0001 ! interaction detection method
+
+[Term]
+id: MI:0401
+name: biochemical
+namespace: PSI-MI
+def: "The application of chemical principles and methods to biological experiments to demonstrate an interaction." [PMID:14755292]
+subset: PSI-MI_slim
+is_a: MI:0045 ! experimental interaction detection
+
+[Term]
+id: MI:0091
+name: chromatography technology
+namespace: PSI-MI
+def: "Used to separate and/or analyse complex mixtures. The components to be separated are distributed between two phases: a stationary phase (bed) and a mobile phase which percolates through the stationary bed. The nature of the two phases determines the separation criteria exploited by the column such as affinity, ionic charges, size or hydrophobicity of the molecules under analysis. Each type of column can be implemented with the mobile phase under atmospheric or high pressure condition. In this later case columns are designated as High Pressure Liquid Chromatography (HPLC)." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "chromatography" EXACT PSI-MI-short []
+synonym: "column chromatography" EXACT PSI-MI-alternate []
+is_a: MI:0401 ! biochemical
+
+[Term]
+id: MI:0400
+name: affinity technology
+namespace: PSI-MI
+def: "Techniques which depend upon the strength of the interaction between two entities." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "affinity techniques" EXACT PSI-MI-short []
+is_a: MI:0401 ! biochemical
+
+[Term]
+id: MI:0004
+name: affinity chromatography technology
+namespace: PSI-MI
+def: "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins." [PMID:7708014]
+subset: PSI-MI_slim
+synonym: "affinity chrom" EXACT PSI-MI-short []
+synonym: "Affinity purification" EXACT PSI-MI-alternate []
+is_a: MI:0091 ! chromatography technology
+is_a: MI:0400 ! affinity technology
+
+[Term]
+id: MI:0190
+name: interaction type
+namespace: PSI-MI
+def: "Connection between molecule." [PMID:14755292]
+subset: PSI-MI_slim
+relationship: part_of MI:0000 ! molecular interaction
+
+[Term]
+id: MI:0208
+name: genetic interaction
+namespace: PSI-MI
+def: "Two genes A and B \"genetically interact\" when the phenotype generated as the result of mutations in both genes (double mutant ab) is unexpectedly not just a combination of the phenotypes of the two single mutants a and b." [PMID:16527956]
+subset: PSI-MI_slim
+is_a: MI:0190 ! interaction type
+
+[Term]
+id: MI:0933
+name: negative genetic interaction
+namespace: PSI-MI
+def: "The phenotype of the double mutant ab is stronger than expected from the combination of the individual effects of a and b." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "negative gen int" EXACT PSI-MI-short []
+is_a: MI:0208 ! genetic interaction
+
+[Term]
+id: MI:0021
+name: colocalization by fluorescent probes cloning
+namespace: PSI-MI
+def: "Two proteins can be localised to cell compartments, in the same experiment, if they are expressed as chimeric proteins fused to distinct proteins fluorescing at different wavelengths (Green Fluorescent Protein and Red Fluorescent Protein for example). Using a confocal microscope the two proteins can be visualized in living cells and it can be determined whether they have the same subcellular location. Fluorescence microscopy of cells expressing a GFP fusion protein can also demonstrate dynamic processes such as its translocation from one subcellular compartment to another.\nOBSOLETE: use imaging technique (MI:0428) and specific probe as feature of each interacting protein." [PMID:14755292]
+subset: PSI-MI_slim
+synonym: "coloc fluoresc probe" EXACT PSI-MI-short []
+is_obsolete: true
+
+[Term]
+id: MI:0802
+name: enhancement interaction
+namespace: PSI-MI
+def: "The A genetic perturbation enhances the phenotype of the B perturbation, or vice versa (e.g. WT = A < B < AB or WT = B < A < AB). This could be conditional or additive by the above scheme.\nOBSOLETE: remap to MI:0933 'negative genetic interaction'" [PMID:15833125]
+subset: PSI-MI_slim
+synonym: "enhancement" EXACT PSI-MI-short []
+is_obsolete: true
+
+[Term]
+id: MI:0123
+name: n2-acetyl-arginine
+namespace: PSI-MI
+def: "Residue modification.\nOBSOLETE remap to MOD:00359." [PMID:11125103, RESID:AA0354]
+synonym: "[R:ac]" EXACT PSI-MI-alternate []
+synonym: "acetylarginine" EXACT PSI-MI-alternate []
+synonym: "acetylarginine" EXACT PSI-MI-short []
+synonym: "alpha-acetylamino-delta-guanidinovaleric acid" EXACT PSI-MI-alternate []
+synonym: "N2-acetyl-L-arginine" EXACT PSI-MI-alternate []
+synonym: "RAC" EXACT PSI-MI-alternate []
+is_obsolete: true
+
+[Typedef]
+id: contains
+name: contains
+namespace: PSI-MOD
+def: "'Entity A' contains 'Entity B' implies that 'Entity B' is a part of the structure of 'Entity A'." [PubMed:18688235]
+comment: The inverse relationship to "part of".
+is_transitive: true
+
+[Typedef]
+id: derives_from
+name: derives from
+namespace: PSI-MOD
+def: "'Entity A' derives_from 'Entity B' implies that 'Entity A' is chemically derived from 'Entity B'." [PubMed:18688235]
+is_transitive: true
+
+[Typedef]
+id: has_functional_parent
+name: has functional parent
+namespace: PSI-MOD
+def: "'Entity A' has_functional_parent 'Entity B' implies that 'Entity B' has at least one chacteristic group from which 'Entity A' can be derived by functional modification." [PubMed:18688235]
+comment: This relationship indicates that the formula and mass of the child are not inherited from the mass of the parent.
+is_transitive: true
+
+[Typedef]
+id: part_of
+name: part of
+namespace: PSI-MI
+def: "'Entity A' part_of 'Entity B' implies that 'Entity A' is a part of the structure of 'Entity B'." [PubMed:18688235]
+is_transitive: true
