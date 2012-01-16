@@ -23,4 +23,6 @@ public interface CvUpdateListener extends EventListener {
     public void onCreatedCvTerm(CreatedTermEvent evt);
 
     public void onUpdateError(UpdateErrorEvent evt);
+
+    public void onDeletedCvTerm(DeletedTermEvent evt);
     }

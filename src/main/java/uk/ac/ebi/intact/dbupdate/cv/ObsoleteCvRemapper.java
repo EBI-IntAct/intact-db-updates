@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
+import uk.ac.ebi.intact.dbupdate.cv.events.DeletedTermEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteRemappedEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.ObsoleteTermImpossibleToRemapEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
@@ -176,6 +177,11 @@ public class ObsoleteCvRemapper {
                             remappedCvToUpdate.put(newOntologyId, cvs);
                         }
                     }
+
+                    // fire event
+                    ObsoleteRemappedEvent evt = new ObsoleteRemappedEvent(this, updateContext.getIdentifier(), ontologyTerm.getRemappedTerm(), term.getAc(), null, 0, "The obsolete term has been updated and is not obsolete anymore.");
+
+                    manager.fireOnRemappedObsolete(evt);
                 }
                 // merge current term with new term
                 else if (existingObjects.size() == 1){
@@ -229,6 +235,9 @@ public class ObsoleteCvRemapper {
 
                         // finally we delete the obsolete term
                         factory.getCvObjectDao(CvDagObject.class).delete(term);
+
+                        DeletedTermEvent evt = new DeletedTermEvent(this, term.getIdentifier(), term.getShortLabel(), term.getAc(), "Unused obsolete term. Has been deleted");
+                        manager.fireOnDeletedTerm(evt);
                     }
                 }
                 else {

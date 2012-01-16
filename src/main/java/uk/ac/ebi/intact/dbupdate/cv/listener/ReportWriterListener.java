@@ -29,6 +29,7 @@ public class ReportWriterListener implements CvUpdateListener{
     private FileWriter updatedCvWriter;
     private FileWriter createdCvWriter;
     private FileWriter updateErrorWriter;
+    private FileWriter deletedCvWriter;
 
     private static final Log log = LogFactory.getLog(ReportWriterListener.class);
 
@@ -42,6 +43,7 @@ public class ReportWriterListener implements CvUpdateListener{
     private boolean isUpdatedCvTermStarted = false;
     private boolean isCreatedCvTermStarted = false;
     private boolean isUpdateErrorStarted = false;
+    private boolean isDeletedCvStarted = false;
 
     public ReportWriterListener(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -56,6 +58,7 @@ public class ReportWriterListener implements CvUpdateListener{
         this.updatedCvWriter = new FileWriter(new File(dirFile, "updated.csv"));
         this.createdCvWriter = new FileWriter(new File(dirFile, "created.csv"));
         this.updateErrorWriter = new FileWriter(new File(dirFile, "update_errors.csv"));
+        this.updateErrorWriter = new FileWriter(new File(dirFile, "deleted.csv"));
     }
 
     public void close() throws IOException {
@@ -64,12 +67,14 @@ public class ReportWriterListener implements CvUpdateListener{
         updatedCvWriter.close();
         createdCvWriter.close();
         updateErrorWriter.close();
+        deletedCvWriter.close();
 
         isCreatedCvTermStarted = false;
         isObsoleteRemappedTermStarted = false;
         isObsoleteTermImpossibleToRemapStarted = false;
         isUpdatedCvTermStarted = false;
         isUpdateErrorStarted = false;
+        isDeletedCvStarted = false;
     }
 
 
@@ -340,6 +345,28 @@ public class ReportWriterListener implements CvUpdateListener{
 
                 writeColumnValues(writer, termAc, intactAc, intactLabel, label, message);
             }
+
+        } catch (Exception e) {
+            log.fatal("Problem writing obsolete term impossible to remapped.", e);
+        }
+    }
+
+    @Override
+    public void onDeletedCvTerm(DeletedTermEvent evt) {
+        try {
+            FileWriter writer = deletedCvWriter;
+
+            if (!isDeletedCvStarted){
+                writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Message");
+            }
+
+            String termAc = evt.getTermAc() != null ? evt.getTermAc() : EMPTY_VALUE;
+            String intactAc = evt.getIntactAc() != null ? evt.getIntactAc() : EMPTY_VALUE;
+            String intactLabel = evt.getShortLabel() != null ? evt.getShortLabel() : EMPTY_VALUE;
+            String message = evt.getMessage()!= null ? evt.getMessage() : EMPTY_VALUE;
+
+            writeColumnValues(writer, termAc, intactAc, intactLabel, message);
+
 
         } catch (Exception e) {
             log.fatal("Problem writing obsolete term impossible to remapped.", e);

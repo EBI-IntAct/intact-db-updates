@@ -731,6 +731,13 @@ public class CvUpdateManager {
         }
     }
 
+    public void fireOnDeletedTerm(DeletedTermEvent evt){
+
+        for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
+            listener.onDeletedCvTerm(evt);
+        }
+    }
+
     public void fireOnUpdateCase(UpdatedEvent evt){
 
         for (CvUpdateListener listener : listeners.getListeners(CvUpdateListener.class)){
