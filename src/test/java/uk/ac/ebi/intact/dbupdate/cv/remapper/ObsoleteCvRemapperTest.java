@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.cv;
+package uk.ac.ebi.intact.dbupdate.cv.remapper;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterTest;
 import uk.ac.ebi.intact.model.*;
 
 import java.io.IOException;

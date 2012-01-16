@@ -16,11 +16,13 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.*;
+import uk.ac.ebi.intact.dbupdate.cv.importer.CvImporter;
 import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
+import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapper;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import javax.persistence.Query;
 import javax.swing.event.EventListenerList;

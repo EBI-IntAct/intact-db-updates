@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.cv;
+package uk.ac.ebi.intact.dbupdate.cv.remapper;
 
 import org.apache.commons.collections.CollectionUtils;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -6,6 +6,8 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.DeletedTermEvent;

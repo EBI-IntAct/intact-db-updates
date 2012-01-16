@@ -1,7 +1,5 @@
-package uk.ac.ebi.intact.dbupdate.cv;
+package uk.ac.ebi.intact.dbupdate.cv.importer;
 
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -9,10 +7,13 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdater;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -22,7 +23,9 @@ import javax.persistence.Query;
 import java.util.*;
 
 /**
- * This class allows to import a Cv object to a database
+ * This class allows to import a Cv object.
+ *
+ * This class does not persist the imported cv, it has to be done separately
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -513,15 +516,6 @@ public class CvImporter {
 
     public Set<String> getProcessedTerms() {
         return processedTerms;
-    }
-
-    public void hideTerm(CvDagObject c, String message, DaoFactory factory){
-        CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.HIDDEN);
-
-        Annotation newAnnotation = new Annotation(topicFromDb, message);
-        c.addAnnotation(newAnnotation);
-
-        factory.getAnnotationDao().persist(newAnnotation);
     }
 
     public Map<String, Set<CvDagObject>> getMissingRootParents() {

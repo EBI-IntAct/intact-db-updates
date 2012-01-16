@@ -1,10 +1,11 @@
-package uk.ac.ebi.intact.dbupdate.cv;
+package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvAnnotationComparator;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
