@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
@@ -48,9 +49,9 @@ public class CvImporterTest extends IntactBasicTestCase{
         context.setOntologyTerm(access.getTermForAccession(termAc));
         context.setTermObsolete(false);
         context.setIdentifier(termAc);
-        
+
         cvManager.getCvImporter().importCv(context, false);
-        
+
         Assert.assertNotNull(context.getCvTerm());
     
         // object must not be persisted and not hidden and should be an interaction detection method
@@ -176,6 +177,15 @@ public class CvImporterTest extends IntactBasicTestCase{
     public void test_import_existing_parent() throws IllegalAccessException, InstantiationException {
         String termAc = "MI:0091"; // chromatography technology
 
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvDagObject cv = getMockBuilder().createCvObject(CvInteraction.class, "MI:0401", "biochemical");
+        getCorePersister().saveOrUpdate(cv);
+
+        getDataContext().commitTransaction(status);
+        
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0401"));
+        
         IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
 
         CvUpdateContext context = new CvUpdateContext(this.cvManager);
@@ -206,14 +216,16 @@ public class CvImporterTest extends IntactBasicTestCase{
         Assert.assertEquals(1, context.getCvTerm().getParents().size());
         Assert.assertFalse(isTermHidden(context.getCvTerm()));
 
-        // all parents must be hidden and should be interaction detection method
+        // all parents must be hidden excepted for biochemical which already existed and should be interaction detection method
         CvDagObject parent = context.getCvTerm().getParents().iterator().next();
         Assert.assertTrue(parent instanceof CvInteraction);
-        Assert.assertNull(parent.getAc());
+        // biochemical already exists
+        Assert.assertNotNull(parent.getAc());
+        Assert.assertEquals(cv.getAc(), parent.getAc());
         Assert.assertEquals("MI:0401", parent.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent.getParents().size());
-        Assert.assertTrue(isTermHidden(parent));
+        Assert.assertFalse(isTermHidden(parent));
 
         CvDagObject parent2 = parent.getParents().iterator().next();
         Assert.assertTrue(parent2 instanceof CvInteraction);

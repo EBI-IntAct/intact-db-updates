@@ -26,6 +26,9 @@ import java.util.*;
  *
  * This class does not persist the imported cv, it has to be done separately
  *
+ * WARNING : the methods importCv can load terms from the database to change children and parents but does not persist/update anything.
+ * So when the method importCv is called within a transaction, the cvObject should be persisted before flushing the session
+ *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>10/11/11</pre>
