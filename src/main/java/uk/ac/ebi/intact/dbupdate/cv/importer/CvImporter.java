@@ -26,8 +26,7 @@ import java.util.*;
  *
  * This class does not persist the imported cv, it has to be done separately
  *
- * WARNING : the methods importCv can load terms from the database to change children and parents but does not persist/update anything.
- * So when the method importCv is called within a transaction, the cvObject should be persisted before flushing the session
+ * WARNING : the methods importCv is persisting the cvs it has created
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -156,6 +155,11 @@ public class CvImporter {
             }
         }
 
+        // we update/persist the changes at the end
+        if (updateContext.getCvTerm() != null){
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
+        }
+
         loadedTerms.clear();
         hiddenParents.clear();
         unHiddenChildren.clear();
@@ -220,21 +224,6 @@ public class CvImporter {
         return query.getResultList();
     }
 
-    private CvDagObject createAndPersistNewCv(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, boolean hide) throws IllegalAccessException, InstantiationException {
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-
-        CvDagObject cvObject;
-        cvObject = createCvObjectFrom(child, ontologyAccess, termClass, false, updateContext);
-        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvObject);
-
-        // fire evt
-        CvUpdateManager manager = updateContext.getManager();
-
-        CreatedTermEvent evt = new CreatedTermEvent(this, child.getTermAccession(), cvObject.getShortLabel(), cvObject.getAc(), hide, "Created child term");
-        manager.fireOnCreatedTerm(evt);
-        return cvObject;
-    }
-
     public Class<? extends CvDagObject> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
 
         if (classMap.containsKey(ontologyTerm.getTermAccession())){
@@ -273,7 +262,7 @@ public class CvImporter {
         // set identifier
         cvObject.setIdentifier(accession);
 
-        CvObjectXref identity = CvUpdateUtils.createIdentityXref(cvObject, ontologyAccess.getDatabaseIdentifier(), CvXrefQualifier.IDENTITY_MI_REF);
+        CvObjectXref identity = CvUpdateUtils.createIdentityXref(cvObject, ontologyAccess.getDatabaseIdentifier(), accession);
 
         Map<String, CvDatabase> processedDatabases = new HashMap<String, CvDatabase>();
 

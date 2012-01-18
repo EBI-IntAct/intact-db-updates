@@ -387,8 +387,6 @@ public class CvUpdateManager {
 
             if (updateContext.getCvTerm() != null){
                 processedIntactAcs.add(updateContext.getCvTerm().getAc());
-
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
             }
             else {
                 CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + root.getTermAccession() + " cannot be imported into the database", root.getTermAccession(), null, null);
@@ -429,7 +427,6 @@ public class CvUpdateManager {
                         cvImporter.importCv(updateContext, false);
 
                         if (updateContext.getCvTerm() != null){
-                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
 
                             for (CvDagObject child : entry.getValue()){
                                 log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());

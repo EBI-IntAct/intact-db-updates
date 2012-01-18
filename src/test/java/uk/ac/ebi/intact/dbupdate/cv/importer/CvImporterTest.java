@@ -54,9 +54,8 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         Assert.assertNotNull(context.getCvTerm());
     
-        // object must not be persisted and not hidden and should be an interaction detection method
+        // object must not be hidden and should be an interaction detection method
         Assert.assertTrue(context.getCvTerm() instanceof CvInteraction);
-        Assert.assertNull(context.getCvTerm().getAc());
         Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
         Assert.assertEquals("chromatography technology", context.getCvTerm().getFullName());
         Assert.assertEquals("chromatography", context.getCvTerm().getShortLabel());
@@ -75,7 +74,6 @@ public class CvImporterTest extends IntactBasicTestCase{
         // all parents must be hidden and should be interaction detection method
         CvDagObject parent = context.getCvTerm().getParents().iterator().next();
         Assert.assertTrue(parent instanceof CvInteraction);
-        Assert.assertNull(parent.getAc());
         Assert.assertEquals("MI:0401", parent.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent.getParents().size());
@@ -83,7 +81,6 @@ public class CvImporterTest extends IntactBasicTestCase{
         
         CvDagObject parent2 = parent.getParents().iterator().next();
         Assert.assertTrue(parent2 instanceof CvInteraction);
-        Assert.assertNull(parent2.getAc());
         Assert.assertEquals("MI:0045", parent2.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent2.getParents().size());
@@ -91,7 +88,6 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         CvDagObject parent3 = parent2.getParents().iterator().next();
         Assert.assertTrue(parent3 instanceof CvInteraction);
-        Assert.assertNull(parent3.getAc());
         Assert.assertEquals("MI:0001", parent3.getIdentifier());
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
@@ -116,9 +112,8 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         Assert.assertNotNull(context.getCvTerm());
 
-        // object must not be persisted and not hidden and should be an interaction detection method
+        // object must not be hidden and should be an interaction detection method
         Assert.assertTrue(context.getCvTerm() instanceof CvInteraction);
-        Assert.assertNull(context.getCvTerm().getAc());
         Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
         Assert.assertEquals("chromatography technology", context.getCvTerm().getFullName());
         Assert.assertEquals("chromatography", context.getCvTerm().getShortLabel());
@@ -137,7 +132,6 @@ public class CvImporterTest extends IntactBasicTestCase{
         // all children cannot be hidden and should be interaction detection method
         CvDagObject child = context.getCvTerm().getChildren().iterator().next();
         Assert.assertTrue(child instanceof CvInteraction);
-        Assert.assertNull(child.getAc());
         Assert.assertEquals("MI:0004", child.getIdentifier());
         // no child
         Assert.assertTrue(child.getChildren().isEmpty());
@@ -148,7 +142,6 @@ public class CvImporterTest extends IntactBasicTestCase{
         // all parents must be hidden and should be interaction detection method
         CvDagObject parent = context.getCvTerm().getParents().iterator().next();
         Assert.assertTrue(parent instanceof CvInteraction);
-        Assert.assertNull(parent.getAc());
         Assert.assertEquals("MI:0401", parent.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent.getParents().size());
@@ -156,7 +149,6 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         CvDagObject parent2 = parent.getParents().iterator().next();
         Assert.assertTrue(parent2 instanceof CvInteraction);
-        Assert.assertNull(parent2.getAc());
         Assert.assertEquals("MI:0045", parent2.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent2.getParents().size());
@@ -164,7 +156,6 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         CvDagObject parent3 = parent2.getParents().iterator().next();
         Assert.assertTrue(parent3 instanceof CvInteraction);
-        Assert.assertNull(parent3.getAc());
         Assert.assertEquals("MI:0001", parent3.getIdentifier());
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
@@ -198,9 +189,8 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         Assert.assertNotNull(context.getCvTerm());
 
-        // object must not be persisted and not hidden and should be an interaction detection method
+        // object must not be hidden and should be an interaction detection method
         Assert.assertTrue(context.getCvTerm() instanceof CvInteraction);
-        Assert.assertNull(context.getCvTerm().getAc());
         Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
         Assert.assertEquals("chromatography technology", context.getCvTerm().getFullName());
         Assert.assertEquals("chromatography", context.getCvTerm().getShortLabel());
@@ -220,7 +210,6 @@ public class CvImporterTest extends IntactBasicTestCase{
         CvDagObject parent = context.getCvTerm().getParents().iterator().next();
         Assert.assertTrue(parent instanceof CvInteraction);
         // biochemical already exists
-        Assert.assertNotNull(parent.getAc());
         Assert.assertEquals(cv.getAc(), parent.getAc());
         Assert.assertEquals("MI:0401", parent.getIdentifier());
         // one parent
@@ -229,7 +218,6 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         CvDagObject parent2 = parent.getParents().iterator().next();
         Assert.assertTrue(parent2 instanceof CvInteraction);
-        Assert.assertNull(parent2.getAc());
         Assert.assertEquals("MI:0045", parent2.getIdentifier());
         // one parent
         Assert.assertEquals(1, parent2.getParents().size());
@@ -237,7 +225,6 @@ public class CvImporterTest extends IntactBasicTestCase{
 
         CvDagObject parent3 = parent2.getParents().iterator().next();
         Assert.assertTrue(parent3 instanceof CvInteraction);
-        Assert.assertNull(parent3.getAc());
         Assert.assertEquals("MI:0001", parent3.getIdentifier());
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
