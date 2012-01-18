@@ -51,8 +51,6 @@ public class CvUpdateManager {
 
     private IntactOntologyManager intactOntologyManager;
 
-    private Map<String, String> rooTerms;
-
     private File reportDirectory;
 
     private CvUpdateErrorFactory errorFactory;
@@ -79,9 +77,7 @@ public class CvUpdateManager {
 
         cvUpdater = new CvUpdater();
         cvRemapper = new ObsoleteCvRemapper();
-
-        rooTerms = new HashMap<String, String>();
-        initializeRootTerms();
+        cvImporter = new CvImporter();
 
         errorFactory = new DefaultCvUpdateErrorFactory();
 
@@ -105,9 +101,7 @@ public class CvUpdateManager {
 
         cvUpdater = new CvUpdater();
         cvRemapper = new ObsoleteCvRemapper();
-
-        rooTerms = new HashMap<String, String>();
-        initializeRootTerms();
+        cvImporter = new CvImporter();
 
         errorFactory = new DefaultCvUpdateErrorFactory();
         updateContext = new CvUpdateContext(this);
@@ -135,9 +129,6 @@ public class CvUpdateManager {
 
         this.cvRemapper = cvRemapper != null ? cvRemapper : new ObsoleteCvRemapper();
 
-        rooTerms = new HashMap<String, String>();
-        initializeRootTerms();
-
         errorFactory = new DefaultCvUpdateErrorFactory();
         updateContext = new CvUpdateContext(this);
     }
@@ -153,16 +144,8 @@ public class CvUpdateManager {
         }
         this.cvRemapper = cvRemapper != null ? cvRemapper : new ObsoleteCvRemapper();
 
-        rooTerms = new HashMap<String, String>();
-        initializeRootTerms();
-
         errorFactory = new DefaultCvUpdateErrorFactory();
         updateContext = new CvUpdateContext(this);
-    }
-
-    private void initializeRootTerms(){
-        rooTerms.put("MI", "MI:0000");
-        rooTerms.put("MOD", "MOD:00000");
     }
 
     public void updateAndCreateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
