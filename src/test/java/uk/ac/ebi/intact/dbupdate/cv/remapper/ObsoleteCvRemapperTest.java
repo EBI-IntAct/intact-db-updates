@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.cv.remapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
@@ -29,10 +30,14 @@ import java.util.Set;
  * @since <pre>28/11/11</pre>
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
-        "classpath*:/META-INF/standalone/*-standalone.spring.xml"})
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml",
+        "classpath*:/META-INF/beans.spring.xml"})
 public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
     private CvUpdateManager cvManager;
+
+    @Autowired
+    private ObsoleteCvRemapper obsoleteRemapper;
 
     @Before
     public void clear() throws IOException, OntologyLoaderException {
@@ -64,7 +69,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -78,7 +83,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         Assert.assertEquals("MI:0021", term.getXrefs().iterator().next().getPrimaryId());
         Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, term.getXrefs().iterator().next().getCvDatabase().getIdentifier());
         Assert.assertEquals(CvXrefQualifier.IDENTITY_MI_REF, term.getXrefs().iterator().next().getCvXrefQualifier().getIdentifier());
-        Assert.assertEquals(0, cvManager.getCvRemapper().getRemappedCvToUpdate().size());
+        Assert.assertEquals(0, obsoleteRemapper.getRemappedCvToUpdate().size());
         
         Assert.assertTrue(context.isTermObsolete());
 
@@ -112,7 +117,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -138,7 +143,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         
         Assert.assertEquals("MI:0933", term.getIdentifier());
 
-        Assert.assertEquals(0, cvManager.getCvRemapper().getRemappedCvToUpdate().size());
+        Assert.assertEquals(0, obsoleteRemapper.getRemappedCvToUpdate().size());
 
         Assert.assertFalse(context.isTermObsolete());
 
@@ -172,7 +177,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -198,8 +203,8 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals("MOD:00359", term.getIdentifier());
 
-        Assert.assertEquals(1, cvManager.getCvRemapper().getRemappedCvToUpdate().size());
-        Map.Entry<String, Set<CvDagObject>> entry = cvManager.getCvRemapper().getRemappedCvToUpdate().entrySet().iterator().next();
+        Assert.assertEquals(1, obsoleteRemapper.getRemappedCvToUpdate().size());
+        Map.Entry<String, Set<CvDagObject>> entry = obsoleteRemapper.getRemappedCvToUpdate().entrySet().iterator().next();
 
         Assert.assertEquals("MOD", entry.getKey());
         Assert.assertEquals(1, entry.getValue().size());
@@ -239,7 +244,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -270,7 +275,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals("MI:0933", term.getIdentifier());
 
-        Assert.assertEquals(0, cvManager.getCvRemapper().getRemappedCvToUpdate().size());
+        Assert.assertEquals(0, obsoleteRemapper.getRemappedCvToUpdate().size());
 
         Assert.assertFalse(context.isTermObsolete());
 
@@ -308,7 +313,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -339,8 +344,8 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals("MOD:00359", term.getIdentifier());
 
-        Assert.assertEquals(1, cvManager.getCvRemapper().getRemappedCvToUpdate().size());
-        Map.Entry<String, Set<CvDagObject>> entry = cvManager.getCvRemapper().getRemappedCvToUpdate().entrySet().iterator().next();
+        Assert.assertEquals(1, obsoleteRemapper.getRemappedCvToUpdate().size());
+        Map.Entry<String, Set<CvDagObject>> entry = obsoleteRemapper.getRemappedCvToUpdate().entrySet().iterator().next();
 
         Assert.assertEquals("MOD", entry.getKey());
         Assert.assertEquals(1, entry.getValue().size());
@@ -388,7 +393,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -446,7 +451,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -500,7 +505,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvRemapper().remapObsoleteCvTerm(context);
+        obsoleteRemapper.remapObsoleteCvTerm(context);
 
         getDataContext().commitTransaction(status2);
 

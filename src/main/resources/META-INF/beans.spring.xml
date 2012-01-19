@@ -26,7 +26,15 @@
         <property name="cvXrefUpdater" ref="xrefUpdater"/>
         <property name="cvAnnotationUpdater" ref="annotationUpdater"/>
     </bean>
-    
+
     <!-- obsolete remapper -->
+    <bean id="obsoleteRemapper" class="uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl">
+       <property name="ontologyIdToDatabase">
+          <map>
+              <entry key="MI" value="MI:0488"/>
+              <entry key="MOD" value="MI:0897"/>
+          </map>
+       </property>
+    </bean>
 
 </beans>
