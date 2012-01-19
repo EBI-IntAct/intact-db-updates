@@ -1,17 +1,16 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
+import uk.ac.ebi.intact.core.persistence.dao.*;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
-import uk.ac.ebi.intact.model.CvDagObject;
-import uk.ac.ebi.intact.model.CvDatabase;
-import uk.ac.ebi.intact.model.CvObjectXref;
-import uk.ac.ebi.intact.model.CvXrefQualifier;
+import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import java.util.HashSet;
@@ -35,13 +34,10 @@ public class CvUpdater {
     private Set<String> processedTerms;
 
     public CvUpdater() {
-        cvParentUpdater = new CvParentUpdater();
-        cvAliasUpdater = new CvAliasUpdater();
-        cvXrefUpdater = new CvXrefUpdater();
-        cvAnnotationUpdater = new CvAnnotationUpdater();
         processedTerms = new HashSet<String>();
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateTerm(CvUpdateContext updateContext){
         // use dao factory
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
@@ -139,8 +135,57 @@ public class CvUpdater {
         doUpdate(updateContext, updateEvt);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void doUpdate(CvUpdateContext updateContext, UpdatedEvent updateEvt) {
         if (updateEvt.isTermUpdated()){
+
+            DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+            // update/persist xrefs. Don't call delete because of annotation orphanRemoval = true which is detaching the xref
+            XrefDao<CvObjectXref> xrefDao = factory.getXrefDao(CvObjectXref.class);
+
+            for (CvObjectXref updated : updateEvt.getUpdatedXrefs()){
+                xrefDao.update(updated);
+            }
+            for (CvObjectXref created : updateEvt.getCreatedXrefs()){
+                xrefDao.persist(created);
+            }
+
+            // update/persist aliases. Don't call delete because of annotation orphanRemoval = true which is detaching the aliases
+            AliasDao<CvObjectAlias> aliasDao = factory.getAliasDao(CvObjectAlias.class);
+
+            for (CvObjectAlias updated : updateEvt.getUpdatedAliases()){
+                aliasDao.update(updated);
+            }
+            for (CvObjectAlias created : updateEvt.getCreatedAliases()){
+                aliasDao.persist(created);
+            }
+
+            // update/persist/delete annotations
+            AnnotationDao annotationDao = factory.getAnnotationDao();
+
+            for (Annotation updated : updateEvt.getUpdatedAnnotations()){
+                annotationDao.update(updated);
+            }
+            for (Annotation created : updateEvt.getCreatedAnnotations()){
+                annotationDao.persist(created);
+            }
+            for (Annotation deleted : updateEvt.getDeletedAnnotations()){
+                annotationDao.delete(deleted);
+            }
+
+            // update parents
+            CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
+
+            for (CvDagObject created : updateEvt.getCreatedParents()){
+                cvDao.update(created);
+            }
+            for (CvDagObject deleted : updateEvt.getDeletedParents()){
+                cvDao.update(deleted);
+            }
+
+            // update term
+            factory.getCvObjectDao(CvDagObject.class).update(updateContext.getCvTerm());
 
             // fire event
             CvUpdateManager manager = updateContext.getManager();
@@ -174,6 +219,9 @@ public class CvUpdater {
     }
 
     public CvParentUpdater getCvParentUpdater() {
+        if (this.cvParentUpdater == null){
+            cvParentUpdater = new CvParentUpdater();
+        }
         return cvParentUpdater;
     }
 
@@ -182,6 +230,9 @@ public class CvUpdater {
     }
 
     public CvAliasUpdater getCvAliasUpdater() {
+        if (this.cvAliasUpdater == null){
+            cvAliasUpdater = new CvAliasUpdater();
+        }
         return cvAliasUpdater;
     }
 
@@ -190,11 +241,25 @@ public class CvUpdater {
     }
 
     public CvXrefUpdater getCvXrefUpdater() {
+        if (cvXrefUpdater == null){
+            cvXrefUpdater = new CvXrefUpdater();
+        }
         return cvXrefUpdater;
     }
 
     public void setCvXrefUpdater(CvXrefUpdater cvXrefUpdater) {
         this.cvXrefUpdater = cvXrefUpdater;
+    }
+
+    public CvAnnotationUpdater getCvAnnotationUpdater() {
+        if (cvAnnotationUpdater == null){
+            cvAnnotationUpdater = new CvAnnotationUpdater();
+        }
+        return cvAnnotationUpdater;
+    }
+
+    public void setCvAnnotationUpdater(CvAnnotationUpdater cvAnnotationUpdater) {
+        this.cvAnnotationUpdater = cvAnnotationUpdater;
     }
 
     public void clear(){

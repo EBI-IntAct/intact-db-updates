@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.0.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+    <!-- Needed by Spring to find the annotations in the code -->
+    <context:component-scan base-package="uk.ac.ebi.intact.dbupdate.cv"/>
+
+    <!-- updaters -->
+    <bean id="aliasUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdater"/>
+    <bean id="annotationUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAnnotationUpdater"/>
+    <bean id="parentUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdater"/>
+    <bean id="xrefUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdater"/>
+
+    <bean id="cvUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater">
+        <property name="cvAliasUpdater" ref="aliasUpdater"/>
+        <property name="cvParentUpdater" ref="parentUpdater"/>
+        <property name="cvXrefUpdater" ref="xrefUpdater"/>
+        <property name="cvAnnotationUpdater" ref="annotationUpdater"/>
+    </bean>
+
+</beans>

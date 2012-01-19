@@ -1,7 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -39,10 +40,10 @@ public class CvXrefUpdater {
         sortedOntologyXrefs = new TreeSet<TermDbXref>(new OntologyXrefComparator());
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateXrefs(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 

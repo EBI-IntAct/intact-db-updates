@@ -40,12 +40,5 @@
         <property name="password" value=""/>
     </bean>
 
-    <bean id="cvUpdateManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
-        <constructor-arg>
-            <
-            <bean id="taxonomyService" class="uk.ac.ebi.intact.bridges.taxonomy.UniprotTaxonomyService"/>
-        </constructor-arg>
-    </bean>
-
 
 </beans>

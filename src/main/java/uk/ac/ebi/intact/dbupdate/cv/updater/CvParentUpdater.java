@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -40,6 +42,7 @@ public class CvParentUpdater {
         sortedOntologyParents = new TreeSet<IntactOntologyTermI>(new OntologyParentComparator());
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateParents(CvUpdateContext updateContext, UpdatedEvent updateEvt){
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();

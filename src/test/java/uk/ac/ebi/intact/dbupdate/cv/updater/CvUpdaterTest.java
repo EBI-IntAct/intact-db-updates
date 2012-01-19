@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
@@ -25,10 +26,14 @@ import java.io.IOException;
  * @since <pre>16/11/11</pre>
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
-        "classpath*:/META-INF/standalone/*-standalone.spring.xml"})
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml",
+        "classpath*:/META-INF/beans.spring.xml"})
 public class CvUpdaterTest extends IntactBasicTestCase{
 
     private CvUpdateManager cvManager;
+
+    @Autowired
+    private CvUpdater cvUpdater;
 
     @Before
     public void clear() throws IOException, OntologyLoaderException {
@@ -62,7 +67,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvUpdater().updateTerm(context);
+        cvUpdater.updateTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -90,9 +95,9 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         Assert.assertTrue(term.getAliases().isEmpty());
         Assert.assertEquals(0, term.getParents().size());
-        Assert.assertEquals(6, cvManager.getCvUpdater().getMissingParents().size());
+        Assert.assertEquals(6, cvUpdater.getMissingParents().size());
 
-        for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
+        for (String t : cvUpdater.getMissingParents().keySet()){
             if (!"MI:0664".equals(t) && !"MI:0665".equals(t) && !"MI:0666".equals(t) && !"MI:0667".equals(t)
                     && !"MI:0668".equals(t) && !"MI:0669".equals(t)){
                 Assert.assertTrue(false);
@@ -140,7 +145,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         context.setIdentifier(CvTopic.COMMENT_MI_REF);
         context.setCvTerm(term);
 
-        cvManager.getCvUpdater().updateTerm(context);
+        cvUpdater.updateTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -176,9 +181,9 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         Assert.assertTrue(term.getAliases().isEmpty());
 
-        Assert.assertEquals(5, cvManager.getCvUpdater().getMissingParents().size());
+        Assert.assertEquals(5, cvUpdater.getMissingParents().size());
 
-        for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
+        for (String t : cvUpdater.getMissingParents().keySet()){
             if (!"MI:0665".equals(t) && !"MI:0666".equals(t) && !"MI:0667".equals(t)
                     && !"MI:0668".equals(t) && !"MI:0669".equals(t)){
                 Assert.assertTrue(false);
@@ -216,7 +221,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         context.setCvTerm(term);
         context.setIdentityXref(cv.getXrefs().iterator().next());
 
-        cvManager.getCvUpdater().updateTerm(context);
+        cvUpdater.updateTerm(context);
 
         getDataContext().commitTransaction(status2);
 
@@ -248,9 +253,9 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         for (CvDagObject p : term.getParents()){
             Assert.assertEquals(parent.getAc(), p.getAc());
         }
-        Assert.assertEquals(1, cvManager.getCvUpdater().getMissingParents().size());
+        Assert.assertEquals(1, cvUpdater.getMissingParents().size());
 
-        for (String t : cvManager.getCvUpdater().getMissingParents().keySet()){
+        for (String t : cvUpdater.getMissingParents().keySet()){
             if (!"MI:0400".equals(t)){
                 Assert.assertTrue(false);
             }
