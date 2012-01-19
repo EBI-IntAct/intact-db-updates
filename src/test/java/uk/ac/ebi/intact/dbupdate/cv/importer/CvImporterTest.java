@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.cv.importer;
 
-import org.h2.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
