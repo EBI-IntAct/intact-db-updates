@@ -555,7 +555,7 @@ public class CvUpdateManager {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void updateCv(String cvObjectAc, IntactOntologyAccess ontologyAccess){
+    public void updateCv(String cvObjectAc, IntactOntologyAccess ontologyAccess){
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -574,7 +574,7 @@ public class CvUpdateManager {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private void updateCv(CvDagObject cvObject, IntactOntologyAccess ontologyAccess){
+    public void updateCv(CvDagObject cvObject, IntactOntologyAccess ontologyAccess){
 
         log.info("Update cv " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
 

@@ -16,14 +16,13 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterTest;
-import uk.ac.ebi.intact.model.Annotation;
-import uk.ac.ebi.intact.model.CvDagObject;
-import uk.ac.ebi.intact.model.CvInteraction;
-import uk.ac.ebi.intact.model.CvTopic;
+import uk.ac.ebi.intact.model.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tester of CvImporterImpl
@@ -118,6 +117,7 @@ public class CvImporterTest extends IntactBasicTestCase{
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
         Assert.assertTrue(isTermHidden(parent3));
+        Assert.assertEquals(0, cvImporter.getMissingRootParents().size());
     }
 
     @Test
@@ -186,6 +186,7 @@ public class CvImporterTest extends IntactBasicTestCase{
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
         Assert.assertTrue(isTermHidden(parent3));
+        Assert.assertEquals(0, cvImporter.getMissingRootParents().size());
     }
 
     @Test
@@ -261,6 +262,41 @@ public class CvImporterTest extends IntactBasicTestCase{
         Assert.assertTrue(isTermHidden(parent3));
 
         getDataContext().commitTransaction(status2);
+        Assert.assertEquals(0, cvImporter.getMissingRootParents().size());
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_import_parent_from_other_ontology() throws IllegalAccessException, InstantiationException {
+        String termAc = "MOD:00032"; // chromatography technology
+
+        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MOD");
+
+        CvUpdateContext context = new CvUpdateContext(this.cvManager);
+        context.setOntologyAccess(access);
+        context.setOntologyTerm(access.getTermForAccession(termAc));
+        context.setTermObsolete(false);
+        context.setIdentifier(termAc);
+
+        cvImporter.importCv(context, false);
+
+        Assert.assertNotNull(context.getCvTerm());
+
+        // object must not be hidden and should be an interaction detection method
+        Assert.assertTrue(context.getCvTerm() instanceof CvFeatureType);
+        Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
+        // 0 child
+        Assert.assertEquals(0, context.getCvTerm().getChildren().size());
+        // 0 parent because the parent is root and the parent of the ontology is MI biological feature
+        Assert.assertEquals(0, context.getCvTerm().getParents().size());
+        Assert.assertFalse(isTermHidden(context.getCvTerm()));
+
+        Assert.assertEquals(1, cvImporter.getMissingRootParents().size());
+        Map.Entry<String, Set<CvDagObject>> entry = cvImporter.getMissingRootParents().entrySet().iterator().next();
+        Assert.assertEquals("MI:0252", entry.getKey());
+        Assert.assertEquals(1, entry.getValue().size());
+        Assert.assertEquals(context.getCvTerm(), entry.getValue().iterator().next());
     }
 
     private boolean isTermHidden(CvDagObject term){

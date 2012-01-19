@@ -159,11 +159,6 @@ public class CvImporterImpl implements CvImporter{
             }
         }
 
-        // we update/persist the changes at the end
-        if (updateContext.getCvTerm() != null){
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(updateContext.getCvTerm());
-        }
-
         loadedTerms.clear();
         hiddenParents.clear();
         unHiddenChildren.clear();
@@ -379,6 +374,9 @@ public class CvImporterImpl implements CvImporter{
 
                         // add children (only if it didn't exist)
                         importedParent.addChild(cvChild);
+
+                        // update changes
+                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(importedParent);
                     }
                     // we need to retrieve or create the parent
                     else {
@@ -417,8 +415,10 @@ public class CvImporterImpl implements CvImporter{
                         }
                     }
                 }
+                // the parent is root term. We do save the child now and all the children of the child will be saved ass well
                 else {
                     isSubRootTerm = true;
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvChild);
                 }
             }
 
@@ -453,6 +453,9 @@ public class CvImporterImpl implements CvImporter{
 
                         // update children
                         importedParent.addChild(cvChild);
+
+                        // update changes
+                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(importedParent);
                     }
                     else {
                         List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
@@ -517,8 +520,10 @@ public class CvImporterImpl implements CvImporter{
                         }
                     }
                 }
+                // the parent is root term. We do save the child now and all the children of the child will be saved ass well
                 else {
                     isSubRootTerm = true;
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvChild);
                 }
             }
 
