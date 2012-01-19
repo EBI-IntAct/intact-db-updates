@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.cv.remapper;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +18,9 @@ import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterTest;
 import uk.ac.ebi.intact.model.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +45,21 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
     @Before
     public void clear() throws IOException, OntologyLoaderException {
         cvManager = new CvUpdateManager(CvUpdaterTest.class.getResource("/ontologies.xml"), "target/reports");
+    }
+
+    @After
+    public void removeUnnecessaryFolders() throws SQLException {
+        File reports = new File("reports");
+
+        if (reports.exists()){
+            File[] files = reports.listFiles();
+            
+            for (File f : files){
+                f.delete();
+            }
+
+            reports.delete();
+        }
     }
 
     @Test

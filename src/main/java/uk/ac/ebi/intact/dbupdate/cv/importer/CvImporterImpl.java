@@ -20,6 +20,7 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.XrefUtils;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.Query;
 import java.util.*;
 
@@ -47,14 +48,13 @@ public class CvImporterImpl implements CvImporter{
 
     public CvImporterImpl(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
-        initializeClassMap();
-
         missingRootParents = new HashMap<String, Set<CvDagObject>>();
         loadedTerms = new HashMap<String, CvDagObject>();
         hiddenParents = new HashSet<IntactOntologyTermI>();
         unHiddenChildren = new HashSet<IntactOntologyTermI>();
     }
 
+    @PostConstruct
     private void initializeClassMap(){
         classMap.put( "MI:0001", CvInteraction.class );
         classMap.put( "MI:0190", CvInteractionType.class );

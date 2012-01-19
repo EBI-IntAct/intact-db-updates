@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.importer;
 
+import org.h2.util.FileUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,9 +17,14 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterTest;
-import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.CvDagObject;
+import uk.ac.ebi.intact.model.CvInteraction;
+import uk.ac.ebi.intact.model.CvTopic;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 
 /**
  * Unit tester of CvImporterImpl
@@ -39,6 +46,21 @@ public class CvImporterTest extends IntactBasicTestCase{
     @Before
     public void clear() throws IOException, OntologyLoaderException {
         cvManager = new CvUpdateManager(CvUpdaterTest.class.getResource("/ontologies.xml"), "target/reports");
+    }
+
+    @After
+    public void removeUnnecessaryFolders() throws SQLException {
+        File reports = new File("reports");
+
+        if (reports.exists()){
+            File[] files = reports.listFiles();
+
+            for (File f : files){
+                f.delete();
+            }
+
+            reports.delete();
+        }
     }
 
     @Test

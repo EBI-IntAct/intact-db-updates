@@ -14,6 +14,10 @@
     <!-- Needed by Spring to find the annotations in the code -->
     <context:component-scan base-package="uk.ac.ebi.intact.dbupdate.cv"/>
 
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath*:/META-INF/cv-update.properties"/>
+    </bean>
+
     <!-- updaters -->
     <bean id="aliasUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl"/>
     <bean id="annotationUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAnnotationUpdaterImpl"/>
@@ -39,4 +43,17 @@
 
     <!-- Cv importer -->
     <bean id="cvImporter" class="uk.ac.ebi.intact.dbupdate.cv.importer.CvImporterImpl"/>
+
+    <!-- error factory-->
+    <bean id="errorFactory" class="uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory"/>
+    
+    <!-- Cv manager -->
+    <bean id="cvManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
+
+        <property name="cvImporter" ref="cvImporter"/>
+        <property name="cvUpdater" ref="cvUpdater"/>
+        <property name="cvRemapper" ref="obsoleteRemapper"/>
+        <property name="errorFactory" ref="errorFactory"/>
+    </bean>
+    
 </beans>
