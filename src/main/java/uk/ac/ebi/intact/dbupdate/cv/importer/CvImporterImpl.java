@@ -42,9 +42,11 @@ public class CvImporterImpl implements CvImporter{
     private Map<String, Set<CvDagObject>> missingRootParents;
 
     private Map<String, CvDagObject> loadedTerms;
-    
+
     private Set<IntactOntologyTermI> hiddenParents;
     private Set<IntactOntologyTermI> unHiddenChildren;
+
+    private Set<String> processedTerms;
 
     public CvImporterImpl(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
@@ -52,6 +54,7 @@ public class CvImporterImpl implements CvImporter{
         loadedTerms = new HashMap<String, CvDagObject>();
         hiddenParents = new HashSet<IntactOntologyTermI>();
         unHiddenChildren = new HashSet<IntactOntologyTermI>();
+        processedTerms = new HashSet<String>();
     }
 
     @PostConstruct
@@ -158,6 +161,8 @@ public class CvImporterImpl implements CvImporter{
                 }
             }
         }
+
+        processedTerms.addAll(loadedTerms.keySet());
 
         loadedTerms.clear();
         hiddenParents.clear();
@@ -398,8 +403,10 @@ public class CvImporterImpl implements CvImporter{
                             // add children (only if it didn't exist)
                             dagObject.addChild(cvChild);
 
-                            // update/ create parents
-                            importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
+                            // update/ create parents if not already processed
+                            if (!processedTerms.contains(parent.getTermAccession())){
+                                importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
+                            }
                         }
                         // create the parent and import its parents
                         else {
@@ -411,7 +418,9 @@ public class CvImporterImpl implements CvImporter{
                             dagObject.addChild(cvChild);
 
                             // update/ create parents
-                            importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
+                            if (!processedTerms.contains(parent.getTermAccession())){
+                                importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
+                            }
                         }
                     }
                 }
@@ -481,7 +490,9 @@ public class CvImporterImpl implements CvImporter{
                                 updateContext.setCvTerm(dagObject);
 
                                 // update/ create parents and hide them
-                                importParents(dagObject, parent, termClass, updateContext, true, roots);
+                                if (!processedTerms.contains(parent.getTermAccession())){
+                                    importParents(dagObject, parent, termClass, updateContext, true, roots);
+                                }
                             }
                             else {
                                 // update/ create parents
@@ -502,7 +513,9 @@ public class CvImporterImpl implements CvImporter{
                                 updateContext.setCvTerm(dagObject);
 
                                 // update/ create parents and hide them
-                                importParents(dagObject, parent, termClass, updateContext, true, roots);
+                                if (!processedTerms.contains(parent.getTermAccession())) {
+                                    importParents(dagObject, parent, termClass, updateContext, true, roots);
+                                }
                             }
                             else {
                                 boolean isHidden = hiddenParents.contains(parent) || !unHiddenChildren.contains(parent);
@@ -515,7 +528,9 @@ public class CvImporterImpl implements CvImporter{
                                 dagObject.addChild(cvChild);
 
                                 // update/ create parents
-                                importParents(dagObject, parent, termClass, updateContext, currentTerm, roots);
+                                if (!processedTerms.contains(parent.getTermAccession())){
+                                    importParents(dagObject, parent, termClass, updateContext, currentTerm, roots);
+                                }
                             }
                         }
                     }
@@ -563,7 +578,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     public Set<String> getProcessedTerms() {
-        return loadedTerms.keySet();
+        return processedTerms;
     }
 
     public Map<String, Set<CvDagObject>> getMissingRootParents() {
@@ -575,5 +590,6 @@ public class CvImporterImpl implements CvImporter{
         this.missingRootParents.clear();
         this.hiddenParents.clear();
         this.unHiddenChildren.clear();
+        processedTerms.clear();
     }
 }
