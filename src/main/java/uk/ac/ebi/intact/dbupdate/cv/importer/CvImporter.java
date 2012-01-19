@@ -12,7 +12,7 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdater;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -293,7 +293,7 @@ public class CvImporter {
         }
 
         // create aliases
-        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvAliasUpdater.ALIAS_TYPE);
+        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvAliasUpdaterImpl.ALIAS_TYPE);
 
         for (String alias : ontologyTerm.getAliases()){
 

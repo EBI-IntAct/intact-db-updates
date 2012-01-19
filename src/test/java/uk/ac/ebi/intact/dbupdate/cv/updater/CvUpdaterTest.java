@@ -19,7 +19,7 @@ import uk.ac.ebi.intact.model.*;
 import java.io.IOException;
 
 /**
- * Unit tester of the CvUpdater
+ * Unit tester of the CvUpdaterImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$

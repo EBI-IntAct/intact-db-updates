@@ -58,7 +58,7 @@ public class ReportWriterListener implements CvUpdateListener{
         this.updatedCvWriter = new FileWriter(new File(dirFile, "updated.csv"));
         this.createdCvWriter = new FileWriter(new File(dirFile, "created.csv"));
         this.updateErrorWriter = new FileWriter(new File(dirFile, "update_errors.csv"));
-        this.updateErrorWriter = new FileWriter(new File(dirFile, "deleted.csv"));
+        this.deletedCvWriter = new FileWriter(new File(dirFile, "deleted.csv"));
     }
 
     public void close() throws IOException {

@@ -15,16 +15,18 @@
     <context:component-scan base-package="uk.ac.ebi.intact.dbupdate.cv"/>
 
     <!-- updaters -->
-    <bean id="aliasUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdater"/>
-    <bean id="annotationUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAnnotationUpdater"/>
-    <bean id="parentUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdater"/>
-    <bean id="xrefUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdater"/>
+    <bean id="aliasUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl"/>
+    <bean id="annotationUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAnnotationUpdaterImpl"/>
+    <bean id="parentUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdaterImpl"/>
+    <bean id="xrefUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdaterImpl"/>
 
-    <bean id="cvUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater">
+    <bean id="cvUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl">
         <property name="cvAliasUpdater" ref="aliasUpdater"/>
         <property name="cvParentUpdater" ref="parentUpdater"/>
         <property name="cvXrefUpdater" ref="xrefUpdater"/>
         <property name="cvAnnotationUpdater" ref="annotationUpdater"/>
     </bean>
+    
+    <!-- obsolete remapper -->
 
 </beans>
