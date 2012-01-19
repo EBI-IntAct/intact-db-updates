@@ -16,7 +16,7 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.*;
-import uk.ac.ebi.intact.dbupdate.cv.importer.CvImporter;
+import uk.ac.ebi.intact.dbupdate.cv.importer.CvImporterImpl;
 import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl;
@@ -45,7 +45,7 @@ public class CvUpdateManager {
 
     private CvUpdaterImpl cvUpdater;
 
-    private CvImporter cvImporter;
+    private CvImporterImpl cvImporter;
 
     private ObsoleteCvRemapperImpl cvRemapper;
 
@@ -77,7 +77,7 @@ public class CvUpdateManager {
 
         cvUpdater = new CvUpdaterImpl();
         cvRemapper = new ObsoleteCvRemapperImpl();
-        cvImporter = new CvImporter();
+        cvImporter = new CvImporterImpl();
 
         errorFactory = new DefaultCvUpdateErrorFactory();
 
@@ -101,13 +101,13 @@ public class CvUpdateManager {
 
         cvUpdater = new CvUpdaterImpl();
         cvRemapper = new ObsoleteCvRemapperImpl();
-        cvImporter = new CvImporter();
+        cvImporter = new CvImporterImpl();
 
         errorFactory = new DefaultCvUpdateErrorFactory();
         updateContext = new CvUpdateContext(this);
     }
 
-    public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName, CvUpdaterImpl cvUpdater, CvImporter cvImporter, ObsoleteCvRemapperImpl cvRemapper) throws IOException, OntologyLoaderException {
+    public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName, CvUpdaterImpl cvUpdater, CvImporterImpl cvImporter, ObsoleteCvRemapperImpl cvRemapper) throws IOException, OntologyLoaderException {
         if (ontologyConfigPath == null){
             throw new IllegalArgumentException("The url to the ontology config file cannot be null.");
         }
@@ -133,7 +133,7 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
-    public CvUpdateManager(CvUpdaterImpl cvUpdater, CvImporter cvImporter, ObsoleteCvRemapperImpl cvRemapper) throws IOException, OntologyLoaderException {
+    public CvUpdateManager(CvUpdaterImpl cvUpdater, CvImporterImpl cvImporter, ObsoleteCvRemapperImpl cvRemapper) throws IOException, OntologyLoaderException {
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
 
         intactOntologyManager = new IntactOntologyManager(ontology);
@@ -666,11 +666,11 @@ public class CvUpdateManager {
         this.cvUpdater = cvUpdater;
     }
 
-    public CvImporter getCvImporter() {
+    public CvImporterImpl getCvImporter() {
         return cvImporter;
     }
 
-    public void setCvImporter(CvImporter cvImporter) {
+    public void setCvImporter(CvImporterImpl cvImporter) {
         this.cvImporter = cvImporter;
     }
 

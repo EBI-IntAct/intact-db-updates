@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.cv.importer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
@@ -19,17 +20,21 @@ import uk.ac.ebi.intact.model.*;
 import java.io.IOException;
 
 /**
- * Unit tester of CvImporter
+ * Unit tester of CvImporterImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>28/11/11</pre>
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
-        "classpath*:/META-INF/standalone/*-standalone.spring.xml"})
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml",
+        "classpath*:/META-INF/beans.spring.xml"})
 public class CvImporterTest extends IntactBasicTestCase{
 
     private CvUpdateManager cvManager;
+
+    @Autowired
+    private CvImporter cvImporter;
 
     @Before
     public void clear() throws IOException, OntologyLoaderException {
@@ -50,7 +55,7 @@ public class CvImporterTest extends IntactBasicTestCase{
         context.setTermObsolete(false);
         context.setIdentifier(termAc);
 
-        cvManager.getCvImporter().importCv(context, false);
+        cvImporter.importCv(context, false);
 
         Assert.assertNotNull(context.getCvTerm());
     
@@ -108,7 +113,7 @@ public class CvImporterTest extends IntactBasicTestCase{
         context.setTermObsolete(false);
         context.setIdentifier(termAc);
 
-        cvManager.getCvImporter().importCv(context, true);
+        cvImporter.importCv(context, true);
 
         Assert.assertNotNull(context.getCvTerm());
 
@@ -185,29 +190,33 @@ public class CvImporterTest extends IntactBasicTestCase{
         context.setTermObsolete(false);
         context.setIdentifier(termAc);
 
-        cvManager.getCvImporter().importCv(context, false);
+        cvImporter.importCv(context, false);
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
 
         Assert.assertNotNull(context.getCvTerm());
 
+        CvDagObject reloadedTerm = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(context.getCvTerm().getAc());
+
         // object must not be hidden and should be an interaction detection method
-        Assert.assertTrue(context.getCvTerm() instanceof CvInteraction);
-        Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
-        Assert.assertEquals("chromatography technology", context.getCvTerm().getFullName());
-        Assert.assertEquals("chromatography", context.getCvTerm().getShortLabel());
+        Assert.assertTrue(reloadedTerm instanceof CvInteraction);
+        Assert.assertEquals(termAc, reloadedTerm.getIdentifier());
+        Assert.assertEquals("chromatography technology", reloadedTerm.getFullName());
+        Assert.assertEquals("chromatography", reloadedTerm.getShortLabel());
         // one pubmed and one identity
-        Assert.assertEquals(2, context.getCvTerm().getXrefs().size());
+        Assert.assertEquals(2, reloadedTerm.getXrefs().size());
         // one alias = column chromatography
-        Assert.assertEquals(1, context.getCvTerm().getAliases().size());
+        Assert.assertEquals(1, reloadedTerm.getAliases().size());
         // one definition
-        Assert.assertEquals(1, context.getCvTerm().getAnnotations().size());
+        Assert.assertEquals(1, reloadedTerm.getAnnotations().size());
         // no children
-        Assert.assertTrue(context.getCvTerm().getChildren().isEmpty());
+        Assert.assertTrue(reloadedTerm.getChildren().isEmpty());
         // one parent
-        Assert.assertEquals(1, context.getCvTerm().getParents().size());
-        Assert.assertFalse(isTermHidden(context.getCvTerm()));
+        Assert.assertEquals(1, reloadedTerm.getParents().size());
+        Assert.assertFalse(isTermHidden(reloadedTerm));
 
         // all parents must be hidden excepted for biochemical which already existed and should be interaction detection method
-        CvDagObject parent = context.getCvTerm().getParents().iterator().next();
+        CvDagObject parent = reloadedTerm.getParents().iterator().next();
         Assert.assertTrue(parent instanceof CvInteraction);
         // biochemical already exists
         Assert.assertEquals(cv.getAc(), parent.getAc());
@@ -229,8 +238,10 @@ public class CvImporterTest extends IntactBasicTestCase{
         // no parents because the parent is the root term
         Assert.assertEquals(0, parent3.getParents().size());
         Assert.assertTrue(isTermHidden(parent3));
+
+        getDataContext().commitTransaction(status2);
     }
-    
+
     private boolean isTermHidden(CvDagObject term){
        
         for (Annotation annot : term.getAnnotations()){

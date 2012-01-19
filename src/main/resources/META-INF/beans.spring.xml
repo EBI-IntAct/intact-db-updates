@@ -37,4 +37,6 @@
        </property>
     </bean>
 
+    <!-- Cv importer -->
+    <bean id="cvImporter" class="uk.ac.ebi.intact.dbupdate.cv.importer.CvImporterImpl"/>
 </beans>
