@@ -62,7 +62,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_wrongIdentifier_xrefsAdded_annotationsAdded_parentsMissing(){
+    public void test_update_wrongIdentifier_xrefsAdded_annotationsAdded_parentsMissing() throws CvUpdateException {
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject cv = getMockBuilder().createCvObject(CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
@@ -130,7 +130,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_noIdentityXref_xrefsRemoved_aliasRemoved_annotationsRemoved_existingParent_removeParent(){
+    public void test_update_noIdentityXref_xrefsRemoved_aliasRemoved_annotationsRemoved_existingParent_removeParent() throws CvUpdateException {
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0664", "interaction attribute name");
@@ -220,7 +220,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_wrongIdentifier_aliasAdded_createdParent(){
+    public void test_update_wrongIdentifier_aliasAdded_createdParent() throws CvUpdateException {
         TransactionStatus status = getDataContext().beginTransaction();
 
         CvDagObject parent = getMockBuilder().createCvObject(CvTopic.class, "MI:0091", "chromatography technology");

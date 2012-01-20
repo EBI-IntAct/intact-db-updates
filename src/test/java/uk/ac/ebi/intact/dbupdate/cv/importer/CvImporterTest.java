@@ -15,6 +15,7 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterTest;
 import uk.ac.ebi.intact.model.*;
 
@@ -64,7 +65,7 @@ public class CvImporterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_new_import_do_not_include_children() throws IllegalAccessException, InstantiationException {
+    public void test_new_import_do_not_include_children() throws IllegalAccessException, InstantiationException, CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
         IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
@@ -123,7 +124,7 @@ public class CvImporterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_new_import_include_children() throws IllegalAccessException, InstantiationException {
+    public void test_new_import_include_children() throws IllegalAccessException, InstantiationException, CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
         IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
@@ -192,7 +193,7 @@ public class CvImporterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_import_existing_parent() throws IllegalAccessException, InstantiationException {
+    public void test_import_existing_parent() throws IllegalAccessException, InstantiationException, CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -254,7 +255,7 @@ public class CvImporterTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_import_parent_from_other_ontology() throws IllegalAccessException, InstantiationException {
+    public void test_import_parent_from_other_ontology() throws IllegalAccessException, InstantiationException, CvUpdateException {
         String termAc = "MOD:00032"; // chromatography technology
 
         IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MOD");

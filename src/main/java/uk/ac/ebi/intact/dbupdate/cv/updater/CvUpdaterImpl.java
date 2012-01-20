@@ -38,8 +38,25 @@ public class CvUpdaterImpl implements CvUpdater{
         processedTerms = new HashSet<String>();
     }
 
+    protected void checkUpdateContext(CvUpdateContext updateContext) throws CvUpdateException{
+        if (updateContext.getOntologyAccess() == null){
+            throw new CvUpdateException("The cv update context must provide an ontology access");
+        }
+        else if (updateContext.getOntologyTerm() == null){
+            throw new CvUpdateException("The cv update context must provide an ontology term to update");
+        }
+        else if (updateContext.getIdentifier() == null){
+            throw new CvUpdateException("The cv update context must provide an identifier for the cv to update");
+        }
+        else if (updateContext.getCvTerm() == null){
+            throw new CvUpdateException("The cv update context must provide the Intact cv object to update");
+        }
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
-    public void updateTerm(CvUpdateContext updateContext){
+    public void updateTerm(CvUpdateContext updateContext) throws CvUpdateException {
+        checkUpdateContext(updateContext);
+
         // use dao factory
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -132,7 +149,7 @@ public class CvUpdaterImpl implements CvUpdater{
         if (!isObsolete){
             updateParents(updateContext, updateEvt);
         }
-        
+
         // in case of cvtopics, we may need to create new used in class annotations
         if (usedInClassAnnotationUpdater.canUpdate(term)){
             updateUsedInClass(updateContext, updateEvt);
@@ -203,7 +220,7 @@ public class CvUpdaterImpl implements CvUpdater{
     public void updateUsedInClass(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         usedInClassAnnotationUpdater.updateAnnotations(updateContext, updateEvt);
     }
-    
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public void updateParents(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         cvParentUpdater.updateParents(updateContext, updateEvt);
@@ -277,7 +294,7 @@ public class CvUpdaterImpl implements CvUpdater{
         if (usedInClassAnnotationUpdater == null){
             usedInClassAnnotationUpdater = new UsedInClassAnnotationUpdaterImpl();
         }
-        
+
         return usedInClassAnnotationUpdater;
     }
 

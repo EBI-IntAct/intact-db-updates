@@ -2,8 +2,6 @@ package uk.ac.ebi.intact.dbupdate.cv.importer;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
-import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -14,14 +12,9 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvInitializer;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl;
+import uk.ac.ebi.intact.dbupdate.cv.updater.*;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.CvObjectUtils;
-import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
@@ -87,7 +80,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void importCv(CvUpdateContext updateContext, boolean importChildren) throws InstantiationException, IllegalAccessException {
+    public void importCv(CvUpdateContext updateContext, boolean importChildren) throws InstantiationException, IllegalAccessException, CvUpdateException {
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
@@ -97,7 +90,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void importCv(CvUpdateContext updateContext, boolean importChildren, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException {
+    public void importCv(CvUpdateContext updateContext, boolean importChildren, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException, CvUpdateException {
         loadedTerms.clear();
         hiddenParents.clear();
         unHiddenChildren.clear();
@@ -189,7 +182,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, Collection<IntactOntologyTermI> roots) throws IllegalAccessException, InstantiationException {
+    private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, Collection<IntactOntologyTermI> roots) throws IllegalAccessException, InstantiationException, CvUpdateException {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
@@ -280,7 +273,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException {
+    public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException {
 
         String accession = ontologyTerm.getTermAccession();
 
@@ -309,7 +302,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents, Collection<IntactOntologyTermI> roots) throws InstantiationException, IllegalAccessException {
+    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents, Collection<IntactOntologyTermI> roots) throws InstantiationException, IllegalAccessException, CvUpdateException {
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);
@@ -403,7 +396,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, String currentTerm, Collection<IntactOntologyTermI> roots) throws InstantiationException, IllegalAccessException {
+    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, String currentTerm, Collection<IntactOntologyTermI> roots) throws InstantiationException, IllegalAccessException, CvUpdateException {
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);

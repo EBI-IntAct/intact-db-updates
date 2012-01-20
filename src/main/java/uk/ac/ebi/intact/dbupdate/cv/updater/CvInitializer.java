@@ -26,7 +26,9 @@ public class CvInitializer extends CvUpdaterImpl{
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)
-    public void updateTerm(CvUpdateContext updateContext){
+    public void updateTerm(CvUpdateContext updateContext) throws CvUpdateException {
+        checkUpdateContext(updateContext);
+
         // use dao factory
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 

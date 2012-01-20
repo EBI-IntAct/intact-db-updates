@@ -1,12 +1,17 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
+import uk.ac.ebi.intact.model.*;
 
 /**
  * Unit tester of CvUpdateManager
@@ -26,8 +31,54 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
-    public void test_update_cv(){
+    public void test_update_cv() throws CvUpdateException {
+        TransactionStatus status = getDataContext().beginTransaction();
 
+        CvDagObject parent = getMockBuilder().createCvObject(CvInteraction.class, "MI:0091", "chromatography technology");
+        CvDagObject cv = getMockBuilder().createCvObject(CvInteraction.class, "MI:0004", "affinity chromatography technology");
+
+        getCorePersister().saveOrUpdate(cv, parent);
+
+        getDataContext().commitTransaction(status);
+
+        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+
+        cvManager.updateCv(cv.getAc(), access);
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        
+        CvDagObject term = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cv.getAc());
+
+        Assert.assertEquals(2, term.getXrefs().size());
+
+        for (CvObjectXref ref : term.getXrefs()){
+            if (ref.getPrimaryId().equals("7708014")){
+                Assert.assertEquals(CvDatabase.PUBMED_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.PRIMARY_REFERENCE_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else if (ref.getPrimaryId().equals("MI:0004")){
+                Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, ref.getCvDatabase().getIdentifier());
+                Assert.assertEquals(CvXrefQualifier.IDENTITY_MI_REF, ref.getCvXrefQualifier().getIdentifier());
+            }
+            else {
+                Assert.assertTrue(false);
+            }
+        }
+
+        Assert.assertEquals(1, term.getAnnotations().size());
+        Annotation def = term.getAnnotations().iterator().next();
+        Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
+        Assert.assertEquals(def.getAnnotationText(), "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins.");
+
+        Assert.assertEquals(1, term.getAliases().size());
+        Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
+        Assert.assertEquals(1, term.getParents().size());
+
+        for (CvDagObject p : term.getParents()){
+            Assert.assertEquals(parent.getAc(), p.getAc());
+        }
+
+        getDataContext().commitTransaction(status2);
     }
 
 }

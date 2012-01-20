@@ -24,6 +24,7 @@ import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapper;
 import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
@@ -168,7 +169,11 @@ public class CvUpdateManager {
         updateExistingTerms();
 
         // create missing parents
-        createMissingParents();
+        try {
+            createMissingParents();
+        } catch (CvUpdateException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 
         // create missing terms in ontology
         createMissingTerms();
@@ -214,7 +219,11 @@ public class CvUpdateManager {
         updateExistingTerms();
 
         // create missing parents
-        createMissingParents();
+        try {
+            createMissingParents();
+        } catch (CvUpdateException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
 
         // update all remapped terms to other ontologies
         updateTermsRemappedToOtherOntologies();
@@ -291,13 +300,15 @@ public class CvUpdateManager {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+        } catch (CvUpdateException e) {
+            e.printStackTrace();
         }
 
         return updateContext.getCvTerm();
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void createMissingParents() throws IllegalAccessException, InstantiationException {
+    private void createMissingParents() throws IllegalAccessException, InstantiationException, CvUpdateException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -389,16 +400,20 @@ public class CvUpdateManager {
             updateContext.setOntologyTerm(root);
 
             log.info("Importing missing child terms of " + root.getTermAccession());
-            cvImporter.importCv(updateContext, true);
+            try {
+                cvImporter.importCv(updateContext, true);
 
-            if (updateContext.getCvTerm() != null){
-                processedIntactAcs.add(updateContext.getCvTerm().getAc());
-            }
-            else {
-                CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + root.getTermAccession() + " cannot be imported into the database", root.getTermAccession(), null, null);
+                if (updateContext.getCvTerm() != null){
+                    processedIntactAcs.add(updateContext.getCvTerm().getAc());
+                }
+                else {
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + root.getTermAccession() + " cannot be imported into the database", root.getTermAccession(), null, null);
 
-                UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
-                fireOnUpdateError(evt);
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    fireOnUpdateError(evt);
+                }
+            } catch (CvUpdateException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
         }
 
@@ -427,7 +442,11 @@ public class CvUpdateManager {
                         updateContext.setOntologyTerm(ontologyTerm);
 
                         log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
-                        cvImporter.importCv(updateContext, false);
+                        try {
+                            cvImporter.importCv(updateContext, false);
+                        } catch (CvUpdateException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
 
                         if (updateContext.getCvTerm() != null){
 
@@ -489,7 +508,11 @@ public class CvUpdateManager {
                     if (!processedIntactAcs.contains(cvObject.getAc())){
                         log.info("Update remapped term " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
                         IntactContext.getCurrentInstance().getDaoFactory().getEntityManager().merge(cvObject);
-                        updateCv(cvObject, ontologyAccess);
+                        try {
+                            updateCv(cvObject, ontologyAccess);
+                        } catch (CvUpdateException e) {
+                            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                        }
                     }
                 }
             }
@@ -545,13 +568,17 @@ public class CvUpdateManager {
             this.updateContext.setOntologyAccess(currentOntologyAccess);
 
             if (!processedIntactAcs.contains(validCv)){
-                updateCv(validCv, currentOntologyAccess);
+                try {
+                    updateCv(validCv, currentOntologyAccess);
+                } catch (CvUpdateException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateCv(String cvObjectAc, IntactOntologyAccess ontologyAccess){
+    public void updateCv(String cvObjectAc, IntactOntologyAccess ontologyAccess) throws CvUpdateException {
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -570,12 +597,13 @@ public class CvUpdateManager {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public void updateCv(CvDagObject cvObject, IntactOntologyAccess ontologyAccess){
+    public void updateCv(CvDagObject cvObject, IntactOntologyAccess ontologyAccess) throws CvUpdateException {
 
         log.info("Update cv " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
 
         // initialize context
         this.updateContext.setCvTerm(cvObject);
+        this.updateContext.setOntologyAccess(ontologyAccess);
 
         // set the identity and identity xref
         String identity = null;
@@ -605,6 +633,8 @@ public class CvUpdateManager {
 
         // we can update the cv
         if (identity != null){
+            updateContext.setIdentifier(identity);
+
             IntactOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(cvObject.getIdentifier());
 
             if (ontologyTerm != null){

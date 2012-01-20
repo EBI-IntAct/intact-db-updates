@@ -17,7 +17,7 @@ import java.util.Set;
 
 public interface CvUpdater {
 
-    public void updateTerm(CvUpdateContext updateContext);
+    public void updateTerm(CvUpdateContext updateContext) throws CvUpdateException;
     public void updateParents(CvUpdateContext updateContext, UpdatedEvent updateEvt);
     public void updateAnnotations(CvUpdateContext updateContext, UpdatedEvent updateEvt);
     public void updateXrefs(CvUpdateContext updateContext, UpdatedEvent updateEvt);
