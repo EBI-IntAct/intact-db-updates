@@ -11,6 +11,7 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
@@ -150,6 +151,13 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
+    public void updateAll() throws IllegalAccessException, InstantiationException {
+        clear();
+
+        updateAndCreateAllTerms("MI");
+        updateAllTerms("MOD");
+    }
+
     public void updateAndCreateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -223,17 +231,16 @@ public class CvUpdateManager {
         checkDuplicatedCvTerms(ontologyAccess);
     }
 
-    public void updateAll() throws IllegalAccessException, InstantiationException {
-        clear();
-
-        updateAndCreateAllTerms("MI");
-        updateAllTerms("MOD");
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /**
+     * Hide all the given cvs with the given message
+     */
     public void hideTerms(Collection<CvObject> cvs, String message){
-        clear();
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        AnnotationDao annDao = factory.getAnnotationDao();
+
         for (CvObject cv : cvs){
+            cv = factory.getEntityManager().merge(cv);
             boolean hasHidden = false;
 
             for (Annotation annotation : cv.getAnnotations()){
@@ -243,20 +250,28 @@ public class CvUpdateManager {
             }
 
             if (!hasHidden){
-                CvUpdateUtils.hideTerm(cv, message);
+                annDao.persist(CvUpdateUtils.hideTerm(cv, message));
             }
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public void removeHiddenFrom(Collection<CvObject> cvs, String message){
-        clear();
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /**
+     * Delete hidden annotations for each cv given in the collection
+     */
+    public void removeHiddenFrom(Collection<CvObject> cvs){
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+        AnnotationDao annDao = factory.getAnnotationDao();
+
         for (CvObject cv : cvs){
+            cv = factory.getEntityManager().merge(cv);
+
             Collection<Annotation> annotations = new ArrayList<Annotation>(cv.getAnnotations());
 
             for (Annotation annotation : annotations){
                 if (annotation.getCvTopic() != null && CvTopic.HIDDEN.equalsIgnoreCase(annotation.getCvTopic().getShortLabel())){
                     cv.removeAnnotation(annotation);
+                    annDao.delete(annotation);
                 }
             }
         }
@@ -265,6 +280,7 @@ public class CvUpdateManager {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     /**
      * Import a new Cv. The cv is persisted
+     * All the parents of this cv will be imported and hidden if not existing in the database
      */
     public CvDagObject importCvTerm(String identifier, String ontologyId, boolean includeChildren){
         clear();

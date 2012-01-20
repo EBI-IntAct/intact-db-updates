@@ -13,6 +13,8 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.model.*;
 
+import java.util.Arrays;
+
 /**
  * Unit tester of CvUpdateManager
  *
@@ -140,5 +142,66 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
         Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0116"));
 
         getDataContext().commitTransaction(status);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_unHide_cv() throws CvUpdateException {
+        String termAc = "MI:0091"; // chromatography technology
+
+        cvManager.importCvTerm(termAc, "MI", false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        CvObject cvHidden = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045");
+        
+        Assert.assertTrue(isTermHidden(cvHidden));
+
+        getDataContext().commitTransaction(status);
+
+        cvManager.removeHiddenFrom(Arrays.asList(cvHidden));
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        CvObject cv = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045");
+
+        Assert.assertFalse(isTermHidden(cv));
+
+        getDataContext().commitTransaction(status2);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_hide_cv() throws CvUpdateException {
+        String termAc = "MI:0091"; // chromatography technology
+
+        cvManager.importCvTerm(termAc, "MI", false);
+
+        TransactionStatus status = getDataContext().beginTransaction();
+        CvObject cvHidden = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier(termAc);
+
+        Assert.assertFalse(isTermHidden(cvHidden));
+
+        getDataContext().commitTransaction(status);
+
+        cvManager.hideTerms(Arrays.asList(cvHidden), "obsolete");
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        CvObject cv = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier(termAc);
+
+        Assert.assertTrue(isTermHidden(cv));
+
+        getDataContext().commitTransaction(status2);
+    }
+
+    private boolean isTermHidden(CvObject term){
+
+        for (Annotation annot : term.getAnnotations()){
+            if (CvTopic.HIDDEN.equals(annot.getCvTopic().getShortLabel())){
+                return true;
+            }
+        }
+
+        return false;
     }
 }
