@@ -151,6 +151,11 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
+    /**
+     * Update all MI and MOD terms.
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
     public void updateAll() throws IllegalAccessException, InstantiationException {
         clear();
 
@@ -158,6 +163,17 @@ public class CvUpdateManager {
         updateAllTerms("MOD");
     }
 
+    /**
+     * Update and create all the terms of a specific ontology
+     * - update existing terms
+     * - create missing parents
+     * - create terms from the ontology which are not yet in IntAct
+     * - update terms from other ontology if some obsolete terms have been remapped to them
+     * - check for duplicates
+     * @param ontologyId
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public void updateAndCreateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -189,6 +205,9 @@ public class CvUpdateManager {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
+    /**
+     * Checks if we have some duplicated terms in the ontology
+     */
     public void checkDuplicatedCvTerms(IntactOntologyAccess access){
         List<Object[]> duplicatedTerms = getDuplicatedCvObjects(access);
 
@@ -204,6 +223,16 @@ public class CvUpdateManager {
 
     }
 
+    /**
+     * This method will update all the terms of a given ontology :
+     * - update existing terms
+     * - create missing parents
+     * - update terms from other ontology if some obsolete terms have been remapped to them
+     * - check for duplicates
+     * @param ontologyId
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     public void updateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
