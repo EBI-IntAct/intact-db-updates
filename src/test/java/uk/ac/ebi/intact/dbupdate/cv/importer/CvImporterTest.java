@@ -243,23 +243,9 @@ public class CvImporterTest extends IntactBasicTestCase{
         // biochemical already exists
         Assert.assertEquals(cv.getAc(), parent.getAc());
         Assert.assertEquals("MI:0401", parent.getIdentifier());
-        // one parent
-        Assert.assertEquals(1, parent.getParents().size());
+        // no parents because the existing term does not have any parents and it is not the role of the importer to update an existing term
+        Assert.assertEquals(0, parent.getParents().size());
         Assert.assertFalse(isTermHidden(parent));
-
-        CvDagObject parent2 = parent.getParents().iterator().next();
-        Assert.assertTrue(parent2 instanceof CvInteraction);
-        Assert.assertEquals("MI:0045", parent2.getIdentifier());
-        // one parent
-        Assert.assertEquals(1, parent2.getParents().size());
-        Assert.assertTrue(isTermHidden(parent2));
-
-        CvDagObject parent3 = parent2.getParents().iterator().next();
-        Assert.assertTrue(parent3 instanceof CvInteraction);
-        Assert.assertEquals("MI:0001", parent3.getIdentifier());
-        // no parents because the parent is the root term
-        Assert.assertEquals(0, parent3.getParents().size());
-        Assert.assertTrue(isTermHidden(parent3));
 
         getDataContext().commitTransaction(status2);
         Assert.assertEquals(0, cvImporter.getMissingRootParents().size());

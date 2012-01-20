@@ -149,7 +149,6 @@ public class CvUpdateManager {
         updateContext = new CvUpdateContext(this);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void updateAndCreateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -197,7 +196,6 @@ public class CvUpdateManager {
 
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void updateAllTerms(String ontologyId) throws InstantiationException, IllegalAccessException {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -225,7 +223,6 @@ public class CvUpdateManager {
         checkDuplicatedCvTerms(ontologyAccess);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     public void updateAll() throws IllegalAccessException, InstantiationException {
         clear();
 
@@ -265,7 +262,7 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CvDagObject importCvTerm(String identifier, String ontologyId, boolean includeChildren){
         clear();
 
@@ -299,7 +296,7 @@ public class CvUpdateManager {
         return updateContext.getCvTerm();
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void createMissingParents() throws IllegalAccessException, InstantiationException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
@@ -376,7 +373,7 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void createMissingTerms() throws IllegalAccessException, InstantiationException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
@@ -475,7 +472,7 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void updateTermsRemappedToOtherOntologies() throws IllegalAccessException, InstantiationException {
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
@@ -505,7 +502,7 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private List<String> getValidCvObjects(IntactOntologyAccess ontologyAccess){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
@@ -538,7 +535,6 @@ public class CvUpdateManager {
         return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void updateExistingTerms(){
         IntactOntologyAccess currentOntologyAccess = updateContext.getOntologyAccess();
 

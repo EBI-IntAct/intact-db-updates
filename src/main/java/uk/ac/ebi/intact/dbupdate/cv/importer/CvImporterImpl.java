@@ -126,6 +126,16 @@ public class CvImporterImpl implements CvImporter{
 
                     updateOrCreateChild(updateContext, termClass, child, rootTerms);
                 }
+
+                // we check that the imported term has been set and not just skipped because already existing
+                if (updateContext.getCvTerm() == null){
+                    List<CvDagObject> cvObjects = fetchIntactCv(ontologyTerm.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
+
+                    // the cv already exists, we don't have to import the parents
+                    if (cvObjects.size() == 1){
+                        updateContext.setCvTerm(cvObjects.iterator().next());
+                    }
+                }
             }
             // we just create this term and its parent if they don't exist
             else {
@@ -135,9 +145,13 @@ public class CvImporterImpl implements CvImporter{
 
                     CvDagObject cvObject = null;
 
+                    // create a new cv and imports its parents
                     if (cvObjects.isEmpty()){
                         cvObject = createCvObjectFrom(ontologyTerm, ontologyAccess, termClass, false, updateContext);
+
+                        importParents(cvObject, ontologyTerm, termClass, updateContext, true, rootTerms);
                     }
+                    // the cv already exists, we don't have to import the parents
                     else if (cvObjects.size() == 1){
                         cvObject = cvObjects.iterator().next();
                     }
@@ -147,8 +161,6 @@ public class CvImporterImpl implements CvImporter{
                     // we update the context to set the cv term which has been created
                     if (cvObject != null){
                         updateContext.setCvTerm(cvObject);
-
-                        importParents(cvObject, ontologyTerm, termClass, updateContext, true, rootTerms);
                     }
                     else {
                         CvUpdateManager cvManager = updateContext.getManager();
@@ -180,13 +192,30 @@ public class CvImporterImpl implements CvImporter{
 
             CvDagObject cvObject = null;
 
+            // we create a new term and import its parents
             if (cvObjects.isEmpty()){
                 cvObject = createCvObjectFrom(child, ontologyAccess, termClass, false, updateContext);
+
+                if (child.getTermAccession().equals(updateContext.getIdentifier())){
+                    updateContext.setCvTerm(cvObject);
+                    // import parents and hide them
+                    importParents(cvObject, child, termClass, updateContext, true, roots);
+                }
+                else {
+                    // import parents without hidding them
+                    importParents(cvObject, child, termClass, updateContext, ontologyTerm.getTermAccession(), roots);
+                }
             }
+            // the child is there, no need to import parents
             else if (cvObjects.size() == 1){
                 cvObject = cvObjects.iterator().next();
+
+                if (child.getTermAccession().equals(updateContext.getIdentifier())){
+                    updateContext.setCvTerm(cvObject);
+                }
             }
-            else {
+            // duplicated terms, we cannot do anything
+            else if (cvObjects.size() > 1){
                 CvUpdateManager cvManager = updateContext.getManager();
 
                 CvUpdateError error = cvManager.getErrorFactory().createCvUpdateError(UpdateError.duplicated_cv, "Cv object " + child.getTermAccession() + " can match " + cvObjects.size() + " in Intact and the import parent has been done on all these terms.", ontologyTerm.getTermAccession(), null, null);
@@ -196,16 +225,6 @@ public class CvImporterImpl implements CvImporter{
             }
 
             loadedTerms.put(child.getTermAccession(), cvObject);
-
-            if (child.getTermAccession().equals(updateContext.getIdentifier()) && cvObject != null){
-                updateContext.setCvTerm(cvObject);
-                // import parents and hide them
-                importParents(cvObject, child, termClass, updateContext, true, roots);
-            }
-            else {
-                // import parents without hidding them
-                importParents(cvObject, child, termClass, updateContext, ontologyTerm.getTermAccession(), roots);
-            }
         }
     }
 
@@ -387,6 +406,7 @@ public class CvImporterImpl implements CvImporter{
                     else {
                         List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
+                        // duplicated terms, we cannot do anything
                         if (cvObjects.size() > 1){
                             CvUpdateManager cvManager = updateContext.getManager();
 
@@ -394,7 +414,11 @@ public class CvImporterImpl implements CvImporter{
 
                             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                             cvManager.fireOnUpdateError(evt);
+
+                            // update any changes done to the children
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvChild);
                         }
+                        // we have one existing parent so we don't need to import the parents of the parent
                         else if (cvObjects.size() == 1){
                             CvDagObject dagObject = cvObjects.iterator().next();
 
@@ -403,10 +427,8 @@ public class CvImporterImpl implements CvImporter{
                             // add children (only if it didn't exist)
                             dagObject.addChild(cvChild);
 
-                            // update/ create parents if not already processed
-                            if (!processedTerms.contains(parent.getTermAccession())){
-                                importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
-                            }
+                            // update changes
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(dagObject);
                         }
                         // create the parent and import its parents
                         else {
@@ -420,6 +442,10 @@ public class CvImporterImpl implements CvImporter{
                             // update/ create parents
                             if (!processedTerms.contains(parent.getTermAccession())){
                                 importParents(dagObject, parent, termClass, updateContext, hideParents, roots);
+                            }
+                            // we save the current changes
+                            else {
+                                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(dagObject);
                             }
                         }
                     }
@@ -457,6 +483,7 @@ public class CvImporterImpl implements CvImporter{
             for (IntactOntologyTermI parent : parents){
                 if (!roots.contains(parent)){
 
+                    // the term has already been loaded so we just update it and don't import the parents
                     if (this.loadedTerms.containsKey(parent.getTermAccession())){
                         CvDagObject importedParent = loadedTerms.get(parent.getTermAccession());
 
@@ -466,9 +493,11 @@ public class CvImporterImpl implements CvImporter{
                         // update changes
                         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(importedParent);
                     }
+                    // the term has not been loaded yet
                     else {
                         List<CvDagObject> cvObjects = fetchIntactCv(parent.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
+                        // we have duplicated terms, we don't do anything
                         if (cvObjects.size() > 1){
                             CvUpdateManager cvManager = updateContext.getManager();
 
@@ -476,7 +505,11 @@ public class CvImporterImpl implements CvImporter{
 
                             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                             cvManager.fireOnUpdateError(evt);
+
+                            // update any changes done to the children
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvChild);
                         }
+                        // one existing term. No need to import the parent
                         else if (cvObjects.size() == 1){
                             CvDagObject dagObject = cvObjects.iterator().next();
 
@@ -485,20 +518,16 @@ public class CvImporterImpl implements CvImporter{
                             // add children (only if it didn't exist)
                             dagObject.addChild(cvChild);
 
+                            // we collected the proper term, no need to import the parents
                             if (parent.getTermAccession().equals(currentTerm)){
 
                                 updateContext.setCvTerm(dagObject);
+                            }
 
-                                // update/ create parents and hide them
-                                if (!processedTerms.contains(parent.getTermAccession())){
-                                    importParents(dagObject, parent, termClass, updateContext, true, roots);
-                                }
-                            }
-                            else {
-                                // update/ create parents
-                                importParents(dagObject, parent, termClass, updateContext, currentTerm, roots);
-                            }
+                            // update changes
+                            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(dagObject);
                         }
+                        // term does not exist, we need to import parents
                         else {
 
                             if (parent.getTermAccession().equals(currentTerm)){
@@ -516,6 +545,10 @@ public class CvImporterImpl implements CvImporter{
                                 if (!processedTerms.contains(parent.getTermAccession())) {
                                     importParents(dagObject, parent, termClass, updateContext, true, roots);
                                 }
+                                // we save the current changes
+                                else {
+                                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(dagObject);
+                                }
                             }
                             else {
                                 boolean isHidden = hiddenParents.contains(parent) || !unHiddenChildren.contains(parent);
@@ -530,6 +563,10 @@ public class CvImporterImpl implements CvImporter{
                                 // update/ create parents
                                 if (!processedTerms.contains(parent.getTermAccession())){
                                     importParents(dagObject, parent, termClass, updateContext, currentTerm, roots);
+                                }
+                                // we save the current changes
+                                else {
+                                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(dagObject);
                                 }
                             }
                         }
