@@ -204,6 +204,22 @@ synonym: "negative gen int" EXACT PSI-MI-short []
 is_a: MI:0208 ! genetic interaction
 
 [Term]
+id: MI:0116
+name: feature type
+namespace: PSI-MI
+def: "Property of a subsequence that may interfere with the binding of a molecule." [PMID:14755292]
+subset: PSI-MI_slim
+relationship: part_of MI:0000 ! molecular interaction
+
+[Term]
+id: MI:0252
+name: biological feature
+namespace: PSI-MI
+def: "Property of a subsequence that may be involved with or interfere with the binding of a molecule and are supported by experimental evidences." [PMID:14755292]
+subset: PSI-MI_slim
+is_a: MI:0116 ! feature type
+
+[Term]
 id: MI:0021
 name: colocalization by fluorescent probes cloning
 namespace: PSI-MI

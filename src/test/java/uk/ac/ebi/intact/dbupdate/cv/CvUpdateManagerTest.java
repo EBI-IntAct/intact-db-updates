@@ -81,4 +81,64 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
         getDataContext().commitTransaction(status2);
     }
 
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_import_cv_no_children() throws CvUpdateException {
+        String termAc = "MI:0091"; // chromatography technology
+        
+        CvDagObject term = cvManager.importCvTerm(termAc, "MI", false);
+        
+        Assert.assertNotNull(term);
+        Assert.assertNotNull(term.getAc());
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0001"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0401"));
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_import_cv_children() throws CvUpdateException {
+        String termAc = "MI:0091"; // chromatography technology
+
+        CvDagObject term = cvManager.importCvTerm(termAc, "MI", true);
+
+        Assert.assertNotNull(term);
+        Assert.assertNotNull(term.getAc());
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0001"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0401"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0004"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0400"));
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
+    public void test_import_cv_parentFromOtherOntology() throws CvUpdateException {
+        String termAc = "MOD:00003"; // mod term
+
+        CvDagObject term = cvManager.importCvTerm(termAc, "MOD", false);
+
+        Assert.assertNotNull(term);
+        Assert.assertNotNull(term.getAc());
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvDagObject mod = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MOD:00032");
+        Assert.assertNotNull(mod);
+        Assert.assertEquals(1, mod.getChildren().size());
+        Assert.assertEquals(1, mod.getParents().size());
+        CvDagObject bioFeature = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0252");
+        Assert.assertNotNull(bioFeature);
+        Assert.assertEquals(1, bioFeature.getChildren().size());
+        
+        Assert.assertEquals(bioFeature, mod.getParents().iterator().next());
+        Assert.assertEquals(mod, bioFeature.getChildren().iterator().next());
+
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0116"));
+
+        getDataContext().commitTransaction(status);
+    }
 }
