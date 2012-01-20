@@ -29,6 +29,7 @@ public interface CvUpdater {
     public CvAliasUpdater getCvAliasUpdater();
     public CvXrefUpdater getCvXrefUpdater();
     public CvAnnotationUpdater getCvAnnotationUpdater();
+    public UsedInClassAnnotationUpdater getUsedInClassAnnotationUpdater();
 
     public void clear();
 }

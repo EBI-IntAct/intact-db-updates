@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
-import org.h2.util.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,6 +20,7 @@ import uk.ac.ebi.intact.model.*;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Iterator;
 
 /**
  * Unit tester of the CvUpdaterImpl
@@ -31,7 +31,7 @@ import java.sql.SQLException;
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
         "classpath*:/META-INF/standalone/*-standalone.spring.xml",
-        "classpath*:/META-INF/beans.spring.xml"})
+        "classpath*:/META-INF/beanscv.spring.xml"})
 public class CvUpdaterTest extends IntactBasicTestCase{
 
     private CvUpdateManager cvManager;
@@ -107,10 +107,13 @@ public class CvUpdaterTest extends IntactBasicTestCase{
             }
         }
 
-        Assert.assertEquals(1, term.getAnnotations().size());
-        Annotation def = term.getAnnotations().iterator().next();
+        Assert.assertEquals(2, term.getAnnotations().size());
+        Iterator<Annotation> itAnnot = term.getAnnotations().iterator();
+        Annotation def = itAnnot.next();
         Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
         Assert.assertEquals(def.getAnnotationText(), "Comment for public view. This attribute can be associated to interaction, experiment, CV term, an organism and any participant.");
+        Annotation usedInClass = itAnnot.next();
+        Assert.assertEquals(usedInClass.getCvTopic().getShortLabel(), CvTopic.USED_IN_CLASS);
 
         Assert.assertTrue(term.getAliases().isEmpty());
         Assert.assertEquals(0, term.getParents().size());
@@ -143,7 +146,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
                 getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.PRIMARY_REFERENCE_MI_REF, CvXrefQualifier.PRIMARY_REFERENCE),
                 getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.PUBMED_MI_REF, CvDatabase.PUBMED)));
         cv.getAnnotations().add(getMockBuilder().createAnnotation("bla bla", CvTopic.COMMENT_MI_REF, CvTopic.COMMENT));
-        cv.getAnnotations().add(getMockBuilder().createAnnotation("InteractionImpl", getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.USED_IN_CLASS)));
+        cv.getAnnotations().add(getMockBuilder().createAnnotation("uk.ac.ebi.intact.model.InteractionImpl", getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.USED_IN_CLASS)));
 
         cv.addParent(parent);
         cv.addParent(parent2);
@@ -191,7 +194,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
                 Assert.assertEquals(ann.getAnnotationText(), "Comment for public view. This attribute can be associated to interaction, experiment, CV term, an organism and any participant.");
             }
             else if (ann.getCvTopic().getShortLabel().equalsIgnoreCase(CvTopic.USED_IN_CLASS)){
-                Assert.assertEquals(ann.getAnnotationText(), "InteractionImpl");
+                Assert.assertNotSame(ann.getAnnotationText(), "uk.ac.ebi.intact.model.InteractionImpl");
             }
             else {
                 Assert.assertTrue(false);

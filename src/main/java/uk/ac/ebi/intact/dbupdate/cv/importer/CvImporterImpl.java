@@ -15,6 +15,9 @@ import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.CreatedTermEvent;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvInitializer;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -47,6 +50,9 @@ public class CvImporterImpl implements CvImporter{
     private Set<IntactOntologyTermI> unHiddenChildren;
 
     private Set<String> processedTerms;
+    
+    private CvUpdater cvUpdater;
+    private CvUpdateContext importUpdateContext;
 
     public CvImporterImpl(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
@@ -55,6 +61,7 @@ public class CvImporterImpl implements CvImporter{
         hiddenParents = new HashSet<IntactOntologyTermI>();
         unHiddenChildren = new HashSet<IntactOntologyTermI>();
         processedTerms = new HashSet<String>();
+        importUpdateContext = new CvUpdateContext(null);
     }
 
     @PostConstruct
@@ -272,97 +279,22 @@ public class CvImporterImpl implements CvImporter{
         return null;
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
     public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException {
 
         String accession = ontologyTerm.getTermAccession();
 
         CvDagObject cvObject = termClass.newInstance();
-
-        // set shortLabel
-        cvObject.setShortLabel(ontologyTerm.getShortLabel());
-
-        // set fullName
-        cvObject.setFullName(ontologyTerm.getFullName());
-
-        // set identifier
-        cvObject.setIdentifier(accession);
-
-        CvObjectXref identity = CvUpdateUtils.createIdentityXref(cvObject, ontologyAccess.getDatabaseIdentifier(), accession);
-
-        Map<String, CvDatabase> processedDatabases = new HashMap<String, CvDatabase>();
-
-        Map<String, CvXrefQualifier> processedXrefQualifiers = new HashMap<String, CvXrefQualifier>();
-
-        // create xrefs
-        for (TermDbXref termRef : ontologyTerm.getDbXrefs()){
-            CvDatabase database;
-            if (processedDatabases.containsKey(termRef.getDatabaseId())){
-                database = processedDatabases.get(termRef.getDatabaseId());
-            }
-            else {
-                database = CvObjectUtils.createCvObject(cvObject.getOwner(), CvDatabase.class, termRef.getDatabaseId(), termRef.getDatabase());
-                processedDatabases.put(termRef.getDatabaseId(), database);
-            }
-
-            CvXrefQualifier qualifier;
-            if (processedXrefQualifiers.containsKey(termRef.getQualifierId())){
-                qualifier = processedXrefQualifiers.get(termRef.getQualifierId());
-            }
-            else {
-                qualifier = CvObjectUtils.createCvObject(cvObject.getOwner(), CvXrefQualifier.class, termRef.getQualifierId(), termRef.getQualifier());
-                processedXrefQualifiers.put(termRef.getQualifierId(), qualifier);
-            }
-
-            CvObjectXref ref = XrefUtils.createIdentityXref(cvObject, termRef.getAccession(), qualifier, database);
-            cvObject.addXref(ref);
-        }
-
-        // create aliases
-        CvAliasType aliasType = CvObjectUtils.createCvObject(cvObject.getOwner(), CvAliasType.class, null, CvAliasUpdaterImpl.ALIAS_TYPE);
-
-        for (String alias : ontologyTerm.getAliases()){
-
-            CvObjectAlias aliasObject = new CvObjectAlias(cvObject.getOwner(), cvObject, aliasType, alias);
-            cvObject.addAlias(aliasObject);
-        }
-
-        // create annotations
-        for (TermAnnotation annotation : ontologyTerm.getAnnotations()){
-
-            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, annotation.getTopicId(), annotation.getTopic());
-
-            Annotation annotationObject = new Annotation(topic, annotation.getDescription());
-            cvObject.addAnnotation(annotationObject);
-        }
-
-        // create definition
-        if (ontologyTerm.getDefinition() != null){
-            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, null, CvTopic.DEFINITION);
-
-            Annotation annotationObject = new Annotation(topic, ontologyTerm.getDefinition());
-            cvObject.addAnnotation(annotationObject);
-        }
-
-        // create url
-        if (ontologyTerm.getURL() != null){
-            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, CvTopic.URL_MI_REF, CvTopic.URL);
-
-            Annotation annotationObject = new Annotation(topic, ontologyTerm.getURL());
-            cvObject.addAnnotation(annotationObject);
-        }
-
-        // create comments
-        if (!ontologyTerm.getComments().isEmpty()){
-            CvTopic topic = CvObjectUtils.createCvObject(cvObject.getOwner(), CvTopic.class, CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
-
-            for (String comment : ontologyTerm.getComments()){
-                Annotation annotationObject = new Annotation(topic, comment);
-                cvObject.addAnnotation(annotationObject);
-            }
-        }
+        
+        importUpdateContext.clear();
+        importUpdateContext.setCvTerm(cvObject);
+        importUpdateContext.setIdentifier(accession);
+        importUpdateContext.setOntologyAccess(ontologyAccess);
+        importUpdateContext.setOntologyTerm(ontologyTerm);
+        
+        cvUpdater.updateTerm(importUpdateContext);
 
         // parents should not be obsolete. An obsolete term does not have parents children anymore
-
         if (hideParents){
             CvUpdateUtils.hideTerm(cvObject, "term not used");
         }
@@ -622,11 +554,27 @@ public class CvImporterImpl implements CvImporter{
         return missingRootParents;
     }
 
+    public CvUpdater getCvUpdater() {
+        if (cvUpdater == null){
+            cvUpdater = new CvInitializer();
+        }
+        return cvUpdater;
+    }
+
+    public void setCvUpdater(CvUpdater cvUpdater) {
+        if (cvUpdater == null){
+            cvUpdater = new CvUpdaterImpl();
+        }
+        this.cvUpdater = cvUpdater;
+    }
+
     public void clear(){
         this.loadedTerms.clear();
         this.missingRootParents.clear();
         this.hiddenParents.clear();
         this.unHiddenChildren.clear();
         processedTerms.clear();
+        cvUpdater.clear();
+        importUpdateContext.clear();
     }
 }

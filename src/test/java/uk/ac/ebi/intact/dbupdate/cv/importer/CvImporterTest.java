@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
         "classpath*:/META-INF/standalone/*-standalone.spring.xml",
-        "classpath*:/META-INF/beans.spring.xml"})
+        "classpath*:/META-INF/beanscv.spring.xml"})
 public class CvImporterTest extends IntactBasicTestCase{
 
     private CvUpdateManager cvManager;

@@ -85,7 +85,9 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
                     }
                     //intact has no match in ontology
                     else if (nameComparator < 0) {
-                        updateEvt.getDeletedAliases().add(currentIntact);
+                        if (updateEvt != null){
+                            updateEvt.getDeletedAliases().add(currentIntact);
+                        }
                         term.removeAlias(currentIntact);
 
                         if (intactIterator.hasNext()){
@@ -101,7 +103,9 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
                         CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), term, aliasType, currentOntologyAlias);
                         term.addAlias(newAlias);
 
-                        updateEvt.getCreatedAliases().add(newAlias);
+                        if (updateEvt != null){
+                            updateEvt.getCreatedAliases().add(newAlias);
+                        }
 
                         if (ontologyIterator.hasNext()){
                             currentOntologyAlias = ontologyIterator.next();
@@ -122,7 +126,9 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
 
             do {
                 //intact has no match in ontology
-                updateEvt.getDeletedAliases().add(currentIntact);
+                if (updateEvt != null){
+                    updateEvt.getDeletedAliases().add(currentIntact);
+                }
                 term.removeAlias(currentIntact);
 
                 if (intactIterator.hasNext()){
@@ -144,7 +150,9 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
                 CvObjectAlias newAlias = new CvObjectAlias(IntactContext.getCurrentInstance().getInstitution(), term, aliasType, currentOntologyAlias);
                 term.addAlias(newAlias);
 
-                updateEvt.getCreatedAliases().add(newAlias);
+                if (updateEvt != null){
+                    updateEvt.getCreatedAliases().add(newAlias);
+                }
 
                 if (ontologyIterator.hasNext()){
                     currentOntologyAlias = ontologyIterator.next();

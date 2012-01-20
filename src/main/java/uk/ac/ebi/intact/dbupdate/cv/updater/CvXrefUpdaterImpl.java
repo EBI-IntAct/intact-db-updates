@@ -97,7 +97,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                             //intact has no match in ontology
                             else if (acComparator < 0) {
                                 if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
-                                    updateEvt.getDeletedXrefs().add(currentIntact);
+                                    if (updateEvt != null){
+                                        updateEvt.getDeletedXrefs().add(currentIntact);
+                                    }
                                     term.removeXref(currentIntact);
                                 }
 
@@ -120,7 +122,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                                 CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
                                 term.addXref(newXref);
 
-                                updateEvt.getCreatedXrefs().add(newXref);
+                                if (updateEvt != null){
+                                    updateEvt.getCreatedXrefs().add(newXref);
+                                }
 
                                 if (ontologyIterator.hasNext()){
                                     currentOntologyRef = ontologyIterator.next();
@@ -133,7 +137,10 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                         else if (qualifierComparator < 0) {
                             //intact has no match in ontology
                             if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
-                                updateEvt.getDeletedXrefs().add(currentIntact);
+                                if (updateEvt != null){
+                                    updateEvt.getDeletedXrefs().add(currentIntact);
+
+                                }
                                 term.removeXref(currentIntact);
                             }
 
@@ -161,7 +168,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                             CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
                             term.addXref(newXref);
 
-                            updateEvt.getCreatedXrefs().add(newXref);
+                            if (updateEvt != null){
+                                updateEvt.getCreatedXrefs().add(newXref);
+                            }
 
                             if (ontologyIterator.hasNext()){
                                 currentOntologyRef = ontologyIterator.next();
@@ -174,7 +183,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                     //intact has no match in ontology, we delete it excepted the identity xref
                     else if (dbComparator < 0) {
                         if (!currentIntact.equals(updateContext.getIdentityXref())){
-                            updateEvt.getDeletedXrefs().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getDeletedXrefs().add(currentIntact);
+                            }
                             term.removeXref(currentIntact);
                         }
 
@@ -208,7 +219,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                         CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
                         term.addXref(newXref);
 
-                        updateEvt.getCreatedXrefs().add(newXref);
+                        if (updateEvt != null){
+                            updateEvt.getCreatedXrefs().add(newXref);
+                        }
 
                         if (ontologyIterator.hasNext()){
                             currentOntologyRef = ontologyIterator.next();
@@ -232,7 +245,9 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
             do {
                 //intact has no match in ontology and it is not a secondary xref or the identity xref
                 if ((!currentIntact.equals(updateContext.getIdentityXref()) && cvQualifier != null && !CvXrefQualifier.SECONDARY_AC_MI_REF.equalsIgnoreCase(cvQualifier.getIdentifier())) || cvQualifier == null){
-                    updateEvt.getDeletedXrefs().add(currentIntact);
+                    if (updateEvt != null){
+                        updateEvt.getDeletedXrefs().add(currentIntact);
+                    }
 
                     term.removeXref(currentIntact);
                 }
@@ -274,7 +289,10 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                 CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
                 term.addXref(newXref);
 
-                updateEvt.getCreatedXrefs().add(newXref);
+                if (updateEvt != null){
+                    updateEvt.getCreatedXrefs().add(newXref);
+
+                }
 
                 if (ontologyIterator.hasNext()){
                     currentOntologyRef = ontologyIterator.next();

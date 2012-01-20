@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.cv.importer;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
 import uk.ac.ebi.intact.model.CvDagObject;
 
 import java.util.Map;
@@ -26,6 +27,8 @@ public interface CvImporter {
     public Map<String, Class<? extends CvDagObject>> getClassMap();
     public Set<String> getProcessedTerms();
     public Map<String, Set<CvDagObject>> getMissingRootParents();
+    public CvUpdater getCvUpdater();
+
     public void clear();
 
 }

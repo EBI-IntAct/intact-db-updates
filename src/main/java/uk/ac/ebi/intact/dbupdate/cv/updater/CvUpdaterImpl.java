@@ -27,11 +27,12 @@ import java.util.Set;
 
 public class CvUpdaterImpl implements CvUpdater{
 
-    private CvParentUpdater cvParentUpdater;
-    private CvAliasUpdater cvAliasUpdater;
-    private CvXrefUpdater cvXrefUpdater;
-    private CvAnnotationUpdater cvAnnotationUpdater;
-    private Set<String> processedTerms;
+    protected CvParentUpdater cvParentUpdater;
+    protected CvAliasUpdater cvAliasUpdater;
+    protected CvXrefUpdater cvXrefUpdater;
+    protected UsedInClassAnnotationUpdater usedInClassAnnotationUpdater;
+    protected CvAnnotationUpdater cvAnnotationUpdater;
+    protected Set<String> processedTerms;
 
     public CvUpdaterImpl() {
         processedTerms = new HashSet<String>();
@@ -131,6 +132,11 @@ public class CvUpdaterImpl implements CvUpdater{
         if (!isObsolete){
             updateParents(updateContext, updateEvt);
         }
+        
+        // in case of cvtopics, we may need to create new used in class annotations
+        if (usedInClassAnnotationUpdater.canUpdate(term)){
+            updateUsedInClass(updateContext, updateEvt);
+        }
 
         doUpdate(updateContext, updateEvt);
     }
@@ -193,6 +199,11 @@ public class CvUpdaterImpl implements CvUpdater{
         }
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void updateUsedInClass(CvUpdateContext updateContext, UpdatedEvent updateEvt){
+        usedInClassAnnotationUpdater.updateAnnotations(updateContext, updateEvt);
+    }
+    
     @Transactional(propagation = Propagation.SUPPORTS)
     public void updateParents(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         cvParentUpdater.updateParents(updateContext, updateEvt);
@@ -261,6 +272,19 @@ public class CvUpdaterImpl implements CvUpdater{
         return cvAnnotationUpdater;
     }
 
+    @Override
+    public UsedInClassAnnotationUpdater getUsedInClassAnnotationUpdater() {
+        if (usedInClassAnnotationUpdater == null){
+            usedInClassAnnotationUpdater = new UsedInClassAnnotationUpdaterImpl();
+        }
+        
+        return usedInClassAnnotationUpdater;
+    }
+
+    public void setUsedInClassAnnotationUpdater(UsedInClassAnnotationUpdater usedInClassAnnotationUpdater) {
+        this.usedInClassAnnotationUpdater = usedInClassAnnotationUpdater;
+    }
+
     public void setCvAnnotationUpdater(CvAnnotationUpdater cvAnnotationUpdater) {
         this.cvAnnotationUpdater = cvAnnotationUpdater;
     }
@@ -270,5 +294,6 @@ public class CvUpdaterImpl implements CvUpdater{
         this.cvAliasUpdater.clear();
         this.cvXrefUpdater.clear();
         this.processedTerms.clear();
+        this.usedInClassAnnotationUpdater.clear();
     }
 }

@@ -5,7 +5,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
@@ -75,8 +74,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         sortedOntologyAnnotations.addAll(ontologyTerm.getAnnotations());
         Iterator<TermAnnotation> ontologyIterator = sortedOntologyAnnotations.iterator();
 
-        AnnotationDao annotationDao = factory.getAnnotationDao();
-
         // the comments to create
         comments.addAll(ontologyTerm.getComments());
 
@@ -109,7 +106,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         }
                         //intact has no match in ontology
                         else if (acComparator < 0) {
-                            updateEvt.getDeletedAnnotations().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getDeletedAnnotations().add(currentIntact);
+
+                            }
                             term.removeAnnotation(currentIntact);
 
                             if (intactIterator.hasNext()){
@@ -128,7 +128,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                             Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
                             term.addAnnotation(newAnnot);
 
-                            updateEvt.getCreatedAnnotations().add(newAnnot);
+                            if (updateEvt != null){
+                                updateEvt.getCreatedAnnotations().add(newAnnot);
+                            }
 
                             if (ontologyIterator.hasNext()){
                                 currentOntologyRef = ontologyIterator.next();
@@ -149,11 +151,15 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                                 if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
                                     currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                    if (updateEvt != null){
+                                        updateEvt.getUpdatedAnnotations().add(currentIntact); 
+                                    }
                                 }
                             }
                             else{
-                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                if (updateEvt != null){
+                                    updateEvt.getDeletedAnnotations().add(currentIntact);
+                                }
                                 term.removeAnnotation(currentIntact);
                             }
                         }
@@ -165,16 +171,23 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                                 if (ontologyTerm.getObsoleteMessage() ==  null && currentIntact.getAnnotationText() != null){
                                     currentIntact.setAnnotationText(null);
 
-                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                    if (updateEvt != null){
+                                        updateEvt.getUpdatedAnnotations().add(currentIntact);
+ 
+                                    }
                                 }
                                 else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
                                     currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                    if (updateEvt != null){
+                                        updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                    }
                                 }
                             }
                             else{
-                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                if (updateEvt != null){
+                                    updateEvt.getDeletedAnnotations().add(currentIntact);
+                                }
                                 term.removeAnnotation(currentIntact);
                             }
                         }
@@ -193,13 +206,18 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                             // comment does not exist but can be updated
                             else if (!comments.contains(currentIntact.getAnnotationText()) && comments.size() > 0){
                                 currentIntact.setAnnotationText(comments.iterator().next());
-                                updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                
+                                if (updateEvt != null){
+                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                }
 
                                 comments.remove(currentIntact.getAnnotationText());
                             }
                             // delete the comment
                             else {
-                                updateEvt.getDeletedAnnotations().add(currentIntact);
+                                if (updateEvt != null){
+                                    updateEvt.getDeletedAnnotations().add(currentIntact);
+                                }
                                 term.removeAnnotation(currentIntact);
                             }
                         }
@@ -211,7 +229,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                                 if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
                                     currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                                    updateEvt.getUpdatedAnnotations().add(currentIntact);
+                                    if (updateEvt != null){
+                                        updateEvt.getUpdatedAnnotations().add(currentIntact);
+
+                                    }
                                 }
                             }
                         }
@@ -241,7 +262,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
                         term.addAnnotation(newAnnot);
 
-                        updateEvt.getCreatedAnnotations().add(newAnnot);
+                        if (updateEvt != null){
+                            updateEvt.getCreatedAnnotations().add(newAnnot);
+                        }
 
                         if (ontologyIterator.hasNext()){
                             currentOntologyRef = ontologyIterator.next();
@@ -271,11 +294,15 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
                             currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            }
                         }
                     }
                     else{
-                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        if (updateEvt != null){
+                            updateEvt.getDeletedAnnotations().add(currentIntact);
+                        }
                         term.removeAnnotation(currentIntact);
                     }
                 }
@@ -287,16 +314,22 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         if (ontologyTerm.getObsoleteMessage() ==  null && currentIntact.getAnnotationText() != null){
                             currentIntact.setAnnotationText(null);
 
-                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getUpdatedAnnotations().add(currentIntact); 
+                            }
                         }
                         else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
                             currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            }
                         }
                     }
                     else{
-                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        if (updateEvt != null){
+                            updateEvt.getDeletedAnnotations().add(currentIntact);
+                        }
                         term.removeAnnotation(currentIntact);
                     }
                 }
@@ -315,13 +348,17 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                     // comment does not exist but can be updated
                     else if (!comments.contains(currentIntact.getAnnotationText()) && comments.size() > 0){
                         currentIntact.setAnnotationText(comments.iterator().next());
-                        updateEvt.getUpdatedAnnotations().add(currentIntact);
+                        if (updateEvt != null){
+                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                        }
 
                         comments.remove(currentIntact.getAnnotationText());
                     }
                     // delete the comment
                     else {
-                        updateEvt.getDeletedAnnotations().add(currentIntact);
+                        if (updateEvt != null){
+                            updateEvt.getDeletedAnnotations().add(currentIntact);
+                        }
                         term.removeAnnotation(currentIntact);
                     }
                 }
@@ -333,7 +370,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
                             currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
-                            updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            if (updateEvt != null){
+                                updateEvt.getUpdatedAnnotations().add(currentIntact);
+                            }
                         }
                     }
                 }
@@ -370,7 +409,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
                 term.addAnnotation(newAnnot);
 
-                updateEvt.getCreatedAnnotations().add(newAnnot);
+                if (updateEvt != null){
+                    updateEvt.getCreatedAnnotations().add(newAnnot);
+
+                }
 
                 if (ontologyIterator.hasNext()){
                     currentOntologyRef = ontologyIterator.next();
@@ -394,7 +436,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getDefinition());
             term.addAnnotation(newAnnotation);
 
-            updateEvt.getCreatedAnnotations().add(newAnnotation);
+            if (updateEvt != null){
+                updateEvt.getCreatedAnnotations().add(newAnnotation);
+            }
         }
 
         // create missing url
@@ -409,7 +453,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getURL());
             term.addAnnotation(newAnnotation);
 
-            updateEvt.getCreatedAnnotations().add(newAnnotation);
+            if (updateEvt != null){
+                updateEvt.getCreatedAnnotations().add(newAnnotation);
+
+            }
         }
 
         // create missing obsolete
@@ -424,12 +471,18 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getObsoleteMessage());
             term.addAnnotation(newAnnotation);
 
-            updateEvt.getCreatedAnnotations().add(newAnnotation);
+            if (updateEvt != null){
+                updateEvt.getCreatedAnnotations().add(newAnnotation);
+            }
         }
 
         // hide term if obsolete
         if (isObsolete && !isHidden){
-            updateEvt.getCreatedAnnotations().add(CvUpdateUtils.hideTerm(term, "obsolete term"));
+            Annotation hidden = CvUpdateUtils.hideTerm(term, "obsolete term");
+
+            if (updateEvt != null){
+                updateEvt.getCreatedAnnotations().add(hidden);
+            }
         }
 
         // create missing comments
@@ -447,7 +500,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 Annotation newAnnotation = new Annotation(comment, com);
                 term.addAnnotation(newAnnotation);
 
-                updateEvt.getCreatedAnnotations().add(newAnnotation);
+                if (updateEvt != null){
+                    updateEvt.getCreatedAnnotations().add(newAnnotation);
+                }
             }
         }
 
