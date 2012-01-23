@@ -31,7 +31,7 @@ import java.util.Arrays;
 public class CvUpdateManagerTest extends IntactBasicTestCase{
 
     @Autowired
-    CvUpdateManager cvManager;
+    CvUpdateManager cvUpdateManager;
 
     @After
     public void removeUnnecessaryFolders() throws SQLException {
@@ -61,9 +61,9 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        IntactOntologyAccess access = cvUpdateManager.getIntactOntologyManager().getOntologyAccess("MI");
 
-        cvManager.updateCv(cv.getAc(), access);
+        cvUpdateManager.updateCv(cv.getAc(), access);
 
         TransactionStatus status2 = getDataContext().beginTransaction();
         
@@ -107,7 +107,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     public void test_import_cv_no_children() throws CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
         
-        CvDagObject term = cvManager.importCvTerm(termAc, "MI", false);
+        CvDagObject term = cvUpdateManager.importCvTerm(termAc, "MI", false);
         
         Assert.assertNotNull(term);
         Assert.assertNotNull(term.getAc());
@@ -122,7 +122,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     public void test_import_cv_children() throws CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
-        CvDagObject term = cvManager.importCvTerm(termAc, "MI", true);
+        CvDagObject term = cvUpdateManager.importCvTerm(termAc, "MI", true);
 
         Assert.assertNotNull(term);
         Assert.assertNotNull(term.getAc());
@@ -139,7 +139,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     public void test_import_cv_parentFromOtherOntology() throws CvUpdateException {
         String termAc = "MOD:00003"; // mod term
 
-        CvDagObject term = cvManager.importCvTerm(termAc, "MOD", false);
+        CvDagObject term = cvUpdateManager.importCvTerm(termAc, "MOD", false);
 
         Assert.assertNotNull(term);
         Assert.assertNotNull(term.getAc());
@@ -168,7 +168,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     public void test_unHide_cv() throws CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
-        cvManager.importCvTerm(termAc, "MI", false);
+        cvUpdateManager.importCvTerm(termAc, "MI", false);
 
         TransactionStatus status = getDataContext().beginTransaction();
         CvObject cvHidden = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045");
@@ -177,7 +177,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        cvManager.removeHiddenFrom(Arrays.asList(cvHidden));
+        cvUpdateManager.removeHiddenFrom(Arrays.asList(cvHidden));
 
         TransactionStatus status2 = getDataContext().beginTransaction();
         CvObject cv = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0045");
@@ -193,7 +193,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     public void test_hide_cv() throws CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
 
-        cvManager.importCvTerm(termAc, "MI", false);
+        cvUpdateManager.importCvTerm(termAc, "MI", false);
 
         TransactionStatus status = getDataContext().beginTransaction();
         CvObject cvHidden = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier(termAc);
@@ -202,7 +202,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        cvManager.hideTerms(Arrays.asList(cvHidden), "obsolete");
+        cvUpdateManager.hideTerms(Arrays.asList(cvHidden), "obsolete");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
         CvObject cv = getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier(termAc);
@@ -227,7 +227,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
         
-        cvManager.updateAllTerms("MI");
+        cvUpdateManager.updateAllTerms("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -294,7 +294,7 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        cvManager.updateAndCreateAllTerms("MI");
+        cvUpdateManager.updateAndCreateAllTerms("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 

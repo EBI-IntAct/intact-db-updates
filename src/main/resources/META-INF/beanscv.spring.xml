@@ -61,6 +61,7 @@
         <property name="cvUpdater" ref="cvUpdater"/>
         <property name="cvRemapper" ref="obsoleteRemapper"/>
         <property name="errorFactory" ref="errorFactory"/>
+        <property name="reportDirectory" value="${update.report}"/>
     </bean>
 
 </beans>

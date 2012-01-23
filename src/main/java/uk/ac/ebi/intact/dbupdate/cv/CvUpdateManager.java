@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.cv;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,9 +78,6 @@ public class CvUpdateManager {
 
         InputStream ontology = ontologyConfigPath.openStream();
 
-        reportDirectory = new File("reports");
-        registerBasicListeners(reportDirectory);
-
         intactOntologyManager = new IntactOntologyManager(ontology);
 
         updateContext = new CvUpdateContext(this);
@@ -105,9 +103,6 @@ public class CvUpdateManager {
     public CvUpdateManager() throws IOException, OntologyLoaderException {
 
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
-
-        reportDirectory = new File("reports");
-        registerBasicListeners(reportDirectory);
 
         intactOntologyManager = new IntactOntologyManager(ontology);
         updateContext = new CvUpdateContext(this);
@@ -143,9 +138,6 @@ public class CvUpdateManager {
         this.cvUpdater = cvUpdater;
         this.cvImporter = cvImporter;
 
-        reportDirectory = new File("reports");
-        registerBasicListeners(reportDirectory);
-
         this.cvRemapper = cvRemapper;
 
         updateContext = new CvUpdateContext(this);
@@ -156,7 +148,7 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public void updateAll() {
+    public void updateAll() throws IOException {
         clear();
 
         updateAndCreateAllTerms("MI");
@@ -175,33 +167,40 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      */
     public void updateAndCreateAllTerms(String ontologyId) {
-        cvUpdater.clear();
-        cvRemapper.clear();
-        cvImporter.clear();
-        this.updateContext.clear();
+        try {
+            registerBasicListeners(reportDirectory);
 
-        // get the ontologyAcces for this ontology id
-        IntactOntologyAccess ontologyAccess = this.intactOntologyManager.getOntologyAccess(ontologyId);
-        this.updateContext.setOntologyAccess(ontologyAccess);
+            cvUpdater.clear();
+            cvRemapper.clear();
+            cvImporter.clear();
+            this.updateContext.clear();
 
-        if (ontologyAccess == null){
-            throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
+            // get the ontologyAcces for this ontology id
+            IntactOntologyAccess ontologyAccess = this.intactOntologyManager.getOntologyAccess(ontologyId);
+            this.updateContext.setOntologyAccess(ontologyAccess);
+
+            if (ontologyAccess == null){
+                throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
+            }
+
+            // update existing terms and remap obsolete terms if possible
+            updateExistingTerms(ontologyId);
+
+            // create missing parents
+            createMissingParents();
+
+            // create missing terms in ontology
+            createMissingTerms(ontologyId);
+
+            // update all remapped terms to other ontologies
+            updateTermsRemappedToOtherOntologies();
+
+            // check if duplicated terms exist
+            checkDuplicatedCvTerms(ontologyAccess);
+
+        } catch (IOException e) {
+            log.fatal("Impossible to run the update because we cannot create the reports directory", e);
         }
-
-        // update existing terms and remap obsolete terms if possible
-        updateExistingTerms(ontologyId);
-
-        // create missing parents
-        createMissingParents();
-
-        // create missing terms in ontology
-        createMissingTerms(ontologyId);
-
-        // update all remapped terms to other ontologies
-        updateTermsRemappedToOtherOntologies();
-
-        // check if duplicated terms exist
-        checkDuplicatedCvTerms(ontologyAccess);
     }
 
     /**
@@ -233,30 +232,36 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      */
     public void updateAllTerms(String ontologyId) {
-        cvUpdater.clear();
-        cvRemapper.clear();
-        cvImporter.clear();
+        try {
+            registerBasicListeners(reportDirectory);
 
-        this.updateContext.clear();
-        IntactOntologyAccess ontologyAccess = this.intactOntologyManager.getOntologyAccess(ontologyId);
+            cvUpdater.clear();
+            cvRemapper.clear();
+            cvImporter.clear();
 
-        this.updateContext.setOntologyAccess(ontologyAccess);
+            this.updateContext.clear();
+            IntactOntologyAccess ontologyAccess = this.intactOntologyManager.getOntologyAccess(ontologyId);
 
-        if (ontologyAccess == null){
-            throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
+            this.updateContext.setOntologyAccess(ontologyAccess);
+
+            if (ontologyAccess == null){
+                throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
+            }
+
+            // update existing terms
+            updateExistingTerms(ontologyId);
+
+            // create missing parents
+            createMissingParents();
+
+            // update all remapped terms to other ontologies
+            updateTermsRemappedToOtherOntologies();
+
+            // check if duplicated terms exist
+            checkDuplicatedCvTerms(ontologyAccess);
+        } catch (IOException e) {
+            log.fatal("Impossible to run the update because we cannot create the reports directory", e);
         }
-
-        // update existing terms
-        updateExistingTerms(ontologyId);
-
-        // create missing parents
-        createMissingParents();
-
-        // update all remapped terms to other ontologies
-        updateTermsRemappedToOtherOntologies();
-
-        // check if duplicated terms exist
-        checkDuplicatedCvTerms(ontologyAccess);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -882,6 +887,10 @@ public class CvUpdateManager {
 
     public IntactOntologyManager getIntactOntologyManager() {
         return intactOntologyManager;
+    }
+
+    public void setReportDirectory(File reportDirectory) {
+        this.reportDirectory = reportDirectory;
     }
 
     public void clear(){
