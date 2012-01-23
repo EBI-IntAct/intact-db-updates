@@ -249,7 +249,7 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
                             }
                             extractListOfIdsFrom(columns[2], this.listOfExcludedPublications);
                         }
-                        // we don't have neither dataset information, nor organism requirements, it is a protein alias to load
+                        // we don't have neither dataset information, nor organism requirements, it is some specific info to load
                         else {
                             readSpecificContent(columns);
                         }

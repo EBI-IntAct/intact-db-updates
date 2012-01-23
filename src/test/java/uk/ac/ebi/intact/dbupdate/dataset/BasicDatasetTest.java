@@ -24,6 +24,7 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     protected Protein prot4;
     protected Protein prot5;
     protected Protein prot6;
+    protected Protein prot7;
     protected Publication p1;
     protected Publication p2;
     protected Publication p3;
@@ -51,6 +52,7 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         prot4 = getMockBuilder().createProtein("P01237", "apba1_human", human);
         prot5 = getMockBuilder().createProtein("P01238", "apba1_mouse", mouse);
         prot6 = getMockBuilder().createProtein("P01239", "apba2_human", human);
+        prot7 = getMockBuilder().createProtein("Q00005", "2abb_human", human);
 
         prot1.getAliases().iterator().next().setName("AMPH");
         prot2.getAliases().iterator().next().setName("AMPH");
@@ -64,9 +66,9 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         intactContext.getCorePersister().saveOrUpdate(prot3);
         intactContext.getCorePersister().saveOrUpdate(prot4);
         intactContext.getCorePersister().saveOrUpdate(prot5);
-        intactContext.getCorePersister().saveOrUpdate(prot6);
+        intactContext.getCorePersister().saveOrUpdate(prot6, prot7);
 
-        Assert.assertEquals(intactContext.getDaoFactory().getAliasDao(InteractorAlias.class).countAll(), 6);
+        Assert.assertEquals(intactContext.getDaoFactory().getAliasDao(InteractorAlias.class).countAll(), 7);
     }
 
     public void createExperimentsWithProteinOfInterest(){

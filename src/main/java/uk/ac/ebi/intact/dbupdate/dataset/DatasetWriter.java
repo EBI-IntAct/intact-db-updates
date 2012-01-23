@@ -249,10 +249,19 @@ public class DatasetWriter {
      * Add the dataset annotation for each experiment in the list
      * @param experiments : the experiments
      */
-    private void addDatasetToExperiments(List<Experiment> experiments) throws IOException, DatasetException {
+    private void addDatasetToExperimentsAndPublication(List<Experiment> experiments) throws IOException, DatasetException {
         for (Experiment e : experiments){
             String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
-            this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName());
+            
+            // if publication has not been processed, we add the dataset to the publication
+            if (this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName()) && e.getPublication() != null){
+                Annotation annotation = createNewDataset();
+                log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
+
+                e.getPublication().addAnnotation(annotation);
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e.getPublication());
+            }
+
             Annotation annotation = createNewDataset();
             log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
 
@@ -318,7 +327,7 @@ public class DatasetWriter {
             this.selector.readDatasetFromResources(file);
         }
 
-        addDatasetAnnotationToExperiments();
+        addDatasetAnnotationToExperimentsAndPublications();
     }
 
     /**
@@ -326,7 +335,7 @@ public class DatasetWriter {
      * The list of object criterias that the selector is using to select the object of interests can be stored in a file but it is not mandatory, the file can be null
      * @throws DatasetException
      */
-    public void addDatasetAnnotationToExperiments() throws DatasetException {
+    public void addDatasetAnnotationToExperimentsAndPublications() throws DatasetException {
 
         // The DatasetSelector must be not null
         if (this.selector == null){
@@ -448,7 +457,7 @@ public class DatasetWriter {
                 numberOfExperiments += experimentToAddDataset.size();
 
                 log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
-                addDatasetToExperiments(experimentToAddDataset);
+                addDatasetToExperimentsAndPublication(experimentToAddDataset);
 
                 //this.context.getDataContext().commitTransaction(transactionStatus);
             }
@@ -473,7 +482,7 @@ public class DatasetWriter {
                 numberOfExperiments += experimentToAddDataset.size();
 
                 log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the component " + accession  + " \n");
-                addDatasetToExperiments(experimentToAddDataset);
+                addDatasetToExperimentsAndPublication(experimentToAddDataset);
 
                 //this.context.getDataContext().commitTransaction(transactionStatus);
             }
