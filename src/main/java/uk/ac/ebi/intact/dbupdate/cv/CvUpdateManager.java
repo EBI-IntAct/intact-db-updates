@@ -157,7 +157,7 @@ public class CvUpdateManager {
      * @throws InstantiationException
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public void updateAll() throws IllegalAccessException, InstantiationException {
+    public void updateAll() {
         clear();
 
         updateAndCreateAllTerms("MI");
