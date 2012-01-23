@@ -156,7 +156,6 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAll() {
         clear();
 
@@ -175,7 +174,6 @@ public class CvUpdateManager {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAndCreateAllTerms(String ontologyId) {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -206,7 +204,6 @@ public class CvUpdateManager {
         checkDuplicatedCvTerms(ontologyAccess);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     /**
      * Checks if we have some duplicated terms in the ontology
      */
@@ -235,7 +232,6 @@ public class CvUpdateManager {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateAllTerms(String ontologyId) {
         cvUpdater.clear();
         cvRemapper.clear();
@@ -366,7 +362,6 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void createMissingParents() {
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -476,7 +471,6 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void createMissingTerms(String ontologyId) {
         cvImporter.getProcessedTerms().addAll(cvUpdater.getProcessedTerms());
 
@@ -587,7 +581,7 @@ public class CvUpdateManager {
         return query.getResultList();
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     /**
      * Collects duplicated cv intact acs
      */
@@ -595,13 +589,21 @@ public class CvUpdateManager {
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-        Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x, CvDagObject c2 left join c2.xrefs as x2 " +
+        Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x," +
+                " CvDagObject c2 left join c2.xrefs as x2 " +
                 "where c.ac <> c2.ac " +
-                "and c.objClass <> c2.objClass " +
-                "and (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and " +
-                "((x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x.primaryId = x2.primaryId) or x.primaryId = c2.identifier))" +
-                "or (x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and " +
-                "x2.primaryId = c.identifier) or (c2.identifier = c.identifier and c.identifier like :ontologyLikeId )");
+                "and c.objClass = c2.objClass " +
+                "and (" +
+                "(" +
+                "x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity " +     // x has an identity xref
+                "and (" +
+                "(x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x.primaryId = x2.primaryId) " +
+                "or x.primaryId = c2.identifier)" +  // x2 has the same identity xref or the same identifier as the primary ac of the identity xref
+                ")" +
+                "or " +
+                "(x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x2.primaryId = c.identifier) " + // x2 has an identity xref which is the same as the identifier of the first cv
+                "or (c2.identifier = c.identifier and c.identifier like :ontologyLikeId )" +  // both identifier are identical
+                ")");
         query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
         query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
         query.setParameter("ontologyLikeId", ontologyAccess.getOntologyID() + ":%");
@@ -612,7 +614,6 @@ public class CvUpdateManager {
     /**
      * Updates all existing cvs of a given ontology.
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void updateExistingTerms(String ontologyId){
         IntactOntologyAccess currentOntologyAccess = intactOntologyManager.getOntologyAccess(ontologyId);
 

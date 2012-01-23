@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.model.*;
 
+import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
@@ -29,6 +32,21 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
     @Autowired
     CvUpdateManager cvManager;
+
+    @After
+    public void removeUnnecessaryFolders() throws SQLException {
+        File reports = new File("reports");
+
+        if (reports.exists()){
+            File[] files = reports.listFiles();
+
+            for (File f : files){
+                f.delete();
+            }
+
+            reports.delete();
+        }
+    }
 
     @Test
     @DirtiesContext
@@ -262,12 +280,17 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();
 
+        CvInteractionType existingCv = getMockBuilder().createCvObject(CvInteractionType.class, "MI:0933", "negative gen int");
+
         CvDagObject parent = getMockBuilder().createCvObject(CvInteraction.class, "MI:0091", "chromatography technology");
         CvDagObject cv = getMockBuilder().createCvObject(CvInteraction.class, "MI:0004", "affinity chromatography technology");
-        CvDagObject cvObsoleteSameOntology = getMockBuilder().createCvObject(CvInteractionType.class, "MI:0802", "enhancement interaction");
+        CvInteractionType cvObsoleteSameOntology = getMockBuilder().createCvObject(CvInteractionType.class, "MI:0802", "enhancement interaction");
         CvDagObject cvObsoleteDifferentOntology = getMockBuilder().createCvObject(CvFeatureType.class, "MI:0123", "n2-acetyl");
 
-        getCorePersister().saveOrUpdate(cv, parent, cvObsoleteSameOntology, cvObsoleteDifferentOntology);
+        Interaction interaction = getMockBuilder().createDeterministicInteraction();
+        interaction.setCvInteractionType(cvObsoleteSameOntology);
+
+        getCorePersister().saveOrUpdate(cv, parent, cvObsoleteSameOntology, cvObsoleteDifferentOntology, interaction, existingCv);
 
         getDataContext().commitTransaction(status);
 
@@ -303,7 +326,8 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
         // the missing parent has been created
         Assert.assertEquals(2, term.getParents().size());
 
-        CvObject term1 = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cvObsoleteSameOntology.getAc());
+        Assert.assertNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cvObsoleteSameOntology.getAc()));
+        CvObject term1 = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(existingCv.getAc());
         Assert.assertEquals("MI:0933", term1.getIdentifier());
 
         // updated!!!!
@@ -314,6 +338,11 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
         // no new term have been created (comment should not have been created)
         Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0612"));
+
+        // obsolete term has been remapped and interaction updated
+        Interaction interDb = getDaoFactory().getInteractionDao().getByAc(interaction.getAc());
+
+        Assert.assertEquals(existingCv.getAc(), interDb.getCvInteractionType().getAc());
 
         getDataContext().commitTransaction(status2);
     }

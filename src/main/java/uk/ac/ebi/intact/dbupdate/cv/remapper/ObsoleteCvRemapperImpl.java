@@ -47,7 +47,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         ontologyIdToDatabase.put("MOD", CvDatabase.PSI_MOD_MI_REF);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void remapObsoleteCvTerm(CvUpdateContext updateContext){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 

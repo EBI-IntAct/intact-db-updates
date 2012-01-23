@@ -53,7 +53,7 @@ public class CvUpdaterImpl implements CvUpdater{
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void updateTerm(CvUpdateContext updateContext) throws CvUpdateException {
         checkUpdateContext(updateContext);
 
