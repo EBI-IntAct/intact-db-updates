@@ -148,7 +148,7 @@ public class CvUpdateManager {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public void updateAll() throws IOException {
+    public void updateAll(){
         clear();
 
         updateAndCreateAllTerms("MI");
