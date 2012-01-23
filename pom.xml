@@ -23,9 +23,9 @@
         </dependency>
 
         <dependency>
-            <groupId>uk.ac.ebi.intact.bridges</groupId>
-            <artifactId>intact-uniprot</artifactId>
-            <version>2.1.5-SNAPSHOT</version>
+            <groupId>uk.ac.ebi.uniprot.kraken</groupId>
+            <artifactId>uniprotjapi</artifactId>
+            <version>LATEST</version>
         </dependency>
 
     </dependencies>

@@ -6,15 +6,13 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvDatabase;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
-import uk.ac.ebi.intact.uniprot.service.SimpleUniprotRemoteService;
-import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.kraken.interfaces.uniprot.Keyword;
+import uk.ac.ebi.kraken.uuw.services.remoting.EntryRetrievalService;
 import uk.ac.ebi.kraken.uuw.services.remoting.RemoteDataAccessException;
+import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
 
 import javax.persistence.Query;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,26 +31,33 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
     private static final String keywordField = "ognl:keywords";
 
-    private UniprotService uniprotQueryService;
+    private EntryRetrievalService entryRetrievalService;
 
     public UniprotKeywordSelector(){
         super();
-        this.uniprotQueryService = new SimpleUniprotRemoteService();
+        this.entryRetrievalService = UniProtJAPI.factory.getEntryRetrievalService();
     }
 
     public UniprotKeywordSelector(String report){
         super(report);
-        this.uniprotQueryService = new SimpleUniprotRemoteService();
+        this.entryRetrievalService = UniProtJAPI.factory.getEntryRetrievalService();
     }
 
     private boolean isProteinAssociatedWithKeywordInUniprot(String uniprotId){
-
+        String fixedUniprotAc = uniprotId;
+        
+        if (uniprotId.contains("-")){
+            fixedUniprotAc = uniprotId.substring(0, uniprotId.indexOf("-"));
+        }
         try{
             //Retrieve list of keyword objects from a UniProt entry by its accession number
-            Collection<UniprotProtein> proteins = uniprotQueryService.retrieve(uniprotId);
+            Object attribute = entryRetrievalService.getUniProtAttribute(fixedUniprotAc ,  "ognl:keywords");
 
-            for (UniprotProtein prot : proteins){
-                if (prot.getKeywords().contains(keyword)){
+            // Cast the object to UniProt Keywords
+            List<Keyword> keywords  = (List<Keyword>)attribute;
+
+            for (Keyword key : keywords){
+                if (key.getValue().equalsIgnoreCase(keyword)){
                     return true;
                 }
             }
@@ -63,6 +68,7 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
         return false;
     }
+
 
     /**
      *
