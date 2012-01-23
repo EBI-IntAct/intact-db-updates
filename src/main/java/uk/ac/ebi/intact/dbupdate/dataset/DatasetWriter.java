@@ -254,7 +254,7 @@ public class DatasetWriter {
             String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
             
             // if publication has not been processed, we add the dataset to the publication
-            if (this.listOfpublicationUpdated.add(pubId + " \t" + e.getFullName()) && e.getPublication() != null){
+            if (this.listOfpublicationUpdated.add(pubId) && e.getPublication() != null){
                 Annotation annotation = createNewDataset();
                 log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
 
