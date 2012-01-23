@@ -48,6 +48,10 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
         super();
     }
 
+    public InteractorAliasSelector(String report){
+        super(report);
+    }
+
     /**
      * Clear the list of proteins, the list of possible taxIds, the list of publication excluded and the dataset value of this object
      */
@@ -64,13 +68,6 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
         return listOfProteins;
     }
 
-    /**
-     * set the map containing the list of aliases
-     * @param listOfProteins
-     */
-    public void setListOfProteins(Map<CvAliasType, Set<String>> listOfProteins) {
-        this.listOfProteins = listOfProteins;
-    }
 
     /**
      * This method read the columns of a line in the file and initialises either the listOfPossibleTaxIds, listOfProteins or dataset value.
@@ -120,198 +117,11 @@ public class InteractorAliasSelector extends ProteinDatasetSelectorImpl{
     }
 
     /**
-     * Load the list of proteins aliases contained in the file
-     * @param file : the file containing the protein aliases
-     * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : if the file is null
-     */
-    /* protected void extractDatasetFromFile(File file) throws DatasetException {
-
-       BufferedReader in = null;
-
-       if (file == null){
-           throw new IllegalArgumentException("The file containing the dataset is null and we can't read the dataset. Please set a valid datasetFile of this object.");
-       }
-       try {
-
-           in = new BufferedReader( new FileReader( file ) );
-
-           String str;
-           while ( ( str = in.readLine() ) != null ) {
-               // remove possible "
-               str = removeQuotes(str);
-
-               // we skip the comments and empty lines
-               if ( str.startsWith( "#" ) || str.length() == 0 ) {
-                   continue;
-               }
-
-               // the line contains columns
-               if (str.contains(separator)){
-                   final String[] columns = StringUtils.splitPreserveAllTokens(str,separator);
-
-                   // we need 3 columns
-                   if (columns.length != 3){
-                       throw new IllegalArgumentException("The file containing the dataset is malformed : we found "+columns.length+" columns instead of 3. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
-                               "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
-                   }
-                   else {
-                       // remove possible quotes
-                       for (String c : columns){
-                           c = removeQuotes(c);
-                       }
-                       // if the line contains dataset information, we initialises the dataset value of this object
-                       if (isDatasetLine(columns)){
-                           // if the dataset value is not null, it is replaced with the new one but it can be an error in the file
-                           if (this.datasetValue != null && columns[2].length() > 0){
-                               log.warn("The dataset value for the file was " + this.datasetValue + " but is replaced with the new value found in the file " + columns[2]);
-                               this.datasetValue = columns[2];
-                           }
-                           else if (columns[2].length() > 0){
-                               this.datasetValue = columns[2];
-                           }
-                       }
-                       // if the line contains organism requirements, we initialise the list of organisms taxids
-                       else if (isOrganismLine(columns)){
-                           // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
-                           if (!this.listOfPossibleTaxId.isEmpty()){
-                               log.warn("The possible organisms for the file were " + this.listOfPossibleTaxId + " but are replaced with the new value(s) found in the file " + columns[2]);
-                               this.listOfPossibleTaxId.clear();
-                           }
-                           extractListOfIdsFrom(columns[2], this.listOfPossibleTaxId);
-                       }
-                       // if the line contains publication exclusions, we initialise the list of publications to exclude
-                       else if (isPublicationLine(columns)){
-                           // if list of organism taxIds is not empty, it is totally cleared before adding the new organism requirements, but it can be an error in the file
-                           if (!this.listOfExcludedPublications.isEmpty()){
-                               log.warn("The publications to exclude for the file were " + this.listOfExcludedPublications + " but are replaced with the new value(s) found in the file " + columns[2]);
-                               this.listOfExcludedPublications.clear();
-                           }
-                           extractListOfIdsFrom(columns[2], this.listOfExcludedPublications);
-                       }
-                       // we don't have neither dataset information, nor organism requirements, it is a protein alias to load
-                       else {
-                           addNewProtein(columns);
-                       }
-                   }
-               }
-               else {
-                   throw new DatasetException("The file containing the dataset is malformed. We need a column for the type of data (dataset, organism (can be empty if no organism limitations), gene name, protein name), a column containing the MI " +
-                           "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
-               }
-           }
-           in.close();
-       } catch (FileNotFoundException e) {
-           throw new DatasetException("The file " + file.getAbsolutePath() + " has not been found.", e);
-       } catch (IOException e) {
-           throw new DatasetException("The file " + file.getAbsolutePath() + " couldn't be read.", e);
-       }
-   } */
-
-    /**
-     *
-     * @param type : alias type
-     * @param name : alias name
-     * @return the list of intact proteins matching the alias name for this alias type and with an organism respecting the restrictions
-     */
-    /*private List<String> getProteinAccessionsContainingAlias (CvAliasType type, String name){
-
-        // get the intact datacontext and factory
-        final DataContext dataContext = this.context.getDataContext();
-        final DaoFactory daoFactory = dataContext.getDaoFactory();
-
-        // we want all the interactor associated with this alias name and this alias type
-        String interactorGeneQuery = "select prot.ac from InteractorAlias ia join ia.parent as prot join ia.cvAliasType as alias " +
-                "where upper(ia.name) = upper(:name) and alias = :alias and prot.objClass = :objclass";
-
-        // we add the organism restrictions
-        String finalQuery = addOrganismSelection(interactorGeneQuery);
-
-        // create the query
-        final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
-
-        // set the query parameters
-        query.setParameter("name", name);
-        query.setParameter("alias", type);
-        query.setParameter("objclass", ProteinImpl.class.getName());
-
-        // the list of results
-        final List<String> interactorAcs = query.getResultList();
-
-        return interactorAcs;
-    }*/
-
-    /*private void addAllExperimentsFromSamePublication(List<Experiment> experiments){
-        List<Experiment> otherExperiment = new ArrayList<Experiment>();
-        ExperimentDao expDao = this.context.getDataContext().getDaoFactory().getExperimentDao();
-
-        for (Experiment e : experiments){
-            if (e.getPublication() != null){
-                if (e.getPublication().getPublicationId() != null){
-                    otherExperiment.addAll(expDao.getByPubId(e.getPublication().getPublicationId()));
-                }
-            }
-        }
-
-        experiments.addAll(otherExperiment);
-    }*/
-
-    /*private List<Experiment> getExperimentWithSamePubIdFrom(List<Experiment> experiments, String pubId){
-        if (pubId == null){
-            return null;
-        }
-
-        List<Experiment> expWithSamePubId = new ArrayList<Experiment>();
-
-        for (Experiment e : experiments){
-            if (e.getPublication() != null){
-                if (pubId.equalsIgnoreCase(e.getPublication().getPublicationId())){
-                    expWithSamePubId.add(e);
-                }
-            }
-        }
-        return expWithSamePubId;
-    }*/
-
-    /*private void removeExperimentsWithTooManyInteractions(List<Experiment> experiments){
-        List<Experiment> experimentsToRemove = new ArrayList<Experiment>();
-
-        for (Experiment exp : experiments){
-            if (exp.getInteractions().size() >= maxNumberOfInteractions){
-                if (exp.getPublication() == null){
-                    experimentsToRemove.add(exp);
-                }
-                else {
-                    experimentsToRemove.addAll(getExperimentWithSamePubIdFrom(experiments, exp.getPublication().getPublicationId()));
-                }
-            }
-        }
-
-        experiments.removeAll(experimentsToRemove);
-    }*/
-
-    /*private boolean hasExactDatasetAnnotation(Experiment e){
-        if (e == null){
-            return false;
-        }
-        Collection<Annotation> annotations = e.getAnnotations();
-
-        for (Annotation a : annotations){
-            CvTopic topic = a.getCvTopic();
-            if (CvTopic.DATASET_MI_REF.equalsIgnoreCase(topic.getIdentifier())){
-                if (a.getAnnotationText().equalsIgnoreCase(this.datasetValue)){
-                    return true;
-                }
-            }
-        }
-        return false;
-    }*/
-
-    /**
      *
      * @return the Set of protein accessions matching ont of the aliases in the list and respecting the organism restrictions.
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException
      */
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
+    public Set<String> collectSelectionOfProteinAccessionsInIntact() throws DatasetException {
 
         log.info("Collect proteins in Intact...");
 

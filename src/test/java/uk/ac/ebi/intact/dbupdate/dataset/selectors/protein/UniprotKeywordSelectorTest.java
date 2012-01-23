@@ -49,7 +49,7 @@ public class UniprotKeywordSelectorTest extends BasicDatasetTest{
         try {
             this.selector.readDatasetFromResources("/dataset/apoptosis.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(1, listOfAc.size());

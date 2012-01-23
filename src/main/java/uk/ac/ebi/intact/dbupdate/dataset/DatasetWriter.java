@@ -36,22 +36,32 @@ public class DatasetWriter {
     /**
      * the log of this class
      */
-    private static final Log log = LogFactory.getLog( DatasetWriter.class );
+    protected static final Log log = LogFactory.getLog( DatasetWriter.class );
 
     /**
      * The DatasetSelector instance of this object
      */
-    private DatasetSelector selector;
+    protected DatasetSelector selector;
 
     /**
      * Contains the list of publications updated
      */
-    private HashSet<String> listOfpublicationUpdated = new HashSet<String>();
+    protected HashSet<String> listOfpublicationUpdated = new HashSet<String>();
 
     /**
      * To know if a file should be written with the results of the update
      */
-    private boolean isFileWriterEnabled = true;
+    protected boolean isFileWriterEnabled = true;
+
+    protected File report;
+    
+    public DatasetWriter(){
+        report = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
+    }
+
+    public DatasetWriter(String report){
+        this.report = new File(report);
+    }
 
     /**
      * return the isFileWriterEnabled
@@ -371,8 +381,7 @@ public class DatasetWriter {
     private void writeDatasetReport(int numberOfProteinSelected, int totalNumberOfExperiments) throws IOException {
         if (isFileWriterEnabled){
             // create the file where to write the report
-            File file = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
-            Writer writer = new FileWriter(file);
+            Writer writer = new FileWriter(report);
 
             writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
@@ -444,7 +453,7 @@ public class DatasetWriter {
         if (this.selector instanceof ProteinDatasetSelector){
             ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
 
-            Set<String> proteinSelected = proteinSelector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> proteinSelected = proteinSelector.collectSelectionOfProteinAccessionsInIntact();
 
             numberOfElementSelected = proteinSelected.size();
 
@@ -506,7 +515,7 @@ public class DatasetWriter {
         if (this.selector instanceof ProteinDatasetSelector){
             ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
 
-            Set<String> proteinSelected = proteinSelector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> proteinSelected = proteinSelector.collectSelectionOfProteinAccessionsInIntact();
             // for each protein of interest
             for (String accession : proteinSelected){
                 //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();

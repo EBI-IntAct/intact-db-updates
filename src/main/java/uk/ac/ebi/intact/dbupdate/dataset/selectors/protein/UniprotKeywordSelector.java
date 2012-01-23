@@ -36,6 +36,12 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
     private UniprotService uniprotQueryService;
 
     public UniprotKeywordSelector(){
+        super();
+        this.uniprotQueryService = new SimpleUniprotRemoteService();
+    }
+
+    public UniprotKeywordSelector(String report){
+        super(report);
         this.uniprotQueryService = new SimpleUniprotRemoteService();
     }
 
@@ -97,7 +103,7 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
     }
 
     @Override
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
+    public Set<String> collectSelectionOfProteinAccessionsInIntact() throws DatasetException {
         Set<String> proteinAccessions = new HashSet<String>();
 
         List<Object[]> listOfExistingUniprotInIntact = getProteinsFromUniprotInIntact();

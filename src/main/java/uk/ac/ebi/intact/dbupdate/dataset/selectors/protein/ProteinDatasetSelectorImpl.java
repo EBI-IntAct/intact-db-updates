@@ -2,11 +2,9 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.DatasetSelectorImpl;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Calendar;
 import java.util.Set;
 
 /**
@@ -25,6 +23,10 @@ public abstract class ProteinDatasetSelectorImpl extends DatasetSelectorImpl imp
      */
     public ProteinDatasetSelectorImpl(){
         super();
+    }
+
+    public ProteinDatasetSelectorImpl(String report){
+        super(report);
     }
 
     /**
@@ -62,8 +64,7 @@ public abstract class ProteinDatasetSelectorImpl extends DatasetSelectorImpl imp
 
         if (isFileWriterEnabled()){
             // create the file where to write the report
-            File file = new File("proteins_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
-            Writer writer = new FileWriter(file);
+            Writer writer = new FileWriter(report);
 
             writer.write("Collect "+proteinAccessions.size()+" proteins related to the dataset '"+this.datasetValue+"' \n");
 

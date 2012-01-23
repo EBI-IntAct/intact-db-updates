@@ -21,5 +21,5 @@ public interface ProteinDatasetSelector extends DatasetSelector{
      * @throws uk.ac.ebi.intact.dbupdate.dataset.DatasetException : exception if the intact context is not set or if there is no protein to retrieve
      * or if the dataset value is not set.
      */
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException;
+    public Set<String> collectSelectionOfProteinAccessionsInIntact() throws DatasetException;
 }

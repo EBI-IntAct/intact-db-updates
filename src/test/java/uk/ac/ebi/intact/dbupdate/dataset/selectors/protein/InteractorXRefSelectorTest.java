@@ -50,7 +50,7 @@ public class InteractorXRefSelectorTest extends BasicDatasetTest {
         try {
             this.selector.readDatasetFromResources("/dataset/ndpk.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(1, listOfAc.size());
@@ -71,7 +71,7 @@ public class InteractorXRefSelectorTest extends BasicDatasetTest {
 
             this.selector.readDatasetFromResources("/dataset/ndpk_otherDatabase.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertTrue(listOfAc.isEmpty());
 

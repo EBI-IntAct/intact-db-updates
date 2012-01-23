@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors;
 
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 
+import java.io.File;
 import java.util.Set;
 
 /**
@@ -24,13 +25,6 @@ public interface DatasetSelector {
      * @return the dataset value associated with the intact accessions returned by the DatasetSelector
      */
     public String getDatasetValueToAdd();
-
-    /**
-     * Set the dataset value associated with the intact accessions returned by the DatasetSelector.
-     * It can be used if the selector has no configuration file where to find the dataset value associated with the intact objects it is looking for.
-     * @param dataset : dataset annotation
-     */
-    public void setDatasetValueToAdd(String dataset);
 
     /**
      *
@@ -65,5 +59,7 @@ public interface DatasetSelector {
      * @return the set of publication Ids we want to remove from the list of results
      */
     public Set<String> getPublicationsIdToExclude();
+
+    public File getReport();
 }
 

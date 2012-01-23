@@ -42,46 +42,16 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
         super();
     }
 
-    /**
-     *
-     * @param database : the cvDatabase
-     * @param identifier : the identifier associated with the database
-     * @return a list of protein accessions containing this cross reference.
-     * @throws DatasetException
-     */
-    /*private List<String> getProteinAccessionsContainingXRefs(CvDatabase database, String identifier) throws DatasetException {
-        // get the intact datacontext and factory
-        final DataContext dataContext = this.context.getDataContext();
-        final DaoFactory daoFactory = dataContext.getDaoFactory();
-
-        // we want all the interactor associated with this database and this identifier
-        String interactorGeneQuery = "select i.ac from InteractorImpl i join i.xrefs as x " +
-                "join x.cvDatabase as db " +
-                "where db = :database and x.primaryId = :id and i.objClass = :class";
-
-        // we add the organism restrictions
-        String finalQuery = addOrganismSelection(interactorGeneQuery);
-
-        // create the query
-        final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
-
-        // set the query parameters
-        query.setParameter("database", database);
-        query.setParameter("id", identifier);
-        query.setParameter("class", ProteinImpl.class.getName());
-
-        // get the intact proteins matching the cross reference
-        List<String> listOfAcs = query.getResultList();
-
-        return listOfAcs;
-    }*/
+    public InteractorXRefSelector(String report){
+        super(report);
+    }
 
     /**
      *
      * @return the Set of protein accessions containing at least one of the cross references stored in the listOfXRefs of this object
      * @throws DatasetException
      */
-    public Set<String> getSelectionOfProteinAccessionsInIntact() throws DatasetException {
+    public Set<String> collectSelectionOfProteinAccessionsInIntact() throws DatasetException {
 
         log.info("Collect proteins in Intact...");
 
@@ -212,13 +182,5 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
      */
     public Map<CvDatabase, Set<String>> getListOfXRefs() {
         return listOfXRefs;
-    }
-
-    /**
-     * Set the map containing all the cross references
-     * @param listOfXRefs
-     */
-    public void setListOfXRefs(Map<CvDatabase, Set<String>> listOfXRefs) {
-        this.listOfXRefs = listOfXRefs;
     }
 }

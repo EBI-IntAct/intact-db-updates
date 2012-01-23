@@ -7,6 +7,7 @@ import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvTopic;
 
 import java.io.*;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,12 +65,20 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
      * To know if a file should be written with the results of the selection
      */
     protected boolean isFileWriterEnabled = true;
+    
+    protected File report;
 
     /**
      * Create a new DatasetSelectorImpl with no dataset value and no intact context. These two variables must be initialised using the set methods
      */
     public DatasetSelectorImpl(){
         this.datasetValue = null;
+        report = new File("proteins_selected_for_dataset_" + Calendar.getInstance().getTime().getTime()+".txt");
+    }
+
+    public DatasetSelectorImpl(String report){
+        this.datasetValue = null;
+        this.report = new File(report);
     }
 
     /**
@@ -412,14 +421,6 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
     }
 
     /**
-     * Set the list of publications to exclude
-     * @param listOfExcludedPublications
-     */
-    public void setListOfExcludedPublications(Set<String> listOfExcludedPublications) {
-        this.listOfExcludedPublications = listOfExcludedPublications;
-    }
-
-    /**
      * return the isFileWriterEnabled
      * @return
      */
@@ -433,5 +434,10 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
      */
     public void setFileWriterEnabled(boolean fileWriterEnabled) {
         isFileWriterEnabled = fileWriterEnabled;
+    }
+
+    @Override
+    public File getReport() {
+        return this.report;
     }
 }

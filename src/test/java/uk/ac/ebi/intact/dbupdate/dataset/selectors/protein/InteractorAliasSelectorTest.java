@@ -100,7 +100,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
         try {
             this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(6, listOfAc.size());
@@ -126,7 +126,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
 
             this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(6, listOfAc.size());
@@ -152,7 +152,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
 
             this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(6, listOfAc.size());
@@ -180,7 +180,7 @@ public class InteractorAliasSelectorTest extends BasicDatasetTest {
 
             this.selector.readDatasetFromResources("/dataset/synapseTest.csv");
 
-            Set<String> listOfAc = this.selector.getSelectionOfProteinAccessionsInIntact();
+            Set<String> listOfAc = this.selector.collectSelectionOfProteinAccessionsInIntact();
 
             Assert.assertFalse(listOfAc.isEmpty());
             Assert.assertEquals(6, listOfAc.size());
