@@ -292,6 +292,79 @@ is_a: MOD:00843 ! (15)N labeled residue
 is_a: MOD:00912 ! modified L-lysine residue
 
 [Term]
+id: MOD:00902
+name: modified L-arginine residue
+def: "A protein modification that modifies an L-arginine residue." [PubMed:18688235]
+subset: PSI-MOD-slim
+synonym: "ModArg" EXACT PSI-MOD-label []
+xref: Origin: "R"
+is_a: MOD:01157 ! protein modification categorized by amino acid modified
+
+[Term]
+id: MOD:00408
+name: N-acetylated residue
+def: "A protein modification that effectively replaces a residue amino or imino hydrogen with an acetyl group." [PubMed:18688235]
+subset: PSI-MOD-slim
+synonym: "N-Acetyl" EXACT PSI-MOD-alternate []
+synonym: "N-Acetylation" EXACT PSI-MOD-alternate []
+synonym: "NAcRes" EXACT PSI-MOD-label []
+xref: DiffAvg: "42.04"
+xref: DiffFormula: "C 2 H 2 O 1"
+xref: DiffMono: "42.010565"
+xref: Formula: "none"
+xref: MassAvg: "none"
+xref: MassMono: "none"
+xref: Origin: "X"
+xref: Source: "none"
+xref: TermSpec: "none"
+is_a: MOD:01157 ! protein modification categorized by amino acid modified
+
+[Term]
+id: MOD:01458
+name: alpha-amino acetylated residue
+def: "A protein modification that effectively replaces a residue alpha-amino- or alpha-imino-hydrogen with an acetyl group." [OMSSA:10, UniMod:1 "site"]
+subset: PSI-MOD-slim
+synonym: "N2AcRes" EXACT PSI-MOD-label []
+synonym: "ntermacetyl" EXACT OMSSA-label []
+xref: DiffAvg: "42.04"
+xref: DiffFormula: "C 2 H 2 N 0 O 1"
+xref: DiffMono: "42.010565"
+xref: Formula: "none"
+xref: MassAvg: "none"
+xref: MassMono: "none"
+xref: Origin: "X"
+xref: Source: "natural"
+xref: TermSpec: "N-term"
+is_a: MOD:00408 ! N-acetylated residue
+is_a: MOD:01696 ! alpha-amino acylated residue
+
+[Term]
+id: MOD:00359
+name: N2-acetyl-L-arginine
+def: "A protein modification that effectively converts an L-arginine residue to N2-acetyl-L-arginine." [PubMed:12883043, PubMed:1894641, RESID:AA0354]
+synonym: "(S)-2-acetamido-5-carbamimidamidopentanoic acid" EXACT RESID-systematic []
+synonym: "2-acetamido-5-guanidinopentanoic acid" EXACT RESID-alternate []
+synonym: "2-acetylamino-5-guanidinopentanoic acid" EXACT RESID-alternate []
+synonym: "AcArg" EXACT PSI-MOD-label []
+synonym: "acetylarginine" EXACT RESID-alternate []
+synonym: "alpha-acetylamino-delta-guanidinovaleric acid" EXACT RESID-alternate []
+synonym: "MOD_RES N2-acetylarginine" EXACT UniProt-feature []
+synonym: "N(alpha)-acetylarginine" EXACT RESID-alternate []
+synonym: "N2-acetyl-L-arginine" EXACT RESID-name []
+synonym: "N2-acetylated L-arginine" EXACT PSI-MOD-alternate []
+xref: DiffAvg: "42.04"
+xref: DiffFormula: "C 2 H 2 N 0 O 1"
+xref: DiffMono: "42.010565"
+xref: Formula: "C 8 H 15 N 4 O 2"
+xref: MassAvg: "199.23"
+xref: MassMono: "199.119501"
+xref: Origin: "R"
+xref: Source: "natural"
+xref: TermSpec: "N-term"
+is_a: MOD:00902 ! modified L-arginine residue
+is_a: MOD:01458 ! alpha-amino acetylated residue
+
+[Term]
 id: MOD:00815
 name: molybdopterin
 def: "OBSOLETE because redundant with MOD:00151. Remap to MOD:00151." [PubMed:14527393, PubMed:7878465, PubMed:9428520]

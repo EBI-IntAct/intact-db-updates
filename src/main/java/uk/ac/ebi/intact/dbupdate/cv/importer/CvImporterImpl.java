@@ -522,8 +522,9 @@ public class CvImporterImpl implements CvImporter{
         Set<IntactOntologyTermI> directChildren = ontologyAccess.getDirectChildren(parent);
 
         if (!directChildren.isEmpty()){
+            Set<IntactOntologyTermI> directChildrenCopy = new HashSet<IntactOntologyTermI>(directChildren);
 
-            for (IntactOntologyTermI child : directChildren){
+            for (IntactOntologyTermI child : directChildrenCopy){
                 directChildren.addAll(collectDeepestChildren(ontologyAccess, child));
             }
         }
