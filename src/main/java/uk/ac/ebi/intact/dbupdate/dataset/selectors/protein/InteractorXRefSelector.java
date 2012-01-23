@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
+import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -124,6 +125,8 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
             // we add the organism restrictions
             String finalQuery = addOrganismSelection(interactorXRefQuery.toString());
 
+            TransactionStatus status = dataContext.beginTransaction();
+
             // create the query
             final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
 
@@ -132,6 +135,8 @@ public class InteractorXRefSelector extends ProteinDatasetSelectorImpl {
 
             // get the intact proteins matching the cross reference
             List<String> listOfAcs = query.getResultList();
+
+            dataContext.commitTransaction(status);
 
             // we add the proteins to the list
             proteinAccessions.addAll(listOfAcs);

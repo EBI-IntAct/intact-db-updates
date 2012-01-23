@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -310,7 +311,7 @@ public class DatasetWriter {
         // set the DatasetSelector of this object
         setSelector(selector);
 
-        addDatasetAnnotationToExperimentsFor(file);
+        addDatasetAnnotationToExperimentsAndPublicationsFor(file);
     }
 
     /**
@@ -319,7 +320,7 @@ public class DatasetWriter {
      * @param file : the file containing the list of proteins. Can be null if it is not needed
      * @throws DatasetException
      */
-    public void addDatasetAnnotationToExperimentsFor(String file) throws DatasetException {
+    public void addDatasetAnnotationToExperimentsAndPublicationsFor(String file) throws DatasetException {
 
         // if the file is null, we are supposing that the selector already contains the list of proteins and the dataset value, otherwise, we need to read the file and initialise the selector
         if (file != null){
@@ -432,6 +433,8 @@ public class DatasetWriter {
      */
     private void processDatasetSelection() throws DatasetException, IOException {
 
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
         // number of intcact object related to the dataset
         int numberOfElementSelected = 0;
         // total number of experiments updated
@@ -447,9 +450,10 @@ public class DatasetWriter {
 
             log.info(proteinSelected.size() + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
+
             // for each protein of interest
             for (String accession : proteinSelected){
-                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+                TransactionStatus transactionStatus = dataContext.beginTransaction();
 
                 // add the dataset annotation
                 List<Experiment> experimentToAddDataset = getExperimentsContainingProtein(accession);
@@ -459,7 +463,7 @@ public class DatasetWriter {
                 log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
                 addDatasetToExperimentsAndPublication(experimentToAddDataset);
 
-                //this.context.getDataContext().commitTransaction(transactionStatus);
+                dataContext.commitTransaction(transactionStatus);
             }
         }
         // we want to retrieve experiments containing interactions involving specific components (participants)
@@ -474,7 +478,7 @@ public class DatasetWriter {
 
             // for each protein of interest
             for (String accession : componentSelected){
-                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
+                TransactionStatus transactionStatus = dataContext.beginTransaction();
 
                 // add the dataset annotation
                 List<Experiment> experimentToAddDataset = getExperimentsContainingComponent(accession);
@@ -484,7 +488,7 @@ public class DatasetWriter {
                 log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the component " + accession  + " \n");
                 addDatasetToExperimentsAndPublication(experimentToAddDataset);
 
-                //this.context.getDataContext().commitTransaction(transactionStatus);
+                dataContext.commitTransaction(transactionStatus);
             }
         }
 

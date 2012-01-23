@@ -3,6 +3,10 @@ package uk.ac.ebi.intact.dbupdate.dataset;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorAliasSelector;
 import uk.ac.ebi.intact.dbupdate.dataset.selectors.protein.InteractorXRefSelector;
 import uk.ac.ebi.intact.model.*;
@@ -64,15 +68,21 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_All_Experiments(){
         try {
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/synapseTest.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/synapseTest.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             List<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getAll();
 
             for (Experiment e : experiments){
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
             }
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
@@ -80,6 +90,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_experiments_excludePublicationWithTooManyInteractions(){
         try {
             Experiment exp = getMockBuilder().createExperimentRandom("amph_2010_3",120);
@@ -90,7 +102,9 @@ public class DatasetWriterTest extends BasicDatasetTest {
 
             this.intactContext.getCorePersister().saveOrUpdate(exp);
 
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/synapseTest.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/synapseTest.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p1.getPublicationId());
 
@@ -99,6 +113,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
@@ -106,6 +122,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_experiments_excludePublicationWithTooManyInteractionsAndNoProteinOfInterest(){
         try {
             Experiment exp = getMockBuilder().createExperimentRandom("amph_2010_3",120);
@@ -114,13 +132,17 @@ public class DatasetWriterTest extends BasicDatasetTest {
 
             this.intactContext.getCorePersister().saveOrUpdate(exp);
 
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/synapseTest.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/synapseTest.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p1.getPublicationId());
 
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
@@ -128,6 +150,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_experiments_excludedPublication(){
         try {
             Publication p = getMockBuilder().createPublication("15102471");
@@ -139,13 +163,17 @@ public class DatasetWriterTest extends BasicDatasetTest {
 
             this.intactContext.getCorePersister().saveOrUpdate(exp);
 
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/synapseTest.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/synapseTest.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p.getPublicationId());
 
             for (Experiment e : experiments){
                 Assert.assertFalse(datasetHasBeenAddedToExperiment(e));
             }
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
@@ -153,6 +181,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_experiments_excludedExperimentWithDatasetPresent(){
         try {
             Experiment exp = getMockBuilder().createExperimentRandom("amph_2010_3",12);
@@ -165,7 +195,9 @@ public class DatasetWriterTest extends BasicDatasetTest {
 
             this.intactContext.getCorePersister().saveOrUpdate(exp);
 
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/synapseTest.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/synapseTest.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             Collection<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getByPubId(p1.getPublicationId());
 
@@ -174,6 +206,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
                 Assert.assertTrue(datasetHasBeenAddedToExperiment(e));
                 Assert.assertEquals(getNumberOfDatasetFor(e), 1);
             }
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);
@@ -181,13 +215,17 @@ public class DatasetWriterTest extends BasicDatasetTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
     public void test_select_All_Experiments_containing_feature_Xrefs(){
         try {
             InteractorXRefSelector selector = new InteractorXRefSelector();
             selector.setFileWriterEnabled(false);
             this.writer.setSelector(selector);
 
-            this.writer.addDatasetAnnotationToExperimentsFor("/dataset/ndpk.csv");
+            this.writer.addDatasetAnnotationToExperimentsAndPublicationsFor("/dataset/ndpk.csv");
+
+            TransactionStatus status = getDataContext().beginTransaction();
 
             List<Experiment> experiments = this.intactContext.getDaoFactory().getExperimentDao().getAll();
 
@@ -200,6 +238,8 @@ public class DatasetWriterTest extends BasicDatasetTest {
             }
 
             Assert.assertEquals(2, numberOfDatasetAdded);
+
+            getDataContext().commitTransaction(status);
         } catch (DatasetException e) {
             e.printStackTrace();
             Assert.assertFalse(true);

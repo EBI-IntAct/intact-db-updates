@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
+import org.springframework.transaction.TransactionStatus;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvDatabase;
@@ -61,6 +63,10 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
      * @return a list of String [] which contain the intact ac and uniprot ac of each uniprot protein represented in IntAct
      */
     private List<Object[]> getProteinsFromUniprotInIntact(){
+        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
+
+        TransactionStatus status = dataContext.beginTransaction();
+
         String finalQuery = "select p.ac, x.primaryId from ProteinImpl p join p.xrefs as x where x.cvDatabase.identifier = :uniprot and x.cvXrefQualifier.identifier = :identity";
 
         // create the query
@@ -72,6 +78,8 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
         // get the intact proteins matching the cross reference
         List<Object[]> listOfAcs = query.getResultList();
+
+        dataContext.commitTransaction(status);
 
         return listOfAcs;
     }
