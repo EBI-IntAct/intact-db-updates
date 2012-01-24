@@ -18,10 +18,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A DatasetWriter will add a dataset annotation to all the experiments of a same publication with at least one experiment
@@ -56,7 +53,9 @@ public class DatasetWriter {
     protected boolean isFileWriterEnabled = true;
 
     protected File report;
-    
+
+    private int NUMBER_ACCESSION = 100;
+
     public DatasetWriter(){
         report = new File("dataset_report_" + Calendar.getInstance().getTime().getTime()+".txt");
     }
@@ -90,26 +89,31 @@ public class DatasetWriter {
      */
     private List<Experiment> getExperimentsContainingProtein (String intactAccession) throws DatasetException {
 
+        return getExperimentsContainingProteins(Arrays.asList(intactAccession));
+    }
+
+    private List<Experiment> getExperimentsContainingProteins(Collection<String> intactAccessions) throws DatasetException {
+
         // get the intact datacontext and daofactory
         final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
         final DaoFactory daoFactory = dataContext.getDaoFactory();
 
         // This query is looking for all experiences with at least one interaction involving the protein of interest
         String componentQuery = "select exp.ac from Component c join c.interactor as i join c.interaction as inter join inter.experiments " +
-                "as exp where i.ac = :accession";
+                "as exp where i.ac in (:accessionList)";
 
-        return getExperimentsWithSpecificSelection(componentQuery, intactAccession, daoFactory);
+        return getExperimentsWithSpecificSelection(componentQuery, intactAccessions, daoFactory);
     }
 
     /**
      *
      * @param componentQuery : the query selecting experiments directly linked to the dataset
-     * @param accession : the accession of the object linked to the dataset (a protein, component, publication)
+     * @param accessions : the accessions of the objects linked to the dataset (a protein, component, publication)
      * @param daoFactory
      * @return the list of experiments we want to add a dataset annotation to
      * @throws DatasetException
      */
-    private List<Experiment> getExperimentsWithSpecificSelection (String componentQuery, String accession, DaoFactory daoFactory) throws DatasetException{
+    private List<Experiment> getExperimentsWithSpecificSelection (String componentQuery, Collection<String> accessions, DaoFactory daoFactory) throws DatasetException{
         // This query is looking for all the publications containing the experiments of the previous query : componentQuery
         String publicationsContainingSpecificProteinsQuery = "select pub.ac from Experiment exp2 join exp2.publication as pub join exp2.interactions as i2 where exp2 in " +
                 "("+componentQuery+")";
@@ -137,7 +141,7 @@ public class DatasetWriter {
         final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
 
         // Set the parameters of the query
-        query.setParameter("accession", accession);
+        query.setParameter("accessionList", accessions);
         query.setParameter("max", (long) this.selector.getMaxNumberOfInteractionsPerExperiment());
         query.setParameter("dataset", CvTopic.DATASET_MI_REF);
         query.setParameter("text", this.selector.getDatasetValueToAdd());
@@ -155,7 +159,12 @@ public class DatasetWriter {
      * has interaction(s) involving this component and no experiment of a same publication has more than 'maximumNumberOfInteractions' interactions
      * @throws DatasetException
      */
-    private List<Experiment> getExperimentsContainingComponent (String intactAccession) throws DatasetException {
+    private List<Experiment> getExperimentsContainingComponent(String intactAccession) throws DatasetException {
+
+        return getExperimentsContainingComponents(Arrays.asList(intactAccession));
+    }
+
+    private List<Experiment> getExperimentsContainingComponents(Collection<String> intactAccession) throws DatasetException {
 
         // get the intact datacontext and daofactory
         final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
@@ -163,7 +172,7 @@ public class DatasetWriter {
 
         // This query is looking for all experiences with at least one interaction involving the component of interest
         String componentQuery = "select exp.ac from InteractionImpl i join i.components as c join i.experiments as exp " +
-                "where c.ac = :accession";
+                "where c.ac in (:accession)";
 
         return getExperimentsWithSpecificSelection(componentQuery, intactAccession, daoFactory);
     }
@@ -283,7 +292,7 @@ public class DatasetWriter {
 
                 e.addAnnotation(annotation);
                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e);
-            }            
+            }
         }
     }
 
@@ -465,20 +474,31 @@ public class DatasetWriter {
 
             log.info(proteinSelected.size() + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
+            Collection<String> proteinAcs = new ArrayList<String>();
+            int totalSize = proteinSelected.size();
+            int processedAcs = 0;
 
             // for each protein of interest
             for (String accession : proteinSelected){
-                TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-                // add the dataset annotation
-                List<Experiment> experimentToAddDataset = getExperimentsContainingProtein(accession);
+                proteinAcs.add(accession);
+                processedAcs ++;
 
-                numberOfExperiments += experimentToAddDataset.size();
+                if (proteinAcs.size() >= NUMBER_ACCESSION || processedAcs == totalSize){
+                    TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-                log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " \n");
-                addDatasetToExperimentsAndPublication(experimentToAddDataset);
+                    // add the dataset annotation
+                    List<Experiment> experimentToAddDataset = getExperimentsContainingProteins(proteinAcs);
 
-                dataContext.commitTransaction(transactionStatus);
+                    numberOfExperiments += experimentToAddDataset.size();
+
+                    log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the protein " + accession  + " and "+proteinAcs.size()+" other proteins \n");
+                    addDatasetToExperimentsAndPublication(experimentToAddDataset);
+
+                    dataContext.commitTransaction(transactionStatus);
+
+                    proteinAcs.clear();
+                }
             }
         }
         // we want to retrieve experiments containing interactions involving specific components (participants)
@@ -491,19 +511,33 @@ public class DatasetWriter {
 
             log.info(componentSelected.size() + " components have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
+            // for each component of interest
+
+            Collection<String> componentAcs = new ArrayList<String>();
+            int totalSize = componentSelected.size();
+            int processedAcs = 0;
+
             // for each protein of interest
             for (String accession : componentSelected){
-                TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-                // add the dataset annotation
-                List<Experiment> experimentToAddDataset = getExperimentsContainingComponent(accession);
+                componentAcs.add(accession);
+                processedAcs ++;
 
-                numberOfExperiments += experimentToAddDataset.size();
+                if (componentAcs.size() >= NUMBER_ACCESSION || processedAcs == totalSize){
+                    TransactionStatus transactionStatus = dataContext.beginTransaction();
 
-                log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the component " + accession  + " \n");
-                addDatasetToExperimentsAndPublication(experimentToAddDataset);
+                    // add the dataset annotation
+                    List<Experiment> experimentToAddDataset = getExperimentsContainingComponents(componentAcs);
 
-                dataContext.commitTransaction(transactionStatus);
+                    numberOfExperiments += experimentToAddDataset.size();
+
+                    log.info("Add dataset " + this.selector.getDatasetValueToAdd() + " to "+experimentToAddDataset.size()+" experiments containing interaction(s) involving the component " + accession  + " \n");
+                    addDatasetToExperimentsAndPublication(experimentToAddDataset);
+
+                    dataContext.commitTransaction(transactionStatus);
+
+                    componentAcs.clear();
+                }
             }
         }
 
