@@ -54,4 +54,14 @@
     <!-- error factory-->
     <bean id="errorFactory" class="uk.ac.ebi.intact.dbupdate.cv.errors.DefaultCvUpdateErrorFactory"/>
 
+    <!-- Cv manager -->
+    <bean id="cvManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
+
+        <property name="cvImporter" ref="cvImporter"/>
+        <property name="cvUpdater" ref="cvUpdater"/>
+        <property name="cvRemapper" ref="obsoleteRemapper"/>
+        <property name="errorFactory" ref="errorFactory"/>
+        <property name="reportDirectory" value="${update.report}"/>
+    </bean>
+
 </beans>
