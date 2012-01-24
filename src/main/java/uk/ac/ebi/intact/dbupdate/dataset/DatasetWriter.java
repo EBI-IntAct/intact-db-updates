@@ -487,6 +487,8 @@ public class DatasetWriter {
                 if (proteinAcs.size() >= NUMBER_ACCESSION || processedAcs == totalSize){
                     TransactionStatus transactionStatus = dataContext.beginTransaction();
 
+                    log.info("Processed proteins : "+processedAcs+". Collect experiments...");
+
                     // add the dataset annotation
                     List<Experiment> experimentToAddDataset = getExperimentsContainingProteins(proteinAcs);
 
@@ -509,7 +511,7 @@ public class DatasetWriter {
 
             numberOfElementSelected = componentSelected.size();
 
-            log.info(componentSelected.size() + " components have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
+            log.info(componentSelected.size() + " components have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + " and "+componentSelected.size()+" other components \n");
 
             // for each component of interest
 
@@ -525,6 +527,8 @@ public class DatasetWriter {
 
                 if (componentAcs.size() >= NUMBER_ACCESSION || processedAcs == totalSize){
                     TransactionStatus transactionStatus = dataContext.beginTransaction();
+
+                    log.info("Processed components : "+processedAcs+". Collect experiments...");
 
                     // add the dataset annotation
                     List<Experiment> experimentToAddDataset = getExperimentsContainingComponents(componentAcs);
