@@ -119,33 +119,11 @@ public class DatasetWriter {
         String publicationsContainingSpecificProteinsQuery = "select pub from Experiment exp2 join exp2.publication as pub join exp2.interactions as i2 where i2 in " +
                 "("+componentQuery+")";
 
-        // This query is looking for all the experiments which have a publication accession equal to one of the publications accessions retrieved previously with the query : publicationsContainingSpecificProteinsQuery
-        // and wich have a number of interactions which is superior or equal to the maximumNumberOfInteractions.
-        /*String experimentWithTooManyInteractionsQuery = "select exp3.ac from Experiment exp3 join exp3.publication as pub2 join exp3.interactions as i3 where pub2.ac in ("+publicationsContainingSpecificProteinsQuery+") group by exp3.ac having count(i3.ac) >= :max";
-
-        // This query is looking for all the publications containing one of the experiments with too many interactions (previous result of experimentWithTooManyInteractionsQuery)
-        String publicationWithTooManyInteractionsQuery = "select pub3.ac from Experiment exp4 join exp4.publication as pub3 where exp4.ac in ("+experimentWithTooManyInteractionsQuery+")";
-
-        // This query is looking for all the experiments of a same publication involving the protein of interest, but no one has more than the maximum Number Of Interactions
-        String experimentsWithCorrectInteractionNumberQuery = "select distinct exp5.ac from Experiment exp5 join exp5.publication as pub4 where pub4.ac in ("+publicationsContainingSpecificProteinsQuery+") and pub4.ac not in ("+publicationWithTooManyInteractionsQuery+")";
-
-        // This query is looking for all the experiments resulting of the previous query (experimentsWithCorrectInteractionNumberQuery) with the dataset annotation already added
-        String experimentsWithDatasetAlreadyPresent = "select exp6.ac from Experiment exp6 join exp6.annotations as a join a.cvTopic as cv where exp6.ac in ("+experimentsWithCorrectInteractionNumberQuery+") and cv.identifier = :dataset and a.annotationText = :text";
-
-        // This query is looking for all the experiments resulting of the query (experimentsWithCorrectInteractionNumberQuery) with the dataset annotation which is not added yet
-        String finalQuery = "select exp7 from Experiment exp7 where exp7.ac in ("+experimentsWithCorrectInteractionNumberQuery+") and exp7.ac not in ("+experimentsWithDatasetAlreadyPresent+")";
-
-        // If some publications should be excluded
-        finalQuery = removeExcludedPublications(finalQuery);*/
-
         // Create the query
         final Query query = daoFactory.getEntityManager().createQuery(publicationsContainingSpecificProteinsQuery);
 
         // Set the parameters of the query
         query.setParameter("accessionList", accessions);
-        /*query.setParameter("max", (long) this.selector.getMaxNumberOfInteractionsPerExperiment());
-        query.setParameter("dataset", CvTopic.DATASET_MI_REF);
-        query.setParameter("text", this.selector.getDatasetValueToAdd());*/
 
         // get the results
         final List<Publication> publications = query.getResultList();
