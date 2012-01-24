@@ -26,7 +26,6 @@ public interface CvImporter {
     public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException;
     public Set<IntactOntologyTermI> collectDeepestChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI parent);
     public Map<String, Class<? extends CvDagObject>> getClassMap();
-    public Set<String> getProcessedTerms();
     public Map<String, Set<CvDagObject>> getMissingRootParents();
     public CvUpdater getCvUpdater();
 

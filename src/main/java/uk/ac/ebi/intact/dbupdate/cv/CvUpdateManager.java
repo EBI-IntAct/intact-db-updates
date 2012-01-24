@@ -186,10 +186,10 @@ public class CvUpdateManager {
             // update existing terms and remap obsolete terms if possible
             updateExistingTerms(ontologyId);
 
-            // create missing parents
+            // create missing parents reported while updating existing cvs
             createMissingParents();
 
-            // create missing terms in ontology
+            // create missing terms in ontology which have not already been processed
             createMissingTerms(ontologyId);
 
             // update all remapped terms to other ontologies
@@ -433,9 +433,10 @@ public class CvUpdateManager {
                 log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
                 try {
                     cvImporter.importCv(updateContext, false);
-                    processedIntactAcs.addAll(cvImporter.getProcessedTerms());
 
                     if (updateContext.getCvTerm() != null){
+                        processedIntactAcs.add(updateContext.getCvTerm().getAc());
+
                         for (CvDagObject child : childrenToUpdate){
                             log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
 
@@ -477,7 +478,6 @@ public class CvUpdateManager {
      * @throws InstantiationException
      */
     private void createMissingTerms(String ontologyId) {
-        cvImporter.getProcessedTerms().addAll(cvUpdater.getProcessedTerms());
 
         IntactOntologyAccess ontologyAccess = this.intactOntologyManager.getOntologyAccess(ontologyId);
 
@@ -518,7 +518,9 @@ public class CvUpdateManager {
             try {
                 cvImporter.importCv(updateContext, true);
 
-                processedIntactAcs.addAll(cvImporter.getProcessedTerms());
+                if (updateContext.getCvTerm() != null){
+                    processedIntactAcs.add(updateContext.getCvTerm().getAc());
+                }
 
             } catch (Exception e) {
                 CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + subRoot.getTermAccession() + " cannot be imported into the database", subRoot.getTermAccession(), null, null);
@@ -664,8 +666,6 @@ public class CvUpdateManager {
             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
             fireOnUpdateError(evt);
         }
-
-        processedIntactAcs.add(cvObjectAc);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -680,6 +680,8 @@ public class CvUpdateManager {
         this.updateContext.clear();
         this.updateContext.setCvTerm(cvObject);
         this.updateContext.setOntologyAccess(ontologyAccess);
+
+        processedIntactAcs.add(cvObject.getAc());
 
         // set the identity and identity xref
         String identity = extractIdentityFrom(cvObject, ontologyAccess);
