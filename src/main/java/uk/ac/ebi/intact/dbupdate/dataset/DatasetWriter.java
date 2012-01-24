@@ -48,6 +48,8 @@ public class DatasetWriter {
      */
     protected HashSet<String> listOfpublicationUpdated = new HashSet<String>();
 
+    protected HashSet<String> processedExperiments = new HashSet<String>();
+
     /**
      * To know if a file should be written with the results of the update
      */
@@ -262,22 +264,26 @@ public class DatasetWriter {
      */
     private void addDatasetToExperimentsAndPublication(List<Experiment> experiments) throws IOException, DatasetException {
         for (Experiment e : experiments){
-            String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
-            
-            // if publication has not been processed, we add the dataset to the publication
-            if (this.listOfpublicationUpdated.add(pubId) && e.getPublication() != null){
+            if (!processedExperiments.contains(e.getAc())){
+                processedExperiments.add(e.getAc());
+
+                String pubId = e.getPublication() != null ? e.getPublication().getPublicationId() : "No publication object";
+
+                // if publication has not been processed, we add the dataset to the publication
+                if (this.listOfpublicationUpdated.add(pubId) && e.getPublication() != null){
+                    Annotation annotation = createNewDataset();
+                    log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
+
+                    e.getPublication().addAnnotation(annotation);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e.getPublication());
+                }
+
                 Annotation annotation = createNewDataset();
                 log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
 
-                e.getPublication().addAnnotation(annotation);
-                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e.getPublication());
-            }
-
-            Annotation annotation = createNewDataset();
-            log.info("Add dataset to " + e.getAc() + ": " + e.getShortLabel());
-
-            e.addAnnotation(annotation);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e);
+                e.addAnnotation(annotation);
+                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(e);
+            }            
         }
     }
 
