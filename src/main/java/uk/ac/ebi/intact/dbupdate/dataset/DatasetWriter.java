@@ -204,55 +204,6 @@ public class DatasetWriter {
     }
 
     /**
-     * Get a list of experiments involving this protein to remove the dataset annotation if it exists
-     * @param intactAccession
-     * @return
-     * @throws DatasetException
-     */
-    /*private List<Experiment> getExperimentsContainingDatasetToRemoveFor (String intactAccession) throws DatasetException {
-
-        // get the intact datacontext and daofactory
-        final DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-        final DaoFactory daoFactory = dataContext.getDaoFactory();
-
-        // This query is looking for all experiences with at least one interaction involving the protein of interest
-        String componentQuery = "select exp.ac from Component c join c.interactor as i join c.interaction as inter join inter.experiments " +
-                "as exp where i.ac = :accession";
-
-        // This query is looking for all the publications containing the experiments of the previous query : componentQuery
-        String publicationsContainingSpecificProteinsQuery = "select pub.ac from Experiment exp2 join exp2.publication as pub join exp2.interactions as i2 where exp2 in " +
-                "("+componentQuery+")";
-
-        // This query is looking for all the experiments which have a publication accession equal to one of the publications accessions retrieved previously with the query : publicationsContainingSpecificProteinsQuery
-        // and wich have a number of interactions which is superior or equal to the maximumNumberOfInteractions.
-        String experimentWithTooManyInteractionsQuery = "select exp3.ac from Experiment exp3 join exp3.publication as pub2 join exp3.interactions as i3 where pub2.ac in ("+publicationsContainingSpecificProteinsQuery+") group by exp3.ac having count(i3.ac) >= :max";
-
-        // This query is looking for all the publications containing one of the experiments with too many interactions (previous result of experimentWithTooManyInteractionsQuery)
-        String publicationWithTooManyInteractionsQuery = "select pub3.ac from Experiment exp4 join exp4.publication as pub3 where exp4.ac in ("+experimentWithTooManyInteractionsQuery+")";
-
-        // This query is looking for all the experiments of a same publication involving the protein of interest, but no one has more than the maximum Number Of Interactions
-        String experimentsWithCorrectInteractionNumberQuery = "select distinct exp5.ac from Experiment exp5 join exp5.publication as pub4 where pub4.ac in ("+publicationsContainingSpecificProteinsQuery+") and pub4.ac not in ("+publicationWithTooManyInteractionsQuery+")";
-
-        // This query is looking for all the experiments resulting of the query (experimentsWithCorrectInteractionNumberQuery)
-        String finalQuery = "select exp7 from Experiment exp7 where exp7.ac in ("+experimentsWithCorrectInteractionNumberQuery+")";
-
-        // If some publications should be excluded
-        finalQuery = removeExcludedPublications(finalQuery);
-
-        // Create the query
-        final Query query = daoFactory.getEntityManager().createQuery(finalQuery);
-
-        // Set the parameters of the query
-        query.setParameter("accession", intactAccession);
-        query.setParameter("max", (long) this.selector.getMaxNumberOfInteractionsPerExperiment());
-
-        // get the results
-        final List<Experiment> experiments = query.getResultList();
-
-        return experiments;
-    }*/
-
-    /**
      *
      * @return a new Dataset annotation with the dataset value contained in the DatasetSelector of this object
      */
@@ -295,35 +246,6 @@ public class DatasetWriter {
             }
         }
     }
-
-    /**
-     * Remove the dataset annotation from the experiments in the list
-     * @param experiments
-     */
-    /*private void removeDatasetToExperiments(List<Experiment> experiments){
-
-        for (Experiment e : experiments){
-            log.info("Experiment " + e.getAc() + " "+e.getShortLabel());
-            Annotation annotation = null;
-            Collection<Annotation> annotations = e.getAnnotations();
-
-            for (Annotation a : annotations){
-                CvTopic topic = a.getCvTopic();
-                if (CvTopic.DATASET_MI_REF.equalsIgnoreCase(topic.getIdentifier())){
-                    if (a.getAnnotationText().equalsIgnoreCase(this.selector.getDatasetValueToAdd())){
-                        annotation = a;
-                        break;
-                    }
-                }
-            }
-
-            if (annotation != null){
-                e.removeAnnotation(annotation);
-                this.context.getCorePersister().saveOrUpdate(e);
-                log.info("Dataset removed");
-            }
-        }
-    }*/
 
     /**
      * Use the selector to select the list of protein of interest in Intact and add the dataset annotation for all the publications involving one of these proteins.
@@ -427,30 +349,6 @@ public class DatasetWriter {
     }
 
     /**
-     * Revert the dataset annotation
-     * @throws DatasetException
-     */
-    /*public void revertDatasetAnnotations() throws DatasetException, IOException {
-        // The DatasetSelector must be not null
-        if (this.selector == null){
-            throw new DatasetException("The selector has not been initialised, we can't determine the list of proteins to look for.");
-        }
-
-        // The protein selector must have a dataset value
-        if (this.selector.getDatasetValueToAdd() == null){
-            throw new DatasetException("The dataset value to add for the selector has not been initialised, we can't determine the dataset value to add on each experiment containing the proteins of this dataset.");
-        }
-        // The protein selector must have a maximum number of interactions per experiment
-        if (this.selector.getMaxNumberOfInteractionsPerExperiment() == 0){
-            throw new DatasetException("The maximum number of interactions per experiment acceptable is 0. We will not be able to add the dataset annotation to any experiments.");
-        }
-
-        log.info("Start transaction...");
-
-        undoDatasetSelection();
-    }*/
-
-    /**
      * Depending on the type of selector (ProteinDatasetSelector, ComponentDatasetSelector, etc..), we will process differently the query to get the experiments we want to add a dataset to.
      * @throws DatasetException
      * @throws IOException
@@ -549,32 +447,6 @@ public class DatasetWriter {
 
         writeDatasetReport(numberOfElementSelected, numberOfExperiments);
     }
-
-    /*
-    private void undoDatasetSelection() throws DatasetException, IOException {
-
-        int numberOfElementSelected = 0;
-        int numberOfExperiments = 0;
-
-        if (this.selector instanceof ProteinDatasetSelector){
-            ProteinDatasetSelector proteinSelector = (ProteinDatasetSelector) this.selector;
-
-            Set<String> proteinSelected = proteinSelector.collectSelectionOfProteinAccessionsInIntact();
-            // for each protein of interest
-            for (String accession : proteinSelected){
-                //TransactionStatus transactionStatus = this.context.getDataContext().beginTransaction();
-
-                // remove the dataset annotation
-                List<Experiment> experimentToAddDataset = getExperimentsContainingDatasetToRemoveFor(accession);
-                log.info("remove dataset " + this.selector.getDatasetValueToAdd() + " for "+experimentToAddDataset.size()+" experiments containing interaction involving the protein " + accession);
-                removeDatasetToExperiments(experimentToAddDataset);
-
-                //this.context.getDataContext().commitTransaction(transactionStatus);
-            }
-
-            //this.context.getDataContext().commitTransaction(transactionStatus);
-        }
-    } */
 
     /**
      *
