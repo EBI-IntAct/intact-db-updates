@@ -85,7 +85,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0021");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -133,7 +133,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setTermObsolete(true);
         context.setIdentifier("MI:0802");
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -193,7 +193,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0123");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -260,7 +260,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0802");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -329,7 +329,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0123");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -409,7 +409,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0802");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -467,7 +467,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0802");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 
@@ -521,7 +521,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
         context.setIdentifier("MI:0802");
         context.setTermObsolete(true);
         context.setCvTerm(term);
-        context.setIdentityXref(cv.getXrefs().iterator().next());
+        context.setIdentityXref(term.getXrefs().iterator().next());
 
         obsoleteRemapper.remapObsoleteCvTerm(context);
 

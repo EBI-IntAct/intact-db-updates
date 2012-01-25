@@ -47,7 +47,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         ontologyIdToDatabase.put("MOD", CvDatabase.PSI_MOD_MI_REF);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void remapObsoleteCvTerm(CvUpdateContext updateContext){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
@@ -55,14 +55,19 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
         String identifier = updateContext.getIdentifier();
+        Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
+
+        if (updateContext.getManager() != null){
+            rootTermsToExclude = updateContext.getManager().getRootTermsToExclude();
+        }
 
         // boolean value to know if the term has been remapped or not
         boolean couldRemap = true;
         // new ontology ID the term has been remapped to
         String newOntologyId = null;
 
-        // the term can be remapped to another term
-        if (ontologyTerm.getRemappedTerm() != null){
+        // the term can be remapped to another term and the remapped term is not excluded
+        if (ontologyTerm.getRemappedTerm() != null && !rootTermsToExclude.contains(ontologyTerm.getRemappedTerm())){
             String remappedDb = null;
 
             IntactOntologyTermI remappedTerm = null;
@@ -142,13 +147,11 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
 
                     // create identity xref with remapped term
                     CvObjectXref cvXref = CvUpdateUtils.createIdentityXref(term, remappedDb, ontologyTerm.getRemappedTerm());
-                    factory.getXrefDao(CvObjectXref.class).persist(cvXref);
 
                     // no identity xrefs, we need to create one if possible and we add the secondary xref
                     if (identityXref == null){
                         // create secondary xref
                         CvObjectXref secondaryXref = CvUpdateUtils.createSecondaryXref(term, ontologyAccess.getDatabaseIdentifier(), ontologyTerm.getTermAccession());
-                        factory.getXrefDao(CvObjectXref.class).persist(secondaryXref);
                     }
                     // one identity refs exist, we need to update it to secondary xref
                     else {
@@ -159,8 +162,10 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
                             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(secondary);
                         }
                         identityXref.setCvXrefQualifier(secondary);
-                        factory.getXrefDao(CvObjectXref.class).update(identityXref);
                     }
+
+                    // update the term
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(term);
 
                     // the term is not obsolete anymore and was successfully remapped to a new ontology term
                     updateContext.setTermObsolete(false);
@@ -201,9 +206,10 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
 
                         // create secondary xrefs
                         CvObjectXref secondaryXref = CvUpdateUtils.createSecondaryXref(termFromDb, ontologyAccess.getDatabaseIdentifier(), ontologyTerm.getTermAccession());
-                        factory.getXrefDao(CvObjectXref.class).persist(secondaryXref);
                         CvObjectXref intactSecondaryXref = CvUpdateUtils.createSecondaryXref(termFromDb, CvDatabase.INTACT_MI_REF, term.getAc());
-                        factory.getXrefDao(CvObjectXref.class).persist(intactSecondaryXref);
+
+                        // update the term
+                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(termFromDb);
 
                         // the term is not obsolete anymore and was successfully remapped to a new ontology term
                         updateContext.setTermObsolete(false);
@@ -267,34 +273,25 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     private void updateParentChildrenReferences(CvDagObject obsolete, CvDagObject remapped){
 
         Collection<CvDagObject> obsoleteParents = new ArrayList<CvDagObject>(obsolete.getParents());
 
         Collection<CvDagObject> obsoleteChildren = new ArrayList<CvDagObject>(obsolete.getChildren());
 
-        CvObjectDao<CvDagObject> dao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
-
         for (CvDagObject parent : obsoleteParents){
             obsolete.removeParent(parent);
             remapped.addParent(parent);
-
-            dao.update(parent);
         }
 
         for (CvDagObject child : obsoleteChildren){
             obsolete.removeChild(child);
             remapped.addChild(child);
-
-            dao.update(child);
         }
-
-        dao.update(remapped);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    private boolean updateReferencesToObsoleteTerm(CvUpdateContext updateContext, DaoFactory factory, IntactOntologyTermI ontologyTerm, CvDagObject term, boolean couldRemap, CvUpdateManager manager, CvDagObject termFromDb, int resultUpdate) {
+    public boolean updateReferencesToObsoleteTerm(CvUpdateContext updateContext, DaoFactory factory, IntactOntologyTermI ontologyTerm, CvDagObject term, boolean couldRemap, CvUpdateManager manager, CvDagObject termFromDb, int resultUpdate) {
         if (term instanceof CvAliasType && termFromDb instanceof CvAliasType){
             Query query = factory.getEntityManager().createQuery("update Alias a set a.cvAliasType = :type" +
                     " where a.cvAliasType = :duplicate");

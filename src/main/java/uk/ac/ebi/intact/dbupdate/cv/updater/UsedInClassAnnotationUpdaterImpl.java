@@ -37,7 +37,7 @@ public class UsedInClassAnnotationUpdaterImpl implements UsedInClassAnnotationUp
     }
 
     @PostConstruct
-    private void initializeMapCvTopic2UsedInClass(){
+    public void initializeMapCvTopic2UsedInClass(){
 
         cvTopic2UsedInClass.put("MI:2089", "uk.ac.ebi.intact.model.SmallMolecule");
         cvTopic2UsedInClass.put("MI:0667", "uk.ac.ebi.intact.model.CvObject");

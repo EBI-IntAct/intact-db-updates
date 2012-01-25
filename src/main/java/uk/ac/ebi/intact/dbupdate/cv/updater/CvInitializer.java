@@ -25,7 +25,7 @@ import uk.ac.ebi.intact.model.util.CvObjectUtils;
 public class CvInitializer extends CvUpdaterImpl{
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.SUPPORTS)
     public void updateTerm(CvUpdateContext updateContext) throws CvUpdateException {
         checkUpdateContext(updateContext);
 

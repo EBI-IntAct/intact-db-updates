@@ -275,15 +275,21 @@ public class CvImporterTest extends IntactBasicTestCase{
         Assert.assertEquals(termAc, context.getCvTerm().getIdentifier());
         // 0 child
         Assert.assertEquals(0, context.getCvTerm().getChildren().size());
-        // 0 parent because the parent is root and the parent of the ontology is MI biological feature
-        Assert.assertEquals(0, context.getCvTerm().getParents().size());
+        Assert.assertEquals(1, context.getCvTerm().getParents().size());
         Assert.assertFalse(isTermHidden(context.getCvTerm()));
+
+        CvDagObject parent = context.getCvTerm().getParents().iterator().next();
+        Assert.assertEquals(1, parent.getChildren().size());
+        Assert.assertEquals("MOD:00000", parent.getIdentifier());
+        // 0 parent because the parent of the ontology is MI biological feature
+        Assert.assertEquals(0, parent.getParents().size());
+        Assert.assertTrue(isTermHidden(parent));
 
         Assert.assertEquals(1, cvImporter.getMissingRootParents().size());
         Map.Entry<String, Set<CvDagObject>> entry = cvImporter.getMissingRootParents().entrySet().iterator().next();
         Assert.assertEquals("MI:0252", entry.getKey());
         Assert.assertEquals(1, entry.getValue().size());
-        Assert.assertEquals(context.getCvTerm(), entry.getValue().iterator().next());
+        Assert.assertEquals(parent, entry.getValue().iterator().next());
     }
 
     private boolean isTermHidden(CvDagObject term){

@@ -68,7 +68,11 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
         Iterator<IntactOntologyTermI> ontologyIterator = sortedOntologyParents.iterator();
 
         // root terms to exclude
-        Collection<IntactOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
+        Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
+
+        if (updateContext.getManager() != null){
+            rootTermsToExclude = updateContext.getManager().getRootTermsToExclude();
+        }
 
         if (intactIterator.hasNext() && ontologyIterator.hasNext()){
             currentIntactParent = intactIterator.next();
@@ -121,8 +125,8 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
                     // the parent exists in the ontology but is not in IntAct so we need to create it
                     else {
 
-                        // if the parent is not a root term, we can add the parent to the parent s to create or update existing parent in db to add this child
-                        if (!rootTerms.contains(currentOntologyParent)){
+                        // if the parent is not a root term that we exclude, we can add the parent to the parent s to create or update existing parent in db to add this child
+                        if (!rootTermsToExclude.contains(currentOntologyParent.getTermAccession())){
                             CvDagObject parentFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(currentOntologyParent.getTermAccession());
 
                             if (parentFromDb == null){
@@ -196,7 +200,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
 
             do {
                 // if the parent is not a root term, we can add the parent to the parent s to create or update existing parent in db to add this child
-                if (!rootTerms.contains(currentOntologyParent)){
+                if (!rootTermsToExclude.contains(currentOntologyParent.getTermAccession())){
                     CvDagObject parentFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(currentOntologyParent.getTermAccession());
 
                     if (parentFromDb == null){
