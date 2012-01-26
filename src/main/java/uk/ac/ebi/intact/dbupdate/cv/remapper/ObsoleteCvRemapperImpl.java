@@ -1,6 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.cv.remapper;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -34,6 +36,8 @@ import java.util.regex.Matcher;
 
 public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
 
+    private static final Log log = LogFactory.getLog(ObsoleteCvRemapperImpl.class);
+
     private Map<String, String> ontologyIdToDatabase;
 
     private Map<String, Set<CvDagObject>> remappedCvToUpdate;
@@ -56,6 +60,8 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         CvDagObject term = updateContext.getCvTerm();
         String identifier = updateContext.getIdentifier();
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
+
+        log.info("Try to remap obsolete term " + term.getAc() + ", identifier = " + identifier);
 
         if (updateContext.getManager() != null){
             rootTermsToExclude = updateContext.getManager().getRootTermsToExclude();

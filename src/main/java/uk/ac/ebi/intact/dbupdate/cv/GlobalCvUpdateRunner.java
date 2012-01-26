@@ -46,7 +46,10 @@ public class GlobalCvUpdateRunner {
         cvUpdateManager.clear();
         clearProcessedIntactAcs();
 
+        log.info("Update and create all terms for PSI-MI ontology");
         updateAndCreateAllTerms("MI");
+
+        log.info("Update all existing terms for PSI-MOD ontology");
         updateAllTerms("MOD");
     }
 
@@ -75,18 +78,23 @@ public class GlobalCvUpdateRunner {
             }
 
             // update existing terms and remap obsolete terms if possible
+            log.info("Update existing terms...");
             updateExistingTerms(ontologyId);
 
             // update all remapped terms to other ontologies
+            log.info("Update obsolete terms remapped to an other ontology...");
             updateTermsRemappedToOtherOntologies();
 
             // create missing parents reported while updating existing cvs
+            log.info("Create missing parents...");
             createMissingParents();
 
             // create missing terms in ontology which have not already been processed
+            log.info("Create missing terms...");
             createMissingTerms(ontologyId);
 
             // check if duplicated terms exist
+            log.info("Check duplicated terms...");
             cvUpdateManager.checkDuplicatedCvTerms(ontologyAccess);
 
         } catch (IOException e) {
@@ -117,16 +125,21 @@ public class GlobalCvUpdateRunner {
             }
 
             // update existing terms
+            log.info("Update existing terms...");
             updateExistingTerms(ontologyId);
 
             // update all remapped terms to other ontologies
+            log.info("Update obsolete terms remapped to an other ontology...");
             updateTermsRemappedToOtherOntologies();
 
             // create missing parents
+            log.info("Create missing parents...");
             createMissingParents();
 
             // check if duplicated terms exist
+            log.info("Check duplicated terms...");
             cvUpdateManager.checkDuplicatedCvTerms(ontologyAccess);
+
         } catch (IOException e) {
             log.fatal("Impossible to run the update because we cannot create the reports directory", e);
         }

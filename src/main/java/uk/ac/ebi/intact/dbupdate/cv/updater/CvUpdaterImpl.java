@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -33,6 +35,8 @@ public class CvUpdaterImpl implements CvUpdater{
     protected UsedInClassAnnotationUpdater usedInClassAnnotationUpdater;
     protected CvAnnotationUpdater cvAnnotationUpdater;
     protected Set<String> processedTerms;
+
+    private static final Log log = LogFactory.getLog(CvUpdaterImpl.class);
 
     public CvUpdaterImpl() {
         processedTerms = new HashSet<String>();
@@ -71,6 +75,8 @@ public class CvUpdaterImpl implements CvUpdater{
 
         // add term to the list of updated terms and update it if not already updated
         if (processedTerms.add(identifier)){
+            log.info("Update term " + term.getAc() + ": identifier = " + identifier);
+
             boolean hasUpdatedIdentifier = false;
             boolean hasUpdatedShortLabel = false;
             boolean hasUpdatedFullName = false;

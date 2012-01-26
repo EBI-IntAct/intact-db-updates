@@ -25,7 +25,8 @@ import java.util.TreeSet;
  */
 
 public class CvAliasUpdaterImpl implements CvAliasUpdater{
-    public final static String ALIAS_TYPE="database alias";
+    public final static String ALIAS_TYPE= "synonym";
+    public final static String ALIAS_TYPE_MI = "MI:1041";
 
     private TreeSet<CvObjectAlias> sortedCvAliases;
     private TreeSet<String> sortedOntologyAliases;
@@ -45,10 +46,10 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
-        CvAliasType aliasType = factory.getCvObjectDao(CvAliasType.class).getByShortLabel(ALIAS_TYPE);
+        CvAliasType aliasType = factory.getCvObjectDao(CvAliasType.class).getByIdentifier(ALIAS_TYPE_MI);
 
         if (aliasType == null){
-            aliasType = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvAliasType.class, null, ALIAS_TYPE);
+            aliasType = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvAliasType.class, ALIAS_TYPE_MI, ALIAS_TYPE);
             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(aliasType);
         }
 

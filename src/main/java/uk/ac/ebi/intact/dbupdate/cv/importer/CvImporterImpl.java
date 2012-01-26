@@ -1,5 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.importer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
@@ -44,6 +46,8 @@ public class CvImporterImpl implements CvImporter{
 
     private CvUpdater cvUpdater;
     private CvUpdateContext importUpdateContext;
+
+    private static final Log log = LogFactory.getLog(CvImporterImpl.class);
 
     public CvImporterImpl(){
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
@@ -96,6 +100,8 @@ public class CvImporterImpl implements CvImporter{
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
+
+        log.info("Import term " + ontologyTerm.getTermAccession() + ", termClass = " + termClass != null ? termClass.getCanonicalName() : "no class" + ", import children = " + importChildren);
 
         if (updateContext.getManager() != null){
             rootTermsToExclude = updateContext.getManager().getRootTermsToExclude();
