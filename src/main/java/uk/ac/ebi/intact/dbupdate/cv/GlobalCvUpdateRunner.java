@@ -245,7 +245,14 @@ public class GlobalCvUpdateRunner {
                 Collection<IntactOntologyTermI> children = ontologyAccess.getDirectChildren(root);
 
                 if (!children.isEmpty()){
-                    cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, children);
+                    try {
+                        cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, children);
+                    } catch (Exception e) {
+                        CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.impossible_import, "Children of Cv object " + root.getTermAccession() + " cannot be imported into the database. Exception = " + ExceptionUtils.getFullStackTrace(e), root.getTermAccession(), null, null);
+
+                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                        cvUpdateManager.fireOnUpdateError(evt);
+                    }
                 }
             }
 

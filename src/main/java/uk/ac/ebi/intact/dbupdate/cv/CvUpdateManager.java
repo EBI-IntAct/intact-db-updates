@@ -343,7 +343,7 @@ public class CvUpdateManager {
     /**
      * Imports all the children of a root term of a given ontology if the root term is not obsolete
      */
-    public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, Collection<IntactOntologyTermI> subRoots) {
+    public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, Collection<IntactOntologyTermI> subRoots) throws CvUpdateException, IllegalAccessException, InstantiationException {
         for (IntactOntologyTermI subRoot : subRoots){
             updateContext.clear();
             updateContext.setOntologyAccess(ontologyAccess);
@@ -351,15 +351,9 @@ public class CvUpdateManager {
             updateContext.setIdentifier(subRoot.getTermAccession());
 
             log.info("Importing missing child terms of " + subRoot.getTermAccession());
-            try {
-                cvImporter.importCv(updateContext, true);
 
-            } catch (Exception e) {
-                CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + subRoot.getTermAccession() + " cannot be imported into the database", subRoot.getTermAccession(), null, null);
+            cvImporter.importCv(updateContext, true);
 
-                UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
-                fireOnUpdateError(evt);
-            }
         }
     }
 
