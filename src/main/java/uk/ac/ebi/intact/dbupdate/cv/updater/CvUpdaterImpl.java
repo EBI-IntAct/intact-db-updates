@@ -311,6 +311,22 @@ public class CvUpdaterImpl implements CvUpdater{
         this.cvAnnotationUpdater = cvAnnotationUpdater;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void updateChildrenHavingMissingParent(String child, String parent) {
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+
+        CvDagObject reloadedChild = cvDao.getByAc(child);
+        CvDagObject reloadedParent = cvDao.getByAc(parent);
+
+        if (reloadedChild != null){
+            reloadedChild.addParent(reloadedParent);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(reloadedChild);
+        }
+        else {
+            log.warn("Cv object " + child + " cannot be updated because does not exist anymore");
+        }
+    }
+
     public void clear(){
         this.cvParentUpdater.clear();
         this.cvAliasUpdater.clear();

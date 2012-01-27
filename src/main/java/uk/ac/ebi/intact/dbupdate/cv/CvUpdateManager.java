@@ -318,7 +318,7 @@ public class CvUpdateManager {
 
                         // we reload the child because we need to update it. We cannot merge it to the session because if the collection of parent/children was not initialized and we change it,
                         // hibernate throw an assertion failure because cannot update the status of the lazy collection. We cannot merge an object with collection lazy, size > 0 and then update the collection
-                        updateChildrenHavingMissingParent(child.getAc(), updateContext.getCvTerm().getAc());
+                        cvUpdater.updateChildrenHavingMissingParent(child.getAc(), updateContext.getCvTerm().getAc());
                     }
 
                 }
@@ -336,22 +336,6 @@ public class CvUpdateManager {
                 fireOnUpdateError(evt);
 
             }
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateChildrenHavingMissingParent(String child, String parent) {
-        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
-
-        CvDagObject reloadedChild = cvDao.getByAc(child);
-        CvDagObject reloadedParent = cvDao.getByAc(parent);
-
-        if (reloadedChild != null){
-            reloadedChild.addParent(reloadedParent);
-            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(reloadedChild);
-        }
-        else {
-            log.warn("Cv object " + child + " cannot be updated because does not exist anymore");
         }
     }
 

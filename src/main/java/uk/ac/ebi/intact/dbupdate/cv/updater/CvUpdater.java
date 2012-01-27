@@ -30,6 +30,7 @@ public interface CvUpdater {
     public CvXrefUpdater getCvXrefUpdater();
     public CvAnnotationUpdater getCvAnnotationUpdater();
     public UsedInClassAnnotationUpdater getUsedInClassAnnotationUpdater();
+    public void updateChildrenHavingMissingParent(String child, String parent);
 
     public void clear();
 }
