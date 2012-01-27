@@ -51,8 +51,6 @@ public class CvImporterImpl implements CvImporter{
 
     private CvUpdater cvUpdater;
     private CvUpdateContext importUpdateContext;
-    
-    private Pattern decimalPattern = Pattern.compile("\\d");
 
     private static final Log log = LogFactory.getLog(CvImporterImpl.class);
 
@@ -324,44 +322,10 @@ public class CvImporterImpl implements CvImporter{
         CreatedTermEvent evt = new CreatedTermEvent(this, ontologyTerm.getTermAccession(), cvObject.getShortLabel(), cvObject.getAc(), hideParents, "Created child term");
         manager.fireOnCreatedTerm(evt);
 
-        // before persisting the object, checks shortlabels and synchronize it if necessary
-        String syncShortLabel = createSyncLabelIfNecessary(cvObject.getShortLabel());
-        cvObject.setShortLabel(syncShortLabel);
-
         // create object
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvObject);
 
         return cvObject;
-    }
-
-    private String createSyncLabelIfNecessary(String shortLabel){
-        List<String> existingLabels = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class).getShortLabelsLike(shortLabel + "%");
-
-        if (existingLabels.isEmpty()){
-            return shortLabel;
-        }
-
-        int currentIndex = 0;
-        
-        for (String existing : existingLabels) {
-            if (existing.contains("-")){
-                String strSuffix = existing.substring(existing.lastIndexOf("-") + 1, existing.length());
-
-                Matcher matcher = decimalPattern.matcher(strSuffix);
-                
-                if (matcher.matches()){
-                    currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
-                }
-            }
-        }
-
-        // the shortlabel exists but does not contain any chunk number
-        if (currentIndex == 0){
-            return shortLabel + "-2";
-        }
-        else {
-            return shortLabel + "-" + Integer.toString(currentIndex ++);
-        }
     }
 
     private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents, Collection<String> rootTermsToExclude) throws InstantiationException, IllegalAccessException, CvUpdateException {

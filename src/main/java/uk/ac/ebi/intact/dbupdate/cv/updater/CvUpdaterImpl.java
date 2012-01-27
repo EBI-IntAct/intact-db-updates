@@ -83,8 +83,19 @@ public class CvUpdaterImpl implements CvUpdater{
 
             // update shortLabel
             if (!ontologyTerm.getShortLabel().equalsIgnoreCase(term.getShortLabel())){
-                hasUpdatedShortLabel = true;
-                term.setShortLabel(ontologyTerm.getShortLabel());
+                if (ontologyTerm.getShortLabel().endsWith("-\\d")){
+                    String commonLabel = ontologyTerm.getShortLabel().substring(0, ontologyTerm.getShortLabel().indexOf("-"));
+
+                    // the shortlabel needs to be updated
+                    if (!ontologyTerm.getShortLabel().equalsIgnoreCase(commonLabel)){
+                        hasUpdatedShortLabel = true;
+                        term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
+                    }
+                }
+                else {
+                    hasUpdatedShortLabel = true;
+                    term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
+                }
             }
 
             // update fullName

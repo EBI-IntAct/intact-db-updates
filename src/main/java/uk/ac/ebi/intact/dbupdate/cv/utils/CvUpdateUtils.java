@@ -8,6 +8,9 @@ import uk.ac.ebi.intact.model.util.XrefUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for cv update
@@ -18,6 +21,7 @@ import java.util.Collection;
  */
 
 public class CvUpdateUtils {
+    public static final Pattern decimalPattern = Pattern.compile("\\d");
 
     public static Annotation hideTerm(CvObject c, String message){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
@@ -90,5 +94,35 @@ public class CvUpdateUtils {
         }
 
         return identities;
+    }
+
+    public static String createSyncLabelIfNecessary(String shortLabel, Class<? extends CvDagObject> termClass){
+        List<String> existingLabels = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(termClass).getShortLabelsLike(shortLabel + "%");
+
+        if (existingLabels.isEmpty()){
+            return shortLabel;
+        }
+
+        int currentIndex = 0;
+
+        for (String existing : existingLabels) {
+            if (existing.contains("-")){
+                String strSuffix = existing.substring(existing.lastIndexOf("-") + 1, existing.length());
+
+                Matcher matcher = decimalPattern.matcher(strSuffix);
+
+                if (matcher.matches()){
+                    currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
+                }
+            }
+        }
+
+        // the shortlabel exists but does not contain any chunk number
+        if (currentIndex == 0){
+            return shortLabel + "-2";
+        }
+        else {
+            return shortLabel + "-" + Integer.toString(currentIndex ++);
+        }
     }
 }

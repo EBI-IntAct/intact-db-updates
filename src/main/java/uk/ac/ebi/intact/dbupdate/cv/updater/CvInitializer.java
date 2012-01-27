@@ -44,7 +44,7 @@ public class CvInitializer extends CvUpdaterImpl{
         // add term to the list of updated terms
         if (processedTerms.add(identifier)){
             // update shortLabel
-            term.setShortLabel(ontologyTerm.getShortLabel());
+            term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
 
             // update fullName
             term.setFullName(ontologyTerm.getFullName());
