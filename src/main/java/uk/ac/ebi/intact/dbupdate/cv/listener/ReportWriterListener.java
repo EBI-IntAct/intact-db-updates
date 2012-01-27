@@ -85,6 +85,7 @@ public class ReportWriterListener implements CvUpdateListener{
 
             if (!isObsoleteRemappedTermStarted){
                 writeHeader(writer, "Old term", "New term", "Old Intact Ac", "Merged Intact Ac", "Number of updates", "message");
+                isObsoleteRemappedTermStarted = true;
             }
 
             String oldTerm = evt.getOldTerm() != null ? evt.getOldTerm() : EMPTY_VALUE;
@@ -109,6 +110,7 @@ public class ReportWriterListener implements CvUpdateListener{
 
             if (!isObsoleteTermImpossibleToRemapStarted){
                 writeHeader(writer, "Obsolete Id", "Intact Ac", "Intact shortLabel", "Message", "Possible terms to remap to");
+                isObsoleteTermImpossibleToRemapStarted = true;
             }
 
             String obsoleteId = evt.getObsoleteId() != null ? evt.getObsoleteId() : EMPTY_VALUE;
@@ -138,6 +140,7 @@ public class ReportWriterListener implements CvUpdateListener{
                         "Created aliases", "Updated aliases", "Deleted aliases",
                         "Created annotations", "Updated annotations", "Deleted annotations",
                         "Created parents", "Deleted parents");
+                isUpdatedCvTermStarted = true;
             }
 
             String termAccession = evt.getTermAccession() != null ? evt.getTermAccession() : EMPTY_VALUE;
@@ -309,6 +312,7 @@ public class ReportWriterListener implements CvUpdateListener{
 
             if (!isCreatedCvTermStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Message", "Is Hidden");
+                isCreatedCvTermStarted = true;
             }
 
             String termAc = evt.getTermAc() != null ? evt.getTermAc() : EMPTY_VALUE;
@@ -332,6 +336,7 @@ public class ReportWriterListener implements CvUpdateListener{
 
             if (!isUpdateErrorStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Error type", "Error Message");
+                isUpdateErrorStarted = true;
             }
 
             CvUpdateError error = evt.getUpdateError();
@@ -358,6 +363,7 @@ public class ReportWriterListener implements CvUpdateListener{
 
             if (!isDeletedCvStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Message");
+                isDeletedCvStarted = true;
             }
 
             String termAc = evt.getTermAc() != null ? evt.getTermAc() : EMPTY_VALUE;
