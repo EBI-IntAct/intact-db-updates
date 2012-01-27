@@ -173,6 +173,8 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
                     // update the term
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(term);
 
+                    String oldId = ontologyTerm.getTermAccession();
+                    
                     // the term is not obsolete anymore and was successfully remapped to a new ontology term
                     updateContext.setTermObsolete(false);
                     updateContext.setOntologyTerm(remappedTerm);
@@ -192,7 +194,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
                     }
 
                     // fire event
-                    ObsoleteRemappedEvent evt = new ObsoleteRemappedEvent(this, updateContext.getIdentifier(), ontologyTerm.getRemappedTerm(), term.getAc(), null, 0, "The obsolete term has been updated and is not obsolete anymore.");
+                    ObsoleteRemappedEvent evt = new ObsoleteRemappedEvent(this, oldId, ontologyTerm.getRemappedTerm(), term.getAc(), null, 0, "The obsolete term has been updated and is not obsolete anymore.");
 
                     manager.fireOnRemappedObsolete(evt);
                 }
@@ -206,6 +208,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
 
                     // we can now delete the obsolete term and add a secondary xref (intact and ontology term accession)
                     if (couldRemap){
+                        String oldId = ontologyTerm.getTermAccession();
 
                         // update parent children references
                         updateParentChildrenReferences(term, termFromDb);
@@ -246,6 +249,11 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
                                 remappedCvToUpdate.put(newOntologyId, cvs);
                             }
                         }
+
+                        // fire event
+                        ObsoleteRemappedEvent evt1 = new ObsoleteRemappedEvent(this, oldId, ontologyTerm.getRemappedTerm(), term.getAc(), termFromDb.getAc(), 0, "The obsolete term has been updated and is not obsolete anymore.");
+
+                        manager.fireOnRemappedObsolete(evt1);
 
                         // finally we delete the obsolete term
                         factory.getCvObjectDao(CvDagObject.class).delete(term);
