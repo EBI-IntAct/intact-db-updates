@@ -132,7 +132,6 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
-    @Transactional(propagation = Propagation.NEVER)
     public void test_import_cv_parentFromOtherOntology() throws CvUpdateException {
         String termAc = "MOD:00003"; // mod term
 

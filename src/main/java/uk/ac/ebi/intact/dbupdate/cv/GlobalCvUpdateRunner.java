@@ -1,11 +1,11 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
@@ -161,7 +161,7 @@ public class GlobalCvUpdateRunner {
                     processedIntactAcs.add(validCv);
                 } catch (Exception e) {
                     log.error("Impossible to update the cv " + validCv, e);
-                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update this cv", null, validCv, null);
+                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update this cv. Exception is " + ExceptionUtils.getFullStackTrace(e), null, validCv, null);
 
                     UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                     cvUpdateManager.fireOnUpdateError(evt);
@@ -187,7 +187,7 @@ public class GlobalCvUpdateRunner {
                         cvUpdateManager.updateCv(cvObject.getAc(), entry.getKey());
 
                     } catch (Exception e) {
-                        CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update the cv ", cvObject.getIdentifier(), cvObject.getAc(), cvObject.getShortLabel());
+                        CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update the cv. Exception is " + ExceptionUtils.getFullStackTrace(e), cvObject.getIdentifier(), cvObject.getAc(), cvObject.getShortLabel());
 
                         UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                         cvUpdateManager.fireOnUpdateError(evt);
@@ -207,15 +207,21 @@ public class GlobalCvUpdateRunner {
     private void createMissingParents() {
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        CvObjectDao<CvDagObject> cvDao = factory.getCvObjectDao(CvDagObject.class);
-
         Map<String, Set<CvDagObject>> missingParentsToCreate = cvUpdateManager.getMissingParentsToCreate();
 
         if (!missingParentsToCreate.isEmpty()){
             // import missing parents and update children
             for (Map.Entry<String, Set<CvDagObject>> missing : missingParentsToCreate.entrySet()){
 
-                cvUpdateManager.createMissingParentsFor(cvDao, missing.getKey(), missing.getValue());
+                try {
+                    cvUpdateManager.createMissingParentsFor(missing.getKey(), missing.getValue());
+                } catch (Exception e) {
+                    log.error("Impossible to import " + missing.getKey(), e);
+                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Cv object " + missing.getKey() + " cannot be imported into the database. Exception is " + ExceptionUtils.getFullStackTrace(e), missing.getKey(), null, null);
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    cvUpdateManager.fireOnUpdateError(evt);
+                } 
             }
         }
     }
@@ -243,13 +249,19 @@ public class GlobalCvUpdateRunner {
                 }
             }
 
-            CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
-
             Map<String, Set<CvDagObject>> missingTermsFromOtherOntology = cvUpdateManager.getTermsFromOtherOntologiesToCreate();
 
             // update missing parents from other ontologies
             for (Map.Entry<String, Set<CvDagObject>> entry : missingTermsFromOtherOntology.entrySet()){
-                cvUpdateManager.createMissingParentsFor(cvDao, entry.getKey(), entry.getValue());
+                try {
+                    cvUpdateManager.createMissingParentsFor(entry.getKey(), entry.getValue());
+                } catch (Exception e) {
+                    log.error("Impossible to import " + entry.getKey(), e);
+                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Cv object " + entry.getKey() + " cannot be imported into the database. Exception is " + ExceptionUtils.getFullStackTrace(e), entry.getKey(), null, null);
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    cvUpdateManager.fireOnUpdateError(evt);
+                }
             }
         }
         else {

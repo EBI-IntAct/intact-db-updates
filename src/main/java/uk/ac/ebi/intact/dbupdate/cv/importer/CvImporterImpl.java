@@ -85,9 +85,11 @@ public class CvImporterImpl implements CvImporter{
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
-        Class<? extends CvDagObject> termClass = findCvClassFor(ontologyTerm, ontologyAccess);
+        Set<Class<? extends CvDagObject>> termClasses = findCvClassFor(ontologyTerm, ontologyAccess);
 
-        importCv(updateContext, importChildren, termClass);
+        for (Class<? extends CvDagObject> termClass : termClasses){
+            importCv(updateContext, importChildren, termClass);
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -262,10 +264,14 @@ public class CvImporterImpl implements CvImporter{
         return query.getResultList();
     }
 
-    public Class<? extends CvDagObject> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
+    public Set<Class<? extends CvDagObject>> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
 
+        Set<Class<? extends CvDagObject>> setsOfClasses = new HashSet<Class<? extends CvDagObject>>();
+        
         if (classMap.containsKey(ontologyTerm.getTermAccession())){
-            return classMap.get(ontologyTerm.getTermAccession());
+            setsOfClasses = new HashSet<Class<? extends CvDagObject>>();
+            setsOfClasses.add(classMap.get(ontologyTerm.getTermAccession()));
+            return setsOfClasses;
         }
         else {
             Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(ontologyTerm);
@@ -273,16 +279,16 @@ public class CvImporterImpl implements CvImporter{
             if (!parents.isEmpty()){
 
                 for (IntactOntologyTermI parent : parents){
-                    Class<? extends CvDagObject> termClass = findCvClassFor(parent, ontologyAccess);
+                    Set<Class<? extends CvDagObject>> termClasses = findCvClassFor(parent, ontologyAccess);
 
-                    if (termClass != null){
-                        return termClass;
+                    if (!termClasses.isEmpty()){
+                        setsOfClasses.addAll(termClasses);
                     }
                 }
             }
         }
 
-        return null;
+        return setsOfClasses;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

@@ -1,5 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
@@ -205,7 +206,6 @@ public class CvUpdateManager {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     /**
      * Import a new Cv. The cv is persisted
      * All the parents of this cv will be imported and hidden if not existing in the database
@@ -240,15 +240,13 @@ public class CvUpdateManager {
 
             importedCv = updateContext.getCvTerm();
 
-            CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
-
             // update missing parents from other ontologies
             for (Map.Entry<String, Set<CvDagObject>> entry : cvImporter.getMissingRootParents().entrySet()){
-                createMissingParentsFor(cvDao, entry.getKey(), entry.getValue());
+                createMissingParentsFor(entry.getKey(), entry.getValue());
             }
         } catch (Exception e) {
             log.error("Impossible to import " + identifier, e);
-            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.fatal, "Cv object " + identifier + " cannot be imported into the database", identifier, null, null);
+            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.fatal, "Cv object " + identifier + " cannot be imported into the database. Exception is " + ExceptionUtils.getFullStackTrace(e), identifier, null, null);
 
             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
             fireOnUpdateError(evt);
@@ -257,11 +255,11 @@ public class CvUpdateManager {
         return importedCv;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     /**
      * For each missing parent, will import the parent and update the reported children
      */
-    public void createMissingParentsFor(CvObjectDao<CvDagObject> cvDao, String missingAc, Set<CvDagObject> childrenToUpdate) {
+    public void createMissingParentsFor(String missingAc, Set<CvDagObject> childrenToUpdate) throws CvUpdateException, IllegalAccessException, InstantiationException {
+
         updateContext.clear();
         updateContext.setIdentifier(missingAc);
 
@@ -311,37 +309,21 @@ public class CvUpdateManager {
                 updateContext.setOntologyTerm(ontologyTerm);
 
                 log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
-                try {
-                    cvImporter.importCv(updateContext, false);
+                cvImporter.importCv(updateContext, false);
 
-                    if (updateContext.getCvTerm() != null){
+                if (updateContext.getCvTerm() != null){
 
-                        for (CvDagObject child : childrenToUpdate){
-                            log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
+                    for (CvDagObject child : childrenToUpdate){
+                        log.info("Updating child cv " + child.getAc() + ", label = " + child.getShortLabel() + ", identifier = " + child.getIdentifier());
 
-                            // we reload the child because we need to update it. We cannot merge it to the session because if the collection of parent/children was not initialized and we change it,
-                            // hibernate throw an assertion failure because cannot update the status of the lazy collection. We cannot merge an object with collection lazy, size > 0 and then update the collection
-                            CvDagObject reloadedChild = cvDao.getByAc(child.getAc());
-
-                            if (reloadedChild != null){
-                                reloadedChild.addParent(updateContext.getCvTerm());
-                                IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(reloadedChild);
-                            }
-                            else {
-                                log.warn("Cv object " + child.getAc() + " cannot be updated because does not exist anymore");
-                            }
-                        }
-
+                        // we reload the child because we need to update it. We cannot merge it to the session because if the collection of parent/children was not initialized and we change it,
+                        // hibernate throw an assertion failure because cannot update the status of the lazy collection. We cannot merge an object with collection lazy, size > 0 and then update the collection
+                        updateChildrenHavingMissingParent(child.getAc(), updateContext.getCvTerm().getAc());
                     }
-                    else {
-                        CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + missingAc + " cannot be imported into the database", missingAc, null, null);
 
-                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
-                        fireOnUpdateError(evt);
-                    }
-                } catch (Exception e) {
-                    log.error("Impossible to import the missing parent " + missingAc);
-                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.fatal, "Cv object " + missingAc + " cannot be imported", missingAc, null, null);
+                }
+                else {
+                    CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.impossible_import, "Cv object " + missingAc + " cannot be imported into the database", missingAc, null, null);
 
                     UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                     fireOnUpdateError(evt);
@@ -354,6 +336,22 @@ public class CvUpdateManager {
                 fireOnUpdateError(evt);
 
             }
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateChildrenHavingMissingParent(String child, String parent) {
+        CvObjectDao<CvDagObject> cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvDagObject.class);
+
+        CvDagObject reloadedChild = cvDao.getByAc(child);
+        CvDagObject reloadedParent = cvDao.getByAc(parent);
+
+        if (reloadedChild != null){
+            reloadedChild.addParent(reloadedParent);
+            IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(reloadedChild);
+        }
+        else {
+            log.warn("Cv object " + child + " cannot be updated because does not exist anymore");
         }
     }
 
@@ -483,12 +481,12 @@ public class CvUpdateManager {
                 IntactOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(cvObject.getIdentifier());
 
                 if (ontologyTerm != null){
-                    Class<? extends CvDagObject> classForTerm = cvImporter.findCvClassFor(ontologyTerm, ontologyAccess);
+                    Set<Class<? extends CvDagObject>> classesForTerm = cvImporter.findCvClassFor(ontologyTerm, ontologyAccess);
 
                     // set obsolete and ontology term of the context
                     boolean isObsolete = ontologyAccess.isObsolete(ontologyTerm);
 
-                    if (classForTerm != null && cvObject.getClass().equals(classForTerm)){
+                    if (!classesForTerm.isEmpty() && classesForTerm.contains(cvObject.getClass())){
 
                         this.updateContext.setOntologyTerm(ontologyTerm);
                         this.updateContext.setTermObsolete(isObsolete);
@@ -504,7 +502,7 @@ public class CvUpdateManager {
                         }
                     }
                     // obsolete term lost its hierarchy so it is normal that we cannot find a cv class for it. Try to remap it
-                    else if (classForTerm == null && isObsolete){
+                    else if (classesForTerm.isEmpty() && isObsolete){
                         this.updateContext.setOntologyTerm(ontologyTerm);
                         this.updateContext.setTermObsolete(isObsolete);
 
@@ -516,14 +514,14 @@ public class CvUpdateManager {
                             cvUpdater.updateTerm(this.updateContext);
                         }
                     }
-                    else if (classForTerm == null && !isObsolete){
+                    else if (classesForTerm.isEmpty() && !isObsolete){
                         CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.cv_class_not_found, "Impossible to find a cv class for cv identity " + identity, identity, cvObject.getAc(), cvObject.getShortLabel());
 
                         UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                         fireOnUpdateError(evt);
                     }
                     else {
-                        CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.invalid_cv_class, "The cv " + cvObject.getAc() + " is of type " + cvObject.getClass().getCanonicalName() + " but the valid class type should be " + classForTerm.getCanonicalName(), identity, cvObject.getAc(), cvObject.getShortLabel());
+                        CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.invalid_cv_class, "The cv " + cvObject.getAc() + " is of type " + cvObject.getClass().getCanonicalName() + " but the valid class type should be " + classesForTerm.iterator().next().getCanonicalName(), identity, cvObject.getAc(), cvObject.getShortLabel());
 
                         UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                         fireOnUpdateError(evt);
@@ -720,7 +718,7 @@ public class CvUpdateManager {
     public Map<String, Set<CvDagObject>> getTermsFromOtherOntologiesToCreate(){
         return this.cvImporter.getMissingRootParents();
     }
-    
+
     public IntactOntologyAccess getIntactOntologyAccessFor(String ontologyId){
         return this.intactOntologyManager.getOntologyAccess(ontologyId);
     }
