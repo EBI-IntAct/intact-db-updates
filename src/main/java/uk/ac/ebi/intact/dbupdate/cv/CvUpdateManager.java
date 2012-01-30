@@ -305,7 +305,7 @@ public class CvUpdateManager {
 
             IntactOntologyTermI ontologyTerm = access.getTermForAccession(missingAc);
 
-            if (ontologyTerm != null){
+            if (ontologyTerm != null && !rootTermsToExclude.contains(ontologyTerm.getTermAccession())){
                 updateContext.setOntologyTerm(ontologyTerm);
 
                 log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
@@ -345,15 +345,16 @@ public class CvUpdateManager {
      */
     public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, Collection<IntactOntologyTermI> subRoots) throws CvUpdateException, IllegalAccessException, InstantiationException {
         for (IntactOntologyTermI subRoot : subRoots){
-            updateContext.clear();
-            updateContext.setOntologyAccess(ontologyAccess);
-            updateContext.setOntologyTerm(subRoot);
-            updateContext.setIdentifier(subRoot.getTermAccession());
+            if (!rootTermsToExclude.contains(subRoot.getTermAccession())){
+                updateContext.clear();
+                updateContext.setOntologyAccess(ontologyAccess);
+                updateContext.setOntologyTerm(subRoot);
+                updateContext.setIdentifier(subRoot.getTermAccession());
 
-            log.info("Importing missing child terms of " + subRoot.getTermAccession());
+                log.info("Importing missing child terms of " + subRoot.getTermAccession());
 
-            cvImporter.importCv(updateContext, true);
-
+                cvImporter.importCv(updateContext, true);
+            }
         }
     }
 
