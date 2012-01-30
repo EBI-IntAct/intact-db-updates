@@ -19,7 +19,7 @@
     </bean>
 
     <!-- Cv manager -->
-    <bean id="cvManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
+    <bean id="cvUpdateManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
 
         <property name="cvImporter" ref="cvImporter"/>
         <property name="cvUpdater" ref="cvUpdater"/>
@@ -36,7 +36,7 @@
     <!-- Cv update runner -->
     <bean id="globalCvUpdateRunner" class="uk.ac.ebi.intact.dbupdate.cv.GlobalCvUpdateRunner">
 
-        <property name="cvUpdateManager" ref="cvManager"/>
+        <property name="cvUpdateManager" ref="cvUpdateManager"/>
     </bean>
 
 </beans>
