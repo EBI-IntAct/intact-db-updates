@@ -220,6 +220,10 @@ public class CvUpdateManager {
             throw new IllegalArgumentException("The identifier id is mandatory. Can be from MI or MOD");
         }
 
+        if (rootTermsToExclude.contains(identifier)){
+            throw new IllegalArgumentException("The root term " + identifier + " is excluded. We cannot import this term because too unspecific");
+        }
+
         IntactOntologyAccess access = intactOntologyManager.getOntologyAccess(ontologyId);
         if (access == null){
             throw new IllegalArgumentException("The ontology identifier " + ontologyId + " is not recognized and we cannot import the cv object.");
@@ -343,18 +347,16 @@ public class CvUpdateManager {
     /**
      * Imports all the children of a root term of a given ontology if the root term is not obsolete
      */
-    public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, Collection<IntactOntologyTermI> subRoots) throws CvUpdateException, IllegalAccessException, InstantiationException {
-        for (IntactOntologyTermI subRoot : subRoots){
-            if (!rootTermsToExclude.contains(subRoot.getTermAccession())){
-                updateContext.clear();
-                updateContext.setOntologyAccess(ontologyAccess);
-                updateContext.setOntologyTerm(subRoot);
-                updateContext.setIdentifier(subRoot.getTermAccession());
+    public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI subRoot) throws CvUpdateException, IllegalAccessException, InstantiationException {
+        if (!rootTermsToExclude.contains(subRoot.getTermAccession())){
+            updateContext.clear();
+            updateContext.setOntologyAccess(ontologyAccess);
+            updateContext.setOntologyTerm(subRoot);
+            updateContext.setIdentifier(subRoot.getTermAccession());
 
-                log.info("Importing missing child terms of " + subRoot.getTermAccession());
+            log.info("Importing missing child terms of " + subRoot.getTermAccession());
 
-                cvImporter.importCv(updateContext, true);
-            }
+            cvImporter.importCv(updateContext, true);
         }
     }
 
@@ -687,15 +689,15 @@ public class CvUpdateManager {
     }
 
     public Map<String, Set<CvDagObject>> getRemappedObsoleteTermsToUpdate(){
-        return this.cvRemapper.getRemappedCvToUpdate();
+        return new HashMap<String, Set<CvDagObject>>(this.cvRemapper.getRemappedCvToUpdate());
     }
 
     public Map<String, Set<CvDagObject>> getMissingParentsToCreate(){
-        return this.cvUpdater.getMissingParents();
+        return new HashMap<String, Set<CvDagObject>>(this.cvUpdater.getMissingParents());
     }
 
     public Map<String, Set<CvDagObject>> getTermsFromOtherOntologiesToCreate(){
-        return this.cvImporter.getMissingRootParents();
+        return new HashMap<String, Set<CvDagObject>>(this.cvImporter.getMissingRootParents());
     }
 
     public IntactOntologyAccess getIntactOntologyAccessFor(String ontologyId){

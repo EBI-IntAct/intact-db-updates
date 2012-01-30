@@ -27,6 +27,14 @@
         <property name="classSeparator" value=";"/>
     </bean>
 
+    <bean id="aliasInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl"/>
+    <bean id="annotationInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAnnotationUpdaterImpl"/>
+    <bean id="parentInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdaterImpl"/>
+    <bean id="xrefInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdaterImpl"/>
+    <bean id="usedInClassInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.UsedInClassAnnotationUpdaterImpl">
+        <property name="classSeparator" value=";"/>
+    </bean>
+
     <bean id="cvUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl">
         <property name="cvAliasUpdater" ref="aliasUpdater"/>
         <property name="cvParentUpdater" ref="parentUpdater"/>
@@ -34,7 +42,14 @@
         <property name="cvAnnotationUpdater" ref="annotationUpdater"/>
         <property name="usedInClassAnnotationUpdater" ref="usedInClassUpdater"/>
     </bean>
-    <bean id="cvInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvInitializer" parent="cvUpdater"/>
+
+    <bean id="cvInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvInitializer">
+        <property name="cvAliasUpdater" ref="aliasInitializer"/>
+        <property name="cvParentUpdater" ref="parentInitializer"/>
+        <property name="cvXrefUpdater" ref="xrefInitializer"/>
+        <property name="cvAnnotationUpdater" ref="annotationInitializer"/>
+        <property name="usedInClassAnnotationUpdater" ref="usedInClassInitializer"/>
+    </bean>
 
     <!-- obsolete remapper -->
     <bean id="obsoleteRemapper" class="uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl">

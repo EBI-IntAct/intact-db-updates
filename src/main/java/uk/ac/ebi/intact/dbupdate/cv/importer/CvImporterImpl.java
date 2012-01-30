@@ -61,6 +61,7 @@ public class CvImporterImpl implements CvImporter{
         hiddenParents = new HashSet<IntactOntologyTermI>();
         unHiddenChildren = new HashSet<IntactOntologyTermI>();
         importUpdateContext = new CvUpdateContext(null);
+
     }
 
     @PostConstruct
@@ -104,6 +105,7 @@ public class CvImporterImpl implements CvImporter{
         loadedTerms.clear();
         hiddenParents.clear();
         unHiddenChildren.clear();
+        cvUpdater.clear();
 
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
@@ -159,6 +161,7 @@ public class CvImporterImpl implements CvImporter{
         loadedTerms.clear();
         hiddenParents.clear();
         unHiddenChildren.clear();
+        cvUpdater.clear();
     }
 
     private void importTermWithoutChildren(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyAccess ontologyAccess, IntactOntologyTermI ontologyTerm, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {

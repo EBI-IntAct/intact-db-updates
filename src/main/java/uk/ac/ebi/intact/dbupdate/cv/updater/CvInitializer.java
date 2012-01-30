@@ -14,6 +14,9 @@ import uk.ac.ebi.intact.model.CvObjectXref;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class is based on the cv updater but is aimed at initializing a cv only
  *
@@ -23,6 +26,13 @@ import uk.ac.ebi.intact.model.util.CvObjectUtils;
  */
 
 public class CvInitializer extends CvUpdaterImpl{
+
+    private Map<String, Integer> createdLabels;
+    
+    public CvInitializer(){
+        super();
+        createdLabels = new HashMap<String, Integer>();
+    }
 
     @Override
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -40,64 +50,118 @@ public class CvInitializer extends CvUpdaterImpl{
 
         // extract database of ontology
         String database = updateContext.getOntologyAccess().getDatabaseIdentifier();
+        synchronizeShortLabel(ontologyTerm, term);
 
-        // add term to the list of updated terms
-        if (processedTerms.add(identifier)){
-            // update shortLabel
-            term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
+        // update fullName
+        term.setFullName(ontologyTerm.getFullName());
 
-            // update fullName
-            term.setFullName(ontologyTerm.getFullName());
+        // update identifier if necessary
+        term.setIdentifier(identifier);
 
-            // update identifier if necessary
-            term.setIdentifier(identifier);
+        // update identity xref if necessary
+        CvObjectXref identityXref = updateContext.getIdentityXref();
+        if (identityXref == null) {
+            identityXref = CvUpdateUtils.createIdentityXref(term, database, identifier);
+            updateContext.setIdentityXref(identityXref);
+        }
+        else if (!identifier.equalsIgnoreCase(identityXref.getPrimaryId()) || !database.equalsIgnoreCase(identityXref.getCvDatabase().getIdentifier())
+                || !CvXrefQualifier.IDENTITY_MI_REF.equalsIgnoreCase(identityXref.getCvXrefQualifier().getIdentifier())){
+            identityXref.setPrimaryId(identifier);
 
-            // update identity xref if necessary
-            CvObjectXref identityXref = updateContext.getIdentityXref();
-            if (identityXref == null) {
-                identityXref = CvUpdateUtils.createIdentityXref(term, database, identifier);
-                updateContext.setIdentityXref(identityXref);
-            }
-            else if (!identifier.equalsIgnoreCase(identityXref.getPrimaryId()) || !database.equalsIgnoreCase(identityXref.getCvDatabase().getIdentifier())
-                    || !CvXrefQualifier.IDENTITY_MI_REF.equalsIgnoreCase(identityXref.getCvXrefQualifier().getIdentifier())){
-                identityXref.setPrimaryId(identifier);
+            if (identityXref.getCvXrefQualifier()  == null || !CvXrefQualifier.IDENTITY_MI_REF.equalsIgnoreCase(identityXref.getCvXrefQualifier().getIdentifier())){
+                CvXrefQualifier identity = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(CvXrefQualifier.IDENTITY_MI_REF);
 
-                if (identityXref.getCvXrefQualifier()  == null || !CvXrefQualifier.IDENTITY_MI_REF.equalsIgnoreCase(identityXref.getCvXrefQualifier().getIdentifier())){
-                    CvXrefQualifier identity = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(CvXrefQualifier.IDENTITY_MI_REF);
-
-                    if (identity == null){
-                        identity = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
-                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(identity);
-                    }
-
-                    identityXref.setCvXrefQualifier(identity);
+                if (identity == null){
+                    identity = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY);
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(identity);
                 }
 
-                if (identityXref.getCvDatabase()  == null || !database.equalsIgnoreCase(identityXref.getCvDatabase().getIdentifier())){
-                    CvDatabase cvDatabase = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(database);
-
-                    if (cvDatabase == null){
-                        cvDatabase = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, database, ontologyAccess.getOntologyID().toLowerCase());
-                        IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDatabase);
-                    }
-
-                    identityXref.setCvDatabase(cvDatabase);
-                }
+                identityXref.setCvXrefQualifier(identity);
             }
 
-            // update xrefs
-            updateXrefs(updateContext, null);
+            if (identityXref.getCvDatabase()  == null || !database.equalsIgnoreCase(identityXref.getCvDatabase().getIdentifier())){
+                CvDatabase cvDatabase = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(database);
 
-            // update aliases
-            updateAliases(updateContext, null);
+                if (cvDatabase == null){
+                    cvDatabase = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, database, ontologyAccess.getOntologyID().toLowerCase());
+                    IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDatabase);
+                }
 
-            // update annotations
-            updateAnnotations(updateContext, null);
-
-            // in case of cvtopics, we may need to create new used in class annotations
-            if (usedInClassAnnotationUpdater.canUpdate(term)){
-                updateUsedInClass(updateContext, null);
+                identityXref.setCvDatabase(cvDatabase);
             }
         }
+
+        // update xrefs
+        updateXrefs(updateContext, null);
+
+        // update aliases
+        updateAliases(updateContext, null);
+
+        // update annotations
+        updateAnnotations(updateContext, null);
+
+        // in case of cvtopics, we may need to create new used in class annotations
+        if (usedInClassAnnotationUpdater.canUpdate(term)){
+            updateUsedInClass(updateContext, null);
+        }
+    }
+
+    @Override
+    protected boolean synchronizeShortLabel(IntactOntologyTermI ontologyTerm, CvDagObject term) {
+        // update shortLabel
+        String fixedLabel = CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass());
+        Integer currentIndex = CvUpdateUtils.extractChunkNumberFromShortLabel(fixedLabel);
+        term.setShortLabel(fixedLabel);
+
+        // synchronize shortlabels with parents and children whcih have been created and are not yet in the database
+        // fixed label has already been used, the current shortlabel does not have any existing indexes
+        if (createdLabels.containsKey(fixedLabel) && currentIndex == null){
+            String fixedLabel2;
+
+            Integer index = createdLabels.get(fixedLabel);
+            // the term has already been loaded once without any index chunk so we start from index 2
+            if (index == 0){
+                fixedLabel2 = ontologyTerm.getShortLabel() + "-2";
+                createdLabels.put(fixedLabel, 2);
+
+                term.setShortLabel(fixedLabel2);
+            }
+            else {
+
+                int newIndex = index + 1;
+                fixedLabel2 = ontologyTerm.getShortLabel() + "-" + Integer.toString(newIndex);
+                createdLabels.put(fixedLabel, newIndex);
+
+                term.setShortLabel(fixedLabel2);
+            }
+        }
+        else if (createdLabels.containsKey(fixedLabel) && currentIndex != null){
+
+            Integer index = createdLabels.get(fixedLabel);
+            int newIndex = index + 1;
+            createdLabels.put(fixedLabel, newIndex);
+
+            String fixedLabel2 = ontologyTerm.getShortLabel() + "-" + Integer.toString(newIndex);
+
+            term.setShortLabel(fixedLabel2);
+        }
+        // register new label
+        else {
+
+            if (currentIndex == null){
+                createdLabels.put(fixedLabel, 0);
+            }
+            else {
+                createdLabels.put(fixedLabel, currentIndex);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public void clear(){
+        super.clear();
+        this.createdLabels.clear();
     }
 }

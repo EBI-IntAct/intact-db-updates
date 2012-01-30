@@ -82,21 +82,7 @@ public class CvUpdaterImpl implements CvUpdater{
             boolean hasUpdatedFullName = false;
 
             // update shortLabel
-            if (!ontologyTerm.getShortLabel().equalsIgnoreCase(term.getShortLabel())){
-                if (ontologyTerm.getShortLabel().endsWith("-\\d")){
-                    String commonLabel = ontologyTerm.getShortLabel().substring(0, ontologyTerm.getShortLabel().indexOf("-"));
-
-                    // the shortlabel needs to be updated
-                    if (!ontologyTerm.getShortLabel().equalsIgnoreCase(commonLabel)){
-                        hasUpdatedShortLabel = true;
-                        term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
-                    }
-                }
-                else {
-                    hasUpdatedShortLabel = true;
-                    term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
-                }
-            }
+            hasUpdatedShortLabel = synchronizeShortLabel(ontologyTerm, term);
 
             // update fullName
             if (!ontologyTerm.getFullName().equalsIgnoreCase(term.getFullName())){
@@ -173,6 +159,27 @@ public class CvUpdaterImpl implements CvUpdater{
 
             doUpdate(updateContext, updateEvt);
         }
+    }
+
+    protected boolean synchronizeShortLabel(IntactOntologyTermI ontologyTerm, CvDagObject term) {
+        boolean hasUpdatedShortLabel = false;
+
+        if (!ontologyTerm.getShortLabel().equalsIgnoreCase(term.getShortLabel())){
+            if (ontologyTerm.getShortLabel().endsWith("-\\d")){
+                String commonLabel = ontologyTerm.getShortLabel().substring(0, ontologyTerm.getShortLabel().indexOf("-"));
+
+                // the shortlabel needs to be updated
+                if (!ontologyTerm.getShortLabel().equalsIgnoreCase(commonLabel)){
+                    hasUpdatedShortLabel = true;
+                    term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
+                }
+            }
+            else {
+                hasUpdatedShortLabel = true;
+                term.setShortLabel(CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass()));
+            }
+        }
+        return hasUpdatedShortLabel;
     }
 
     private void doUpdate(CvUpdateContext updateContext, UpdatedEvent updateEvt) {

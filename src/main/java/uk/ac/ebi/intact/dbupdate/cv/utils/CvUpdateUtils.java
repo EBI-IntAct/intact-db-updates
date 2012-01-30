@@ -125,4 +125,23 @@ public class CvUpdateUtils {
             return shortLabel + "-" + Integer.toString(currentIndex ++);
         }
     }
+
+    public static Integer extractChunkNumberFromShortLabel(String shortLabel){
+
+        Integer currentIndex = null;
+
+        if (shortLabel.contains("-")){
+            currentIndex = 0;
+
+            String strSuffix = shortLabel.substring(shortLabel.lastIndexOf("-") + 1, shortLabel.length());
+
+            Matcher matcher = decimalPattern.matcher(strSuffix);
+
+            if (matcher.matches()){
+                currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
+            }
+        }
+
+        return currentIndex;
+    }
 }

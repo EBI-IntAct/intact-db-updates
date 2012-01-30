@@ -5,8 +5,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
-import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
@@ -206,7 +204,6 @@ public class GlobalCvUpdateRunner {
      * @throws InstantiationException
      */
     private void createMissingParents() {
-        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
         Map<String, Set<CvDagObject>> missingParentsToCreate = cvUpdateManager.getMissingParentsToCreate();
 
@@ -246,14 +243,16 @@ public class GlobalCvUpdateRunner {
                 Collection<IntactOntologyTermI> children = ontologyAccess.getDirectChildren(root);
 
                 if (!children.isEmpty()){
-                    try {
-                        cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, children);
-                    } catch (Exception e) {
-                        log.error("Impossible to import " + root.getTermAccession(), e);
-                        CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.impossible_import, "Children of Cv object " + root.getTermAccession() + " cannot be imported into the database. Exception = " + ExceptionUtils.getFullStackTrace(e), root.getTermAccession(), null, null);
+                    for (IntactOntologyTermI child : children){
+                        try {
+                            cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, child);
+                        } catch (Exception e) {
+                            log.error("Impossible to import " + child.getTermAccession() + " and its children", e);
+                            CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.impossible_import, "Children of Cv object " + root.getTermAccession() + " cannot be imported into the database. Exception = " + ExceptionUtils.getFullStackTrace(e), root.getTermAccession(), null, null);
 
-                        UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
-                        cvUpdateManager.fireOnUpdateError(evt);
+                            UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                            cvUpdateManager.fireOnUpdateError(evt);
+                        }
                     }
                 }
             }
