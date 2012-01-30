@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.utils;
 
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -97,32 +98,46 @@ public class CvUpdateUtils {
     }
 
     public static String createSyncLabelIfNecessary(String shortLabel, Class<? extends CvDagObject> termClass){
-        List<String> existingLabels = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(termClass).getShortLabelsLike(shortLabel + "%");
+        CvObjectDao cvDao = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(termClass);
 
-        if (existingLabels.isEmpty()){
+        AnnotatedObject existingOriginalShortLabel = cvDao.getByShortLabel(shortLabel);
+        List<String> existingLabels = cvDao.getShortLabelsLike(shortLabel + "-%");
+
+        if (existingLabels.isEmpty() && existingOriginalShortLabel == null){
             return shortLabel;
         }
 
         int currentIndex = 0;
 
+        boolean hasFoundOtherTerms = false;
+
+        if (existingOriginalShortLabel != null){
+            hasFoundOtherTerms = true;
+        }
+        
         for (String existing : existingLabels) {
             if (existing.contains("-")){
                 String strSuffix = existing.substring(existing.lastIndexOf("-") + 1, existing.length());
+                String originalLabel = existing.substring(0, existing.lastIndexOf(strSuffix));
 
                 Matcher matcher = decimalPattern.matcher(strSuffix);
 
-                if (matcher.matches()){
+                if (matcher.matches() && originalLabel.equalsIgnoreCase(shortLabel)){
+                    hasFoundOtherTerms = true;
                     currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
                 }
             }
         }
 
         // the shortlabel exists but does not contain any chunk number
-        if (currentIndex == 0){
+        if (currentIndex == 0 && hasFoundOtherTerms){
             return shortLabel + "-2";
         }
-        else {
+        else if (hasFoundOtherTerms) {
             return shortLabel + "-" + Integer.toString(currentIndex ++);
+        }
+        else {
+            return shortLabel;
         }
     }
 
