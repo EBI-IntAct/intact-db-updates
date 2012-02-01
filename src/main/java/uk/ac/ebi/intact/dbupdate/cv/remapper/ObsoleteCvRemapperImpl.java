@@ -73,7 +73,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         String newOntologyId = null;
 
         // the term can be remapped to another term and the remapped term is not excluded
-        if (ontologyTerm.getRemappedTerm() != null && !rootTermsToExclude.contains(ontologyTerm.getRemappedTerm())){
+        if (ontologyTerm.getRemappedTerm() != null && !rootTermsToExclude.contains(ontologyTerm.getRemappedTerm()) && ontologyAccess.getDatabaseRegexp() != null){
             String remappedDb = null;
 
             IntactOntologyTermI remappedTerm = null;

@@ -273,7 +273,7 @@ public class CvUpdateManager {
         for (String ontologyId : intactOntologyManager.getOntologyIDs()){
             IntactOntologyAccess otherAccess = intactOntologyManager.getOntologyAccess(ontologyId);
 
-            if (otherAccess != null){
+            if (otherAccess != null && otherAccess.getDatabaseRegexp() != null){
                 Matcher matcher = otherAccess.getDatabaseRegexp().matcher(missingAc);
 
                 if (matcher.find() && matcher.group().equalsIgnoreCase(missingAc)){

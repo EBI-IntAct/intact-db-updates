@@ -103,41 +103,39 @@ public class CvUpdateUtils {
         AnnotatedObject existingOriginalShortLabel = cvDao.getByShortLabel(shortLabel);
         List<String> existingLabels = cvDao.getShortLabelsLike(shortLabel + "-%");
 
-        if (existingLabels.isEmpty() && existingOriginalShortLabel == null){
+        // no existing label
+        if (existingOriginalShortLabel == null){
             return shortLabel;
         }
-
-        int currentIndex = 0;
-
-        boolean hasFoundOtherTerms = false;
-
-        if (existingOriginalShortLabel != null){
-            hasFoundOtherTerms = true;
+        // the label is already used but we don't have any indexed labels in the database
+        else if (existingOriginalShortLabel != null && existingLabels.isEmpty()){
+            return  shortLabel + "-2";
         }
-        
-        for (String existing : existingLabels) {
-            if (existing.contains("-")){
-                String strSuffix = existing.substring(existing.lastIndexOf("-") + 1, existing.length());
-                String originalLabel = existing.substring(0, existing.lastIndexOf(strSuffix));
+        // the label is already used and some labels may already use indexes so we need to find out which unused index we want to use
+        else {
+            int currentIndex = 0;
 
-                Matcher matcher = decimalPattern.matcher(strSuffix);
+            for (String existing : existingLabels) {
+                if (existing.contains("-")){
+                    String strSuffix = existing.substring(existing.lastIndexOf("-") + 1, existing.length());
+                    String originalLabel = existing.substring(0, existing.lastIndexOf(strSuffix));
 
-                if (matcher.matches() && originalLabel.equalsIgnoreCase(shortLabel)){
-                    hasFoundOtherTerms = true;
-                    currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
+                    Matcher matcher = decimalPattern.matcher(strSuffix);
+
+                    if (matcher.matches() && originalLabel.equalsIgnoreCase(shortLabel)){
+                        currentIndex = Math.max(currentIndex, Integer.parseInt(matcher.group()));
+                    }
                 }
             }
-        }
 
-        // the shortlabel exists but does not contain any chunk number
-        if (currentIndex == 0 && hasFoundOtherTerms){
-            return shortLabel + "-2";
-        }
-        else if (hasFoundOtherTerms) {
-            return shortLabel + "-" + Integer.toString(currentIndex ++);
-        }
-        else {
-            return shortLabel;
+            // the shortlabel is used with some index in the database. We need to increase this index
+            if (currentIndex > 0){
+                return shortLabel + "-" + Integer.toString(currentIndex ++);
+            }
+            // the similar shortlabels are 'false positive', we can use the shortlabel with -2 because the original shortlabel is already used
+            else {
+                return shortLabel + "-2";
+            }
         }
     }
 

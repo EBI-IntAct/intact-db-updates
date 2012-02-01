@@ -244,7 +244,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
     private void initializeIdentityValue(IntactOntologyAccess ontologyAccess){
         CvObjectXref currentIdentityXref = XrefUtils.getIdentityXref(currentIntactParent, ontologyAccess.getDatabaseIdentifier());
         // this parent cannot be updated because is not from the same ontology
-        if (currentIdentityXref == null){
+        if (currentIdentityXref == null && ontologyAccess.getDatabaseRegexp() != null){
             Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(currentIntactParent.getIdentifier());
 
             if (matcher.find() && matcher.group().equalsIgnoreCase(currentIntactParent.getIdentifier())){
