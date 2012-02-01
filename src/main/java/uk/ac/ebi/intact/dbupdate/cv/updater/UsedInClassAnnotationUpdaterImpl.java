@@ -29,7 +29,7 @@ public class UsedInClassAnnotationUpdaterImpl implements UsedInClassAnnotationUp
 
     private Set<String> setOfUsedInClass;
 
-    private String classSeparator = ";";
+    private String classSeparator = ",";
 
     public UsedInClassAnnotationUpdaterImpl(){
         cvTopic2UsedInClass = new HashMap<String, String>();

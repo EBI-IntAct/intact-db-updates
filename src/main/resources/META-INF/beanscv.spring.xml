@@ -24,7 +24,7 @@
     <bean id="parentUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdaterImpl"/>
     <bean id="xrefUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdaterImpl"/>
     <bean id="usedInClassUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.UsedInClassAnnotationUpdaterImpl">
-        <property name="classSeparator" value=";"/>
+        <property name="classSeparator" value=","/>
     </bean>
 
     <bean id="aliasInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvAliasUpdaterImpl"/>
@@ -32,7 +32,7 @@
     <bean id="parentInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvParentUpdaterImpl"/>
     <bean id="xrefInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvXrefUpdaterImpl"/>
     <bean id="usedInClassInitializer" class="uk.ac.ebi.intact.dbupdate.cv.updater.UsedInClassAnnotationUpdaterImpl">
-        <property name="classSeparator" value=";"/>
+        <property name="classSeparator" value=","/>
     </bean>
 
     <bean id="cvUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl">
