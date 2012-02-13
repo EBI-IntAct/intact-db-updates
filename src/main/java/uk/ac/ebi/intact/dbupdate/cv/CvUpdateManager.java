@@ -392,7 +392,7 @@ public class CvUpdateManager {
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-        Query query = factory.getEntityManager().createQuery("select c.ac, c2.ac from CvDagObject c left join c.xrefs as x," +
+        Query query = factory.getEntityManager().createQuery("select distinct c.ac, c2.ac from CvDagObject c left join c.xrefs as x," +
                 " CvDagObject c2 left join c2.xrefs as x2 " +
                 "where c.ac <> c2.ac " +
                 "and c.objClass = c2.objClass " +
