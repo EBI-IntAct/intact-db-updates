@@ -28,6 +28,7 @@ public interface CvImporter {
     public Map<String, Class<? extends CvDagObject>> getClassMap();
     public Map<String, Set<CvDagObject>> getMissingRootParents();
     public CvUpdater getCvUpdater();
+    public boolean isFromAnotherClassCategory(IntactOntologyTermI term, IntactOntologyAccess access, Class<? extends CvDagObject> termClass);
 
     public void clear();
 

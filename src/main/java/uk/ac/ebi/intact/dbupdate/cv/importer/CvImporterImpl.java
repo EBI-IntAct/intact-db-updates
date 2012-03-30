@@ -199,23 +199,25 @@ public class CvImporterImpl implements CvImporter{
         }
     }
 
-    private boolean isFromAnotherClassCategory (String MI, Class<? extends CvDagObject> termClass){
+    /**
+     *
+     * @param term
+     * @param access
+     * @param termClass
+     * @return true if the term is from another class category, false otherwise
+     */
+    public boolean isFromAnotherClassCategory(IntactOntologyTermI term, IntactOntologyAccess access, Class<? extends CvDagObject> termClass){
        
-        if (MI != null && classMap.containsKey(MI)){
-            Class<? extends CvDagObject> classCategory = classMap.get(MI);
-            
-            if (!classCategory.getCanonicalName().equals(termClass.getCanonicalName())){
-                return true;
-            }
-        }
-        return false;
+        Set<Class<? extends CvDagObject>> existingCategories = findCvClassFor(term, access);
+
+        return !existingCategories.contains(termClass);
     }
     private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {
         IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         // we only create the child if it has not been loaded yet and it is not a root term and is not from another class
-        if (!loadedTerms.containsKey(child.getTermAccession()) && !rootTermsToExclude.contains(child.getTermAccession()) && !isFromAnotherClassCategory(child.getTermAccession(), termClass)){
+        if (!loadedTerms.containsKey(child.getTermAccession()) && !rootTermsToExclude.contains(child.getTermAccession()) && !isFromAnotherClassCategory(child, ontologyAccess, termClass)){
 
             List<CvDagObject> cvObjects = fetchIntactCv(child.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
 
@@ -355,7 +357,7 @@ public class CvImporterImpl implements CvImporter{
             // create parents or update them
             for (IntactOntologyTermI parent : parents){
                 // if the parent is not excluded from the import
-                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent.getTermAccession(), termClass)){
+                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent, ontologyAccess, termClass)){
 
                     // the parent was already processed, we just need to update the parent if it does not contain this child
                     // we can stop processing the parents as this term was already processed
@@ -453,7 +455,7 @@ public class CvImporterImpl implements CvImporter{
             for (IntactOntologyTermI parent : parents){
 
                 // we don't import root terms or cvs from other category
-                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent.getTermAccession(), termClass)){
+                if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent, ontologyAccess, termClass)){
 
                     // the term has already been loaded so we just update it and don't import the parents
                     if (this.loadedTerms.containsKey(parent.getTermAccession())){
