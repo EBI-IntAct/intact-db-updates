@@ -165,7 +165,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
 
         // one secondary protein
         Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
-        secondary.getBioSource().setTaxId("1423");
+        secondary.getBioSource().setTaxId("224308");
         getCorePersister().saveOrUpdate(secondary);
 
         Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
