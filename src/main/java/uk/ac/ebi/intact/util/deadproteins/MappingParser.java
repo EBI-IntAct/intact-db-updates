@@ -31,43 +31,47 @@ public class MappingParser {
         BufferedReader in = new BufferedReader( new FileReader( file ) );
         String line;
 
-        while ( ( line = in.readLine() ) != null ) {
-            // process line here
+        try{
+            while ( ( line = in.readLine() ) != null ) {
+                // process line here
 
-            // line 1 - UniProt ID
-            String identifier = line;
+                // line 1 - UniProt ID
+                String identifier = line;
 
-            // line 2..n - proposed remapping
-            while ( !( line = in.readLine() ).equals( "" ) ) {
-                // we haven't hit a blank line yet
-                String[] values = line.split( "\\t" );
+                // line 2..n - proposed remapping
+                while ( !( line = in.readLine() ).equals( "" ) ) {
+                    // we haven't hit a blank line yet
+                    String[] values = line.split( "\\t" );
 
-                String upi = values[0];
-                RemappingEntry entry = new RemappingEntry( identifier, upi );
+                    String upi = values[0];
+                    RemappingEntry entry = new RemappingEntry( identifier, upi );
 
-                String[] ids = values[1].split( "\\s" );// split on space
-                for ( int j = 0; j < ids.length; j++ ) {
-                    String id = ids[j].trim();
-                    entry.addIdentifier( id );
-                }
+                    String[] ids = values[1].split( "\\s" );// split on space
+                    for ( int j = 0; j < ids.length; j++ ) {
+                        String id = ids[j].trim();
+                        entry.addIdentifier( id );
+                    }
 
-                // keep the UPI without prefix
-                entry.setUpi( values[2].trim() );
+                    // keep the UPI without prefix
+                    entry.setUpi( values[2].trim() );
 
-                // sequence length
-                int sequenceLength = Integer.parseInt( values[3].trim() );
-                entry.setSequenceLength( sequenceLength );
+                    // sequence length
+                    int sequenceLength = Integer.parseInt( values[3].trim() );
+                    entry.setSequenceLength( sequenceLength );
 
-                if ( !remapping.containsKey( identifier ) ) {
-                    remapping.put( identifier, new ArrayList<RemappingEntry>( 4 ) );
-                }
-                Collection<RemappingEntry> entries = remapping.get( identifier );
-                entries.add( entry );
-            } // while mapping lines
+                    if ( !remapping.containsKey( identifier ) ) {
+                        remapping.put( identifier, new ArrayList<RemappingEntry>( 4 ) );
+                    }
+                    Collection<RemappingEntry> entries = remapping.get( identifier );
+                    entries.add( entry );
+                } // while mapping lines
 
-            // line n+1 - blank line => finish that entry and get ready for a potential next one.
-        } // while
-        in.close();
+                // line n+1 - blank line => finish that entry and get ready for a potential next one.
+            } // while
+        }
+        finally{
+            in.close();
+        }
 
         return remapping;
     }

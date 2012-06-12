@@ -58,14 +58,17 @@ public class SelectionProteinUpdate {
             File inputFile = new File(fileInputName);
             BufferedReader reader = new BufferedReader(new FileReader(inputFile));
 
-            String line = reader.readLine();
+            try{
+                String line = reader.readLine();
 
-            while (line != null){
-                proteinAcs.add(line);
-                line = reader.readLine();
+                while (line != null){
+                    proteinAcs.add(line);
+                    line = reader.readLine();
+                }
             }
-
-            reader.close();
+            finally {
+                reader.close();
+            }
 
             config.setReportHandler(new FileReportHandler(new File(filename)));
 

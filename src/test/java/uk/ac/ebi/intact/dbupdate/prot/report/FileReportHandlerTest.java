@@ -443,11 +443,15 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         int count = 0;
         try {
             BufferedReader in = new BufferedReader(new FileReader(file));
-            String str;
-            while ((str = in.readLine()) != null) {
-                count++;
+            try{
+                String str;
+                while ((str = in.readLine()) != null) {
+                    count++;
+                }
             }
-            in.close();
+            finally{
+                in.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

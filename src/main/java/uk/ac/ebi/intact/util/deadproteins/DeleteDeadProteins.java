@@ -301,18 +301,21 @@ public class DeleteDeadProteins {
         Collection<String> ids = new ArrayList<String>();
 
         BufferedReader in = new BufferedReader( new FileReader( proteinFile ) );
-        String line;
-        while ( ( line = in.readLine() ) != null ) {
-            // process line here
-            line = line.trim();
-            if ( line.length() == 0 || line.startsWith( "#" ) ) {
-                continue;
+        try {
+            String line;
+            while ( ( line = in.readLine() ) != null ) {
+                // process line here
+                line = line.trim();
+                if ( line.length() == 0 || line.startsWith( "#" ) ) {
+                    continue;
+                }
+
+                ids.add( line );
             }
-
-            ids.add( line );
         }
-        in.close();
-
+        finally {
+            in.close();
+        }
         return ids;
     }
 
