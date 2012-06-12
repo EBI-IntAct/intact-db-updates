@@ -156,10 +156,15 @@ public class BioSourceUpdater {
 
         try {
             BufferedWriter out = new BufferedWriter( new FileWriter( "biosource_upated.tsv" ) );
-            out.write( sb.toString() );
-            out.flush();
-            out.close();
-            System.out.println( "Saved audit file" );
+            try{
+                out.write( sb.toString() );
+                out.flush();
+                System.out.println( "Saved audit file" );
+            }
+            finally {
+                out.close();
+            }
+
         } catch ( IOException e ) {
         }
 
