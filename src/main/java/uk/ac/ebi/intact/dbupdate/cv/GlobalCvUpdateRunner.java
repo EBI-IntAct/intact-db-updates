@@ -8,6 +8,7 @@ import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
 import uk.ac.ebi.intact.model.CvDagObject;
 
 import java.io.IOException;
@@ -49,6 +50,15 @@ public class GlobalCvUpdateRunner {
 
         log.info("Update all existing terms for PSI-MOD ontology");
         updateAllTerms("MOD");
+
+        ReportWriterListener [] writers = cvUpdateManager.getListeners().getListeners(ReportWriterListener.class);
+        for (ReportWriterListener writer : writers){
+            try {
+                writer.close();
+            } catch (IOException e) {
+                log.error("Impossible to close writer listeners", e);
+            }
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import uk.ac.ebi.intact.model.CvObjectXref;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collection;
 
 /**
@@ -24,12 +25,12 @@ import java.util.Collection;
 
 public class ReportWriterListener implements CvUpdateListener{
 
-    private FileWriter obsoleteRemappedWriter;
-    private FileWriter obsoleteImpossibleToRemapWriter;
-    private FileWriter updatedCvWriter;
-    private FileWriter createdCvWriter;
-    private FileWriter updateErrorWriter;
-    private FileWriter deletedCvWriter;
+    private Writer obsoleteRemappedWriter;
+    private Writer obsoleteImpossibleToRemapWriter;
+    private Writer updatedCvWriter;
+    private Writer createdCvWriter;
+    private Writer updateErrorWriter;
+    private Writer deletedCvWriter;
 
     private static final Log log = LogFactory.getLog(ReportWriterListener.class);
 
@@ -81,7 +82,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onObsoleteRemappedTerm(ObsoleteRemappedEvent evt) {
         try {
-            FileWriter writer = obsoleteRemappedWriter;
+            Writer writer = obsoleteRemappedWriter;
 
             if (!isObsoleteRemappedTermStarted){
                 writeHeader(writer, "Old term", "New term", "Old Intact Ac", "Merged Intact Ac", "Number of updates", "message");
@@ -106,7 +107,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onObsoleteTermImpossibleToRemap(ObsoleteTermImpossibleToRemapEvent evt) {
         try {
-            FileWriter writer = obsoleteImpossibleToRemapWriter;
+            Writer writer = obsoleteImpossibleToRemapWriter;
 
             if (!isObsoleteTermImpossibleToRemapStarted){
                 writeHeader(writer, "Obsolete Id", "Intact Ac", "Intact shortLabel", "Message", "Possible terms to remap to");
@@ -132,7 +133,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onUpdatedCvTerm(UpdatedEvent evt) {
         try {
-            FileWriter writer = updatedCvWriter;
+            Writer writer = updatedCvWriter;
 
             if (!isUpdatedCvTermStarted){
                 writeHeader(writer, "Term accession", "Intact Ac", "Updated shortLabel", "Updated fullName", "Identifier updated",
@@ -308,7 +309,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onCreatedCvTerm(CreatedTermEvent evt) {
         try {
-            FileWriter writer = createdCvWriter;
+            Writer writer = createdCvWriter;
 
             if (!isCreatedCvTermStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Message", "Is Hidden");
@@ -332,7 +333,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onUpdateError(UpdateErrorEvent evt) {
         try {
-            FileWriter writer = updateErrorWriter;
+            Writer writer = updateErrorWriter;
 
             if (!isUpdateErrorStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Error type", "Error Message");
@@ -359,7 +360,7 @@ public class ReportWriterListener implements CvUpdateListener{
     @Override
     public void onDeletedCvTerm(DeletedTermEvent evt) {
         try {
-            FileWriter writer = deletedCvWriter;
+            Writer writer = deletedCvWriter;
 
             if (!isDeletedCvStarted){
                 writeHeader(writer, "Term Id", "Intact Ac", "Intact shortLabel", "Message");
@@ -379,12 +380,12 @@ public class ReportWriterListener implements CvUpdateListener{
         }
     }
 
-    public void writeHeader(FileWriter writer, String ... colHeaderTexts) throws IOException {
+    public void writeHeader(Writer writer, String ... colHeaderTexts) throws IOException {
         writer.write(HEADER_CHAR);
         writeColumnValues(writer, colHeaderTexts);
     }
 
-    public void writeColumnValues(FileWriter writer, String ... colValues) throws IOException {
+    public void writeColumnValues(Writer writer, String ... colValues) throws IOException {
 
         StringBuilder sb = new StringBuilder();
 

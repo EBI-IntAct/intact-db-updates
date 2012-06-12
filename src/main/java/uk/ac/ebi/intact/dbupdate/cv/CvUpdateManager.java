@@ -77,9 +77,14 @@ public class CvUpdateManager {
 
         InputStream ontology = ontologyConfigPath.openStream();
 
-        intactOntologyManager = new IntactOntologyManager(ontology);
+        try{
+            intactOntologyManager = new IntactOntologyManager(ontology);
 
-        updateContext = new CvUpdateContext(this);
+            updateContext = new CvUpdateContext(this);
+        }
+        finally {
+            ontology.close();
+        }
     }
 
     public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName) throws IOException, OntologyLoaderException {
@@ -92,19 +97,29 @@ public class CvUpdateManager {
 
         InputStream ontology = ontologyConfigPath.openStream();
 
-        reportDirectory = new File(reportDirectoryName);
-        registerBasicListeners(reportDirectory);
+        try{
+            reportDirectory = new File(reportDirectoryName);
+            registerBasicListeners(reportDirectory);
 
-        intactOntologyManager = new IntactOntologyManager(ontology);
-        updateContext = new CvUpdateContext(this);
+            intactOntologyManager = new IntactOntologyManager(ontology);
+            updateContext = new CvUpdateContext(this);
+        }
+        finally {
+            ontology.close();
+        }
     }
 
     public CvUpdateManager() throws IOException, OntologyLoaderException {
 
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
 
-        intactOntologyManager = new IntactOntologyManager(ontology);
-        updateContext = new CvUpdateContext(this);
+        try{
+            intactOntologyManager = new IntactOntologyManager(ontology);
+            updateContext = new CvUpdateContext(this);
+        }
+        finally {
+            ontology.close();
+        }
     }
 
     public CvUpdateManager(URL ontologyConfigPath, String reportDirectoryName, CvUpdater cvUpdater, CvImporter cvImporter, ObsoleteCvRemapper cvRemapper) throws IOException, OntologyLoaderException {
@@ -117,29 +132,39 @@ public class CvUpdateManager {
 
         InputStream ontology = ontologyConfigPath.openStream();
 
-        reportDirectory = new File(reportDirectoryName);
-        registerBasicListeners(reportDirectory);
+        try{
+            reportDirectory = new File(reportDirectoryName);
+            registerBasicListeners(reportDirectory);
 
-        intactOntologyManager = new IntactOntologyManager(ontology);
+            intactOntologyManager = new IntactOntologyManager(ontology);
 
-        this.cvUpdater = cvUpdater;
-        this.cvImporter = cvImporter;
-        this.cvRemapper = cvRemapper;
+            this.cvUpdater = cvUpdater;
+            this.cvImporter = cvImporter;
+            this.cvRemapper = cvRemapper;
 
-        updateContext = new CvUpdateContext(this);
+            updateContext = new CvUpdateContext(this);
+        }
+        finally {
+            ontology.close();
+        }
     }
 
     public CvUpdateManager(CvUpdater cvUpdater, CvImporter cvImporter, ObsoleteCvRemapper cvRemapper) throws IOException, OntologyLoaderException {
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
 
-        intactOntologyManager = new IntactOntologyManager(ontology);
+        try{
+            intactOntologyManager = new IntactOntologyManager(ontology);
 
-        this.cvUpdater = cvUpdater;
-        this.cvImporter = cvImporter;
+            this.cvUpdater = cvUpdater;
+            this.cvImporter = cvImporter;
 
-        this.cvRemapper = cvRemapper;
+            this.cvRemapper = cvRemapper;
 
-        updateContext = new CvUpdateContext(this);
+            updateContext = new CvUpdateContext(this);
+        }
+        finally{
+            ontology.close();
+        }
     }
 
     /**
