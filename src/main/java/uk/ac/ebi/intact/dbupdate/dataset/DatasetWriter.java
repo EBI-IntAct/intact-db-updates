@@ -15,10 +15,7 @@ import uk.ac.ebi.intact.model.Experiment;
 import uk.ac.ebi.intact.model.Publication;
 
 import javax.persistence.Query;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -318,17 +315,20 @@ public class DatasetWriter {
     private void writeDatasetReport(int numberOfProteinSelected, int totalNumberOfExperiments) throws IOException {
         if (isFileWriterEnabled){
             // create the file where to write the report
-            Writer writer = new FileWriter(report);
+            Writer writer = new BufferedWriter(new FileWriter(report));
 
-            writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
+            try{
+                writer.write(numberOfProteinSelected + " proteins have been selected for the dataset '" + this.selector.getDatasetValueToAdd() + "' \n \n");
 
-            writer.write("\nThe dataset '" + this.selector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n \n");
+                writer.write("\nThe dataset '" + this.selector.getDatasetValueToAdd() + "' has been added to a total of " + totalNumberOfExperiments + " experiments. \n \n");
 
-            for (String p : this.listOfpublicationUpdated){
-                writer.write(p + "\n \n");
+                for (String p : this.listOfpublicationUpdated){
+                    writer.write(p + "\n \n");
+                }
             }
-
-            writer.close();
+            finally{
+                writer.close();
+            }
         }
     }
 

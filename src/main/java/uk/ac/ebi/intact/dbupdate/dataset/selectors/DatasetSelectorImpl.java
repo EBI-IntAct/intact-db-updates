@@ -269,11 +269,20 @@ public abstract class DatasetSelectorImpl implements DatasetSelector {
                             "identifier of this type of data (for instance dataset has a MI number MI:0875, gene name has a MI number MI:0301)");
                 }
             }
-            in.close();
         } catch (FileNotFoundException e) {
             throw new DatasetException("The file " + file.getAbsolutePath() + " has not been found.", e);
         } catch (IOException e) {
             throw new DatasetException("The file " + file.getAbsolutePath() + " couldn't be read.", e);
+        }
+        finally {
+            if (in != null){
+                try{
+                    in.close();
+                }
+                catch (IOException e) {
+                    throw new DatasetException("The file " + file.getAbsolutePath() + " couldn't be closed.", e);
+                }
+            }
         }
     }
 
