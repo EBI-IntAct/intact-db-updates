@@ -30,6 +30,7 @@ import uk.ac.ebi.intact.dbupdate.prot.listener.LoggingProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.SequenceChangedListener;
+import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -98,6 +99,9 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
 
     public void initDefaultActionsAndListeners(){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+        // uses a filter in cross references
+        config.getUniprotService().setCrossReferenceSelector(new IntactCrossReferenceFilter());
 
         this.proteinDeleter = new ProteinDeleterImpl();
         this.proteinMappingManager = new UniprotProteinMapperImpl(config.getUniprotService());
