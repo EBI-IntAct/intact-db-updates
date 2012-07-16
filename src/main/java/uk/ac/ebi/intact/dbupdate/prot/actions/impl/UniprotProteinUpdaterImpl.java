@@ -408,10 +408,17 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
         if (organism1 == null) {
             if (log.isWarnEnabled()) log.warn("Protein protein does not contain biosource. It will be assigned the Biosource from uniprot: "+organism.getName()+" ("+organism.getTaxid()+")");
-            organism1 = new BioSource(protein.getOwner(), organism.getName().toLowerCase(), String.valueOf(t2));
-            protein.setBioSource(organism1);
+            try {
+                organism1 = bioSourceService.getBiosourceByTaxid(String.valueOf(t2));
+                protein.setBioSource(organism1);
 
-            context.getDaoFactory().getBioSourceDao().saveOrUpdate(organism1);
+                context.getDaoFactory().getBioSourceDao().saveOrUpdate(organism1);
+            } catch (BioSourceServiceException e) {
+                ProteinUpdateError organismConflict = errorFactory.createFatalUpdateError(protein.getAc(), uniprotAc, e);
+                processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, organismConflict, protein, uniprotAc));
+
+                return false;
+            }
         }
 
         if ( organism1 != null && !String.valueOf( t2 ).equals( organism1.getTaxId() ) ) {
