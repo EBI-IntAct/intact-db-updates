@@ -412,7 +412,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 organism1 = bioSourceService.getBiosourceByTaxid(String.valueOf(t2));
                 protein.setBioSource(organism1);
 
-                context.getDaoFactory().getBioSourceDao().saveOrUpdate(organism1);
+                if (organism1.getAc() == null){
+                    context.getDaoFactory().getBioSourceDao().persist(organism1);
+                }
             } catch (BioSourceServiceException e) {
                 ProteinUpdateError organismConflict = errorFactory.createFatalUpdateError(protein.getAc(), uniprotAc, e);
                 processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, context, organismConflict, protein, uniprotAc));
