@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
@@ -22,6 +23,7 @@ import java.util.List;
 public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void search_all() throws Exception {
         final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
         Assert.assertEquals( 0, picrReportDao.countAll() );
@@ -34,6 +36,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void search_PICRReport_ByResultId_successful() throws Exception {
         final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
@@ -57,6 +60,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void search_PICRReport_ByResultId_Unsuccessful() throws Exception {
         final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
