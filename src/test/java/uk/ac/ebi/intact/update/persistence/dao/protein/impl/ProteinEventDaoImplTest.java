@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.events.DeadProteinEvent;
 import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
@@ -23,6 +24,7 @@ import java.util.Date;
 public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
 
     @Test
+    @DirtiesContext
     public void create_protein_event(){
         ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
@@ -36,6 +38,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void updated_protein_event(){
         ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
@@ -62,6 +65,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void delete_protein_event(){
         UniprotUpdateEventDao eventDao = getUpdateDaoFactory().getUniprotUpdateEventDao();
 
@@ -75,6 +79,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_protein_event_by_name_and_protein_ac(){
         ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
@@ -90,6 +95,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_protein_event_by_update_event(){
         ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
 
@@ -109,6 +115,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_protein_event_by_update_event_and_event_name(){
         ProteinEventDao<UniprotUpdateEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(UniprotUpdateEvent.class);
 
@@ -135,6 +142,7 @@ public class ProteinEventDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_protein_event_by_update_event_and_event_name_before_after_date(){
         ProteinEventDao<PersistentProteinEvent> eventDao = getUpdateDaoFactory().getProteinEventDao(PersistentProteinEvent.class);
 

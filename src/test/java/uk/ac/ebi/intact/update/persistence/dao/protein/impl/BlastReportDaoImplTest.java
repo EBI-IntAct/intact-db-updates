@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
@@ -21,6 +22,7 @@ import java.util.List;
 public class BlastReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void search_all() throws Exception {
         final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         Assert.assertEquals( 0, blastReportDao.countAll() );
@@ -33,6 +35,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void search_BlastReport_ByResultId_successful() throws Exception {
         final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
@@ -58,6 +61,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void search_BlastReport_ByResultId_Unsuccessful() throws Exception {
         final BlastReportDao blastReportDao = getUpdateDaoFactory().getBlastReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
@@ -77,6 +81,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void test_GetSwissprotRemappingReportByResultId_successful() throws Exception {
         final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );
@@ -99,6 +104,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void test_GetSwissprotRemappingReportByResultId_unsuccessful() throws Exception {
         final IdentificationResultsDao updateResultDao = getUpdateDaoFactory().getUpdateResultsDao();
         Assert.assertEquals( 0, updateResultDao.countAll() );

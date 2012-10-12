@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.PersistentProteinEvent;
@@ -24,6 +25,7 @@ import java.util.Date;
 public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void create_update_process(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -34,6 +36,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void update_date_process(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -57,6 +60,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void update_event_process(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -78,6 +82,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void update_range_process(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -103,6 +108,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void delete_update_process(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -132,6 +138,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_by_date(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 
@@ -149,6 +156,7 @@ public class ProteinUpdateProcessDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_before_after_date(){
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
 

@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
@@ -23,6 +24,7 @@ import java.util.List;
 public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void save_all_invalids(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
@@ -36,6 +38,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void delete_all_invalids(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
@@ -49,6 +52,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_all_invalids(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
@@ -60,6 +64,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_all_out_of_date(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
 
@@ -71,6 +76,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_invalid_ranges_using_processId(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();
@@ -110,6 +116,7 @@ public class InvalidRangeDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void get_invalid_ranges_using_date(){
         InvalidRangeDao invalidRangeDao = getUpdateDaoFactory().getInvalidRangeDao();
         ProteinUpdateProcessDao processDao = getUpdateDaoFactory().getProteinUpdateProcessDao();

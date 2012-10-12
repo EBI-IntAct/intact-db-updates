@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.errors.DeadUniprotAc;
@@ -21,6 +22,7 @@ import uk.ac.ebi.intact.update.persistence.dao.protein.ProteinUpdateErrorDao;
 public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
 
     @Test
+    @DirtiesContext
     public void create_protein_error(){
         ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
 
@@ -36,6 +38,7 @@ public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void updated_error_event(){
         ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
 
@@ -57,6 +60,7 @@ public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void delete_error_event(){
         ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
 
@@ -71,6 +75,7 @@ public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
     }
 
     @Test
+    @DirtiesContext
     public void search_error_event_by_label(){
         ProteinUpdateErrorDao<DefaultPersistentUpdateError> errorDao = getUpdateDaoFactory().getProteinUpdateErrorDao(DefaultPersistentUpdateError.class);
 

@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
@@ -22,6 +23,7 @@ import java.util.Date;
 public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
 
     @Test
+    @DirtiesContext
     public void create_updated_range(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -36,6 +38,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void delete_updated_range(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -50,6 +53,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_by_rangeAc_component_Ac(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -67,6 +71,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_by_processId_Date(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -97,6 +102,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_by_rangeAc_component_Ac_process_id_and_date(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
@@ -123,6 +129,7 @@ public class UpdatedRangeDaoImplTest extends UpdateBasicTestCase{
     }
 
     @Test
+    @DirtiesContext
     public void search_by_rangeAc_component_Ac_process_date(){
         UpdatedRangeDao<PersistentUpdatedRange> updatedRangeDao = getUpdateDaoFactory().getUpdatedRangeDao(PersistentUpdatedRange.class);
 
