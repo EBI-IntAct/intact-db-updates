@@ -89,7 +89,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                     // we have a db match
                     if (topicComparator == 0) {
 
-                        int acComparator = currentIntact.getAnnotationText().compareTo(currentOntologyRef.getDescription());
+                        int acComparator = currentOntologyRef.getDescription().compareTo(currentIntact.getAnnotationText());
 
                         // we have a primary id match
                         if (acComparator == 0) {
