@@ -704,6 +704,34 @@ public class CvUpdateManager {
         if (rootTermsToExclude == null){
             rootTermsToExclude = new HashSet<String>();
             rootTermsToExclude.add("MI:0000");
+
+            // exclude cooperative interactions
+            rootTermsToExclude.add("MI:1149");
+            rootTermsToExclude.add("MI:1150");
+            rootTermsToExclude.add("MI:1160");
+            rootTermsToExclude.add("MI:1164");
+            rootTermsToExclude.add("MI:1166");
+            rootTermsToExclude.add("MI:1165");
+            rootTermsToExclude.add("MI:1159");
+            rootTermsToExclude.add("MI:1175");
+            rootTermsToExclude.add("MI:1161");
+            rootTermsToExclude.add("MI:1162");
+            rootTermsToExclude.add("MI:1163");
+            rootTermsToExclude.add("MI:1167");
+            rootTermsToExclude.add("MI:1168");
+            rootTermsToExclude.add("MI:1169");
+            rootTermsToExclude.add("MI:1153");
+            rootTermsToExclude.add("MI:1155");
+            rootTermsToExclude.add("MI:1154");
+            rootTermsToExclude.add("MI:1152");
+            rootTermsToExclude.add("MI:1156");
+            rootTermsToExclude.add("MI:1157");
+            rootTermsToExclude.add("MI:1158");
+            rootTermsToExclude.add("MI:1170");
+            rootTermsToExclude.add("MI:1172");
+            rootTermsToExclude.add("MI:1173");
+            rootTermsToExclude.add("MI:1171");
+            rootTermsToExclude.add("MI:1174");
         }
 
         return rootTermsToExclude;
