@@ -299,7 +299,9 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         hasFoundDefinition = true;
 
                         // we update existing definition
-                        if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                        if ((ontologyTerm.getDefinition() != null && currentIntact.getAnnotationText() != null && !ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText()))
+                                || (ontologyTerm.getDefinition() == null && currentIntact.getAnnotationText() != null) ||
+                                (ontologyTerm.getDefinition() != null && currentIntact.getAnnotationText() == null)){
                             currentIntact.setAnnotationText(ontologyTerm.getDefinition());
 
                             if (updateEvt != null){
