@@ -85,6 +85,8 @@ public class CvImporterImpl implements CvImporter{
 
         classMap.put( "MI:0954", CvTopic.class );
 
+        classMap.put( "MI:1064", CvConfidenceType.class );
+
         classMap.put( "MOD:00000", CvFeatureType.class );
     }
 
