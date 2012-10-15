@@ -49,6 +49,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     ProteinProcessor processor;
 
     @Before
+    @Transactional(propagation = Propagation.NEVER)
     public void before() throws Exception {
         TransactionStatus status = getDataContext().beginTransaction();
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
