@@ -70,7 +70,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
-    public void simulation() throws Exception {
+    public void simulation1() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
 
@@ -409,6 +409,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             }
         }
 
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation2() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
+
         // 2 deleted proteins : one duplicate and one without any interactions
         DeletedProteinEventDao deletedProteinDao = updateFactory.getDeletedProteinEventDao();
         List<DeletedProteinEvent> deletedEvents = deletedProteinDao.getAll();
@@ -431,6 +723,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
             }
         }
 
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation3() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
+
         // 1 created protein because one transcript without parents
         CreatedProteinEventDao createdProteinEvent = updateFactory.getCreatedProteinEventDao();
         List<CreatedProteinEvent> createdEvents = createdProteinEvent.getAll();
@@ -440,6 +1024,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         CreatedProteinEvent evt = createdEvents.iterator().next();
         Assert.assertEquals("P18459", evt.getUniprotAc());
         Assert.assertEquals("No Intact master protein existed (or was valid) for the uniprot ac P18459", evt.getMessage());
+
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation4() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
 
         // 6 updated proteins : simple_protein, transcript without parent and its parent, secondary protein, one protein with a splice variant which doesn't exist in uniprot and duplicated prot
         UniprotUpdateEventDao updateEventDao = updateFactory.getUniprotUpdateEventDao();
@@ -506,6 +1382,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
         // 2 annotations added to the same feature for invalid range
         Assert.assertEquals(2, updateFactory.getUpdatedAnnotationDao(FeatureUpdatedAnnotation.class).countAll());
 
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation5() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
+
         // 2 dead proteins : one dead master protein and one non existing splice variant
         DeadProteinEventDao deadProteinDao = updateFactory.getDeadProteinEventDao();
         List<DeadProteinEvent> deadEvents = deadProteinDao.getAll();
@@ -528,6 +1696,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
                 Assert.assertFalse(true);
             }
         }
+
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation6() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
 
         // 2 out of date participants : secondary protein with invalid range and one of the duplicated protein having an out of date range
         OutOfDateParticipantEventDao outOfDatePartDao = updateFactory.getOutOfDateParticipantEventDao();
@@ -595,6 +2055,298 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
                 Assert.assertFalse(true);
             }
         }
+
+        IntactUpdateContext.getCurrentInstance().commitTransaction(status3);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    @DirtiesContext
+    public void simulation7() throws Exception {
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        final File dir = new File("target/simulation");
+        UpdateReportHandler reportHandler = new FileReportHandler(dir);
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setReportHandler(reportHandler);
+        config.setGlobalProteinUpdate(true);
+
+        // create the proper persistent factories
+        config.setProteinMappingReportFactory(new PersistentReportsFactory());
+        config.setProteinMappingResultsFactory(new PersistentResultsFactory());
+        config.setErrorFactory(new PersistentUpdateErrorFactory());
+
+        getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
+        Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
+        simple.getBioSource().setTaxId("7227");
+        simple.setSequence("MAGNGEASWCFSQIKGALDDDVTDADIISCVEFNHDGELLATGDKGGRVVIFQRDPASKA" +
+                "ANPRRGEYNVYSTFQSHEPEFDYLKSLEIEEKINKIRWLQQKNPVHFLLSTNDKTVKLWK" +
+                "VSERDKSFGGYNTKEENGLIRDPQNVTALRVPSVKQIPLLVEASPRRTFANAHTYHINSI" +
+                "SVNSDQETFLSADDLRINLWHLEVVNQSYNIVDIKPTNMEELTEVITAAEFHPTECNVFV" +
+                "YSSSKGTIRLCDMRSAALCDRHSKQFEEPENPTNRSFFSEIISSISDVKLSNSGRYMISR" +
+                "DYLSIKVWDLHMETKPIETYPVHEYLRAKLCSLYENDCIFDKFECCWNGKDSSIMTGSYN" +
+                "NFFRVFDRNSKKDVTLEASRDIIKPKTVLKPRKVCTGGKRKKDEISVDCLDFNKKILHTA" +
+                "WHPEENIIAVAATNNLFIFQDKF") ;
+        getCorePersister().saveOrUpdate(simple);
+
+        // one protein no uniprot update with one interaction
+        Protein noUniProtUpdate = getMockBuilder().createProtein("P12342", "no_uniprot_update");
+        noUniProtUpdate.getXrefs().clear();
+        Annotation noUniprot = getMockBuilder().createAnnotation(null, null, CvTopic.NON_UNIPROT);
+        noUniProtUpdate.addAnnotation(noUniprot);
+        getCorePersister().saveOrUpdate(noUniProtUpdate);
+
+        Interaction interaction_1 = getMockBuilder().createInteraction(simple, noUniProtUpdate);
+        for (Component c : interaction_1.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_1);
+
+        // one protein without uniprot identity and with an interaction
+        Protein noUniProtIdentity = getMockBuilder().createProtein("P12341", "no_uniprot_identity");
+        InteractorXref identity = ProteinUtils.getUniprotXref(noUniProtIdentity);
+        noUniProtIdentity.removeXref(identity);
+        getCorePersister().saveOrUpdate(noUniProtIdentity);
+
+        Interaction interaction_2 = getMockBuilder().createInteraction(simple, noUniProtIdentity);
+        for (Component c : interaction_2.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_2);
+
+        // one protein with several uniprot identities and with an interaction
+        Protein severalUniProtIdentity = getMockBuilder().createProtein("P12343", "several_uniprot_identities");
+        InteractorXref identity2 = getMockBuilder().createXref(severalUniProtIdentity, "P12344",
+                getMockBuilder().createCvObject(CvXrefQualifier.class, CvXrefQualifier.IDENTITY_MI_REF, CvXrefQualifier.IDENTITY),
+                getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT));
+        severalUniProtIdentity.addXref(identity2);
+        getCorePersister().saveOrUpdate(severalUniProtIdentity);
+
+        Interaction interaction_3 = getMockBuilder().createInteraction(simple, severalUniProtIdentity);
+        for (Component c : interaction_3.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_3);
+
+        // one protein without any interactions
+        Protein noInteractions = getMockBuilder().createProtein("P12348", "no_interaction");
+        getCorePersister().saveOrUpdate(noInteractions);
+
+        // one dead protein with an interaction
+        Protein deadProtein = getMockBuilder().createProtein("Pxxxx", "dead_protein");
+        getCorePersister().saveOrUpdate(deadProtein);
+
+        Interaction interaction_4 = getMockBuilder().createInteraction(simple, deadProtein);
+        for (Component c : interaction_4.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_4);
+
+        // one intact transcript without parent with an interaction
+        Protein transcriptWithoutParent = getMockBuilder().createProtein("P18459-2", "isoform_no_parent");
+        transcriptWithoutParent.setBioSource(getMockBuilder().createBioSource(7227, "drome"));
+        getCorePersister().saveOrUpdate(transcriptWithoutParent);
+
+        Interaction interaction_5 = getMockBuilder().createInteraction(simple, transcriptWithoutParent);
+        for (Component c : interaction_5.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_5);
+
+        // one secondary protein
+        Protein secondary = getMockBuilder().createProtein("O34373", "secondary_protein");
+        secondary.getBioSource().setTaxId("224308");
+        getCorePersister().saveOrUpdate(secondary);
+
+        Interaction interaction_6 = getMockBuilder().createInteraction(simple, secondary);
+        for (Component c : interaction_6.getComponents()){
+            c.getBindingDomains().clear();
+        }
+
+        // add a range which is invalid
+        Feature feature4 = getMockBuilder().createFeatureRandom();
+        feature4.getRanges().clear();
+        Range range4 = getMockBuilder().createRange(11, 11, 8, 8);
+        feature4.addRange(range4);
+        secondary.getActiveInstances().iterator().next().addBindingDomain(feature4);
+
+        getCorePersister().saveOrUpdate(secondary, interaction_6);
+
+        // one protein with bad organism
+        Protein bad_organism = getMockBuilder().createProtein("P12349", "bad_organism");
+        bad_organism.getBioSource().setTaxId("9606");    // is 7244 in uniprot
+        getCorePersister().saveOrUpdate(bad_organism);
+
+        Interaction interaction_7 = getMockBuilder().createInteraction(simple, bad_organism);
+        for (Component c : interaction_7.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_7);
+
+        // one protein with a splice variant which doesn't exist in uniprot but contains one interaction
+        Protein parent = getMockBuilder().createProtein("P12350", "not_existing_splice_variant");
+        parent.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Protein isoform_no_uniprot = getMockBuilder().createProteinSpliceVariant(parent, "P12350-2", "not_existing_splice_variant");
+        isoform_no_uniprot.getBioSource().setTaxId("5938");
+        getCorePersister().saveOrUpdate(parent);
+
+        Interaction interaction_8 = getMockBuilder().createInteraction(simple, isoform_no_uniprot);
+        for (Component c : interaction_8.getComponents()){
+            c.getBindingDomains().clear();
+        }
+        getCorePersister().saveOrUpdate(interaction_8);
+
+        // duplicates
+
+        // dupe1 has an invalid range and will be deprecated
+        Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
+        dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+
+        CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
+        dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
+
+        IntactCloner cloner = new IntactCloner(true);
+        Protein dupe2 = cloner.clone(dupe1);
+        dupe2.setShortLabel("dupe2");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        for (Iterator<InteractorXref> xrefIter = dupe2.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12351");
+            } else if (CvDatabase.DIP_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xrefIter.remove();
+            }
+        }
+
+        // dupe2 will be kept as original but has the same interaction as dupe3
+        dupe2.setCreated(new Date(1)); // dupe2 is older
+        // no need to update the sequence
+        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+
+        // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
+        Protein dupe3 = cloner.clone(dupe2);
+        dupe3.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
+        dupe3.setShortLabel("dupe3");
+        dupe3.setCreated(dupe1.getCreated());
+
+        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
+            InteractorXref xref =  xrefIter.next();
+            if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
+                xref.setPrimaryId("P12352");
+            }
+        }
+
+        // no need to update the sequence
+        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+
+        getCorePersister().saveOrUpdate(dupe1);
+        getCorePersister().saveOrUpdate(dupe2);
+        getCorePersister().saveOrUpdate(dupe3);
+
+        String dupe1Ac = dupe1.getAc();
+
+        Interaction interaction1 = getMockBuilder().createInteraction(dupe1, simple);
+        Interaction interaction2 = getMockBuilder().createInteraction(dupe2, simple);
+        Interaction interaction4 = getMockBuilder().createInteraction(dupe3, simple);
+
+        for (Component c : dupe2.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range in the protein with up-to-date sequence (dupe2)
+        Feature feature = getMockBuilder().createFeatureRandom();
+        feature.getRanges().clear();
+        Range range = getMockBuilder().createRange(5, 5, 7, 7);
+        feature.addRange(range);
+        dupe2.getActiveInstances().iterator().next().addBindingDomain(feature);
+
+        for (Component c : dupe3.getActiveInstances()){
+            c.getBindingDomains().clear();
+        }
+        // add a range which will be shifted (dupe3)
+        Feature feature3 = getMockBuilder().createFeatureRandom();
+        feature3.getRanges().clear();
+        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        feature3.addRange(range3);
+        dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
+
+        // add a bad range in the protein with sequence to update (dupe1). Add another component which will be a duplicated component
+        Feature feature2 = getMockBuilder().createFeatureRandom();
+        feature2.getRanges().clear();
+        Range range2 = getMockBuilder().createRange(1, 1, 4, 4);
+        range2.setFullSequence("LALA");
+        feature2.addRange(range2);
+
+        for (Component c : dupe1.getActiveInstances()){
+            c.getBindingDomains().clear();
+
+            if (dupe1.getAc().equals(c.getInteractor().getAc())){
+                c.addFeature(feature2);
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction1, interaction2, interaction4);
+
+        // interaction with duplicated component
+        Interaction interaction3 = getMockBuilder().createInteraction(dupe2, simple, dupe3);
+        Component deletedComponent = null;
+        for (Component c : interaction3.getComponents()){
+            c.getBindingDomains().clear();
+
+            if (c.getInteractor().getAc().equals(dupe3.getAc())){
+                deletedComponent = c;
+            }
+        }
+
+        // persist the interactions
+        getCorePersister().saveOrUpdate(interaction3);
+
+        Assert.assertEquals(14, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(25, getDaoFactory().getComponentDao().countAll());
+
+        Assert.assertEquals(1, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
+        Protein dupe2Refreshed = getDaoFactory().getProteinDao().getByAc(dupe2.getAc());
+        InteractorXref uniprotXref = ProteinUtils.getIdentityXrefs(dupe2Refreshed).iterator().next();
+        uniprotXref.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref);
+
+        Protein dupe3Refreshed = getDaoFactory().getProteinDao().getByAc(dupe3.getAc());
+        InteractorXref uniprotXref2 = ProteinUtils.getIdentityXrefs(dupe3Refreshed).iterator().next();
+        uniprotXref2.setPrimaryId("P12345");
+        getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
+
+        Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+        getDataContext().commitTransaction(status);
+
+
+        // try the updater
+        ProteinUpdateProcessor protUpdateProcessor = new ProteinUpdateProcessor();
+        // add the persister listener
+        EventPersisterListener persisterListener = (EventPersisterListener) IntactUpdateContext.getCurrentInstance().getProteinPersisterListener();
+        persisterListener.createUpdateProcess();
+        protUpdateProcessor.addListener(persisterListener);
+        protUpdateProcessor.updateAll();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+        Assert.assertEquals(13, getDaoFactory().getProteinDao().countAll());
+        Assert.assertEquals(12, getDaoFactory().getInteractionDao().countAll());
+        Assert.assertEquals(24, getDaoFactory().getComponentDao().countAll());
+        Assert.assertNull(getDaoFactory().getProteinDao().getByAc(dupe3.getAc()));
+        getDataContext().commitTransaction(status2);
+
+        TransactionStatus status3 = IntactUpdateContext.getCurrentInstance().beginTransaction();
+        // checks what has been saved
+        UpdateDaoFactory updateFactory = IntactUpdateContext.getCurrentInstance().getUpdateFactory();
 
         // 1 secondary protein
         SecondaryProteinEventDao secondaryEvtDao = updateFactory.getSecondaryProteinEventDao();
