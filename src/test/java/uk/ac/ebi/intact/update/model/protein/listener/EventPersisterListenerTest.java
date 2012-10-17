@@ -1,9 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.listener;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
@@ -37,7 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Tester of eventPersisterListener
+ * Tester of eventPersisterListener (integration tests)
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -70,6 +67,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_out_of_date_participants() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -335,6 +333,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_update() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -501,6 +500,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_secondary_protein() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -583,6 +583,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_protein_without_parent() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -678,6 +679,7 @@ public class EventPersisterListenerTest extends IntactBasicTestCase{
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_organism_conflicts() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();

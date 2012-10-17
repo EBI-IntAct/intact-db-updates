@@ -1,9 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.listener;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
@@ -34,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * TODO comment this
+ * Integration tests
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -67,6 +64,7 @@ public class EventPersisterListener3Test extends IntactBasicTestCase {
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_same_sequence() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -150,6 +148,7 @@ public class EventPersisterListener3Test extends IntactBasicTestCase {
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_multiple_identities() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -242,6 +241,7 @@ public class EventPersisterListener3Test extends IntactBasicTestCase {
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_non_existing_protein_transcript() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -329,6 +329,7 @@ public class EventPersisterListener3Test extends IntactBasicTestCase {
     @Test
     @Transactional(propagation = Propagation.NEVER)
     @DirtiesContext
+    @Ignore
     public void simulation_dead_protein() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
