@@ -757,7 +757,7 @@ public class RangeChecker {
                     String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                     if (isABadRange2 != null){
-                        InvalidRange invalid = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus, true);
+                        InvalidRange invalid = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus, false);
                         invalidRanges.add(invalid);
                     }
                 }
@@ -810,7 +810,7 @@ public class RangeChecker {
                 String isABadRange2 = FeatureUtils.getBadRangeInfo(range, newSequence);
 
                 if (isABadRange2 != null){
-                    invalidRange = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus, true);
+                    invalidRange = new InvalidRange(range, null, newSequence, isABadRange2, fromStatus, toStatus, false);
                 }
             }
         }

@@ -303,8 +303,8 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("2..2-4..4", invalid.getNewRange());
-        Assert.assertEquals(newSequence, invalid.getSequence());
+        Assert.assertEquals("2..2-4..4", invalid.getNewRange().toString());
+        Assert.assertEquals(newSequence, invalid.getSequence().toString());
 
         getDataContext().commitTransaction(status);
     }
@@ -336,7 +336,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("4..4-6..6", invalid.getNewRange());
+        Assert.assertEquals("4..4-6..6", invalid.getNewRange().toString());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -369,7 +369,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("0..0-0..0", invalid.getNewRange());
+        Assert.assertEquals("0..0-0..0", invalid.getNewRange().toString());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -406,7 +406,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("0..0-1..1", invalid.getNewRange());
+        Assert.assertEquals("0..0-1..1", invalid.getNewRange().toString());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -473,7 +473,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("6..6-0..0", invalid.getNewRange());
+        Assert.assertEquals("6..6-0..0", invalid.getNewRange().toString());
         Assert.assertEquals(newSequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
@@ -531,7 +531,7 @@ public class RangeCheckerTest2 extends IntactBasicTestCase {
 
         InvalidRange invalid = invalidRanges.iterator().next();
         Assert.assertEquals(range.getAc(), invalid.getRangeAc());
-        Assert.assertEquals("7..7-10..10", invalid.getNewRange());
+        Assert.assertEquals("7..7-10..10", invalid.getNewRange().toString());
         Assert.assertEquals(true_sequence, invalid.getSequence());
 
         getDataContext().commitTransaction(status);
