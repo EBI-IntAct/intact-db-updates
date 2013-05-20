@@ -7,7 +7,6 @@
         <version>2.1.4-SNAPSHOT</version>
     </parent>
 
-    <groupId>uk.ac.ebi.intact.dbupdate</groupId>
     <artifactId>intact-update-model</artifactId>
     <version>2.1.4-SNAPSHOT</version>
 
@@ -16,7 +15,6 @@
 
     <properties>
         <maven.pmd.skip>true</maven.pmd.skip>
-        <spring.version>3.1.2.RELEASE</spring.version>
     </properties>
 
     <build>
@@ -64,7 +62,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.bridges</groupId>
             <artifactId>ncbi-blast</artifactId>
-            <version>2.1.7-SNAPSHOT</version>
+            <version>${bridges.version}</version>
         </dependency>
 
         <dependency>
@@ -74,6 +72,7 @@
         </dependency>
 
         <!--spring-->
+        <!-- not modify -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
