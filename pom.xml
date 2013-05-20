@@ -12,8 +12,6 @@
 
     <name>IntAct Database Update :: BioSource Update</name>
 
-    
-                  
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.intact.core</groupId>
