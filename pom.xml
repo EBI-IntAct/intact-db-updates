@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>dbupdate-master</artifactId>
+        <groupId>uk.ac.ebi.intact.dbupdate</groupId>
+        <version>2.1.5-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>intact-bioactiveentities-update</artifactId>
+    <version>2.1.5-SNAPSHOT</version>
+    <name>IntAct Database Update :: BioActiveEntity Update</name>
+
+    <scm>
+        <connection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk/intact-bioactiveentities-update</connection>
+        <developerConnection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk/intact-bioactiveentities-update</developerConnection>
+        <url>http://code.google.com/p/intact/source/browse/repo/dbupdate/trunk/intact-bioactiveentities-update</url>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>uk.ac.ebi.intact.core</groupId>
+            <artifactId>intact-core</artifactId>
+        </dependency>
+
+        <!--Chebi webservice -->
+        <dependency>
+            <groupId>uk.ac.ebi.chebi.webapps.chebiWS.client</groupId>
+            <artifactId>chebiWS-client</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+    </dependencies>
+
+    <repositories>
+
+        <repository>
+            <id>intact.nexus</id>
+            <name>IntAct Nexus</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
+        </repository>
+
+    </repositories>
+</project>
