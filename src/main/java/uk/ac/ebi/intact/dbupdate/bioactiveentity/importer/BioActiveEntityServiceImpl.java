@@ -12,7 +12,6 @@ import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -80,46 +79,46 @@ public class BioActiveEntityServiceImpl implements BioActiveEntityService {
     }
 
 
-    @Override
-    public List<SmallMolecule> getBioEntityByChebiIdList(List<String> chebiIds) throws BioActiveEntityServiceException {
-
-        List<SmallMolecule> bioActiveEntities = null;
-        List<Entity> entities = null;
-
-        if (chebiIds == null || chebiIds.isEmpty()) {
-            throw new BioActiveEntityServiceException("The ChEBI Id can not be null or empty");
-        }
-
-        List<List<String>> parts = BioActiveEntityUtils.splitter(chebiIds, MAX_SIZE_CHEBI_IDS);
-        bioActiveEntities = new ArrayList<SmallMolecule>();
-
-        for (List<String> part : parts) {
-            try {
-                //If we have the same Id in the list, we will have only one Entity
-                entities = chebiClient.getCompleteEntityByList(part);
-
-                if (entities == null || entities.isEmpty()) {
-                    throw new BioActiveEntityServiceException("Unknown ChEBI Web Service Fault with the IDs: "
-                            + chebiIds + " the molecules can not be retrieve");
-                }
-
-                for (Entity entity : entities) {
-                    SmallMolecule smallMolecule = processEntity(entity);
-                    if(!bioActiveEntities.contains(smallMolecule)){
-                        bioActiveEntities.add(smallMolecule);
-                    }
-                }
-
-            } catch (ChebiWebServiceFault_Exception e) {
-                throw new BioActiveEntityServiceException("Unknown ChEBI Web Service Fault with the IDs: " + chebiIds
-                        + ". Error message: "
-                        + e.getFaultInfo().getMessage(), e);
-            }
-            entities.clear();
-        }
-
-        return bioActiveEntities;
-    }
+//    @Override
+//    public List<SmallMolecule> getBioEntityByChebiIdList(List<String> chebiIds) throws BioActiveEntityServiceException {
+//
+//        List<SmallMolecule> bioActiveEntities = null;
+//        List<Entity> entities = null;
+//
+//        if (chebiIds == null || chebiIds.isEmpty()) {
+//            throw new BioActiveEntityServiceException("The ChEBI Id can not be null or empty");
+//        }
+//
+//        List<List<String>> parts = BioActiveEntityUtils.splitter(chebiIds, MAX_SIZE_CHEBI_IDS);
+//        bioActiveEntities = new ArrayList<SmallMolecule>();
+//
+//        for (List<String> part : parts) {
+//            try {
+//                //If we have the same Id in the list, we will have only one Entity
+//                entities = chebiClient.getCompleteEntityByList(part);
+//
+//                if (entities == null || entities.isEmpty()) {
+//                    throw new BioActiveEntityServiceException("Unknown ChEBI Web Service Fault with the IDs: "
+//                            + chebiIds + " the molecules can not be retrieve");
+//                }
+//
+//                for (Entity entity : entities) {
+//                    SmallMolecule smallMolecule = processEntity(entity);
+//                    if(!bioActiveEntities.contains(smallMolecule)){
+//                        bioActiveEntities.add(smallMolecule);
+//                    }
+//                }
+//
+//            } catch (ChebiWebServiceFault_Exception e) {
+//                throw new BioActiveEntityServiceException("Unknown ChEBI Web Service Fault with the IDs: " + chebiIds
+//                        + ". Error message: "
+//                        + e.getFaultInfo().getMessage(), e);
+//            }
+//            entities.clear();
+//        }
+//
+//        return bioActiveEntities;
+//    }
 
     private SmallMolecule processEntity(Entity entity) {
 
