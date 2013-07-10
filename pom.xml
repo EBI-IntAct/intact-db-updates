@@ -4,11 +4,11 @@
     <parent>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
         <artifactId>dbupdate-master</artifactId>
-        <version>2.1.5-SNAPSHOT</version>
+        <version>2.1.5</version>
     </parent>
 
     <artifactId>intact-biosource-update</artifactId>
-    <version>2.1.5-SNAPSHOT</version>
+    <version>2.1.5</version>
 
     <name>IntAct Database Update :: BioSource Update</name>
 
