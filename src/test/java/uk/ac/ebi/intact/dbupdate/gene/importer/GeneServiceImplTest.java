@@ -33,8 +33,12 @@ public class GeneServiceImplTest {
     @Test
     public void testGetGeneByEnsemblIdInSwissprot() throws Exception {
         //We expect only one entrance
-        List<Interactor> candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSMUSG00000034391");
+        List<Interactor> candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSG00000126001");
         Assert.assertEquals(1, candidatesList.size());
+        Assert.assertEquals(7, candidatesList.get(0).getAliases().size());
+        Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
+
+
     }
 
     @Test

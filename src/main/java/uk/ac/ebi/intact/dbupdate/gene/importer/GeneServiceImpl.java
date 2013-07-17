@@ -148,6 +148,28 @@ public class GeneServiceImpl implements GeneService {
             }
         }
 
+        //Alternative Names
+        if (entity.getAlternativeNames() != null && !entity.getAlternativeNames().isEmpty()) {
+            log.debug("Found " + entity.getAlternativeNames().size() + " alternative names");
+            for (String name : entity.getAlternativeNames()) {
+                //We compare ignoring the case if it exists before
+                boolean found = false;
+                for (InteractorAlias alias : aliases) {
+                    if(name.compareToIgnoreCase(alias.getName()) == 0)  {
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found){
+                    aliases.add(new InteractorAlias(owner, gene, synonymAliasType, name));
+                }
+            }
+
+
+
+
+        }
+
         return aliases;
     }
 }
