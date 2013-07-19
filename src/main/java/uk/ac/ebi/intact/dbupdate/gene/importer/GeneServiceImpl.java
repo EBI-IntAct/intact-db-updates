@@ -137,14 +137,21 @@ public class GeneServiceImpl implements GeneService {
 
         Collection<InteractorAlias> aliases = new ArrayList<InteractorAlias>();
 
-        CvAliasType synonymAliasType = GeneUtils.getSynonymAliasType();
+        CvAliasType geneNameSynonymAliasType = GeneUtils.getGeneNameSynonymAliasType();
+	    CvAliasType synonymAliasType = GeneUtils.getSynonymAliasType();
+	    CvAliasType geneNameAliasType = GeneUtils.getGeneNameAliasType();
 
+	    //Gene Name
+        if (entity.getGeneName() != null && !entity.getGeneName().isEmpty()) {
+            log.debug("Found gene name: " + entity.getGeneName());
+                aliases.add(new InteractorAlias(owner, gene, geneNameAliasType, entity.getGeneName()));
+        }
 
-        //Gene Synonyms
-        if (entity.getSynonyms() != null && !entity.getSynonyms().isEmpty()) {
-            log.debug("Found " + entity.getSynonyms().size() + " synonyms");
-            for (String synonym : entity.getSynonyms()) {
-                aliases.add(new InteractorAlias(owner, gene, synonymAliasType, synonym));
+        //Gene Name Synonyms
+        if (entity.getGeneNameSynonyms() != null && !entity.getGeneNameSynonyms().isEmpty()) {
+            log.debug("Found " + entity.getGeneNameSynonyms().size() + " synonyms");
+            for (String synonym : entity.getGeneNameSynonyms()) {
+                aliases.add(new InteractorAlias(owner, gene, geneNameSynonymAliasType, synonym));
             }
         }
 
@@ -164,10 +171,6 @@ public class GeneServiceImpl implements GeneService {
                     aliases.add(new InteractorAlias(owner, gene, synonymAliasType, name));
                 }
             }
-
-
-
-
         }
 
         return aliases;

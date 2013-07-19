@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class UniProtResult {
 
+	//Direct parsing
     private String entryName;
     private String geneNames;
     private String organism;
@@ -18,12 +19,14 @@ public class UniProtResult {
     private String entry;
     private String status;
     private String proteinNames;
-    private List<String> synonyms;
+
+	//Extra fields for helping
+	private String geneName;
+	private List<String> geneNameSynonyms;
     private String recommendedName;
     private List<String> alternativeNames;
 
-
-    public UniProtResult() {
+	public UniProtResult() {
     }
 
     public String getEntryName() {
@@ -82,13 +85,21 @@ public class UniProtResult {
         this.proteinNames = proteinNames;
     }
 
-    public List<String> getSynonyms() {
-        return synonyms;
-    }
+	public void setGeneName(String geneName) {
+		this.geneName = geneName;
+	}
 
-    public void setSynonyms(List<String> synonyms) {
-        this.synonyms = synonyms;
-    }
+	public String getGeneName() {
+		return geneName;
+	}
+
+	public void setGeneNameSynonyms(List<String> geneSynonyms) {
+		this.geneNameSynonyms = geneSynonyms;
+	}
+
+	public List<String> getGeneNameSynonyms() {
+		return geneNameSynonyms;
+	}
 
     public String getRecommendedName() {
         return recommendedName;

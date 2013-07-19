@@ -25,11 +25,17 @@ public class GeneUtilsTest {
         Assert.assertEquals(cv.getShortLabel(), CvDatabase.ENSEMBL);
     }
 
-    @Test
-    public void testGetGeneType() throws Exception {
-        CvInteractorType cv = GeneUtils.getGeneType();
-        Assert.assertEquals(cv.getShortLabel(), CvInteractorType.GENE);
-    }
+//    @Test
+//    public void testGetGeneType() throws Exception {
+//        CvInteractorType cv = GeneUtils.getGeneType();
+//        Assert.assertEquals(cv.getShortLabel(), CvInteractorType.GENE);
+//    }
+
+	@Test
+ public void testGetGeneType() throws Exception {
+     CvInteractorType cv = GeneUtils.getGeneType();
+     Assert.assertEquals(cv.getShortLabel(), "gene");
+ }
 
     @Test
     public void testGetPrimaryIDQualifier() throws Exception {
