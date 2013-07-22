@@ -2,10 +2,9 @@ package uk.ac.ebi.intact.dbupdate.gene.importer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.gene.utils.GeneUtils;
-import uk.ac.ebi.intact.dbupdate.gene.utils.ParameterNameValue;
-import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtRestQuery;
-import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtResult;
+import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
+import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserXML;
+import uk.ac.ebi.intact.dbupdate.gene.utils.*;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 
@@ -36,8 +35,12 @@ public class GeneServiceImpl implements GeneService {
     private final Institution owner = GeneUtils.getInstitution();
     private final CvDatabase ensembl = GeneUtils.getEnsemblDatabase();
 
+    private UniProtRestQuery uniProtRestQuery;
+
 
     public GeneServiceImpl() {
+        UniProtParser parser = new UniProtParserXML();
+        uniProtRestQuery = new UniProtRestQuery(parser);
     }
 
     @Override
@@ -50,7 +53,7 @@ public class GeneServiceImpl implements GeneService {
         return getGeneByEnsemblId(ensemblId, "");
     }
 
-    private List<Interactor> getGeneByEnsemblId(String ensemblId, String queryFilter) throws GeneServiceException{
+    private List<Interactor> getGeneByEnsemblId(String ensemblId, String queryFilter) throws GeneServiceException {
         List<Interactor> genes = null;
 
         if (ensemblId == null || ensemblId.isEmpty()) {
@@ -66,17 +69,19 @@ public class GeneServiceImpl implements GeneService {
                             new ParameterNameValue("query", ensemblId + queryFilter),
                             new ParameterNameValue("columns",
                                     "entry name,genes,organism,organism-id,id,reviewed,protein names"),
-                            new ParameterNameValue("reviewed", "yes"), //By default only the swissprot entries (curators decision)
-                            new ParameterNameValue("format", "tab")
+                            new ParameterNameValue("format", "xml")
                     };
 
-            List<UniProtResult> list = UniProtRestQuery.queryUniProt("uniprot", parameters);
-            genes = new ArrayList<Interactor>(list.size());
+            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprot", parameters);
+            if (list != null) {
 
-            for(UniProtResult entity:list){
-                genes.add(processEntity(entity,ensemblId));
+                genes = new ArrayList<Interactor>(list.size());
+
+                for (UniProtResult entity : list) {
+                    genes.add(processEntity(entity, ensemblId));
+                }
+
             }
-
         } catch (UnsupportedEncodingException e) {
             throw new GeneServiceException("The parameters " + Arrays.toString(parameters) + " for the uniprot query can not be encoded: ", e);
         }
@@ -138,13 +143,13 @@ public class GeneServiceImpl implements GeneService {
         Collection<InteractorAlias> aliases = new ArrayList<InteractorAlias>();
 
         CvAliasType geneNameSynonymAliasType = GeneUtils.getGeneNameSynonymAliasType();
-	    CvAliasType synonymAliasType = GeneUtils.getSynonymAliasType();
-	    CvAliasType geneNameAliasType = GeneUtils.getGeneNameAliasType();
+        CvAliasType synonymAliasType = GeneUtils.getSynonymAliasType();
+        CvAliasType geneNameAliasType = GeneUtils.getGeneNameAliasType();
 
-	    //Gene Name
+        //Gene Name
         if (entity.getGeneName() != null && !entity.getGeneName().isEmpty()) {
             log.debug("Found gene name: " + entity.getGeneName());
-                aliases.add(new InteractorAlias(owner, gene, geneNameAliasType, entity.getGeneName()));
+            aliases.add(new InteractorAlias(owner, gene, geneNameAliasType, entity.getGeneName()));
         }
 
         //Gene Name Synonyms
@@ -162,12 +167,12 @@ public class GeneServiceImpl implements GeneService {
                 //We compare ignoring the case if it exists before
                 boolean found = false;
                 for (InteractorAlias alias : aliases) {
-                    if(name.compareToIgnoreCase(alias.getName()) == 0)  {
+                    if (name.compareToIgnoreCase(alias.getName()) == 0) {
                         found = true;
                         break;
                     }
                 }
-                if(!found){
+                if (!found) {
                     aliases.add(new InteractorAlias(owner, gene, synonymAliasType, name));
                 }
             }

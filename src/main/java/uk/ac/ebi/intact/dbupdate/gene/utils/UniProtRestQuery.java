@@ -3,8 +3,10 @@ package uk.ac.ebi.intact.dbupdate.gene.utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.gene.importer.GeneServiceException;
+import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -24,10 +26,14 @@ public class UniProtRestQuery {
 	public static final Log log = LogFactory.getLog(UniProtRestQuery.class);
 	private static final String UNIPROT_SERVER = "http://www.uniprot.org/";
 
-	private static UniProtParser uniProtParser = new UniProtParserXML();
+	private UniProtParser uniProtParser;
 
-	//This code follow the Uniprot example to retrive the information
-	public static List<UniProtResult> queryUniProt(String tool, ParameterNameValue[] params) throws GeneServiceException {
+    public UniProtRestQuery(UniProtParser uniProtParser) {
+        this.uniProtParser = uniProtParser;
+    }
+
+    //This code follow the Uniprot example to retrive the information
+	public List<UniProtResult> queryUniProt(String tool, ParameterNameValue[] params) throws GeneServiceException {
 
 		List<UniProtResult> list = null;
 		String location = queryURLGenerator(tool, params);
@@ -51,23 +57,21 @@ public class UniProtRestQuery {
 				try {
 					BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 					list = uniProtParser.parseUniProtQuery(reader);
+                }
+                finally {
+                        //No need to check for null any exceptions thrown here will be caught by
+                        //the outer catch block
 
-				} catch (Exception e){
-					throw new GeneServiceException("Error retrieving information from UniProt. The information can not be parse. " +
-										"Query: " + location + "Error message: " + e.getMessage(), e);
-				}
-				finally {
-					if (is != null) {
+                        //Close the top level stream
 						is.close();
-					}
 				}
 
 			} else
 				log.error("Failed, got " + conn.getResponseMessage() + " for " + location);
 
-		} catch (Exception e) {
+		} catch (IOException e) {
 			throw new GeneServiceException("Error retrieving information from UniProt please try later. " +
-					"Query: " + location + "Error message: " + e.getMessage(), e);
+					"Query: " + location + " Error message: " + e.getMessage(), e);
 		} finally {
 			if (conn != null) {
 				conn.disconnect();

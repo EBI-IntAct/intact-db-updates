@@ -1,8 +1,9 @@
-package uk.ac.ebi.intact.dbupdate.gene.utils;
+package uk.ac.ebi.intact.dbupdate.gene.parser;
 
 import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.gene.importer.GeneServiceException;
+import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtResult;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

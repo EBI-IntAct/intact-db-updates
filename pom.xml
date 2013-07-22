@@ -23,22 +23,22 @@
         <plugins>
     <plugin>
     				<!-- you can use this plugin to generate the jaxb object model from
-    									the schema and binding files specified below. Note: this will
-    									need an explicit maven goal call, since it is not intergrated
-    									into the standard mvn lifecycle. The goal to use is:
-    									org.jvnet.jaxb2.maven2:maven-jaxb2-plugin:0.6.3:generate
+                    the schema and binding files specified below. Note: this will
+                    need an explicit maven goal call, since it is not intergrated
+                    into the standard mvn lifecycle. The goal to use is:
+                    org.jvnet.jaxb2.maven2:maven-jaxb2-plugin:0.6.3:generate
 
-    									NOTE: the code generation may overwrite existing classes, so care
-    										  should be taken with files that were manually modified. Such
-    										  files are in the current version (0.6): CVParam, UserParam,
-    										  ParamGroup, BinaryDataArray and ComponentList.
+                    NOTE: the code generation may overwrite existing classes, so care
+                          should be taken with files that were manually modified. Such
+                          files are in the current version (0.6): CVParam, UserParam,
+                          ParamGroup, BinaryDataArray and ComponentList.
     								-->
     				<groupId>org.jvnet.jaxb2.maven2</groupId>
     				<artifactId>maven-jaxb2-plugin</artifactId>
     				<configuration>
     					<schemaDirectory>${project.basedir}/src/main/resources/META-INF</schemaDirectory>
     					<generateDirectory>src/main/java</generateDirectory>
-                        <generatePackage>uk.ac.ebi.intact.dbupdate.gene.parser</generatePackage>
+                        <generatePackage>uk.ac.ebi.intact.dbupdate.gene.parser.jaxb</generatePackage>
     					<removeOldOutput>false</removeOldOutput>
     					<forceRegenerate>true</forceRegenerate>
     					<verbose>true</verbose>

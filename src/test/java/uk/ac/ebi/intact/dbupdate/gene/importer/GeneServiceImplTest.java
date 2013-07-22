@@ -35,9 +35,13 @@ public class GeneServiceImplTest {
         //We expect only one entrance
         List<Interactor> candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSG00000126001");
         Assert.assertEquals(1, candidatesList.size());
-        Assert.assertEquals(7, candidatesList.get(0).getAliases().size());
+        Assert.assertEquals(6, candidatesList.get(0).getAliases().size());
         Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
 
+        candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSRNOG00000002006");
+        Assert.assertEquals(1, candidatesList.size());
+        Assert.assertEquals(4, candidatesList.get(0).getAliases().size());
+        Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
 
     }
 

@@ -1,4 +1,6 @@
-package uk.ac.ebi.intact.dbupdate.gene.utils;
+package uk.ac.ebi.intact.dbupdate.gene.parser;
+
+import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtResult;
 
 import java.io.Reader;
 import java.util.List;

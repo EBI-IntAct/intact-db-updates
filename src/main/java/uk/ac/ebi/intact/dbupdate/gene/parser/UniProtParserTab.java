@@ -1,10 +1,11 @@
-package uk.ac.ebi.intact.dbupdate.gene.utils;
+package uk.ac.ebi.intact.dbupdate.gene.parser;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.bean.ColumnPositionMappingStrategy;
 import au.com.bytecode.opencsv.bean.CsvToBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtResult;
 
 import java.io.Reader;
 import java.util.ArrayList;
