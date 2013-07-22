@@ -39,6 +39,8 @@ public class GeneServiceImpl implements GeneService {
 
 
     public GeneServiceImpl() {
+        // We use the XML because the format is xml, maybe this can be
+        //configure automatically from in the future
         UniProtParser parser = new UniProtParserXML();
         uniProtRestQuery = new UniProtRestQuery(parser);
     }
