@@ -115,26 +115,27 @@ public class UniProtParserXML implements UniProtParser {
 
                     // Organism
                     if (entry.getOrganism() != null) {
-                        String scientificName = null;
                         String fullName = null;
+                        String commonName = null;
+
 
                         for (OrganismNameType organismNameType : entry.getOrganism().getName()) {
-                            if (organismNameType.getType().equals("common")) {
-                                uniGene.setOrganism(organismNameType.getValue());
-                            }
                             if (organismNameType.getType().equals("scientific")) {
-                                scientificName = organismNameType.getValue();
+                                uniGene.setOrganism(organismNameType.getValue());
                             }
                             if (organismNameType.getType().equals("full")) {
                                 fullName = organismNameType.getValue();
                             }
+                            if (organismNameType.getType().equals("common")) {
+                                commonName = organismNameType.getValue();
+                            }
                         }
 
                         if (uniGene.getOrganism() == null) {
-                            if (scientificName != null) {
-                                uniGene.setOrganism(scientificName);
-                            } else if (fullName != null) {
+                            if (fullName != null) {
                                 uniGene.setOrganism(fullName);
+                            } else if (commonName != null) {
+                                uniGene.setOrganism(commonName);
                             }
                         }
 

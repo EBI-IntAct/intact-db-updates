@@ -43,7 +43,7 @@ public class UniProtRestQueryTest {
             Assert.assertEquals("CP250_HUMAN", aux.getEntryName());
             Assert.assertEquals("Centrosome-associated protein CEP250", aux.getRecommendedName());
             Assert.assertEquals("CEP250", aux.getGeneName());
-            Assert.assertEquals("Human", aux.getOrganism());
+            Assert.assertEquals("Homo sapiens", aux.getOrganism());
             Assert.assertEquals("9606", aux.getOrganismId());
             Assert.assertEquals(2, aux.getGeneNameSynonyms().size());
             Assert.assertEquals(3, aux.getAlternativeNames().size());

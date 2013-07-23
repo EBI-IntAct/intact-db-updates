@@ -2,11 +2,17 @@ package uk.ac.ebi.intact.dbupdate.gene.importer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import uk.ac.ebi.intact.bridges.taxonomy.UniprotTaxonomyService;
 import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
 import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserXML;
-import uk.ac.ebi.intact.dbupdate.gene.utils.*;
+import uk.ac.ebi.intact.dbupdate.gene.utils.GeneUtils;
+import uk.ac.ebi.intact.dbupdate.gene.utils.ParameterNameValue;
+import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtRestQuery;
+import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtResult;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
+import uk.ac.ebi.intact.util.biosource.BioSourceService;
+import uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -36,6 +42,7 @@ public class GeneServiceImpl implements GeneService {
     private final CvDatabase ensembl = GeneUtils.getEnsemblDatabase();
 
     private UniProtRestQuery uniProtRestQuery;
+    private BioSourceService biosourceService;
 
 
     public GeneServiceImpl() {
@@ -43,6 +50,8 @@ public class GeneServiceImpl implements GeneService {
         //configure automatically from in the future
         UniProtParser parser = new UniProtParserXML();
         uniProtRestQuery = new UniProtRestQuery(parser);
+        log.info("A default uniprot taxonomy service will be used to retrieve the Biosource");
+        biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
     }
 
     @Override
