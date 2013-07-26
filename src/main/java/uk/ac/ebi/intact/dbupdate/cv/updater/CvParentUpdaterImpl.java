@@ -201,7 +201,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
             do {
                 // if the parent is not a root term, we can add the parent to the parent s to create or update existing parent in db to add this child
                 if (!rootTermsToExclude.contains(currentOntologyParent.getTermAccession())){
-                    CvDagObject parentFromDb = factory.getCvObjectDao(CvDagObject.class).getByIdentifier(currentOntologyParent.getTermAccession());
+                    CvDagObject parentFromDb = factory.getCvObjectDao(term.getClass()).getByIdentifier(currentOntologyParent.getTermAccession());
 
                     if (parentFromDb == null){
                         if (this.missingParents.containsKey(currentOntologyParent.getTermAccession())){
