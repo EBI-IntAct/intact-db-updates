@@ -152,7 +152,9 @@ public class UniProtParserXML implements UniProtParser {
                 }
             }
         } catch (JAXBException e) {
-            e.printStackTrace();
+            log.debug("The file could not be unmarshalled, maybe the entry does not exists." +
+                    " --The stack trace has been attached\n"+ e.toString());
+
         } finally {
             if (result != null) {
                 try {

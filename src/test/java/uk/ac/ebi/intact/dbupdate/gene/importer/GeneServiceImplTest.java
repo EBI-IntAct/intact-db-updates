@@ -38,16 +38,18 @@ public class GeneServiceImplTest {
         Assert.assertEquals(6, candidatesList.get(0).getAliases().size());
         Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
 
-        candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSRNOG00000002006");
+        candidatesList = geneService.getGeneByEnsemblIdInSwissprot("ENSFCAG00000007703");
         Assert.assertEquals(1, candidatesList.size());
-        Assert.assertEquals(4, candidatesList.get(0).getAliases().size());
+        Assert.assertEquals(2, candidatesList.get(0).getAliases().size());
         Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
 
     }
 
     @Test
     public void testGetGeneByEnsemblIdInUniProt() throws Exception {
-        List<Interactor> candidatesList = geneService.getGeneByEnsemblIdInUniprot("ENSMUSG00000034391");
-        Assert.assertEquals(2, candidatesList.size());
+        List<Interactor> candidatesList = geneService.getGeneByEnsemblIdInUniprot("ENSRNOG00000002006");
+        Assert.assertEquals(1, candidatesList.size());
+        Assert.assertEquals(1, candidatesList.get(0).getAliases().size());
+        Assert.assertEquals(1, candidatesList.get(0).getXrefs().size());
     }
 }

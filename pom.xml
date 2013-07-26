@@ -55,6 +55,13 @@
             <groupId>uk.ac.ebi.intact.core</groupId>
             <artifactId>intact-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>uk.ac.ebi.intact.dbupdate</groupId>
+            <artifactId>intact-biosource-update</artifactId>
+            <version>${pom.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
