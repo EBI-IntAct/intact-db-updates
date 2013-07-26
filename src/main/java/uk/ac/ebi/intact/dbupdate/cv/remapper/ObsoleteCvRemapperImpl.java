@@ -534,12 +534,6 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
             query.setParameter("duplicate", term);
             resultUpdate = query.executeUpdate();
 
-            Query query2 = factory.getEntityManager().createQuery("update MineInteraction m set m.detectionMethod = :type" +
-                    " where m.detectionMethod = :duplicate");
-            query2.setParameter("type", termFromDb);
-            query2.setParameter("duplicate", term);
-            resultUpdate += query2.executeUpdate();
-
             // fire event
             ObsoleteRemappedEvent evt = new ObsoleteRemappedEvent(this, updateContext.getIdentifier(), ontologyTerm.getRemappedTerm(), term.getAc(), termFromDb.getAc(), resultUpdate, "We could update interaction detection methods of " + resultUpdate + " existing MineInteractions/experiments.");
 
