@@ -89,15 +89,15 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-context-support:3.1.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.aspectj:aspectjrt:1.6.8" level="project" />
     <orderEntry type="library" name="Maven: org.aspectj:aspectjweaver:1.6.8" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:ncbi-blast:2.1.7" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:blast-mapping-parser:2.1.7" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:ncbi-blast:2.1.8-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:blast-mapping-parser:2.1.8-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.sun.xml.bind:jaxb-impl:2.1.7" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.bind:jaxb-api:2.1" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.stream:stax-api:1.0-2" level="project" />
     <orderEntry type="library" name="Maven: stax:stax:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-uniprot:2.1.7" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.uniprot.kraken:uniprotjapi:2013.05" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-uniprot:2.1.8-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.uniprot.kraken:uniprotjapi:2013.07" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-web:3.1.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.3" level="project" />
     <orderEntry type="library" name="Maven: commons-httpclient:commons-httpclient:3.0.1" level="project" />
@@ -117,7 +117,7 @@
     <orderEntry type="library" name="Maven: com.sun.xml.bind:jaxb-xjc:2.1.11" level="project" />
     <orderEntry type="module" module-name="intact-proteins-update" />
     <orderEntry type="module" module-name="intact-biosource-update" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-taxonomy:2.1.7" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-taxonomy:2.1.8-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.pride:ols-client:1.15" level="project" />
     <orderEntry type="library" name="Maven: org.apache.axis:axis:1.4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.axis:axis-jaxrpc:1.4" level="project" />
@@ -128,7 +128,7 @@
     <orderEntry type="library" name="Maven: com.hp.hpl.jena:jena:2.6.4" level="project" />
     <orderEntry type="library" name="Maven: com.hp.hpl.jena:iri:0.8" level="project" />
     <orderEntry type="library" name="Maven: com.ibm.icu:icu4j:3.4.4" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-unisave:2.1.7" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-unisave:2.1.8-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.tools:protein-mapping:1.0.1" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-picr:2.1.7" level="project" />
     <orderEntry type="library" name="Maven: org.dbunit:dbunit:2.2" level="project" />
