@@ -77,7 +77,10 @@ public final class XrefUpdaterUtils {
             CvDatabase cvDb = xref.getCvDatabase();
             String cvDbMi = cvDb.getMiIdentifier();
 
-            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi) || CvDatabase.INTACT_MI_REF.equals(cvDbMi)){
+            // we escape secondary xrefs
+            if(CvDatabase.UNIPROT_MI_REF.equals(cvDbMi) || CvDatabase.INTACT_MI_REF.equals(cvDbMi) ||
+                    (xref.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(xref.getCvXrefQualifier().getShortLabel())
+                    || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(xref.getCvXrefQualifier().getShortLabel())))){
                 continue;
             }
             else {
@@ -154,7 +157,9 @@ public final class XrefUpdaterUtils {
                         }
                         else if (acComparator < 0) {
                             //intact has no match in uniprot
-                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())
+                                    && !(currentIntact.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel())
+                                            || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel())))){
                                 deletedXrefs.add(currentIntact);
                                 protein.removeXref(currentIntact);
 
@@ -193,7 +198,9 @@ public final class XrefUpdaterUtils {
                     }
                     else if (dbComparator < 0) {
                         //intact has no match in uniprot
-                        if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())){
+                        if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntact.getCvDatabase().getIdentifier())
+                                && !(currentIntact.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel())
+                                        || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel())))){
                             deletedXrefs.add(currentIntact);
                             protein.removeXref(currentIntact);
 
@@ -247,7 +254,9 @@ public final class XrefUpdaterUtils {
 
             do {
                 //intact has no match in uniprot
-                if (cvDatabase == null || (cvDatabase != null && !CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()))){
+                if (cvDatabase == null || (cvDatabase != null && !CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(cvDatabase.getIdentifier())
+                        && !(currentIntact.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel())
+                                || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(currentIntact.getCvXrefQualifier().getShortLabel()))))){
                     deletedXrefs.add(currentIntact);
 
                     protein.removeXref(currentIntact);
