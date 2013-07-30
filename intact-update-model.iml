@@ -97,7 +97,7 @@
     <orderEntry type="library" name="Maven: stax:stax:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.bridges:intact-uniprot:2.1.8-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.uniprot.kraken:uniprotjapi:2013.07" level="project" />
+    <orderEntry type="library" name="Maven: uk.ac.ebi.uniprot.kraken:uniprotjapi:2013.08" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-web:3.1.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.3" level="project" />
     <orderEntry type="library" name="Maven: commons-httpclient:commons-httpclient:3.0.1" level="project" />
