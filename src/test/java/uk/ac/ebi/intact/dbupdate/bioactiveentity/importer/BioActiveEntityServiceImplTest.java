@@ -190,50 +190,50 @@ public class BioActiveEntityServiceImplTest {
 
     }
 
-//    @Test
-//    public void testGetBioEntityByChebiListRepeatedIds() throws BioActiveEntityServiceException {
-//
-//        List<String> repeatedChebiIds = createRepeatedChebiIds();
-//
-//        List<SmallMolecule> bioActiveEntities =
-//                bioActiveEntityService.getBioEntityByChebiIdList(repeatedChebiIds);
-//
-//        Assert.assertEquals(1, bioActiveEntities.size());
-//    }
+    @Test
+    public void testGetBioEntityByChebiListRepeatedIds() throws BioActiveEntityServiceException {
 
-//    @Test
-//    public void testGetBioEntityByChebiListMoreThanMaximunChebiIds() throws BioActiveEntityServiceException {
-//
-//        List<String> moreThan50chebiIds = createMoreThan50chebiIds();
-//
-//        List<SmallMolecule> bioActiveEntities =
-//                bioActiveEntityService.getBioEntityByChebiIdList(moreThan50chebiIds);
-//
-//        Assert.assertEquals(64, bioActiveEntities.size());
-//
-//    }
-//
-//    @Test
-//    public void testGetBioEntityByChebiListLessThanMaximunChebiIds() throws BioActiveEntityServiceException {
-//
-//        List<String> lessThan50chebiIds = createLessThan50chebiIds();
-//
-//        List<SmallMolecule> bioActiveEntities =
-//                bioActiveEntityService.getBioEntityByChebiIdList(lessThan50chebiIds);
-//
-//        Assert.assertEquals(32, bioActiveEntities.size());
-//    }
-//
-//    @Test
-//    public void testGetBioEntityByChebiListSecondaryIds() throws BioActiveEntityServiceException {
-//
-//        List<String> secondaryChebiIds = createSecondaryChebiIds();
-//
-//        List<SmallMolecule> bioActiveEntities =
-//                bioActiveEntityService.getBioEntityByChebiIdList(secondaryChebiIds);
-//
-//        Assert.assertEquals(1, bioActiveEntities.size());
-//    }
+        List<String> repeatedChebiIds = createRepeatedChebiIds();
+
+        List<SmallMolecule> bioActiveEntities =
+                bioActiveEntityService.getBioEntityByChebiIdList(repeatedChebiIds);
+
+        Assert.assertEquals(1, bioActiveEntities.size());
+    }
+
+    @Test
+    public void testGetBioEntityByChebiListMoreThanMaximunChebiIds() throws BioActiveEntityServiceException {
+
+        List<String> moreThan50chebiIds = createMoreThan50chebiIds();
+
+        List<SmallMolecule> bioActiveEntities =
+                bioActiveEntityService.getBioEntityByChebiIdList(moreThan50chebiIds);
+
+        Assert.assertEquals(64, bioActiveEntities.size());
+
+    }
+
+    @Test
+    public void testGetBioEntityByChebiListLessThanMaximunChebiIds() throws BioActiveEntityServiceException {
+
+        List<String> lessThan50chebiIds = createLessThan50chebiIds();
+
+        List<SmallMolecule> bioActiveEntities =
+                bioActiveEntityService.getBioEntityByChebiIdList(lessThan50chebiIds);
+
+        Assert.assertEquals(32, bioActiveEntities.size());
+    }
+
+    @Test
+    public void testGetBioEntityByChebiListSecondaryIds() throws BioActiveEntityServiceException {
+
+        List<String> secondaryChebiIds = createSecondaryChebiIds();
+
+        List<SmallMolecule> bioActiveEntities =
+                bioActiveEntityService.getBioEntityByChebiIdList(secondaryChebiIds);
+
+        Assert.assertEquals(1, bioActiveEntities.size());
+    }
 
 
     private SmallMolecule createWaterSmallMolecule() {
