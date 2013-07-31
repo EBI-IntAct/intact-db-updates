@@ -245,7 +245,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             if (evt.getOldSequence() != null) {
                 state = "UPDATE";
                 seqDiff = evt.getNewSequence().length()-evt.getOldSequence().length();
-                levenshtein = StringUtils.getLevenshteinDistance(protein.getSequence(), evt.getOldSequence());
+                levenshtein = StringUtils.getLevenshteinDistance(evt.getNewSequence(), evt.getOldSequence());
                 conservation = ProteinTools.calculateSequenceConservation(evt.getOldSequence(), evt.getNewSequence());
             } else {
                 state = "NEW";
