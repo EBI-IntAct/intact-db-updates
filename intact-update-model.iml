@@ -1,24 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="FacetManager">
-    <facet type="jpa" name="JPA">
-      <configuration>
-        <setting name="validation-enabled" value="true" />
-        <setting name="provider-name" value="" />
-        <datasource-mapping />
-        <deploymentDescriptor name="persistence.xml" url="file://$MODULE_DIR$/src/main/resources/META-INF/persistence.xml" />
-      </configuration>
-    </facet>
-    <facet type="Spring" name="Spring">
-      <configuration>
-        <fileset id="fileset" name="Spring Application Context" removed="false">
-          <file>file://$MODULE_DIR$/src/main/resources/META-INF/update-jpa.spring.xml</file>
-          <file>file://$MODULE_DIR$/src/test/resources/META-INF/db-update-test.spring.xml</file>
-          <file>file://$MODULE_DIR$/src/main/resources/META-INF/standalone/update-jpa-standalone.spring.xml</file>
-        </fileset>
-      </configuration>
-    </facet>
-  </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_6" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
@@ -31,9 +12,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.core:intact-core:2.6.3" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.core:intact-annotations:2.6.3" level="project" />
-    <orderEntry type="library" name="Maven: uk.ac.ebi.intact.core:intact-apt:2.6.3" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.core:intact-core:2.6.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.commons:intact-commons:2.1.9" level="project" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.15" level="project" />
@@ -59,6 +37,7 @@
     <orderEntry type="library" name="Maven: javax.validation:validation-api:1.0.0.GA" level="project" />
     <orderEntry type="library" name="Maven: uk.ac.ebi.intact.core:intact-apt:2.6.4-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: velocity:velocity-dep:1.4" level="project" />
+    <orderEntry type="library" name="Maven: sun.jdk:tools:1.5.0" level="project" />
     <orderEntry type="library" name="Maven: xerces:xercesImpl:2.8.1" level="project" />
     <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.3.03" level="project" />
     <orderEntry type="library" name="Maven: commons-net:commons-net:1.4.1" level="project" />
@@ -105,10 +84,8 @@
     <orderEntry type="library" name="Maven: com.sun.xml.ws:jaxws-tools:2.1.7" level="project" />
     <orderEntry type="library" name="Maven: com.sun.xml.ws:jaxws-rt:2.1.7" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.ws:jaxws-api:2.1" level="project" />
-    <orderEntry type="library" name="Maven: javax.xml.soap:saaj-api:1.3" level="project" />
-    <orderEntry type="library" name="Maven: javax.annotation:jsr250-api:1.0" level="project" />
-    <orderEntry type="library" name="Maven: javax.jws:jsr181-api:1.0-MR1" level="project" />
     <orderEntry type="library" name="Maven: com.sun.xml.messaging.saaj:saaj-impl:1.3.3" level="project" />
+    <orderEntry type="library" name="Maven: javax.xml.soap:saaj-api:1.3" level="project" />
     <orderEntry type="library" name="Maven: com.sun.xml.stream.buffer:streambuffer:0.9" level="project" />
     <orderEntry type="library" name="Maven: org.jvnet.staxex:stax-ex:1.2" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.woodstox:wstx-asl:3.2.3" level="project" />
