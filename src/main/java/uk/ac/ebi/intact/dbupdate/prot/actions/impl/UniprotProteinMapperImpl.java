@@ -219,7 +219,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                     if (evt.getSource() instanceof ProteinUpdateProcessor){
                         ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                        ProteinUpdateError impossibleRemapping = errorFactory.createImpossibleProteinRemappingError(accession, "Impossible to remap the protein " + accession + " " + e.getMessage());
+                        ProteinUpdateError impossibleRemapping = errorFactory.createImpossibleProteinRemappingError(accession, "Impossible to remap the protein " + accession + " because an error of type " + e.getClass().getCanonicalName() + " has been thrown. " + e.getMessage());
                         processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), impossibleRemapping, protein));
                     }
                 }

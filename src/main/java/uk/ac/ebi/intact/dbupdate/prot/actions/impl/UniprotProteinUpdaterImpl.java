@@ -267,10 +267,14 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc and "+countSecondary+" protein(s) on with secondaryAc.");
 
         for (ProteinTranscript protein : primaryProteins){
-            updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotVariant() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            }
         }
         for (ProteinTranscript protein : secondaryProteins){
-            updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotVariant() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            }
         }
     }
 
@@ -306,7 +310,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc");
 
         for (ProteinTranscript protein : primaryProteins){
-            updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotVariant() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            }
         }
     }
 
