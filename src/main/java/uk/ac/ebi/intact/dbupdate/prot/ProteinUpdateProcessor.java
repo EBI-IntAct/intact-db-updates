@@ -221,12 +221,6 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         }
     }
 
-    public void fireOnProcessErrorFound(UpdateErrorEvent evt) {
-        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
-            listener.onProcessErrorFound(evt);
-        }
-    }
-
     public void fireOnUpdateCase(UpdateCaseEvent evt) {
         for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
             listener.onUpdateCase(evt);

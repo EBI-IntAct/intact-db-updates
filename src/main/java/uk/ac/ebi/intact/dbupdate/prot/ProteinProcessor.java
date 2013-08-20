@@ -21,6 +21,9 @@ import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
+import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
+import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.dbupdate.prot.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
@@ -93,6 +96,10 @@ public abstract class ProteinProcessor {
         Set<String> chunkIntactProteins = new HashSet<String>(COMMIT_INTERVAL);
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+
+        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+
         Iterator<String> protAcsIterator = protACsToUpdate.iterator();
         int currentIndex = 0;
         ProteinImpl prot = null;
@@ -150,6 +157,8 @@ public abstract class ProteinProcessor {
                 if (!transactionStatus.isCompleted()){
                     for (String ac : chunkIntactProteins){
                         log.fatal("FATAL: We failed to update the protein " + ac , e);
+                        ProteinUpdateError fatalError = errorFactory.createFatalUpdateError(ac, null, e);
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, fatalError, null, ac));
                     }
                     dataContext.rollbackTransaction(transactionStatus);
                 }
@@ -170,6 +179,12 @@ public abstract class ProteinProcessor {
                     throw new ProcessorException("Impossible to close one of the log files." ,e);
                 }
             }
+        }
+    }
+
+    public void fireOnProcessErrorFound(UpdateErrorEvent evt) {
+        for (ProteinUpdateProcessorListener listener : getListeners(ProteinUpdateProcessorListener.class)) {
+            listener.onProcessErrorFound(evt);
         }
     }
 
