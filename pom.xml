@@ -5,11 +5,11 @@
     <parent>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
         <artifactId>dbupdate-master</artifactId>
-        <version>2.1.6-SNAPSHOT</version>
+        <version>2.1.6</version>
     </parent>
 
     <artifactId>intact-proteins-update</artifactId>
-    <version>2.1.6-SNAPSHOT</version>
+    <version>2.1.6</version>
 
     <name>IntAct Database Update :: Proteins Update</name>
 
