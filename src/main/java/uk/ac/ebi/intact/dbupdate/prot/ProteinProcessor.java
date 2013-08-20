@@ -90,6 +90,7 @@ public abstract class ProteinProcessor {
         registerListenersIfNotDoneYet();
 
         Set<String> processedIntactProteins = new HashSet<String>();
+        Set<String> chunkIntactProteins = new HashSet<String>(COMMIT_INTERVAL);
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
         Iterator<String> protAcsIterator = protACsToUpdate.iterator();
@@ -99,6 +100,7 @@ public abstract class ProteinProcessor {
 
         while (protAcsIterator.hasNext()){
             TransactionStatus transactionStatus = dataContext.beginTransaction();
+            chunkIntactProteins.clear();
 
             try {
 
@@ -106,6 +108,7 @@ public abstract class ProteinProcessor {
                     protAc = protAcsIterator.next();
 
                     if (!processedIntactProteins.contains(protAc)){
+                        chunkIntactProteins.add(protAc);
 
                         prot = dataContext.getDaoFactory().getProteinDao().getByAc(protAc);
 
@@ -144,9 +147,10 @@ public abstract class ProteinProcessor {
 
                 dataContext.commitTransaction(transactionStatus);
             } catch (Exception e) {
-                log.fatal("We failed to update the protein " + protAc , e);
-
                 if (!transactionStatus.isCompleted()){
+                    for (String ac : chunkIntactProteins){
+                        log.fatal("FATAL: We failed to update the protein " + ac , e);
+                    }
                     dataContext.rollbackTransaction(transactionStatus);
                 }
             }
