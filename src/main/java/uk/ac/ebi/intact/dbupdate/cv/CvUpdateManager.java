@@ -396,9 +396,11 @@ public class CvUpdateManager {
             DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
             DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-            Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c left join c.xrefs as x " +
-                    "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity) " +
-                    "or c.identifier like :ontologyLikeId");
+            Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c where c.ac in " +
+                    "(select distinct c2.ac from CvDagObject c2 join c2.xrefs as x " +
+                    "where x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity) " +
+                    "or c.ac in " +
+                    "( select distinct c3.ac from CvDagObject c3 where c3.identifier like :ontologyLikeId)");
             query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
             query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
             query.setParameter("ontologyLikeId", ontologyAccess.getOntologyID() + ":%");
@@ -415,25 +417,13 @@ public class CvUpdateManager {
      */
     public List<Object[]> getDuplicatedCvObjects(IntactOntologyAccess ontologyAccess){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
-        DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
 
-        Query query = factory.getEntityManager().createQuery("select distinct c.ac, c2.ac from CvDagObject c left join c.xrefs as x," +
-                " CvDagObject c2 left join c2.xrefs as x2 " +
+        Query query = factory.getEntityManager().createQuery("select distinct c.ac, c2.ac from CvDagObject c join c.xrefs as x," +
+                " CvDagObject c2 join c2.xrefs as x2 " +
                 "where c.ac <> c2.ac " +
                 "and c.objClass = c2.objClass " +
-                "and (" +
-                "(" +
-                "x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity " +     // x has an identity xref
-                "and (" +
-                "(x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x.primaryId = x2.primaryId) " +
-                "or x.primaryId = c2.identifier)" +  // x2 has the same identity xref or the same identifier as the primary ac of the identity xref
-                ")" +
-                "or " +
-                "(x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity and x2.primaryId = c.identifier) " + // x2 has an identity xref which is the same as the identifier of the first cv
-                "or (c2.identifier = c.identifier and c.identifier like :ontologyLikeId )" +  // both identifier are identical
-                ")");
-        query.setParameter("database", ontologyAccess.getDatabaseIdentifier());
-        query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
+                "and c2.identifier = c.identifier " +
+                "and c.identifier like :ontologyLikeId");
         query.setParameter("ontologyLikeId", ontologyAccess.getOntologyID() + ":%");
 
         return query.getResultList();
