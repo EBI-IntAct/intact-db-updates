@@ -29,7 +29,7 @@ public class BioActiveEntityServiceImplTest {
     private static final String NULL_CHEBI_ID = null; //Water
 
     private static final String CHEBI_ID_LONG_NAME = "CHEBI:45633";
-    private static final String CHEBI_NAME_LONG_NAME_TRUNCATED = "(2S)-2-amino-4-{[1-(";
+    private static final String CHEBI_NAME_LONG_NAME_TRUNCATED = "(2S)-2-amino-4-{[1-(6-oxo-1,6-dihydro-9H-purin-9-yl)-1,5-dideoxy-beta-D-ribofuranos-5-yl]sulfanyl}butanoic acid";
     private static final String CHEBI_NAME_LONG_NAME = "(2S)-2-amino-4-{[1-(6-oxo-1,6-dihydro-9H-purin-9-yl)-1," +
             "5-dideoxy-beta-D-ribofuranos-5-yl]sulfanyl}butanoic acid";
 
@@ -241,9 +241,8 @@ public class BioActiveEntityServiceImplTest {
         water.setFullName(CHEBI_NAME);
 
         //We add the secondary ids without remove the identity
-        //Found 11 secondary IDs
+        //Found 10 secondary IDs
         water.getXrefs().add(createSecondaryInteractorXref("CHEBI:27313"));
-        water.getXrefs().add(createSecondaryInteractorXref("CHEBI:727419"));
         water.getXrefs().add(createSecondaryInteractorXref("CHEBI:44701"));
         water.getXrefs().add(createSecondaryInteractorXref("CHEBI:44819"));
         water.getXrefs().add(createSecondaryInteractorXref("CHEBI:42857"));
@@ -282,7 +281,7 @@ public class BioActiveEntityServiceImplTest {
         Collection<Annotation> annotations = new ArrayList<Annotation>();
         annotations.add(builder.createAnnotation("InChI=1S/H2O/h1H2", BioActiveEntityUtils.getInchiType()));
         annotations.add(builder.createAnnotation("XLYOFNOQVPJJNP-UHFFFAOYSA-N", BioActiveEntityUtils.getInchiKeyType()));
-        annotations.add(builder.createAnnotation("O", BioActiveEntityUtils.getSmilesType()));
+        annotations.add(builder.createAnnotation("[H]O[H]", BioActiveEntityUtils.getSmilesType()));
 
         water.setAnnotations(annotations);
 
