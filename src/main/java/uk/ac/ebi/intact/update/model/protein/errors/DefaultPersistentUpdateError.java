@@ -59,7 +59,6 @@ public abstract class DefaultPersistentUpdateError extends UpdateEventImpl imple
     }
 
     @Column(name = "reason")
-    @Enumerated(EnumType.STRING)
     public String getReason() {
         return this.reason;
     }
