@@ -145,8 +145,8 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, term.getXrefs().size());
         Iterator<CvObjectXref> refs = term.getXrefs().iterator();
-        CvObjectXref secondary = refs.next();
         CvObjectXref psi = refs.next();
+        CvObjectXref secondary = refs.next();
 
         Assert.assertEquals(remappedId, psi.getPrimaryId());
         Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, psi.getCvDatabase().getIdentifier());
@@ -205,8 +205,8 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals(2, term.getXrefs().size());
         Iterator<CvObjectXref> refs = term.getXrefs().iterator();
-        CvObjectXref secondary = refs.next();
         CvObjectXref psi = refs.next();
+        CvObjectXref secondary = refs.next();
 
         Assert.assertEquals(remappedId, psi.getPrimaryId());
         Assert.assertEquals(CvDatabase.PSI_MOD_MI_REF, psi.getCvDatabase().getIdentifier());
@@ -273,9 +273,9 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals(3, term.getXrefs().size());
         Iterator<CvObjectXref> refs = term.getXrefs().iterator();
-        CvObjectXref secondary = refs.next();
-        CvObjectXref secondaryIntact = refs.next();
         CvObjectXref psi = refs.next();
+        CvObjectXref secondaryIntact = refs.next();
+        CvObjectXref secondary = refs.next();
 
         Assert.assertEquals(remappedId, psi.getPrimaryId());
         Assert.assertEquals(CvDatabase.PSI_MI_MI_REF, psi.getCvDatabase().getIdentifier());
@@ -342,9 +342,9 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         Assert.assertEquals(3, term.getXrefs().size());
         Iterator<CvObjectXref> refs = term.getXrefs().iterator();
-        CvObjectXref secondary = refs.next();
-        CvObjectXref intactSecondary = refs.next();
         CvObjectXref psi = refs.next();
+        CvObjectXref intactSecondary = refs.next();
+        CvObjectXref secondary = refs.next();
 
         Assert.assertEquals(remappedId, psi.getPrimaryId());
         Assert.assertEquals(CvDatabase.PSI_MOD_MI_REF, psi.getCvDatabase().getIdentifier());
