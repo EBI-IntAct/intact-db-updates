@@ -119,6 +119,7 @@ public class BioSourceUpdater {
                 }
 
                 // aliases
+                bs.getAliases().clear();
                 if( ! taxon.getSynonyms().isEmpty() ) {
 
                     for ( final String synonym : taxon.getSynonyms() ) {

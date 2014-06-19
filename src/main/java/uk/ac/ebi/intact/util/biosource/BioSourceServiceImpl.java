@@ -15,10 +15,11 @@ import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.BioSourceDao;
-import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.model.*;
-import uk.ac.ebi.intact.model.util.CvObjectUtils;
+import uk.ac.ebi.intact.model.BioSource;
+import uk.ac.ebi.intact.model.BioSourceAlias;
+import uk.ac.ebi.intact.model.CvAliasType;
+import uk.ac.ebi.intact.model.Institution;
 
 /**
  * Implementation of the BioSourceService.
@@ -134,25 +135,6 @@ public class BioSourceServiceImpl implements BioSourceService {
         BioSource bioSource = new BioSource(institution, shortlabel, taxid);
         bioSource.setFullName(fullname);
 
-        // Add Newt Xref
-
-        // get source database
-        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao(CvDatabase.class);
-        final String miRef = taxonomyService.getSourceDatabaseMiRef();
-        CvDatabase db = dbDao.getByPsiMiRef(miRef);
-        if (db == null) {
-            final String name = taxonomyService.getClass().getSimpleName();
-            throw new IllegalStateException("Could not find a CvDatabase based on the MI reference given by the " +
-                    "TaxonomyService[" + name + "]: " + miRef);
-        }
-
-        // retrieve identity qualifier
-        CvObjectDao<CvXrefQualifier> qDao = daoFactory.getCvObjectDao(CvXrefQualifier.class);
-        CvXrefQualifier identity = qDao.getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
-
-        BioSourceXref xref = new BioSourceXref(institution, db, taxid, identity);
-        bioSource.addXref(xref);
-
         return bioSource;
     }
 
@@ -182,26 +164,6 @@ public class BioSourceServiceImpl implements BioSourceService {
         // Instanciate it
         BioSource bioSource = new BioSource(institution, shortlabel, taxid);
         bioSource.setFullName(fullname);
-
-        // Add Newt Xref
-
-        // get source database
-        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao(CvDatabase.class);
-        final String miRef = taxonomyService.getSourceDatabaseMiRef();
-        CvDatabase db = dbDao.getByPsiMiRef(miRef);
-        if (db == null) {
-            final String name = taxonomyService.getSourceDatabaseName();
-            log.debug("Could not find CvObject by MI (" + miRef + ") and name (" + name + "). A new one will be created");
-            CvObjectUtils.createCvObject(institution, CvDatabase.class, miRef, name);
-        }
-
-
-        // retrieve identity qualifier
-        CvObjectDao<CvXrefQualifier> qDao = daoFactory.getCvObjectDao(CvXrefQualifier.class);
-        CvXrefQualifier identity = qDao.getByPsiMiRef(CvXrefQualifier.IDENTITY_MI_REF);
-
-        BioSourceXref xref = new BioSourceXref(institution, db, taxid, identity);
-        bioSource.addXref(xref);
 
         // persist
         BioSourceDao sourceDao = daoFactory.getBioSourceDao();
@@ -322,6 +284,13 @@ public class BioSourceServiceImpl implements BioSourceService {
                 bs = createAndPersistBioSource(shortlabel.toLowerCase(),
                         taxTerm.getScientificName(),
                         String.valueOf(taxTerm.getTaxid()));
+
+                if (!taxTerm.getSynonyms().isEmpty()){
+                    CvAliasType synType = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvAliasType.class).getByPsiMiRef(CvAliasType.SYNONYM_MI_REF);
+                    for (String syn : taxTerm.getSynonyms()){
+                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn));
+                    }
+                }
             }
         }
 
@@ -373,6 +342,12 @@ public class BioSourceServiceImpl implements BioSourceService {
                 bs = createBioSource(shortlabel.toLowerCase(),
                         taxTerm.getScientificName(),
                         String.valueOf(taxTerm.getTaxid()));
+                if (!taxTerm.getSynonyms().isEmpty()){
+                    CvAliasType synType = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvAliasType.class).getByPsiMiRef(CvAliasType.SYNONYM_MI_REF);
+                    for (String syn : taxTerm.getSynonyms()){
+                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn));
+                    }
+                }
             }
         }
 
