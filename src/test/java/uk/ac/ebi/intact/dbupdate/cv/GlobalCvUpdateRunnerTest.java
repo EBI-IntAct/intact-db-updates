@@ -46,6 +46,37 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
+    public void test_update_allIntactTerms() throws CvUpdateException {
+        // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvDagObject cv = getMockBuilder().createCvObject(CvInteraction.class, null, "test technology");
+
+        getCorePersister().saveOrUpdate(cv);
+
+        getDataContext().commitTransaction(status);
+
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByShortLabel("test technology"));
+
+        globalCvUpdateRunner.updateAllIntActTerms();
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+
+        CvDagObject term = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cv.getAc());
+
+        Assert.assertEquals(1, term.getXrefs().size());
+
+        // the missing parent has been created
+        Assert.assertEquals(1, term.getParents().size());
+        for (CvDagObject p : term.getParents()){
+            Assert.assertEquals("MI:0001", p.getIdentifier());
+        }
+
+        getDataContext().commitTransaction(status2);
+    }
+
+    @Test
+    @DirtiesContext
     public void test_update_allTerms() throws CvUpdateException {
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();

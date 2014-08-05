@@ -25,9 +25,7 @@ import uk.ac.ebi.intact.dbupdate.cv.listener.CvUpdateListener;
 import uk.ac.ebi.intact.dbupdate.cv.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapper;
 import uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdaterImpl;
+import uk.ac.ebi.intact.dbupdate.cv.updater.*;
 import uk.ac.ebi.intact.dbupdate.cv.utils.CvUpdateUtils;
 import uk.ac.ebi.intact.model.*;
 
@@ -61,6 +59,8 @@ public class CvUpdateManager {
     private File reportDirectory;
 
     private CvUpdateErrorFactory errorFactory;
+
+    private CvParentUpdater basicParentUpdater;
 
     // to allow listener
     protected EventListenerList listeners = new EventListenerList();
@@ -249,7 +249,7 @@ public class CvUpdateManager {
             throw new IllegalArgumentException("The root term " + identifier + " is excluded. We cannot import this term because too unspecific");
         }
 
-        IntactOntologyAccess access = intactOntologyManager.getOntologyAccess(ontologyId);
+        IntactOntologyAccess access = getIntactOntologyManager().getOntologyAccess(ontologyId);
         if (access == null){
             throw new IllegalArgumentException("The ontology identifier " + ontologyId + " is not recognized and we cannot import the cv object.");
         }
@@ -270,7 +270,7 @@ public class CvUpdateManager {
             importedCv = updateContext.getCvTerm();
 
             // update missing parents from other ontologies
-            for (Map.Entry<String, Set<CvDagObject>> entry : cvImporter.getMissingRootParents().entrySet()){
+            for (Map.Entry<String, Set<CvDagObject>> entry : getCvImporter().getMissingRootParents().entrySet()){
                 createMissingParentsFor(entry.getKey(), entry.getValue());
             }
         } catch (Exception e) {
@@ -295,8 +295,8 @@ public class CvUpdateManager {
         boolean hasFoundOntology = false;
         IntactOntologyAccess access = null;
 
-        for (String ontologyId : intactOntologyManager.getOntologyIDs()){
-            IntactOntologyAccess otherAccess = intactOntologyManager.getOntologyAccess(ontologyId);
+        for (String ontologyId : getIntactOntologyManager().getOntologyIDs()){
+            IntactOntologyAccess otherAccess = getIntactOntologyManager().getOntologyAccess(ontologyId);
 
             if (otherAccess != null && otherAccess.getDatabaseRegexp() != null){
                 Matcher matcher = otherAccess.getDatabaseRegexp().matcher(missingAc);
@@ -338,7 +338,7 @@ public class CvUpdateManager {
                 updateContext.setOntologyTerm(ontologyTerm);
 
                 log.info("Importing missing parent cv " + ontologyTerm.getTermAccession());
-                cvImporter.importCv(updateContext, false);
+                getCvImporter().importCv(updateContext, false);
 
                 if (updateContext.getCvTerm() != null){
 
@@ -347,7 +347,7 @@ public class CvUpdateManager {
 
                         // we reload the child because we need to update it. We cannot merge it to the session because if the collection of parent/children was not initialized and we change it,
                         // hibernate throw an assertion failure because cannot update the status of the lazy collection. We cannot merge an object with collection lazy, size > 0 and then update the collection
-                        cvUpdater.updateChildrenHavingMissingParent(child.getAc(), updateContext.getCvTerm().getAc());
+                        getCvUpdater().updateChildrenHavingMissingParent(child.getAc(), updateContext.getCvTerm().getAc());
                     }
 
                 }
@@ -381,7 +381,7 @@ public class CvUpdateManager {
 
             log.info("Importing missing child terms of " + subRoot.getTermAccession());
 
-            cvImporter.importCv(updateContext, true);
+            getCvImporter().importCv(updateContext, true);
         }
     }
 
@@ -409,6 +409,24 @@ public class CvUpdateManager {
         }
 
         return Collections.EMPTY_LIST;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /**
+     * Collects cv intact acs for cv objects that do not have a identity xref to another ontology
+     */
+    public List<String> getValidCvObjectsWithoutIdentity(){
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+        Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c where c.ac not in " +
+                "(select distinct c2.ac from CvDagObject c2 join c2.xrefs as x " +
+                "where x.cvDatabase.identifier <> :database and x.cvXrefQualifier.identifier = :identity) " +
+                "or c.ac in " +
+                "( select distinct c3.ac from CvDagObject c3 where c3.xrefs is empty)");
+        query.setParameter("database", CvDatabase.INTACT_MI_REF);
+        query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
+
+        return query.getResultList();
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -441,6 +459,28 @@ public class CvUpdateManager {
 
         if (cvObject != null){
             updateCv(cvObject, ontologyId);
+        }
+        // fire an error because term ac cannot be found in the database
+        else {
+            CvUpdateError error = errorFactory.createCvUpdateError(UpdateError.not_found_intact_ac, "Intact Ac does not match any Cv term in the database", null, cvObject.getAc(), null);
+
+            UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+            fireOnUpdateError(evt);
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    /**
+     * Updated a IntAct cv object given its intact accession. This method will not create missing parents but will re-attach to existing parents when needed
+     */
+    public void updateIntactCv(String cvObjectAc, String ontologyId) throws CvUpdateException {
+
+        DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
+
+        CvDagObject cvObject = factory.getCvObjectDao(CvDagObject.class).getByAc(cvObjectAc);
+
+        if (cvObject != null){
+            updateIntactCv(cvObject, ontologyId);
         }
         // fire an error because term ac cannot be found in the database
         else {
@@ -488,13 +528,13 @@ public class CvUpdateManager {
                         this.updateContext.setTermObsolete(isObsolete);
 
                         if (isObsolete){
-                            cvRemapper.remapObsoleteCvTerm(updateContext);
+                            getCvRemapper().remapObsoleteCvTerm(updateContext);
                         }
 
                         // if it has been remapped successfully to an existing cv but from another ontology so we stop the update of this cv here
                         // and finish later
                         if (updateContext.getOntologyTerm() != null){
-                            cvUpdater.updateTerm(this.updateContext);
+                            getCvUpdater().updateTerm(this.updateContext);
                         }
                     }
                     // obsolete term lost its hierarchy so it is normal that we cannot find a cv class for it. Try to remap it
@@ -502,12 +542,12 @@ public class CvUpdateManager {
                         this.updateContext.setOntologyTerm(ontologyTerm);
                         this.updateContext.setTermObsolete(isObsolete);
 
-                        cvRemapper.remapObsoleteCvTerm(updateContext);
+                        getCvRemapper().remapObsoleteCvTerm(updateContext);
 
                         // if it has been remapped successfully to an existing cv but from another ontology so we stop the update of this cv here
                         // and finish later
                         if (updateContext.getOntologyTerm() != null){
-                            cvUpdater.updateTerm(this.updateContext);
+                            getCvUpdater().updateTerm(this.updateContext);
                         }
                     }
                     else if (classesForTerm.isEmpty() && !isObsolete){
@@ -530,6 +570,29 @@ public class CvUpdateManager {
                     fireOnUpdateError(evt);
                 }
             }
+        }
+        else {
+            throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
+        }
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    /**
+     * Updates a Intact Cv object but does not create any missing parents.
+     */
+    public void updateIntactCv(CvDagObject cvObject, String ontologyId) throws CvUpdateException {
+
+        IntactOntologyAccess ontologyAccess = getIntactOntologyManager().getOntologyAccess(ontologyId);
+        // initialize context
+        this.updateContext.clear();
+        this.updateContext.setCvTerm(cvObject);
+        this.updateContext.setOntologyAccess(ontologyAccess);
+
+        if (ontologyAccess != null){
+            log.info("Update IntAct cv " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
+            UpdatedEvent updateEvt = new UpdatedEvent(this, null, cvObject.getAc(), null, null, false);
+
+            getBasicParentUpdater().updateParents(this.updateContext, updateEvt);
         }
         else {
             throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
@@ -583,9 +646,23 @@ public class CvUpdateManager {
         this.cvUpdater = cvUpdater;
     }
 
+    public CvParentUpdater getBasicParentUpdater() {
+        if (this.basicParentUpdater == null){
+            basicParentUpdater = new CvIntactParentUpdaterImpl();
+            ((CvIntactParentUpdaterImpl)cvImporter).initializeClassMap();
+
+        }
+        return basicParentUpdater;
+    }
+
+    public void setBasicParentUpdater(CvParentUpdater basicParentUpdater) {
+        this.basicParentUpdater = basicParentUpdater;
+    }
+
     public CvImporter getCvImporter() {
         if (this.cvImporter == null){
             cvImporter = new CvImporterImpl();
+            ((CvImporterImpl)cvImporter).initializeClassMap();
         }
         return cvImporter;
     }

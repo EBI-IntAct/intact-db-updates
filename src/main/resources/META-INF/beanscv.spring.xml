@@ -51,6 +51,8 @@
         <property name="usedInClassAnnotationUpdater" ref="usedInClassInitializer"/>
     </bean>
 
+    <bean id="basicParentUpdater" class="uk.ac.ebi.intact.dbupdate.cv.updater.CvIntactParentUpdaterImpl"/>
+
     <!-- obsolete remapper -->
     <bean id="obsoleteRemapper" class="uk.ac.ebi.intact.dbupdate.cv.remapper.ObsoleteCvRemapperImpl">
         <property name="ontologyIdToDatabase">

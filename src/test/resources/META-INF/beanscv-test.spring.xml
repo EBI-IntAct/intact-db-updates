@@ -25,6 +25,7 @@
         <property name="cvUpdater" ref="cvUpdater"/>
         <property name="cvRemapper" ref="obsoleteRemapper"/>
         <property name="errorFactory" ref="errorFactory"/>
+        <property name="basicParentUpdater" ref="basicParentUpdater"/>
         <property name="reportDirectory" value="${update.report}"/>
         <property name="rootTermsToExclude">
             <set>

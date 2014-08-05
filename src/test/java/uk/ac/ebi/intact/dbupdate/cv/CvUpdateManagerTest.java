@@ -101,6 +101,35 @@ public class CvUpdateManagerTest extends IntactBasicTestCase{
     @Test
     @DirtiesContext
     @Transactional(propagation = Propagation.NEVER)
+    public void test_update_intact_cv() throws CvUpdateException {
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        CvDagObject cv = getMockBuilder().createCvObject(CvInteraction.class, null, "test method");
+
+        getCorePersister().saveOrUpdate(cv);
+
+        getDataContext().commitTransaction(status);
+
+        cvManager.updateIntactCv(cv.getAc(), "MI");
+
+        TransactionStatus status2 = getDataContext().beginTransaction();
+
+        CvDagObject term = getDaoFactory().getCvObjectDao(CvDagObject.class).getByAc(cv.getAc());
+
+        Assert.assertEquals(1, term.getXrefs().size());
+
+        Assert.assertEquals(0, term.getParents().size());
+        Assert.assertEquals(1, cvManager.getBasicParentUpdater().getMissingParents().size());
+        for (String p : cvManager.getBasicParentUpdater().getMissingParents().keySet()){
+            Assert.assertEquals("MI:0001", p);
+        }
+
+        getDataContext().commitTransaction(status2);
+    }
+
+    @Test
+    @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void test_import_cv_no_children() throws CvUpdateException {
         String termAc = "MI:0091"; // chromatography technology
         

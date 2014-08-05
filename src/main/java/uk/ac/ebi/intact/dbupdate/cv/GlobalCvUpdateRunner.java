@@ -37,7 +37,7 @@ public class GlobalCvUpdateRunner {
     }
 
     /**
-     * Update all MI and MOD terms.
+     * Update all Intact, MI and MOD terms.
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
@@ -50,6 +50,12 @@ public class GlobalCvUpdateRunner {
 
         log.info("Update all existing terms for PSI-MOD ontology");
         updateAllTerms("MOD");
+
+        log.info("Update all existing terms for ECO ontology");
+        updateAllTerms("ECO");
+
+        log.info("Update all existing terms from IntAct that are not part of any existing external ontology but can be re-attach to MI parent terms");
+        updateAllIntActTerms();
 
         ReportWriterListener [] writers = cvUpdateManager.getListeners().getListeners(ReportWriterListener.class);
         for (ReportWriterListener writer : writers){
@@ -154,6 +160,34 @@ public class GlobalCvUpdateRunner {
     }
 
     /**
+     * This method will update all the IntAct terms which are not part of any external ontology :
+     * - update existing terms (only remapping to existing MI parents when possible)
+     * - create missing MI parents
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    public void updateAllIntActTerms() {
+        try {
+            cvUpdateManager.registerBasicListeners();
+
+            cvUpdateManager.clear();
+
+            IntactOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyManager().getOntologyAccess("MI");
+
+            if (ontologyAccess == null){
+                throw new IllegalArgumentException("Cannot update IntAct terms because cannot access the parent MI ontology");
+            }
+
+            // update existing terms
+            log.info("Update existing IntAct terms...");
+            updateExistingIntactTerms();
+
+        } catch (IOException e) {
+            log.fatal("Impossible to run the update because we cannot create the reports directory", e);
+        }
+    }
+
+    /**
      * Updates all existing cvs of a given ontology.
      */
     private void updateExistingTerms(String ontologyId){
@@ -170,6 +204,51 @@ public class GlobalCvUpdateRunner {
                 } catch (Exception e) {
                     log.error("Impossible to update the cv " + validCv, e);
                     CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update this cv. Exception is " + ExceptionUtils.getFullStackTrace(e), null, validCv, null);
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    cvUpdateManager.fireOnUpdateError(evt);
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates all existing intact cvs that could be attach to MI parent terms.
+     */
+    private void updateExistingIntactTerms(){
+
+        List<String> cvObjectAcs = cvUpdateManager.getValidCvObjectsWithoutIdentity();
+
+        for (String validCv : cvObjectAcs){
+
+            if (!processedIntactAcs.contains(validCv)){
+                try {
+                    cvUpdateManager.updateIntactCv(validCv, "MI");
+
+                    processedIntactAcs.add(validCv);
+                } catch (Exception e) {
+                    log.error("Impossible to update the cv " + validCv, e);
+                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Impossible to update this cv. Exception is " + ExceptionUtils.getFullStackTrace(e), null, validCv, null);
+
+                    UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
+                    cvUpdateManager.fireOnUpdateError(evt);
+                }
+            }
+        }
+
+        // create missing parents reported while updating existing IntAct cvs
+        log.info("Create missing MI parents...");
+        Map<String, Set<CvDagObject>> missingParentsToCreate = cvUpdateManager.getBasicParentUpdater().getMissingParents();
+
+        if (!missingParentsToCreate.isEmpty()){
+            // import missing parents and update children
+            for (Map.Entry<String, Set<CvDagObject>> missing : missingParentsToCreate.entrySet()){
+
+                try {
+                    cvUpdateManager.createMissingParentsFor(missing.getKey(), missing.getValue());
+                } catch (Exception e) {
+                    log.error("Impossible to import " + missing.getKey(), e);
+                    CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.fatal, "Cv object " + missing.getKey() + " cannot be imported into the database. Exception is " + ExceptionUtils.getFullStackTrace(e), missing.getKey(), null, null);
 
                     UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                     cvUpdateManager.fireOnUpdateError(evt);
