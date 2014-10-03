@@ -212,7 +212,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         // dupe1 has an invalid range and will be deprecated
         Protein dupe1 = getMockBuilder().createDeterministicProtein("P12345", "dupe1");
         dupe1.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
-        dupe1.setSequence("LALASSWWAHVEMGPPDPILGVTEAYKRDTNSKK"); // real sequence, insertion of "LALA" upstream
+        dupe1.setSequence("LALAMALLHSARVLSGVASAFHPGLAAAASARASSWWAHVEMGPPDPILGVTEAYKRDTNSKKMNLGVGAYRDDNGKPYVLPSVRKAEAQIAAKGLDKEYLPIGGLAEFCRASAELALGENSEVVKSGRFVTVQTISGTGALRIGASFLQRFFKFSRDVFLPKPSWGNHTPIFRDAGMQLQSYRYYDPKTCGFDFTGALEDISKIPEQSVLLLHACAHNPTGVDPRPEQWKEIATVVKKRNLFAFFDMAYQGFASGDGDKDAWAVRHFIEQGINVCLCQSYAKNMGLYGERVGAFTVICKDADEAKRVESQLKILIRPMYSNPPIHGARIASTILTSPDLRKQWLQEVKGMADRIIGMRTQLVSNLKKEGSTHSWQHITDQIGMFCFTGLKPEQVERLTKEFSIYMTKDGRISVAGVTSGNVGYLAHAIHQVTK"); // real sequence, insertion of "LALA" upstream
 
         CvDatabase dip = getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.DIP_MI_REF, CvDatabase.DIP);
         dupe1.addXref(getMockBuilder().createXref(dupe1, "DIP:00001", null, dip));
@@ -234,7 +234,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         // dupe2 will be kept as original but has the same interaction as dupe3
         dupe2.setCreated(new Date(1)); // dupe2 is older
         // no need to update the sequence
-        dupe2.setSequence("SSWWAHVEMGPPDPILGVTEAYKRDTNSKK");
+        dupe2.setSequence("MALLHSARVLSGVASAFHPGLAAAASARASSWWAHVEMGPPDPILGVTEAYKRDTNSKKMNLGVGAYRDDNGKPYVLPSVRKAEAQIAAKGLDKEYLPIGGLAEFCRASAELALGENSEVVKSGRFVTVQTISGTGALRIGASFLQRFFKFSRDVFLPKPSWGNHTPIFRDAGMQLQSYRYYDPKTCGFDFTGALEDISKIPEQSVLLLHACAHNPTGVDPRPEQWKEIATVVKKRNLFAFFDMAYQGFASGDGDKDAWAVRHFIEQGINVCLCQSYAKNMGLYGERVGAFTVICKDADEAKRVESQLKILIRPMYSNPPIHGARIASTILTSPDLRKQWLQEVKGMADRIIGMRTQLVSNLKKEGSTHSWQHITDQIGMFCFTGLKPEQVERLTKEFSIYMTKDGRISVAGVTSGNVGYLAHAIHQVTK");
         dupe2.setBioSource(getMockBuilder().createBioSource(9986, "Oryctolagus cuniculus"));
 
         // dupe 3 has a range which will be shifted before the merge and has an interaction which will be deleted because duplicated participant
@@ -251,7 +251,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         }
 
         // no need to update the sequence
-        dupe3.setSequence("SSWWAHVPPDPILGVTEAYKRDTNSKK");
+        dupe3.setSequence("MALLHSARVLSGVASAFHPGLAAAASARASSWWAHVPPDPILGVTEAYKRDTNSKKMNLGVGAYRDDNGKPYVLPSVRKAEAQIAAKGLDKEYLPIGGLAEFCRASAELALGENSEVVKSGRFVTVQTISGTGALRIGASFLQRFFKFSRDVFLPKPSWGNHTPIFRDAGMQLQSYRYYDPKTCGFDFTGALEDISKIPEQSVLLLHACAHNPTGVDPRPEQWKEIATVVKKRNLFAFFDMAYQGFASGDGDKDAWAVRHFIEQGINVCLCQSYAKNMGLYGERVGAFTVICKDADEAKRVESQLKILIRPMYSNPPIHGARIASTILTSPDLRKQWLQEVKGMADRIIGMRTQLVSNLKKEGSTHSWQHITDQIGMFCFTGLKPEQVERLTKEFSIYMTKDGRISVAGVTSGNVGYLAHAIHQVTK");
 
         getCorePersister().saveOrUpdate(dupe1);
         getCorePersister().saveOrUpdate(dupe2);
@@ -277,7 +277,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         // add a range which will be shifted (dupe3)
         Feature feature3 = getMockBuilder().createFeatureRandom();
         feature3.getRanges().clear();
-        Range range3 = getMockBuilder().createRange(8, 8, 11, 11);
+        Range range3 = getMockBuilder().createRange(37, 37, 40, 40);
         feature3.addRange(range3);
         dupe3.getActiveInstances().iterator().next().addBindingDomain(feature3);
 
