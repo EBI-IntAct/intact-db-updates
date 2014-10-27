@@ -649,7 +649,7 @@ public class CvUpdateManager {
     public CvParentUpdater getBasicParentUpdater() {
         if (this.basicParentUpdater == null){
             basicParentUpdater = new CvIntactParentUpdaterImpl();
-            ((CvIntactParentUpdaterImpl)cvImporter).initializeClassMap();
+            ((CvIntactParentUpdaterImpl)basicParentUpdater).initializeClassMap();
 
         }
         return basicParentUpdater;
