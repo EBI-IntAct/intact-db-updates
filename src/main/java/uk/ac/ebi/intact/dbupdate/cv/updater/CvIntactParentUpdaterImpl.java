@@ -98,6 +98,10 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
                     if (intactIterator.hasNext()){
                         currentIntactParent = intactIterator.next();
                     }
+                    else{
+                        currentIntactParent = null;
+                        currentIdentity = null;
+                    }
 
                 }while (currentIntactParent != null && !hasParentId && currentIdentity != null);
             }
