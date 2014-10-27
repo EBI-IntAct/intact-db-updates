@@ -88,6 +88,7 @@ public class CvImporterImpl implements CvImporter{
         classMap.put( "MI:1064", CvConfidenceType.class );
 
         classMap.put( "MOD:00000", CvFeatureType.class );
+        classMap.put( "ECO:0000000", CvDatabase.class );
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

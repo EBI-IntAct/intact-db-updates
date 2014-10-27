@@ -16,4 +16,10 @@
               identifier="MOD"
               version="1.010.6"/>
 
+    <cvSource source="ols"
+              uri=""
+              format="OBO"
+              name="ECO"
+              identifier="ECO"/>
+
 </cvSourceList>
