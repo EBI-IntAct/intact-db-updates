@@ -182,7 +182,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
         Set<CvDagObject> parents = new HashSet<CvDagObject>(parent.getParents());
 
         for (CvDagObject p : parent.getParents()){
-            parents.addAll(p.getParents());
+            parents.addAll(collectAllParents(p));
         }
 
         return parents;
