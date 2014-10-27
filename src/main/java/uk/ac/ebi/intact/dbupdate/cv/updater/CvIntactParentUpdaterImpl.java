@@ -75,7 +75,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
             return;
         }
 
-        Iterator<CvDagObject> intactIterator = term.getParents().iterator();
+        Iterator<CvDagObject> intactIterator = collectAllParents(term).iterator();
 
         // root terms to exclude
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
@@ -176,6 +176,16 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
         else {
             currentIdentity = currentIdentityXref.getPrimaryId();
         }
+    }
+
+    private Set<CvDagObject> collectAllParents(CvDagObject parent){
+        Set<CvDagObject> parents = new HashSet<CvDagObject>(parent.getParents());
+
+        for (CvDagObject p : parent.getParents()){
+            parents.addAll(p.getParents());
+        }
+
+        return parents;
     }
 
     public void clear(){
