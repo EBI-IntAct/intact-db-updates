@@ -5,19 +5,12 @@
     <parent>
         <artifactId>dbupdate-master</artifactId>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
-<<<<<<< HEAD
-        <version>2.1.8-SNAPSHOT</version>
-    </parent>
-
-    <artifactId>intact-bioactiveentities-update</artifactId>
-    <version>2.1.8-SNAPSHOT</version>
-=======
         <version>2.1.7.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>intact-bioactiveentities-update</artifactId>
     <version>2.1.7.2-SNAPSHOT</version>
->>>>>>> dbupdate-master-2.1.7
+
     <name>IntAct Database Update :: BioActiveEntity Update</name>
 
     <scm>
