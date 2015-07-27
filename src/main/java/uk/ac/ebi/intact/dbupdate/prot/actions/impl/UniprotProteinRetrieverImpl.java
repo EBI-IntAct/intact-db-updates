@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.remoting.RemoteAccessException;
 import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
@@ -482,7 +483,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         Collection<UniprotProtein> uniprotProteins;
         try{
             uniprotProteins = uniprotService.retrieve( primaryAc );
-        } catch (RemoteConnectFailureException ce) {
+        } catch (RemoteAccessException ce) {
             if (retryAttempt >= MAX_RETRY_ATTEMPTS) {
                 throw new ProcessorException("Maximum number of retry attempts reached ("+MAX_RETRY_ATTEMPTS+") for: "+primaryAc);
             }
