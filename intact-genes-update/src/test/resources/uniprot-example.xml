@@ -1,0 +1,856 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<uniprot xmlns="http://uniprot.org/uniprot" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://uniprot.org/uniprot http://www.uniprot.org/support/docs/uniprot.xsd">
+    <entry dataset="Swiss-Prot" created="2003-05-09" modified="2013-04-03" version="106">
+        <accession>Q9BV73</accession>
+        <accession>E1P5Q3</accession>
+        <accession>O14812</accession>
+        <accession>O60588</accession>
+        <accession>Q9H450</accession>
+        <name>CP250_HUMAN</name>
+        <protein>
+            <recommendedName>
+                <fullName>Centrosome-associated protein CEP250</fullName>
+            </recommendedName>
+            <alternativeName>
+                <fullName>250 kDa centrosomal protein</fullName>
+                <shortName>Cep250</shortName>
+            </alternativeName>
+            <alternativeName>
+                <fullName>Centrosomal Nek2-associated protein 1</fullName>
+                <shortName>C-Nap1</shortName>
+            </alternativeName>
+            <alternativeName>
+                <fullName>Centrosomal protein 2</fullName>
+            </alternativeName>
+        </protein>
+        <gene>
+            <name type="primary">CEP250</name>
+            <name type="synonym">CEP2</name>
+            <name type="synonym">CNAP1</name>
+        </gene>
+        <organism>
+            <name type="scientific">Homo sapiens</name>
+            <name type="common">Human</name>
+            <dbReference type="NCBI Taxonomy" id="9606"/>
+            <lineage>
+                <taxon>Eukaryota</taxon>
+                <taxon>Metazoa</taxon>
+                <taxon>Chordata</taxon>
+                <taxon>Craniata</taxon>
+                <taxon>Vertebrata</taxon>
+                <taxon>Euteleostomi</taxon>
+                <taxon>Mammalia</taxon>
+                <taxon>Eutheria</taxon>
+                <taxon>Euarchontoglires</taxon>
+                <taxon>Primates</taxon>
+                <taxon>Haplorrhini</taxon>
+                <taxon>Catarrhini</taxon>
+                <taxon>Hominidae</taxon>
+                <taxon>Homo</taxon>
+            </lineage>
+        </organism>
+        <reference key="1">
+            <citation type="journal article" date="1998" name="Arthritis Rheum." volume="41" first="551" last="558">
+                <title>Autoantibodies to a group of centrosomal proteins in human autoimmune sera reactive with the
+                    centrosome.
+                </title>
+                <authorList>
+                    <person name="Mack G.J."/>
+                    <person name="Rees J."/>
+                    <person name="Sandblom O."/>
+                    <person name="Balczon R."/>
+                    <person name="Fritzler M.J."/>
+                    <person name="Rattner J.B."/>
+                </authorList>
+                <dbReference type="PubMed" id="9506584"/>
+                <dbReference type="DOI" id="10.1002/1529-0131(199803)41:3&lt;551::AID-ART22>3.0.CO;2-X"/>
+            </citation>
+            <scope>NUCLEOTIDE SEQUENCE [MRNA] (ISOFORM 1)</scope>
+            <scope>IDENTIFICATION AS AUTOANTIGEN IN AUTOIMMUNE DISEASES</scope>
+            <source>
+                <tissue>Cervix carcinoma</tissue>
+            </source>
+        </reference>
+        <reference key="2">
+            <citation type="journal article" date="1998" name="J. Cell Biol." volume="141" first="1563" last="1574">
+                <title>C-Nap1, a novel centrosomal coiled-coil protein and candidate substrate of the cell
+                    cycle-regulated protein kinase Nek2.
+                </title>
+                <authorList>
+                    <person name="Fry A.M."/>
+                    <person name="Mayor T."/>
+                    <person name="Meraldi P."/>
+                    <person name="Stierhof Y.-D."/>
+                    <person name="Tanaka K."/>
+                    <person name="Nigg E.A."/>
+                </authorList>
+                <dbReference type="PubMed" id="9647649"/>
+                <dbReference type="DOI" id="10.1083/jcb.141.7.1563"/>
+            </citation>
+            <scope>NUCLEOTIDE SEQUENCE [MRNA] (ISOFORMS 1 AND 2)</scope>
+            <scope>INTERACTION WITH NEK2</scope>
+            <scope>SUBCELLULAR LOCATION DURING THE CELL CYCLE</scope>
+            <source>
+                <tissue>Placenta</tissue>
+            </source>
+        </reference>
+        <reference key="3">
+            <citation type="journal article" date="2001" name="Nature" volume="414" first="865" last="871">
+                <title>The DNA sequence and comparative analysis of human chromosome 20.</title>
+                <authorList>
+                    <person name="Deloukas P."/>
+                    <person name="Matthews L.H."/>
+                    <person name="Ashurst J.L."/>
+                    <person name="Burton J."/>
+                    <person name="Gilbert J.G.R."/>
+                    <person name="Jones M."/>
+                    <person name="Stavrides G."/>
+                    <person name="Almeida J.P."/>
+                    <person name="Babbage A.K."/>
+                    <person name="Bagguley C.L."/>
+                    <person name="Bailey J."/>
+                    <person name="Barlow K.F."/>
+                    <person name="Bates K.N."/>
+                    <person name="Beard L.M."/>
+                    <person name="Beare D.M."/>
+                    <person name="Beasley O.P."/>
+                    <person name="Bird C.P."/>
+                    <person name="Blakey S.E."/>
+                    <person name="Bridgeman A.M."/>
+                    <person name="Brown A.J."/>
+                    <person name="Buck D."/>
+                    <person name="Burrill W.D."/>
+                    <person name="Butler A.P."/>
+                    <person name="Carder C."/>
+                    <person name="Carter N.P."/>
+                    <person name="Chapman J.C."/>
+                    <person name="Clamp M."/>
+                    <person name="Clark G."/>
+                    <person name="Clark L.N."/>
+                    <person name="Clark S.Y."/>
+                    <person name="Clee C.M."/>
+                    <person name="Clegg S."/>
+                    <person name="Cobley V.E."/>
+                    <person name="Collier R.E."/>
+                    <person name="Connor R.E."/>
+                    <person name="Corby N.R."/>
+                    <person name="Coulson A."/>
+                    <person name="Coville G.J."/>
+                    <person name="Deadman R."/>
+                    <person name="Dhami P.D."/>
+                    <person name="Dunn M."/>
+                    <person name="Ellington A.G."/>
+                    <person name="Frankland J.A."/>
+                    <person name="Fraser A."/>
+                    <person name="French L."/>
+                    <person name="Garner P."/>
+                    <person name="Grafham D.V."/>
+                    <person name="Griffiths C."/>
+                    <person name="Griffiths M.N.D."/>
+                    <person name="Gwilliam R."/>
+                    <person name="Hall R.E."/>
+                    <person name="Hammond S."/>
+                    <person name="Harley J.L."/>
+                    <person name="Heath P.D."/>
+                    <person name="Ho S."/>
+                    <person name="Holden J.L."/>
+                    <person name="Howden P.J."/>
+                    <person name="Huckle E."/>
+                    <person name="Hunt A.R."/>
+                    <person name="Hunt S.E."/>
+                    <person name="Jekosch K."/>
+                    <person name="Johnson C.M."/>
+                    <person name="Johnson D."/>
+                    <person name="Kay M.P."/>
+                    <person name="Kimberley A.M."/>
+                    <person name="King A."/>
+                    <person name="Knights A."/>
+                    <person name="Laird G.K."/>
+                    <person name="Lawlor S."/>
+                    <person name="Lehvaeslaiho M.H."/>
+                    <person name="Leversha M.A."/>
+                    <person name="Lloyd C."/>
+                    <person name="Lloyd D.M."/>
+                    <person name="Lovell J.D."/>
+                    <person name="Marsh V.L."/>
+                    <person name="Martin S.L."/>
+                    <person name="McConnachie L.J."/>
+                    <person name="McLay K."/>
+                    <person name="McMurray A.A."/>
+                    <person name="Milne S.A."/>
+                    <person name="Mistry D."/>
+                    <person name="Moore M.J.F."/>
+                    <person name="Mullikin J.C."/>
+                    <person name="Nickerson T."/>
+                    <person name="Oliver K."/>
+                    <person name="Parker A."/>
+                    <person name="Patel R."/>
+                    <person name="Pearce T.A.V."/>
+                    <person name="Peck A.I."/>
+                    <person name="Phillimore B.J.C.T."/>
+                    <person name="Prathalingam S.R."/>
+                    <person name="Plumb R.W."/>
+                    <person name="Ramsay H."/>
+                    <person name="Rice C.M."/>
+                    <person name="Ross M.T."/>
+                    <person name="Scott C.E."/>
+                    <person name="Sehra H.K."/>
+                    <person name="Shownkeen R."/>
+                    <person name="Sims S."/>
+                    <person name="Skuce C.D."/>
+                    <person name="Smith M.L."/>
+                    <person name="Soderlund C."/>
+                    <person name="Steward C.A."/>
+                    <person name="Sulston J.E."/>
+                    <person name="Swann R.M."/>
+                    <person name="Sycamore N."/>
+                    <person name="Taylor R."/>
+                    <person name="Tee L."/>
+                    <person name="Thomas D.W."/>
+                    <person name="Thorpe A."/>
+                    <person name="Tracey A."/>
+                    <person name="Tromans A.C."/>
+                    <person name="Vaudin M."/>
+                    <person name="Wall M."/>
+                    <person name="Wallis J.M."/>
+                    <person name="Whitehead S.L."/>
+                    <person name="Whittaker P."/>
+                    <person name="Willey D.L."/>
+                    <person name="Williams L."/>
+                    <person name="Williams S.A."/>
+                    <person name="Wilming L."/>
+                    <person name="Wray P.W."/>
+                    <person name="Hubbard T."/>
+                    <person name="Durbin R.M."/>
+                    <person name="Bentley D.R."/>
+                    <person name="Beck S."/>
+                    <person name="Rogers J."/>
+                </authorList>
+                <dbReference type="PubMed" id="11780052"/>
+                <dbReference type="DOI" id="10.1038/414865a"/>
+            </citation>
+            <scope>NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA]</scope>
+        </reference>
+        <reference key="4">
+            <citation type="submission" date="2005-09" db="EMBL/GenBank/DDBJ databases">
+                <authorList>
+                    <person name="Mural R.J."/>
+                    <person name="Istrail S."/>
+                    <person name="Sutton G.G."/>
+                    <person name="Florea L."/>
+                    <person name="Halpern A.L."/>
+                    <person name="Mobarry C.M."/>
+                    <person name="Lippert R."/>
+                    <person name="Walenz B."/>
+                    <person name="Shatkay H."/>
+                    <person name="Dew I."/>
+                    <person name="Miller J.R."/>
+                    <person name="Flanigan M.J."/>
+                    <person name="Edwards N.J."/>
+                    <person name="Bolanos R."/>
+                    <person name="Fasulo D."/>
+                    <person name="Halldorsson B.V."/>
+                    <person name="Hannenhalli S."/>
+                    <person name="Turner R."/>
+                    <person name="Yooseph S."/>
+                    <person name="Lu F."/>
+                    <person name="Nusskern D.R."/>
+                    <person name="Shue B.C."/>
+                    <person name="Zheng X.H."/>
+                    <person name="Zhong F."/>
+                    <person name="Delcher A.L."/>
+                    <person name="Huson D.H."/>
+                    <person name="Kravitz S.A."/>
+                    <person name="Mouchard L."/>
+                    <person name="Reinert K."/>
+                    <person name="Remington K.A."/>
+                    <person name="Clark A.G."/>
+                    <person name="Waterman M.S."/>
+                    <person name="Eichler E.E."/>
+                    <person name="Adams M.D."/>
+                    <person name="Hunkapiller M.W."/>
+                    <person name="Myers E.W."/>
+                    <person name="Venter J.C."/>
+                </authorList>
+            </citation>
+            <scope>NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA]</scope>
+        </reference>
+        <reference key="5">
+            <citation type="journal article" date="2000" name="Biochem. J." volume="349" first="509" last="518">
+                <title>NIMA-related kinase 2 (Nek2), a cell-cycle-regulated protein kinase localized to centrosomes, is
+                    complexed to protein phosphatase 1.
+                </title>
+                <authorList>
+                    <person name="Helps N.R."/>
+                    <person name="Luo X."/>
+                    <person name="Barker H.M."/>
+                    <person name="Cohen P.T.W."/>
+                </authorList>
+                <dbReference type="PubMed" id="10880350"/>
+                <dbReference type="DOI" id="10.1042/0264-6021:3490509"/>
+            </citation>
+            <scope>PHOSPHORYLATION</scope>
+            <scope>INTERACTION WITH NEK2 AND PPP1CA</scope>
+        </reference>
+        <reference key="6">
+            <citation type="journal article" date="2002" name="J. Cell Sci." volume="115" first="3275" last="3284">
+                <title>The mechanism regulating the dissociation of the centrosomal protein C-Nap1 from mitotic spindle
+                    poles.
+                </title>
+                <authorList>
+                    <person name="Mayor T."/>
+                    <person name="Hacker U."/>
+                    <person name="Stierhof Y.-D."/>
+                    <person name="Nigg E.A."/>
+                </authorList>
+                <dbReference type="PubMed" id="12140259"/>
+            </citation>
+            <scope>PHOSPHORYLATION DURING CELL CYCLE</scope>
+        </reference>
+        <reference key="7">
+            <citation type="journal article" date="2008" name="Exp. Cell Res." volume="314" first="3692" last="3700">
+                <title>A novel function of CEP135 as a platform protein of C-NAP1 for its centriolar localization.
+                </title>
+                <authorList>
+                    <person name="Kim K."/>
+                    <person name="Lee S."/>
+                    <person name="Chang J."/>
+                    <person name="Rhee K."/>
+                </authorList>
+                <dbReference type="PubMed" id="18851962"/>
+                <dbReference type="DOI" id="10.1016/j.yexcr.2008.09.016"/>
+            </citation>
+            <scope>INTERACTION WITH CEP135</scope>
+        </reference>
+        <reference key="8">
+            <citation type="journal article" date="2009" name="Sci. Signal." volume="2" first="RA46" last="RA46">
+                <title>Quantitative phosphoproteomic analysis of T cell receptor signaling reveals system-wide
+                    modulation of protein-protein interactions.
+                </title>
+                <authorList>
+                    <person name="Mayya V."/>
+                    <person name="Lundgren D.H."/>
+                    <person name="Hwang S.-I."/>
+                    <person name="Rezaul K."/>
+                    <person name="Wu L."/>
+                    <person name="Eng J.K."/>
+                    <person name="Rodionov V."/>
+                    <person name="Han D.K."/>
+                </authorList>
+                <dbReference type="PubMed" id="19690332"/>
+                <dbReference type="DOI" id="10.1126/scisignal.2000007"/>
+            </citation>
+            <scope>PHOSPHORYLATION [LARGE SCALE ANALYSIS] AT SER-2229; SER-2252 AND SER-2259</scope>
+            <scope>MASS SPECTROMETRY</scope>
+            <source>
+                <tissue>Leukemic T-cell</tissue>
+            </source>
+        </reference>
+        <reference key="9">
+            <citation type="journal article" date="2010" name="Nat. Cell Biol." volume="12" first="1166" last="1176">
+                <title>Components of the Hippo pathway cooperate with Nek2 kinase to regulate centrosome disjunction.
+                </title>
+                <authorList>
+                    <person name="Mardin B.R."/>
+                    <person name="Lange C."/>
+                    <person name="Baxter J.E."/>
+                    <person name="Hardy T."/>
+                    <person name="Scholz S.R."/>
+                    <person name="Fry A.M."/>
+                    <person name="Schiebel E."/>
+                </authorList>
+                <dbReference type="PubMed" id="21076410"/>
+                <dbReference type="DOI" id="10.1038/ncb2120"/>
+            </citation>
+            <scope>PHOSPHORYLATION AT SER-2417 AND SER-2421</scope>
+        </reference>
+        <comment type="function">
+            <text>Probably plays an important role in centrosome cohesion during interphase.</text>
+        </comment>
+        <comment type="subunit">
+            <text evidence="1 2 3">Monomer and homodimer (Probable). Interacts with CROCC/rootletin (By similarity).
+                Forms a complex in vitro with both NEK2 kinase and the PPP1CC catalytic subunit of protein phosphatase 1
+                (PP1). Interacts with CEP135.
+            </text>
+        </comment>
+        <comment type="interaction">
+            <interactant intactId="EBI-1053100"/>
+            <interactant intactId="EBI-1181664">
+                <id>Q9H0K1</id>
+                <label>SIK2</label>
+            </interactant>
+            <organismsDiffer>false</organismsDiffer>
+            <experiments>5</experiments>
+        </comment>
+        <comment type="subcellular location">
+            <subcellularLocation>
+                <location>Cytoplasm</location>
+                <location>Perinuclear region</location>
+            </subcellularLocation>
+            <subcellularLocation>
+                <location>Cytoplasm</location>
+                <location>Cytoskeleton</location>
+                <location>Centrosome</location>
+                <location>Centriole</location>
+            </subcellularLocation>
+            <subcellularLocation>
+                <location>Cytoplasm</location>
+                <location>Cytoskeleton</location>
+                <location>Cilium basal body</location>
+            </subcellularLocation>
+            <text evidence="1">Component of the core centrosome. In interphase cells, it specifically associates with
+                the proximal ends of both mother and daughter centrioles. Associates with the centrosome in interphase
+                cells. In mitotic cells, it dissociates from the mitotic spindle poles. At the end of cell division, it
+                reaccumulates at centrosomes. In photoreceptors, found at the proximal ends of basal bodies.
+            </text>
+        </comment>
+        <comment type="alternative products">
+            <event type="alternative splicing"/>
+            <isoform>
+                <id>Q9BV73-1</id>
+                <name>1</name>
+                <sequence type="displayed"/>
+            </isoform>
+            <isoform>
+                <id>Q9BV73-2</id>
+                <name>2</name>
+                <sequence type="described" ref="VSP_007372"/>
+            </isoform>
+        </comment>
+        <comment type="tissue specificity">
+            <text>Ubiquitously and weakly expressed.</text>
+        </comment>
+        <comment type="PTM">
+            <text evidence="2 4 5">Differentially phosphorylated during cell cycle. Phosphorylation may regulate
+                association/dissociation from centrosome. During M phase of mitosis, C-terminal part is phosphorylated
+                by NEK2, suggesting that it may trigger the dissociation from the mitotic centrosome. Dephosphorylated
+                in vitro by the PP1 phosphatase.
+            </text>
+        </comment>
+        <comment type="miscellaneous">
+            <text>Antibodies against CEP2 are present in sera from patients with autoimmune diseases that developed
+                autoantibodies against centrosomal proteins.
+            </text>
+        </comment>
+        <dbReference type="EMBL" id="AF022655">
+            <property type="protein sequence ID" value="AAC06349.1"/>
+            <property type="molecule type" value="mRNA"/>
+        </dbReference>
+        <dbReference type="EMBL" id="AF049105">
+            <property type="protein sequence ID" value="AAC07988.1"/>
+            <property type="molecule type" value="mRNA"/>
+        </dbReference>
+        <dbReference type="EMBL" id="AL121586">
+            <property type="protein sequence ID" value="CAB89415.1"/>
+            <property type="molecule type" value="Genomic_DNA"/>
+        </dbReference>
+        <dbReference type="EMBL" id="CH471077">
+            <property type="protein sequence ID" value="EAW76206.1"/>
+            <property type="molecule type" value="Genomic_DNA"/>
+        </dbReference>
+        <dbReference type="EMBL" id="CH471077">
+            <property type="protein sequence ID" value="EAW76207.1"/>
+            <property type="molecule type" value="Genomic_DNA"/>
+        </dbReference>
+        <dbReference type="IPI" id="IPI00160622"/>
+        <dbReference type="IPI" id="IPI00292871"/>
+        <dbReference type="PIR" id="T08621">
+            <property type="entry name" value="T08621"/>
+        </dbReference>
+        <dbReference type="RefSeq" id="NP_009117.2">
+            <property type="nucleotide sequence ID" value="NM_007186.3"/>
+        </dbReference>
+        <dbReference type="UniGene" id="Hs.443976"/>
+        <dbReference type="ProteinModelPortal" id="Q9BV73"/>
+        <dbReference type="IntAct" id="Q9BV73">
+            <property type="interactions" value="5"/>
+        </dbReference>
+        <dbReference type="MINT" id="MINT-1191144"/>
+        <dbReference type="STRING" id="9606.ENSP00000348401"/>
+        <dbReference type="PhosphoSite" id="Q9BV73"/>
+        <dbReference type="DMDM" id="30580364"/>
+        <dbReference type="PaxDb" id="Q9BV73"/>
+        <dbReference type="PRIDE" id="Q9BV73"/>
+        <dbReference type="DNASU" id="11190"/>
+        <dbReference type="Ensembl" id="ENST00000342580">
+            <property type="protein sequence ID" value="ENSP00000341541"/>
+            <property type="gene ID" value="ENSG00000126001"/>
+        </dbReference>
+        <dbReference type="Ensembl" id="ENST00000397527">
+            <property type="protein sequence ID" value="ENSP00000380661"/>
+            <property type="gene ID" value="ENSG00000126001"/>
+        </dbReference>
+        <dbReference type="GeneID" id="11190"/>
+        <dbReference type="KEGG" id="hsa:11190"/>
+        <dbReference type="UCSC" id="uc010zve.2">
+            <property type="organism name" value="human"/>
+        </dbReference>
+        <dbReference type="CTD" id="11190"/>
+        <dbReference type="GeneCards" id="GC20P034042"/>
+        <dbReference type="H-InvDB" id="HIX0015764"/>
+        <dbReference type="HGNC" id="HGNC:1859">
+            <property type="gene designation" value="CEP250"/>
+        </dbReference>
+        <dbReference type="MIM" id="609689">
+            <property type="type" value="gene"/>
+        </dbReference>
+        <dbReference type="neXtProt" id="NX_Q9BV73"/>
+        <dbReference type="PharmGKB" id="PA26415"/>
+        <dbReference type="eggNOG" id="NOG12793"/>
+        <dbReference type="HOGENOM" id="HOG000246955"/>
+        <dbReference type="HOVERGEN" id="HBG081320"/>
+        <dbReference type="InParanoid" id="Q9BV73"/>
+        <dbReference type="KO" id="K16464"/>
+        <dbReference type="OMA" id="HEEEVNQ"/>
+        <dbReference type="OrthoDB" id="EOG41JZBB"/>
+        <dbReference type="PhylomeDB" id="Q9BV73"/>
+        <dbReference type="Reactome" id="REACT_115566">
+            <property type="pathway name" value="Cell Cycle"/>
+        </dbReference>
+        <dbReference type="ChiTaRS" id="CEP250">
+            <property type="organism name" value="human"/>
+        </dbReference>
+        <dbReference type="GenomeRNAi" id="11190"/>
+        <dbReference type="NextBio" id="42595"/>
+        <dbReference type="ArrayExpress" id="Q9BV73"/>
+        <dbReference type="Bgee" id="Q9BV73"/>
+        <dbReference type="CleanEx" id="HS_CEP250"/>
+        <dbReference type="Genevestigator" id="Q9BV73"/>
+        <dbReference type="GermOnline" id="ENSG00000126001">
+            <property type="organism name" value="Homo sapiens"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0005814">
+            <property type="term" value="C:centriole"/>
+            <property type="evidence" value="IDA:UniProtKB"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0005929">
+            <property type="term" value="C:cilium"/>
+            <property type="evidence" value="IEA:UniProtKB-KW"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0005829">
+            <property type="term" value="C:cytosol"/>
+            <property type="evidence" value="TAS:Reactome"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0005932">
+            <property type="term" value="C:microtubule basal body"/>
+            <property type="evidence" value="IEA:UniProtKB-SubCell"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0048471">
+            <property type="term" value="C:perinuclear region of cytoplasm"/>
+            <property type="evidence" value="IEA:UniProtKB-SubCell"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0043234">
+            <property type="term" value="C:protein complex"/>
+            <property type="evidence" value="IMP:UniProtKB"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0031616">
+            <property type="term" value="C:spindle pole centrosome"/>
+            <property type="evidence" value="IEA:Compara"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0010457">
+            <property type="term" value="P:centriole-centriole cohesion"/>
+            <property type="evidence" value="IMP:UniProtKB"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0000086">
+            <property type="term" value="P:G2/M transition of mitotic cell cycle"/>
+            <property type="evidence" value="TAS:Reactome"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0008104">
+            <property type="term" value="P:protein localization"/>
+            <property type="evidence" value="IMP:UniProtKB"/>
+        </dbReference>
+        <dbReference type="GO" id="GO:0030997">
+            <property type="term" value="P:regulation of centriole-centriole cohesion"/>
+            <property type="evidence" value="IDA:UniProtKB"/>
+        </dbReference>
+        <dbReference type="InterPro" id="IPR026048">
+            <property type="entry name" value="CEP250"/>
+        </dbReference>
+        <dbReference type="PANTHER" id="PTHR23159:SF1">
+            <property type="entry name" value="PTHR23159:SF1"/>
+            <property type="match status" value="1"/>
+        </dbReference>
+        <proteinExistence type="evidence at protein level"/>
+        <keyword id="KW-0025">Alternative splicing</keyword>
+        <keyword id="KW-0131">Cell cycle</keyword>
+        <keyword id="KW-0966">Cell projection</keyword>
+        <keyword id="KW-0969">Cilium</keyword>
+        <keyword id="KW-0175">Coiled coil</keyword>
+        <keyword id="KW-0181">Complete proteome</keyword>
+        <keyword id="KW-0963">Cytoplasm</keyword>
+        <keyword id="KW-0206">Cytoskeleton</keyword>
+        <keyword id="KW-0597">Phosphoprotein</keyword>
+        <keyword id="KW-0621">Polymorphism</keyword>
+        <keyword id="KW-1185">Reference proteome</keyword>
+        <feature type="chain" description="Centrosome-associated protein CEP250" id="PRO_0000089487">
+            <location>
+                <begin position="1"/>
+                <end position="2442"/>
+            </location>
+        </feature>
+        <feature type="coiled-coil region" status="potential">
+            <location>
+                <begin position="95"/>
+                <end position="158"/>
+            </location>
+        </feature>
+        <feature type="coiled-coil region" status="potential">
+            <location>
+                <begin position="244"/>
+                <end position="352"/>
+            </location>
+        </feature>
+        <feature type="coiled-coil region" status="potential">
+            <location>
+                <begin position="395"/>
+                <end position="1172"/>
+            </location>
+        </feature>
+        <feature type="coiled-coil region" status="potential">
+            <location>
+                <begin position="1243"/>
+                <end position="2227"/>
+            </location>
+        </feature>
+        <feature type="coiled-coil region" status="potential">
+            <location>
+                <begin position="2262"/>
+                <end position="2376"/>
+            </location>
+        </feature>
+        <feature type="compositionally biased region" description="Poly-Leu">
+            <location>
+                <begin position="246"/>
+                <end position="250"/>
+            </location>
+        </feature>
+        <feature type="compositionally biased region" description="Gln/Glu-rich">
+            <location>
+                <begin position="464"/>
+                <end position="2171"/>
+            </location>
+        </feature>
+        <feature type="modified residue" description="Phosphoserine" evidence="6">
+            <location>
+                <position position="2229"/>
+            </location>
+        </feature>
+        <feature type="modified residue" description="Phosphoserine" evidence="6">
+            <location>
+                <position position="2252"/>
+            </location>
+        </feature>
+        <feature type="modified residue" description="Phosphoserine" evidence="6">
+            <location>
+                <position position="2259"/>
+            </location>
+        </feature>
+        <feature type="modified residue" description="Phosphoserine; by NEK2" evidence="5">
+            <location>
+                <position position="2417"/>
+            </location>
+        </feature>
+        <feature type="modified residue" description="Phosphoserine; by NEK2" evidence="5">
+            <location>
+                <position position="2421"/>
+            </location>
+        </feature>
+        <feature type="splice variant" description="In isoform 2." id="VSP_007372">
+            <location>
+                <begin position="863"/>
+                <end position="918"/>
+            </location>
+        </feature>
+        <feature type="sequence variant" description="In dbSNP:rs2296403." id="VAR_015649">
+            <original>Q</original>
+            <variation>H</variation>
+            <location>
+                <position position="995"/>
+            </location>
+        </feature>
+        <feature type="sequence variant" description="In dbSNP:rs17092706." id="VAR_050898">
+            <original>Q</original>
+            <variation>E</variation>
+            <location>
+                <position position="1072"/>
+            </location>
+        </feature>
+        <feature type="sequence variant" description="In dbSNP:rs3748433." id="VAR_021858">
+            <original>R</original>
+            <variation>Q</variation>
+            <location>
+                <position position="1441"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>L</original>
+            <variation>I</variation>
+            <location>
+                <position position="120"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>E</original>
+            <variation>A</variation>
+            <location>
+                <position position="136"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>H</original>
+            <variation>L</variation>
+            <location>
+                <position position="365"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>D</original>
+            <variation>E</variation>
+            <location>
+                <position position="372"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 2; AAC07988." ref="2">
+            <original>E</original>
+            <variation>D</variation>
+            <location>
+                <position position="509"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>S</original>
+            <variation>I</variation>
+            <location>
+                <position position="552"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>E</original>
+            <variation>A</variation>
+            <location>
+                <position position="757"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>EVTK</original>
+            <variation>DEPQ</variation>
+            <location>
+                <begin position="784"/>
+                <end position="787"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>Q</original>
+            <variation>H</variation>
+            <location>
+                <position position="1153"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>H</original>
+            <variation>L</variation>
+            <location>
+                <position position="1246"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>L</original>
+            <variation>P</variation>
+            <location>
+                <position position="1513"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>Q</original>
+            <variation>L</variation>
+            <location>
+                <position position="2082"/>
+            </location>
+        </feature>
+        <feature type="sequence conflict" description="In Ref. 1; AAC06349." ref="1">
+            <original>D</original>
+            <variation>N</variation>
+            <location>
+                <position position="2345"/>
+            </location>
+        </feature>
+        <evidence key="1" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="9647649"/>
+            </source>
+        </evidence>
+        <evidence key="2" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="10880350"/>
+            </source>
+        </evidence>
+        <evidence key="3" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="18851962"/>
+            </source>
+        </evidence>
+        <evidence key="4" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="12140259"/>
+            </source>
+        </evidence>
+        <evidence key="5" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="21076410"/>
+            </source>
+        </evidence>
+        <evidence key="6" type="ECO:0000006">
+            <source>
+                <dbReference type="PubMed" id="19690332"/>
+            </source>
+        </evidence>
+        <sequence length="2442" mass="281137" checksum="BC2B8A36E07B8272" modified="2003-05-09" version="2">
+            METRSPGLNNMKPQSLQLVLEEQVLALQQQMAENQAASWRKLKNSQEAQQRQATLVRKLQ
+            AKVLQYRSWCQELEKRLEATGGPIPQRWENVEEPNLDELLVRLEEEQQRCESLAEVNTQL
+            RLHMEKADVVNKALREDVEKLTVDWSRARDELMRKESQWQMEQEFFKGYLKGEHGRLLSL
+            WREVVTFRRHFLEMKSATDRDLMELKAEHVRLSGSLLTCCLRLTVGAQSREPNGSGRMDG
+            REPAQLLLLLAKTQELEKEAHERSQELIQLKSQGDLEKAELQDRVTELSALLTQSQKQNE
+            DYEKMIKALRETVEILETNHTELMEHEASLSRNAQEEKLSLQQVIKDITQVMVEEGDNIA
+            QGSGHENSLELDSSIFSQFDYQDADKALTLVRSVLTRRRQAVQDLRQQLAGCQEAVNLLQ
+            QQHDQWEEEGKALRQRLQKLTGERDTLAGQTVDLQGEVDSLSKERELLQKAREELRQQLE
+            VLEQEAWRLRRVNVELQLQGDSAQGQKEEQQEELHLAVRERERLQEMLMGLEAKQSESLS
+            ELITLREALESSHLEGELLRQEQTEVTAALARAEQSIAELSSSENTLKTEVADLRAAAVK
+            LSALNEALALDKVGLNQQLLQLEEENQSVCSRMEAAEQARNALQVDLAEAEKRREALWEK
+            NTHLEAQLQKAEEAGAELQADLRDIQEEKEEIQKKLSESRHQQEAATTQLEQLHQEAKRQ
+            EEVLARAVQEKEALVREKAALEVRLQAVERDRQDLAEQLQGLSSAKELLESSLFEAQQQN
+            SVIEVTKGQLEVQIQTVTQAKEVIQGEVRCLKLELDTERSQAEQERDAAARQLAQAEQEG
+            KTALEQQKAAHEKEVNQLREKWEKERSWHQQELAKALESLEREKMELEMRLKEQQTEMEA
+            IQAQREEERTQAESALCQMQLETEKERVSLLETLLQTQKELADASQQLERLRQDMKVQKL
+            KEQETTGILQTQLQEAQRELKEAARQHRDDLAALQEESSSLLQDKMDLQKQVEDLKSQLV
+            AQDDSQRLVEQEVQEKLRETQEYNRIQKELEREKASLTLSLMEKEQRLLVLQEADSIRQQ
+            ELSALRQDMQEAQGEQKELSAQMELLRQEVKEKEADFLAQEAQLLEELEASHITEQQLRA
+            SLWAQEAKAAQLQLRLRSTESQLEALAAEQQPGNQAQAQAQLASLYSALQQALGSVCESR
+            PELSGGGDSAPSVWGLEPDQNGARSLFKRGPLLTALSAEAVASALHKLHQDLWKTQQTRD
+            VLRDQVQKLEERLTDTEAEKSQVHTELQDLQRQLSQNQEEKSKWEGKQNSLESELMELHE
+            TMASLQSRLRRAELQRMEAQGERELLQAAKENLTAQVEHLQAAVVEARAQASAAGILEED
+            LRTARSALKLKNEEVESERERAQALQEQGELKVAQGKALQENLALLTQTLAEREEEVETL
+            RGQIQELEKQREMQKAALELLSLDLKKRNQEVDLQQEQIQELEKCRSVLEHLPMAVQERE
+            QKLTVQREQIRELEKDRETQRNVLEHQLLELEKKDQMIESQRGQVQDLKKQLVTLECLAL
+            ELEENHHKMECQQKLIKELEGQRETQRVALTHLTLDLEERSQELQAQSSQIHDLESHSTV
+            LARELQERDQEVKSQREQIEELQRQKEHLTQDLERRDQELMLQKERIQVLEDQRTRQTKI
+            LEEDLEQIKLSLRERGRELTTQRQLMQERAEEGKGPSKAQRGSLEHMKLILRDKEKEVEC
+            QQEHIHELQELKDQLEQQLQGLHRKVGETSLLLSQREQEIVVLQQQLQEAREQGELKEQS
+            LQSQLDEAQRALAQRDQELEALQQEQQQAQGQEERVKEKADALQGALEQAHMTLKERHGE
+            LQDHKEQARRLEEELAVEGRRVQALEEVLGDLRAESREQEKALLALQQQCAEQAQEHEVE
+            TRALQDSWLQAQAVLKERDQELEALRAESQSSRHQEEAARARAEALQEALGKAHAALQGK
+            EQHLLEQAELSRSLEASTATLQASLDACQAHSRQLEEALRIQEGEIQDQDLRYQEDVQQL
+            QQALAQRDEELRHQQEREQLLEKSLAQRVQENMIQEKQNLGQEREEEEIRGLHQSVRELQ
+            LTLAQKEQEILELRETQQRNNLEALPHSHKTSPMEEQSLKLDSLEPRLQRELERLQAALR
+            QTEAREIEWREKAQDLALSLAQTKASVSSLQEVAMFLQASVLERDSEQQRLQDELELTRR
+            ALEKERLHSPGATSTAELGSRGEQGVQLGEVSGVEAEPSPDGMEKQSWRQRLEHLQQAVA
+            RLEIDRSRLQRHNVQLRSTLEQVERERRKLKREAMRAAQAGSLEISKATASSPTQQDGRG
+            QKNSDAKCVAELQKEVVLLQAQLTLERKQKQDYITRSAQTSRELAGLHHSLSHSLLAVAQ
+            APEATVLEAETRRLDESLTQSLTSPGPVLLHPSPSTTQAASR
+        </sequence>
+    </entry>
+    <copyright>
+        Copyrighted by the UniProt Consortium, see http://www.uniprot.org/terms
+        Distributed under the Creative Commons Attribution-NoDerivs License
+    </copyright>
+</uniprot>
