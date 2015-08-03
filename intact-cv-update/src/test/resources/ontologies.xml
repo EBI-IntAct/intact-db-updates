@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cvSourceList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvSourceList.xsd">
+
+    <cvSource source="file"
+              uri="classpath:psi-mi.obo"
+              format="OBO"
+              name="PSI-MI"
+              identifier="MI"
+              version="2.5.5"/>
+
+    <cvSource source="ols"
+              uri="classpath:psi-mod.obo"
+              format="OBO"
+              name="PSI-MOD"
+              identifier="MOD"
+              version="1.010.6"/>
+
+    <cvSource source="ols"
+              uri=""
+              format="OBO"
+              name="ECO"
+              identifier="ECO"/>
+
+</cvSourceList>

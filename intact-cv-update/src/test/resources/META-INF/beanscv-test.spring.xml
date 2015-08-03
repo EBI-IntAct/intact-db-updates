@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.0.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+    <!-- Needed by Spring to find the annotations in the code -->
+    <context:component-scan base-package="uk.ac.ebi.intact.dbupdate.cv"/>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath*:/META-INF/cv-update.properties"/>
+    </bean>
+
+    <!-- Cv manager -->
+    <bean id="cvUpdateManager" class="uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager">
+
+        <property name="cvImporter" ref="cvImporter"/>
+        <property name="cvUpdater" ref="cvUpdater"/>
+        <property name="cvRemapper" ref="obsoleteRemapper"/>
+        <property name="errorFactory" ref="errorFactory"/>
+        <property name="basicParentUpdater" ref="basicParentUpdater"/>
+        <property name="reportDirectory" value="${update.report}"/>
+        <property name="rootTermsToExclude">
+            <set>
+                <value>MI:0000</value>
+            </set>
+        </property>
+    </bean>
+
+    <!-- Cv update runner -->
+    <bean id="globalCvUpdateRunner" class="uk.ac.ebi.intact.dbupdate.cv.GlobalCvUpdateRunner">
+
+        <property name="cvUpdateManager" ref="cvUpdateManager"/>
+    </bean>
+
+</beans>
