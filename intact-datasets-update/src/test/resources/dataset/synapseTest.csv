@@ -1,0 +1,7 @@
+# type (dataset, ids To Extract or gene name)	Type identifier (dataset, ids To Extractor gene name)	value
+dataset	MI:0875	Synapse - Interactions of proteins with an established role in the presynapse.
+organism		9606;10090;10116
+publication		16635246;15102471;20368287;17721511
+gene name	MI:0301	AMPH
+gene name	MI:0301	APBA1
+gene name	MI:0301	APBA2
