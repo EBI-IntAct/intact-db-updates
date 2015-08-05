@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>uk.ac.ebi.intact.maven</groupId>
+        <artifactId>intact-hibernate-master</artifactId>
+        <version>43</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>uk.ac.ebi.intact.dbupdate</groupId>
+    <artifactId>dbupdate-master</artifactId>
+    <packaging>pom</packaging>
+    <version>2.1.7.2-SNAPSHOT</version>
+
+    <name>IntAct Database Update</name>
+    <description>Database Update Master POM</description>
+    <url>http://www.ebi.ac.uk/~intact/devsite/dbupdate</url>
+
+    <properties>
+        <currentVersion>${version}</currentVersion>
+        <core.version>2.6.6</core.version>
+        <bridges.version>2.1.12-SNAPSHOT</bridges.version>
+        <tools.version>1.0.4</tools.version>
+        <spring.version>3.1.2.RELEASE</spring.version>
+    </properties>
+
+    <scm>
+        <connection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk</connection>
+        <developerConnection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk</developerConnection>
+        <url>http://code.google.com/p/intact/source/browse/repo/dbupdate/trunk</url>
+    </scm>
+
+    <modules>
+        <module>intact-biosource-update</module>
+        <module>intact-update-model</module>
+        <module>intact-proteins-update</module>
+        <module>intact-datasets-update</module>
+        <module>intact-cv-update</module>
+        <module>intact-bioactiveentities-update</module>
+        <module>intact-genes-update</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>uk.ac.ebi.intact.core</groupId>
+                <artifactId>intact-core</artifactId>
+                <version>${core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>log4j</groupId>
+                <artifactId>log4j</artifactId>
+                <version>1.2.17</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+              <id>intact.nexus</id>
+              <name>IntAct Nexus</name>
+              <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+</project>
