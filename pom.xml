@@ -21,7 +21,7 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.6</core.version>
-        <bridges.version>2.1.12</bridges.version>
+        <bridges.version>2.1.13</bridges.version>
         <tools.version>1.0.4</tools.version>
         <spring.version>3.1.2.RELEASE</spring.version>
     </properties>
