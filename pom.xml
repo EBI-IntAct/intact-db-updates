@@ -33,9 +33,9 @@
     <!--</scm>-->
 
     <scm>
-        <connection>scm:git:https://bitbucket.org/intact-ebi/intact-db-update.git</connection>
-        <developerConnection>scm:git:https://bitbucket.org/intact-ebi/intact-db-update.git</developerConnection>
-        <url>https://bitbucket.org/intact-ebi/intact-db-update</url>
+        <connection>scm:git:https://bitbucket.org/intact-ebi/intact-db-updates.git</connection>
+        <developerConnection>scm:git:https://bitbucket.org/intact-ebi/intact-db-updates.git</developerConnection>
+        <url>https://bitbucket.org/intact-ebi/intact-db-updates</url>
         <tag>HEAD</tag>
     </scm>
 
