@@ -11,7 +11,7 @@
     <artifactId>intact-feature-shortlabel-update</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>intact-feature-shortlabel-update</name>
+    <name>IntAct Database Update :: IntAct Feature Shortlabel Update</name>
 
     <properties>
         <spring.version>3.2.4.RELEASE</spring.version>
