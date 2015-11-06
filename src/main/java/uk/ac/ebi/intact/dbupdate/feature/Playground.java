@@ -35,18 +35,19 @@ public class Playground {
             }
         }
         for (IntactFeatureEvidence intactFeatureEvidence : intactFeatureEvidences) {
-            try {
-                shortlabelGenerator.doUpdate(intactFeatureEvidence);
-            } catch (PersisterException e) {
-                e.printStackTrace();
-            } catch (FinderException e) {
-                e.printStackTrace();
-            } catch (SynchronizerException e) {
-                e.printStackTrace();
-            }
-            if (intactFeatureEvidence == null) {
-                continue;
-            }
+//            Commented to avoid writing into the database.
+//            try {
+//                shortlabelGenerator.doUpdate(intactFeatureEvidence);
+//            } catch (PersisterException e) {
+//                e.printStackTrace();
+//            } catch (FinderException e) {
+//                e.printStackTrace();
+//            } catch (SynchronizerException e) {
+//                e.printStackTrace();
+//            }
+//            if (intactFeatureEvidence == null) {
+//                continue;
+//            }
             System.out.println(intactFeatureEvidence.getAc() + "\t" + intactFeatureEvidence.getShortName());
         }
     }
