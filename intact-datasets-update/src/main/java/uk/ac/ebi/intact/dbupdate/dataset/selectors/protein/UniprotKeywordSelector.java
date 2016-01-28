@@ -7,9 +7,11 @@ import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvDatabase;
 import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.kraken.interfaces.uniprot.Keyword;
-import uk.ac.ebi.kraken.uuw.services.remoting.EntryRetrievalService;
-import uk.ac.ebi.kraken.uuw.services.remoting.RemoteDataAccessException;
-import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
+import uk.ac.ebi.kraken.interfaces.uniprot.UniProtEntry;
+import uk.ac.ebi.uniprot.dataservice.client.Client;
+import uk.ac.ebi.uniprot.dataservice.client.exception.ServiceException;
+import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtQueryBuilder;
+import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtService;
 
 import javax.persistence.Query;
 import java.io.IOException;
@@ -31,16 +33,16 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
     private static final String keywordField = "ognl:keywords";
 
-    private EntryRetrievalService entryRetrievalService;
+    private UniProtService uniprotService;
 
     public UniprotKeywordSelector(){
         super();
-        this.entryRetrievalService = UniProtJAPI.factory.getEntryRetrievalService();
+        this.uniprotService = Client.getServiceFactoryInstance().getUniProtQueryService();
     }
 
     public UniprotKeywordSelector(String report){
         super(report);
-        this.entryRetrievalService = UniProtJAPI.factory.getEntryRetrievalService();
+        this.uniprotService = Client.getServiceFactoryInstance().getUniProtQueryService();
     }
 
     private boolean isProteinAssociatedWithKeywordInUniprot(String uniprotId){
@@ -51,18 +53,17 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
         }
         try{
             //Retrieve list of keyword objects from a UniProt entry by its accession number
-            Object attribute = entryRetrievalService.getUniProtAttribute(fixedUniprotAc ,  "ognl:keywords");
+            UniProtEntry entry = uniprotService.getEntry(fixedUniprotAc);
 
             // Cast the object to UniProt Keywords
-            List<Keyword> keywords  = (List<Keyword>)attribute;
-
+            List<Keyword> keywords = entry.getKeywords();
+            
             for (Keyword key : keywords){
                 if (key.getValue().equalsIgnoreCase(keyword)){
                     return true;
                 }
             }
-        }
-        catch (RemoteDataAccessException e){
+        } catch (ServiceException e) {
             log.error("Uniprot " + uniprotId + " has not been found ", e);
         }
 
