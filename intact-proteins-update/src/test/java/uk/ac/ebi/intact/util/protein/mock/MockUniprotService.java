@@ -110,4 +110,9 @@ public class MockUniprotService extends AbstractUniprotService {
     public void close() {
         //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    @Override
+    public void start() {
+
+    }
 }

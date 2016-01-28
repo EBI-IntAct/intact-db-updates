@@ -481,6 +481,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
     private Collection<UniprotProtein> retrieveUniprotEntries(String primaryAc) {
         // try to collect uniprot entries
         Collection<UniprotProtein> uniprotProteins;
+        uniprotService.start();
         try{
             uniprotProteins = uniprotService.retrieve( primaryAc );
         } catch (RemoteAccessException ce) {
@@ -494,10 +495,12 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
                 Thread.sleep(60*1000);
                 uniprotProteins = uniprotService.retrieve( primaryAc );
             } catch (InterruptedException e) {
+                uniprotService.close();
                 throw new ProcessorException("Problem while waiting before retrying for "+primaryAc, e);
             }
 
         }
+        uniprotService.close();
         return uniprotProteins;
     }
 
