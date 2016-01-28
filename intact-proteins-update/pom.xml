@@ -139,7 +139,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
             <artifactId>protein-mapping</artifactId>
-            <version>1.0.5-SNAPSHOT</version>
+            <version>${tools.version}</version>
         </dependency>
 
         <dependency>
