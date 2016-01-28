@@ -22,7 +22,7 @@
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.6</core.version>
         <bridges.version>2.1.18-SNAPSHOT</bridges.version>
-        <tools.version>1.0.4</tools.version>
+        <tools.version>1.0.5-SNAPSHOT</tools.version>
         <spring.version>3.1.2.RELEASE</spring.version>
     </properties>
 
