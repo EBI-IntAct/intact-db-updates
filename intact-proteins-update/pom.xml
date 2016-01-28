@@ -139,7 +139,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
             <artifactId>protein-mapping</artifactId>
-            <version>${tools.version}</version>
+            <version>1.0.5-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -152,6 +152,12 @@
                     <artifactId>xercesImpl</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
         </dependency>
 
         <dependency>
