@@ -21,7 +21,7 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.6</core.version>
-        <bridges.version>RELEASE</bridges.version>
+        <bridges.version>2.1.18-SNAPSHOT</bridges.version>
         <tools.version>1.0.4</tools.version>
         <spring.version>3.1.2.RELEASE</spring.version>
     </properties>
@@ -70,6 +70,12 @@
                 <groupId>uk.ac.ebi.intact.core</groupId>
                 <artifactId>intact-core</artifactId>
                 <version>${core.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>uk.ac.ebi.uniprot.kraken</groupId>
+                        <artifactId>uniprotjapi</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
