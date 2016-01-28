@@ -38,8 +38,11 @@ import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.meta.DbInfo;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.service.UniprotService;
 import uk.ac.ebi.intact.util.protein.ProteinServiceException;
-import uk.ac.ebi.kraken.uuw.services.remoting.UniProtJAPI;
+import uk.ac.ebi.uniprot.dataservice.client.Client;
+import uk.ac.ebi.uniprot.dataservice.client.exception.ServiceException;
+import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtService;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -144,9 +147,17 @@ public class ProteinUpdateProcessor extends ProteinProcessor {
         String lastProtUpdate = new SimpleDateFormat("dd-MMM-yy").format(new Date());
 
         saveOrUpdateDbInfo("last_protein_update", lastProtUpdate);
-        saveOrUpdateDbInfo("uniprotkb.version", UniProtJAPI.factory.getVersion());
+        UniProtService uniprotService = Client.getServiceFactoryInstance().getUniProtQueryService();
+        try {
+            uniprotService.start();
+            saveOrUpdateDbInfo("uniprotkb.version", uniprotService.getServiceInfo().getReleaseNumber());
+            uniprotService.stop();
+        } catch (ServiceException e) {
+            uniprotService.stop();
+            e.printStackTrace();
+        }
 
-        List<ReportWriterListener> writers = getListeners(ReportWriterListener.class);
+        List < ReportWriterListener > writers = getListeners(ReportWriterListener.class);
 
         for (ReportWriterListener listener : writers){
             UpdateReportHandler handler = listener.getReportHandler();
