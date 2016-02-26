@@ -212,7 +212,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
             }
         }
 
-        Assert.assertEquals(2, term.getParents().size());
+        Assert.assertEquals(1, term.getParents().size());
 
         Assert.assertEquals(0, getDaoFactory().getAliasDao(CvObjectAlias.class).getAll().size());
     }
