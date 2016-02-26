@@ -9,7 +9,9 @@ import uk.ac.ebi.intact.model.CvXrefQualifier;
 import uk.ac.ebi.kraken.interfaces.uniprot.Keyword;
 import uk.ac.ebi.kraken.interfaces.uniprot.UniProtEntry;
 import uk.ac.ebi.uniprot.dataservice.client.Client;
+import uk.ac.ebi.uniprot.dataservice.client.QueryResult;
 import uk.ac.ebi.uniprot.dataservice.client.exception.ServiceException;
+import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtComponent;
 import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtQueryBuilder;
 import uk.ac.ebi.uniprot.dataservice.client.uniprot.UniProtService;
 
@@ -47,26 +49,29 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
     private boolean isProteinAssociatedWithKeywordInUniprot(String uniprotId){
         String fixedUniprotAc = uniprotId;
-        
+        uniprotService.start();
         if (uniprotId.contains("-")){
             fixedUniprotAc = uniprotId.substring(0, uniprotId.indexOf("-"));
         }
         try{
             //Retrieve list of keyword objects from a UniProt entry by its accession number
-            UniProtEntry entry = uniprotService.getEntry(fixedUniprotAc);
+            QueryResult<UniProtEntry> entry = uniprotService.getEntries(UniProtQueryBuilder.accession(fixedUniprotAc).or(UniProtQueryBuilder.secondaryAccession(fixedUniprotAc)));
 
+            
             // Cast the object to UniProt Keywords
-            List<Keyword> keywords = entry.getKeywords();
+            List<Keyword> keywords = entry.getFirstResult().getKeywords();
             
             for (Keyword key : keywords){
                 if (key.getValue().equalsIgnoreCase(keyword)){
+                    uniprotService.stop();
                     return true;
                 }
             }
         } catch (ServiceException e) {
+            uniprotService.stop();
             log.error("Uniprot " + uniprotId + " has not been found ", e);
         }
-
+        uniprotService.stop();
         return false;
     }
 
