@@ -2,6 +2,7 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
