@@ -56,18 +56,17 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
         try{
             //Retrieve list of keyword objects from a UniProt entry by its accession number
             QueryResult<UniProtEntry> entry = uniprotService.getEntries(UniProtQueryBuilder.accession(fixedUniprotAc).or(UniProtQueryBuilder.secondaryAccession(fixedUniprotAc)));
-
-            
             // Cast the object to UniProt Keywords
-            List<Keyword> keywords = entry.getFirstResult().getKeywords();
-            
-            for (Keyword key : keywords){
+            for (Keyword key : entry.getFirstResult().getKeywords()){
                 if (key.getValue().equalsIgnoreCase(keyword)){
                     uniprotService.stop();
                     return true;
                 }
             }
         } catch (ServiceException e) {
+            uniprotService.stop();
+            log.error("Uniprot " + uniprotId + " has not been found ", e);
+        } catch (NullPointerException e){
             uniprotService.stop();
             log.error("Uniprot " + uniprotId + " has not been found ", e);
         }
@@ -82,7 +81,6 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
      */
     private List<Object[]> getProteinsFromUniprotInIntact(){
         DataContext dataContext = IntactContext.getCurrentInstance().getDataContext();
-
         TransactionStatus status = dataContext.beginTransaction();
 
         String finalQuery = "select p.ac, x.primaryId from ProteinImpl p join p.xrefs as x where x.cvDatabase.identifier = :uniprot and x.cvXrefQualifier.identifier = :identity";
@@ -96,7 +94,6 @@ public class UniprotKeywordSelector extends ProteinDatasetSelectorImpl{
 
         // get the intact proteins matching the cross reference
         List<Object[]> listOfAcs = query.getResultList();
-
         dataContext.commitTransaction(status);
 
         return listOfAcs;
