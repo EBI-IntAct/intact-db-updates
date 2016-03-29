@@ -26,7 +26,7 @@ public enum AminoAcids {
     PYRROLYSINE('O', "pyl"),
     VALINE('V', "val"),
     TRYPTOPHAN('W', "trp"),
-    ANY_CODON('X', "x"),
+    ANY_CODON('X', "xaa"),
     TYROSINE('Y', "tyr"),
     GLUTAMINE_OR_GLUTAMIC_ACID('Z', "glx"),
     STOP_CODON('*', "*"),
