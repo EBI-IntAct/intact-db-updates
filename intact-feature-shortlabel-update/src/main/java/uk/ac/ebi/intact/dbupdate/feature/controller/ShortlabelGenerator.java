@@ -11,20 +11,19 @@ import uk.ac.ebi.intact.dbupdate.feature.exception.SequenceException;
 import uk.ac.ebi.intact.dbupdate.feature.utils.OntologyServiceHelper;
 import uk.ac.ebi.intact.dbupdate.feature.utils.ShortlabelGeneratorHelper;
 import uk.ac.ebi.intact.jami.dao.IntactDao;
+import uk.ac.ebi.intact.jami.model.extension.IntactCvTerm;
 import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.jami.model.extension.IntactInteractor;
 import uk.ac.ebi.intact.jami.synchronizer.FinderException;
 import uk.ac.ebi.intact.jami.synchronizer.PersisterException;
 import uk.ac.ebi.intact.jami.synchronizer.SynchronizerException;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ShortlabelGenerator {
 
     private final static String MUTATION_MI_ID = "MI:0118";
+    private final static String CV_TERM_REMARK_INTERNAL_AC = "EBI-20";
     private final static int OLS_SEARCHING_DEPTH = 10;
     private final String TAB = "\t";
     private Set<String> allowedFeatureTypes = new HashSet<String>();
@@ -51,6 +50,18 @@ public class ShortlabelGenerator {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager")
+    public IntactCvTerm getIntActCVTermRemarkInternal(int tries) {
+        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_REMARK_INTERNAL_AC);
+        if (intactCvTerm == null && tries > 0) {
+            tries--;
+            intactCvTerm = getIntActCVTermRemarkInternal(tries);
+        } else if (intactCvTerm == null && tries == 0) {
+            throw new NullPointerException(CV_TERM_REMARK_INTERNAL_AC + ", Can not receive IntactCvTerm object (Please check if feature still exists)");
+        }
+        return intactCvTerm;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager")
     public IntactFeatureEvidence generateNewShortLabel(IntactFeatureEvidence intactFeatureEvidence) {
         IntactInteractor intactInteractor = ShortlabelGeneratorHelper.getInteractorByFeatureEvidence(intactFeatureEvidence);
         if (intactInteractor == null) {
@@ -72,11 +83,11 @@ public class ShortlabelGenerator {
             throw new FeatureTypeException("Is not of type mutation (MI:0118)");
         }
         List<Range> ranges = (List<Range>) intactFeatureEvidence.getRanges();
-        for (Range range : ranges) {
-            if (range.getResultingSequence().getNewSequence() == null) {
-                throw new NullPointerException("Could not find resulting sequence");
-            }
-        }
+//        for (Range range : ranges) {
+//            if (range.getResultingSequence().getNewSequence() == null) {
+//                throw new NullPointerException("Could not find resulting sequence");
+//            }
+//        }
         intactFeatureEvidence.setShortName("");
         Iterator<Range> rangeIterator = ranges.iterator();
         while (rangeIterator.hasNext()) {
