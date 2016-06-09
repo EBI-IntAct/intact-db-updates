@@ -4,7 +4,7 @@
     <parent>
         <groupId>uk.ac.ebi.intact.maven</groupId>
         <artifactId>intact-hibernate-master</artifactId>
-        <version>43</version>
+        <version>44</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -20,17 +20,11 @@
 
     <properties>
         <currentVersion>${version}</currentVersion>
-        <core.version>2.6.6</core.version>
+        <core.version>2.6.11-SNAPSHOT</core.version>
         <bridges.version>2.1.18-SNAPSHOT</bridges.version>
         <tools.version>1.0.5-SNAPSHOT</tools.version>
-        <spring.version>3.1.2.RELEASE</spring.version>
+        <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
-
-    <!--<scm>-->
-        <!--<connection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk</connection>-->
-        <!--<developerConnection>scm:svn:https://intact.googlecode.com/svn/repo/dbupdate/trunk</developerConnection>-->
-        <!--<url>http://code.google.com/p/intact/source/browse/repo/dbupdate/trunk</url>-->
-    <!--</scm>-->
 
     <scm>
         <connection>scm:git:https://bitbucket.org/intact-ebi/intact-db-updates-master.git</connection>
@@ -110,9 +104,34 @@
 
     <repositories>
         <repository>
-              <id>intact.nexus</id>
-              <name>IntAct Nexus</name>
-              <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
+            <id>nexus-ebi-repo-old</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
+        </repository>
+        <repository>
+            <id>nexus-ebi-release-repo</id>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+        </repository>
+        <repository>
+            <id>nexus-ebi-snapshot-repo</id>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-snapshots/</url>
         </repository>
     </repositories>
+
+    <!-- Overwrites the previous repositories-->
+    <distributionManagement>
+        <!-- EBI repo -->
+        <repository>
+            <id>pst-release</id>
+            <name>EBI Nexus Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-release</url>
+        </repository>
+        <!-- EBI SNAPSHOT repo -->
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>pst-snapshots</id>
+            <name>EBI Nexus Snapshots Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>
