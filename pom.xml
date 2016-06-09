@@ -21,8 +21,7 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.11-SNAPSHOT</core.version>
-        <bridges.version>2.1.18-SNAPSHOT</bridges.version>
-        <tools.version>1.0.5-SNAPSHOT</tools.version>
+        <bridges.version>2.1.19-SNAPSHOT</bridges.version>
         <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
 
@@ -133,5 +132,4 @@
             <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
 </project>
