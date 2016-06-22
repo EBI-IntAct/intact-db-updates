@@ -27,9 +27,9 @@
     </properties>
 
     <scm>
-        <connection>scm:git:https://bitbucket.org/intact-ebi/intact-db-updates-master.git</connection>
-        <developerConnection>scm:git:https://bitbucket.org/intact-ebi/intact-db-updates-master.git</developerConnection>
-        <url>https://bitbucket.org/intact-ebi/intact-db-updates-master</url>
+        <connection>scm:git:https://github.com/EBI-IntAct/intact-db-updates.git</connection>
+        <developerConnection>scm:git:https://github.com/EBI-IntAct/intact-db-updates.git</developerConnection>
+        <url>https://github.com/EBI-IntAct/intact-db-updates</url>
         <tag>HEAD</tag>
     </scm>
 
