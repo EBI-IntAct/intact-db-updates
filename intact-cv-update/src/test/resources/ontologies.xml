@@ -2,7 +2,7 @@
 <cvSourceList xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:noNamespaceSchemaLocation="http://www.psidev.info/files/validator/CvSourceList.xsd">
 
-    <cvSource source="file"
+    <cvSource source="ols"
               uri="classpath:psi-mi.obo"
               format="OBO"
               name="PSI-MI"
