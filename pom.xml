@@ -20,9 +20,9 @@
 
     <properties>
         <currentVersion>${version}</currentVersion>
-        <core.version>2.6.12-SNAPSHOT</core.version>
-        <bridges.version>2.1.20-SNAPSHOT</bridges.version>
-        <protein.mapping.version>1.0.7-SNAPSHOT</protein.mapping.version>
+        <core.version>2.6.11</core.version>
+        <bridges.version>2.1.19</bridges.version>
+        <protein.mapping.version>1.0.6</protein.mapping.version>
         <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
 
