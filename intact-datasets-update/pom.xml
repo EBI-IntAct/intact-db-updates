@@ -10,7 +10,6 @@
     </parent>
 
     <artifactId>intact-datasets-update</artifactId>
-    <version>2.1.13-SNAPSHOT</version>
     <name>IntAct Database Update :: Datasets</name>
     <url>http://maven.apache.org</url>
 

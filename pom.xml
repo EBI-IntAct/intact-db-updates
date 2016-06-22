@@ -22,6 +22,7 @@
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.11-SNAPSHOT</core.version>
         <bridges.version>2.1.19-SNAPSHOT</bridges.version>
+        <protein.mapping.version>1.0.6-SNAPSHOT</protein.mapping.version>
         <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
 
@@ -40,7 +41,7 @@
         <module>intact-cv-update</module>
         <module>intact-bioactiveentities-update</module>
         <module>intact-genes-update</module>
-        <module>intact-feature-shortlabel-update</module>
+        <!--<module>intact-feature-shortlabel-update</module>-->
     </modules>
     
     <build>
