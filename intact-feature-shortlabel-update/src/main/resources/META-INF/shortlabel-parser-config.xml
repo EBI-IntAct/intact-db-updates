@@ -5,7 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
     <context:annotation-config/>
     <context:component-scan base-package="uk.ac.ebi.intact.jami"/>
-    <context:component-scan base-package="uk.ac.ebi.intact.dbupdate.feature"/>
+    <context:component-scan base-package="uk.ac.ebi.intact.parser"/>
     <context:component-scan base-package="uk.ac.ebi.intact.bridges"/>
 
     <!--<tx:annotation-driven proxy-target-class="true"/>-->
@@ -42,7 +42,7 @@
     <!-- for autowired annotations to work propertly -->
     <bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
 
-    <bean name="generator" class="uk.ac.ebi.intact.dbupdate.feature.controller.ShortlabelGenerator">
+    <bean name="generator" class="uk.ac.ebi.intact.tools.feature.shortlabel.generator.ShortlabelGenerator">
         <property name="intactDao" ref="intactDao"/>
     </bean>
 
