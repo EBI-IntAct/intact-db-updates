@@ -25,10 +25,10 @@ import java.util.Set;
 public class ShortlabelGenerator {
     private final static String MUTATION_MI_ID = "MI:0118";
     private final static String CV_TERM_REMARK_INTERNAL_AC = "EBI-20";
+    private final static String CV_TERM_NO_MUTATION_UP = "EBI-11795051";
+
     private final static int OLS_SEARCHING_DEPTH = 10;
     private final static int TRIES = 3;
-    private boolean isPollyQ = false;
-    private boolean isUndifinedMutation;
 
     private static Set<String> allowedFeatureTypes = new HashSet<String>();
 
@@ -91,12 +91,6 @@ public class ShortlabelGenerator {
         interactorAc = interactor.getAc();
         interactorType = interactor.getInteractorType().getShortName();
 
-        if(helper.isUndefinedMutation(featureEvidence)){
-            UndefinedMutationEvent event = new UndefinedMutationEvent(featureAc, interactorAc);
-            manager.fireOnUndefinedMutationEvent(event);
-            throw new FeatureShortlabelGenerationException();
-        }
-
         if (!interactorType.equals("protein") && !interactorType.equals("peptide")) {
             TypeErrorEvent event = new TypeErrorEvent(featureAc, interactorAc, TypeErrorEvent.ObjTypeErrorType.WRONG_INTERACTOR_TYPE);
             manager.fireOnTypeErrorEvent(event);
@@ -118,16 +112,18 @@ public class ShortlabelGenerator {
         }
 
         for (Annotation annotation : featureEvidence.getAnnotations()) {
+            if(annotation.getTopic() == getIntActCVTermNoMutationUpdate(3)){
+                FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.NO_MUTATION_UPDATE);
+                manager.fireOnFeatureAnnotationFoundEvent(event);
+                throw new FeatureShortlabelGenerationException();
+            }
+
             if (annotation.getTopic() == getIntActCVTermRemarkInternal(3)) {
                 if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED.getMessage())) {
                     FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED);
                     manager.fireOnFeatureAnnotationFoundEvent(event);
                 } else if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG.getMessage())) {
                     FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG);
-                    manager.fireOnFeatureAnnotationFoundEvent(event);
-                    throw new FeatureShortlabelGenerationException();
-                } else if (annotation.getTopic().getShortName().equals(FeatureAnnotationFoundEvent.AnnotationType.SHORTLABEL_NO_UPDATE.getMessage())) {
-                    FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.SHORTLABEL_NO_UPDATE);
                     manager.fireOnFeatureAnnotationFoundEvent(event);
                     throw new FeatureShortlabelGenerationException();
                 }
@@ -239,6 +235,20 @@ public class ShortlabelGenerator {
             intactCvTerm = getIntActCVTermRemarkInternal(tries);
         } else if (intactCvTerm == null && tries == 0) {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_REMARK_INTERNAL);
+            manager.fireOnRetrieveObjErrorEvent(event);
+            throw new FeatureShortlabelGenerationException();
+        }
+        return intactCvTerm;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
+    private IntactCvTerm getIntActCVTermNoMutationUpdate(int tries) {
+        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_NO_MUTATION_UP);
+        if (intactCvTerm == null && tries > 0) {
+            tries--;
+            intactCvTerm = getIntActCVTermRemarkInternal(tries);
+        } else if (intactCvTerm == null && tries == 0) {
+            ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_NO_MUTATION_UPDATE);
             manager.fireOnRetrieveObjErrorEvent(event);
             throw new FeatureShortlabelGenerationException();
         }
