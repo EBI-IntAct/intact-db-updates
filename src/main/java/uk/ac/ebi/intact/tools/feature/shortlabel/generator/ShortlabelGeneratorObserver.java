@@ -19,6 +19,4 @@ public interface ShortlabelGeneratorObserver {
     void onResSeqChangedEvent(ResultingSequenceChangedEvent event);
 
     void onTypeErrorEvent(TypeErrorEvent event);
-
-    void onUndefinedMutation(UndefinedMutationEvent undefinedMutationEvent);
 }
