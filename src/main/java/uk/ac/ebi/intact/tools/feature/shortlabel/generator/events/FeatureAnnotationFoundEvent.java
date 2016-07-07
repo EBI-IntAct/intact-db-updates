@@ -36,7 +36,7 @@ public class FeatureAnnotationFoundEvent {
     public enum AnnotationType {
         FEATURE_WRONG("Sequence change details about this feature cannot be ascertained or do not fit with the current version of the referenced protein, so they have been deleted as a result of our quality control procedures. The original label was "),
         FEATURE_CORRECTED("This feature has been corrected as a result of our quality control procedures. The original label was "),
-        SHORTLABEL_NO_UPDATE("shortlabel-no-update");
+        NO_MUTATION_UPDATE("no-mutation-update");
 
 
         private String message;
