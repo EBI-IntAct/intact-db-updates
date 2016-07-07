@@ -96,8 +96,4 @@ public class ShortlabelGeneratorHelper {
                 originalSequence.charAt(0) == newSequence.charAt(0) &&
                 originalSequence.charAt(originalSequence.length() - 1) == newSequence.charAt(newSequence.length() - 1);
     }
-
-    public boolean isUndefinedMutation(IntactFeatureEvidence featureEvidence) {
-        return Objects.equals(featureEvidence.getShortName(), "undefined mutation");
-    }
 }
