@@ -46,8 +46,4 @@ public class ShortlabelGeneratorManager {
     public void setShortlabelGeneratorObserver(ShortlabelGeneratorObserver shortlabelGeneratorObserver) {
         this.shortlabelGeneratorObserver = shortlabelGeneratorObserver;
     }
-
-    public void fireOnUndefinedMutationEvent(UndefinedMutationEvent event){
-        shortlabelGeneratorObserver.onUndefinedMutation(event);
-    }
 }
