@@ -32,7 +32,8 @@ public class OntologyServiceHelper {
             e.printStackTrace();
         }
         if (psiMITerms == null) {
-            System.err.println("Could not retrieve PSIMI-Terms from OLS");
+            //TODO Should be properly logged or/and threw exception
+            System.err.println("Could not retrieve PSI-MI-Terms from OLS");
             System.exit(0);
         }
         for (Map.Entry<String, String> entry : psiMITerms.entrySet()) {
