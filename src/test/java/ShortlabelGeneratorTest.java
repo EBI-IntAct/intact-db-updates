@@ -1,5 +1,4 @@
-import impl.FeatureObserver;
-import org.junit.Before;
+import impl.FeatureListener;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -19,7 +18,7 @@ public class ShortlabelGeneratorTest {
     @Test
     public void ShortlabelGeneratorTest_1(){
         ShortlabelGenerator shortlabelGenerator = getShortlabelGenerator();
-        shortlabelGenerator.subscribeToEvents(new FeatureObserver());
+        shortlabelGenerator.subscribeToEvents(new FeatureListener());
         try{
             shortlabelGenerator.generateNewShortLabel("EBI-10769146");
         } catch (FeatureShortlabelGenerationException ignored){
