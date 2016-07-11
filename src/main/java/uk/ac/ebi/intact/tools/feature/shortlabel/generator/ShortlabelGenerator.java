@@ -12,6 +12,8 @@ import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.jami.model.extension.IntactInteractor;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.events.*;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.exception.FeatureShortlabelGenerationException;
+import uk.ac.ebi.intact.tools.feature.shortlabel.generator.listener.ShortlabelGeneratorListener;
+import uk.ac.ebi.intact.tools.feature.shortlabel.generator.manager.ShortlabelGeneratorManager;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.utils.OntologyServiceHelper;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.utils.ShortlabelGeneratorHelper;
 
@@ -45,8 +47,8 @@ public class ShortlabelGenerator {
         allowedFeatureTypes.addAll(OntologyServiceHelper.getOntologyServiceHelper().getAssociatedMITerms(MUTATION_MI_ID, OLS_SEARCHING_DEPTH));
     }
 
-    public void subscribeToEvents(ShortlabelGeneratorObserver shortlabelGeneratorObserver) {
-        manager.setShortlabelGeneratorObserver(shortlabelGeneratorObserver);
+    public void subscribeToEvents(ShortlabelGeneratorListener shortlabelGeneratorListener) {
+        manager.setShortlabelGeneratorListener(shortlabelGeneratorListener);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
