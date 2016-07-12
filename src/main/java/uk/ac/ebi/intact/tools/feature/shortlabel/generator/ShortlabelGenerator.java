@@ -1,6 +1,8 @@
 package uk.ac.ebi.intact.tools.feature.shortlabel.generator;
 
 import org.springframework.beans.factory.annotation.Required;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.mi.jami.model.Annotation;
@@ -36,6 +38,9 @@ public class ShortlabelGenerator {
 
     private ShortlabelGeneratorManager manager = new ShortlabelGeneratorManager();
     private ShortlabelGeneratorHelper helper = new ShortlabelGeneratorHelper();
+
+    private static IntactCvTerm remarkInternal;
+    private static IntactCvTerm noMutationUpdate;
 
     private IntactDao intactDao;
 
@@ -84,10 +89,19 @@ public class ShortlabelGenerator {
 
         IntactInteractor interactor = helper.getInteractorByFeatureEvidence(featureEvidence);
 
+        if(remarkInternal == null || noMutationUpdate == null){
+            remarkInternal = getIntActCVTermRemarkInternal(TRIES);
+            noMutationUpdate = getIntActCVTermNoMutationUpdate(TRIES);
+            if(remarkInternal == null || noMutationUpdate == null){
+                return;
+            }
+        }
+
         if (interactor == null) {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(featureAc, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_RETRIEVE_INTERACTOR);
             manager.fireOnRetrieveObjErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return;
+//            throw new FeatureShortlabelGenerationException();
         }
 
         interactorAc = interactor.getAc();
@@ -96,7 +110,7 @@ public class ShortlabelGenerator {
         if (!interactorType.equals("protein") && !interactorType.equals("peptide")) {
             TypeErrorEvent event = new TypeErrorEvent(featureAc, interactorAc, TypeErrorEvent.ObjTypeErrorType.WRONG_INTERACTOR_TYPE);
             manager.fireOnTypeErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return;
         }
 
         interactorSeq = helper.getInteractorSeqByInteractor(interactor);
@@ -104,30 +118,30 @@ public class ShortlabelGenerator {
         if (interactorSeq == null) {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(featureAc, interactorAc, ObjRetrieveErrorEvent.ErrorType.UNABLE_RETRIEVE_INTERACTOR_SEQUENCE);
             manager.fireOnRetrieveObjErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return;
         }
 
         if (!allowedFeatureTypes.contains(featureEvidence.getType().getMIIdentifier())) {
             TypeErrorEvent event = new TypeErrorEvent(featureAc, interactorAc, TypeErrorEvent.ObjTypeErrorType.WRONG_FEATURE_TYPE);
             manager.fireOnTypeErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return;
         }
 
         for (Annotation annotation : featureEvidence.getAnnotations()) {
-            if(annotation.getTopic() == getIntActCVTermNoMutationUpdate(3)){
+            if(annotation.getTopic() == noMutationUpdate){
                 FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.NO_MUTATION_UPDATE);
                 manager.fireOnFeatureAnnotationFoundEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
 
-            if (annotation.getTopic() == getIntActCVTermRemarkInternal(3)) {
+            if (annotation.getTopic() == remarkInternal) {
                 if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED.getMessage())) {
                     FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED);
                     manager.fireOnFeatureAnnotationFoundEvent(event);
                 } else if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG.getMessage())) {
                     FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG);
                     manager.fireOnFeatureAnnotationFoundEvent(event);
-                    throw new FeatureShortlabelGenerationException();
+                    return;
                 }
             }
         }
@@ -145,7 +159,7 @@ public class ShortlabelGenerator {
             if (range == null) {
                 RangeErrorEvent event = new RangeErrorEvent(featureAc, interactorAc, null, RangeErrorEvent.ErrorType.RANGE_NULL);
                 manager.fireOnRangeErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
 
             String rangeAc = range.getAc();
@@ -153,22 +167,22 @@ public class ShortlabelGenerator {
             if (range.getStart().getStart() == 0) {
                 RangeErrorEvent event = new RangeErrorEvent(featureAc, interactorAc, rangeAc, RangeErrorEvent.ErrorType.START_POS_ZERO);
                 manager.fireOnRangeErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
             if (range.getStart().isPositionUndetermined()) {
                 RangeErrorEvent event = new RangeErrorEvent(featureAc, interactorAc, rangeAc, RangeErrorEvent.ErrorType.START_POS_UNDETERMINED);
                 manager.fireOnRangeErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
             if (range.getResultingSequence().getOriginalSequence() == null) {
                 RangeErrorEvent event = new RangeErrorEvent(featureAc, interactorAc, rangeAc, RangeErrorEvent.ErrorType.ORG_SEQ_NULL);
                 manager.fireOnRangeErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
             if (range.getResultingSequence().getNewSequence() == null) {
                 RangeErrorEvent event = new RangeErrorEvent(featureAc, interactorAc, rangeAc, RangeErrorEvent.ErrorType.RES_SEQ_NULL);
                 manager.fireOnRangeErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
 
             rangeStart = range.getStart().getStart();
@@ -180,18 +194,18 @@ public class ShortlabelGenerator {
             if (calculatedOrgSeq == null) {
                 SequenceErrorEvent event = new SequenceErrorEvent(featureAc, interactorAc, rangeAc, SequenceErrorEvent.ErrorType.UNABLE_CALCULATE_ORG_SEQ);
                 manager.fireOnSeqErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
             if (helper.orgSeqWrong(orgSeq, calculatedOrgSeq)) {
                 String message = "Original sequence does not match interactor sequence. Is " + orgSeq + " should be " + calculatedOrgSeq + " Range: (" + rangeStart + "-" + rangeEnd + ")";
                 SequenceErrorEvent event = new SequenceErrorEvent(featureAc, interactorAc, rangeAc, SequenceErrorEvent.ErrorType.ORG_SEQ_WRONG, message);
                 manager.fireOnSeqErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
             if (helper.containsLowerCaseLetters(resSeq)) {
                 SequenceErrorEvent event = new SequenceErrorEvent(featureAc, interactorAc, rangeAc, SequenceErrorEvent.ErrorType.RES_SEQ_CONTAINS_LOWER_CASE);
                 manager.fireOnSeqErrorEvent(event);
-                throw new FeatureShortlabelGenerationException();
+                return;
             }
 
             newShortlabel += helper.seq2ThreeLetterCodeOnDefault(orgSeq);
@@ -238,7 +252,7 @@ public class ShortlabelGenerator {
         } else if (intactCvTerm == null && tries == 0) {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_REMARK_INTERNAL);
             manager.fireOnRetrieveObjErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return null;
         }
         return intactCvTerm;
     }
@@ -248,11 +262,11 @@ public class ShortlabelGenerator {
         IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_NO_MUTATION_UP);
         if (intactCvTerm == null && tries > 0) {
             tries--;
-            intactCvTerm = getIntActCVTermRemarkInternal(tries);
+            intactCvTerm = getIntActCVTermNoMutationUpdate(tries);
         } else if (intactCvTerm == null && tries == 0) {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_NO_MUTATION_UPDATE);
             manager.fireOnRetrieveObjErrorEvent(event);
-            throw new FeatureShortlabelGenerationException();
+            return null;
         }
         return intactCvTerm;
     }

@@ -13,7 +13,7 @@
 
     <groupId>uk.ac.ebi.intact.tools</groupId>
     <artifactId>feature-shortabel-genrator</artifactId>
-    <version>1.0-SNAPSHOTd</version>
+    <version>1.0-SNAPSHOT</version>
 
     <properties>
         <spring.version>3.2.9.RELEASE</spring.version>
