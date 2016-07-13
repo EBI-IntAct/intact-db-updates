@@ -3,43 +3,76 @@ package uk.ac.ebi.intact.tools.feature.shortlabel.generator.manager;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.events.*;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.listener.ShortlabelGeneratorListener;
 
+import javax.swing.event.EventListenerList;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Maximilian Koch (mkoch@ebi.ac.uk).
  */
 public class ShortlabelGeneratorManager {
 
-    protected ShortlabelGeneratorListener shortlabelGeneratorListener;
+    protected EventListenerList listenerList = new EventListenerList();
 
     public void fireOnRangeErrorEvent(RangeErrorEvent event) {
-        shortlabelGeneratorListener.onRangeError(event);
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onRangeError(event);
+        }
     }
 
     public void fireOnSuccessfulGeneratedEvent(SuccessfulGeneratedEvent event) {
-        shortlabelGeneratorListener.onSuccessfulGenerated(event);
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onSuccessfulGenerated(event);
+        }
     }
-    
+
     public void fireOnRetrieveObjErrorEvent(ObjRetrieveErrorEvent event) {
-        shortlabelGeneratorListener.onRetrieveObjectError(event);
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onRetrieveObjectError(event);
+        }
     }
 
     public void fireOnFeatureAnnotationFoundEvent(FeatureAnnotationFoundEvent event) {
-        shortlabelGeneratorListener.onFeatureAnnotationFound(event);
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onFeatureAnnotationFound(event);
+        }
     }
 
     public void fireOnSeqErrorEvent(SequenceErrorEvent event) {
-        shortlabelGeneratorListener.onSequenceError(event);
-
-    }
-    
-    public void fireOnResSeqChangedEvent(ResultingSequenceChangedEvent event){
-        shortlabelGeneratorListener.onResultingSequenceChanged(event);
-    }
-    
-    public void fireOnTypeErrorEvent(TypeErrorEvent event){
-        shortlabelGeneratorListener.onFeatureTypeError(event);
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onSequenceError(event);
+        }
     }
 
-    public void setShortlabelGeneratorListener(ShortlabelGeneratorListener shortlabelGeneratorListener) {
-        this.shortlabelGeneratorListener = shortlabelGeneratorListener;
+    public void fireOnResSeqChangedEvent(ResultingSequenceChangedEvent event) {
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onResultingSequenceChanged(event);
+        }
+    }
+
+    public void fireOnTypeErrorEvent(TypeErrorEvent event) {
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onFeatureTypeError(event);
+        }
+    }
+
+
+    public void addListener(ShortlabelGeneratorListener listener) {
+        listenerList.add(ShortlabelGeneratorListener.class, listener);
+    }
+
+    protected <T> List<T> getListeners(Class<T> listenerClass) {
+        List list = new ArrayList();
+
+        Object[] listeners = listenerList.getListenerList();
+
+        for (int i = 0; i < listeners.length; i += 2) {
+            if (listeners[i] == ShortlabelGeneratorListener.class) {
+                if (listenerClass.isAssignableFrom(listeners[i + 1].getClass())) {
+                    list.add(listeners[i + 1]);
+                }
+            }
+        }
+        return list;
     }
 }
