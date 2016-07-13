@@ -35,10 +35,8 @@ public class FeatureAnnotationFoundEvent {
 
     //TODO We mix here two different things. FEATURE_WRONG && FEATURE_CORRECTED are annotation descriptions. NO_MUTATION_UPDATE is a annotation name.
     public enum AnnotationType {
-        FEATURE_WRONG("Sequence change details about this feature cannot be ascertained or do not fit with the current version of the referenced protein, so they have been deleted as a result of our quality control procedures. The original label was "),
-        FEATURE_CORRECTED("This feature has been corrected as a result of our quality control procedures. The original label was "),
-        NO_MUTATION_UPDATE("no-mutation-update");
-
+        NO_MUTATION_UPDATE("no-mutation-update"),
+        NO_MUTATION_EXPORT("no-muation-export");
 
         private String message;
 
