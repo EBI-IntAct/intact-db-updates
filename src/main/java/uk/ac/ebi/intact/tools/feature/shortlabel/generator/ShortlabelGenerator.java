@@ -1,8 +1,6 @@
 package uk.ac.ebi.intact.tools.feature.shortlabel.generator;
 
 import org.springframework.beans.factory.annotation.Required;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.mi.jami.model.Annotation;
@@ -29,19 +27,17 @@ import java.util.Set;
 public class ShortlabelGenerator {
     private final static String MUTATION_MI_ID = "MI:0118";
     private final static String CV_TERM_REMARK_INTERNAL_AC = "EBI-20";
-    private final static String CV_TERM_NO_MUTATION_UP = "EBI-11795051";
+    private final static String CV_TERM_NO_MUTATION_UPDATE = "EBI-11795051";
+    private final static String CV_TERM_NO_MUTATION_EXPORT = "EBI-11806127";
 
     private final static int OLS_SEARCHING_DEPTH = 10;
     private final static int TRIES = 3;
 
     private static Set<String> allowedFeatureTypes = new HashSet<String>();
-
+    private static IntactCvTerm noMutationUpdate;
+    private static IntactCvTerm noMutationExport;
     private ShortlabelGeneratorManager manager = new ShortlabelGeneratorManager();
     private ShortlabelGeneratorHelper helper = new ShortlabelGeneratorHelper();
-
-    private static IntactCvTerm remarkInternal;
-    private static IntactCvTerm noMutationUpdate;
-
     private IntactDao intactDao;
 
     public ShortlabelGenerator() {
@@ -52,8 +48,8 @@ public class ShortlabelGenerator {
         allowedFeatureTypes.addAll(OntologyServiceHelper.getOntologyServiceHelper().getAssociatedMITerms(MUTATION_MI_ID, OLS_SEARCHING_DEPTH));
     }
 
-    public void subscribeToEvents(ShortlabelGeneratorListener shortlabelGeneratorListener) {
-        manager.setShortlabelGeneratorListener(shortlabelGeneratorListener);
+    public void addListener(ShortlabelGeneratorListener shortlabelGeneratorListener) {
+        manager.addListener(shortlabelGeneratorListener);
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
@@ -89,10 +85,10 @@ public class ShortlabelGenerator {
 
         IntactInteractor interactor = helper.getInteractorByFeatureEvidence(featureEvidence);
 
-        if(remarkInternal == null || noMutationUpdate == null){
-            remarkInternal = getIntActCVTermRemarkInternal(TRIES);
+        if (noMutationUpdate == null || noMutationExport == null) {
             noMutationUpdate = getIntActCVTermNoMutationUpdate(TRIES);
-            if(remarkInternal == null || noMutationUpdate == null){
+            noMutationExport = getIntActCVTermNoMutationExport(TRIES);
+            if (noMutationUpdate == null || noMutationExport == null) {
                 return;
             }
         }
@@ -101,7 +97,6 @@ public class ShortlabelGenerator {
             ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(featureAc, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_RETRIEVE_INTERACTOR);
             manager.fireOnRetrieveObjErrorEvent(event);
             return;
-//            throw new FeatureShortlabelGenerationException();
         }
 
         interactorAc = interactor.getAc();
@@ -128,21 +123,16 @@ public class ShortlabelGenerator {
         }
 
         for (Annotation annotation : featureEvidence.getAnnotations()) {
-            if(annotation.getTopic() == noMutationUpdate){
+            if (annotation.getTopic() == noMutationUpdate) {
                 FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.NO_MUTATION_UPDATE);
                 manager.fireOnFeatureAnnotationFoundEvent(event);
                 return;
             }
 
-            if (annotation.getTopic() == remarkInternal) {
-                if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED.getMessage())) {
-                    FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_CORRECTED);
-                    manager.fireOnFeatureAnnotationFoundEvent(event);
-                } else if (annotation.getValue().startsWith(FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG.getMessage())) {
-                    FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.FEATURE_WRONG);
-                    manager.fireOnFeatureAnnotationFoundEvent(event);
-                    return;
-                }
+            if (annotation.getTopic() == noMutationExport) {
+                FeatureAnnotationFoundEvent event = new FeatureAnnotationFoundEvent(featureAc, interactorAc, FeatureAnnotationFoundEvent.AnnotationType.NO_MUTATION_EXPORT);
+                manager.fireOnFeatureAnnotationFoundEvent(event);
+                return;
             }
         }
 
@@ -244,13 +234,13 @@ public class ShortlabelGenerator {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
-    private IntactCvTerm getIntActCVTermRemarkInternal(int tries) {
-        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_REMARK_INTERNAL_AC);
+    private IntactCvTerm getIntActCVTermNoMutationUpdate(int tries) {
+        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_NO_MUTATION_UPDATE);
         if (intactCvTerm == null && tries > 0) {
             tries--;
-            intactCvTerm = getIntActCVTermRemarkInternal(tries);
+            intactCvTerm = getIntActCVTermNoMutationUpdate(tries);
         } else if (intactCvTerm == null && tries == 0) {
-            ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_REMARK_INTERNAL);
+            ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_NO_MUTATION_UPDATE);
             manager.fireOnRetrieveObjErrorEvent(event);
             return null;
         }
@@ -258,13 +248,13 @@ public class ShortlabelGenerator {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
-    private IntactCvTerm getIntActCVTermNoMutationUpdate(int tries) {
-        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_NO_MUTATION_UP);
+    private IntactCvTerm getIntActCVTermNoMutationExport(int tries) {
+        IntactCvTerm intactCvTerm = intactDao.getCvTermDao().getByAc(CV_TERM_NO_MUTATION_EXPORT);
         if (intactCvTerm == null && tries > 0) {
             tries--;
             intactCvTerm = getIntActCVTermNoMutationUpdate(tries);
         } else if (intactCvTerm == null && tries == 0) {
-            ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_NO_MUTATION_UPDATE);
+            ObjRetrieveErrorEvent event = new ObjRetrieveErrorEvent(null, null, ObjRetrieveErrorEvent.ErrorType.UNABLE_TO_RETRIEVE_CV_NO_MUTATION_EXPORT);
             manager.fireOnRetrieveObjErrorEvent(event);
             return null;
         }
