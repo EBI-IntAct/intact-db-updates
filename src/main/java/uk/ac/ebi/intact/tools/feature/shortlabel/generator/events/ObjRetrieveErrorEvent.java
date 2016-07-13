@@ -35,7 +35,6 @@ public class ObjRetrieveErrorEvent {
     public enum ErrorType {
         UNABLE_RETRIEVE_INTERACTOR("Can not receive Interactor from IntactFeatureEvidence object"),
         UNABLE_TO_RETRIEVE_FEATURE("Can not receive IntactFeatureEvidence"),
-        UNABLE_TO_RETRIEVE_CV_REMARK_INTERNAL("Can not receive remark-internal IntactCvTerm object"),
         UNABLE_TO_RETRIEVE_CV_NO_MUTATION_UPDATE("Can not receive no-mutation-update IntactCvTerm object"),
         UNABLE_TO_RETRIEVE_CV_NO_MUTATION_EXPORT("Can not receive no-mutation-export IntactCvTerm object"),
         UNABLE_RETRIEVE_INTERACTOR_SEQUENCE("Can not receive Interactor Sequence from Interactor object");
