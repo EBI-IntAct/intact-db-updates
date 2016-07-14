@@ -20,9 +20,15 @@ public class ShortlabelGeneratorManager {
         }
     }
 
-    public void fireOnSuccessfulGeneratedEvent(SuccessfulGeneratedEvent event) {
+    public void fireOnUnmodifiedMutationShortlabelEvent (UnmodifiedMutationShortlabelEvent event){
         for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
-            eventListener.onSuccessfulGenerated(event);
+            eventListener.onUnmodifiedMutationShortlabel(event);
+        }
+    }
+
+    public void fireOnModifiedMutationShortlabelEvent (ModifiedMutationShortlabelEvent event){
+        for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
+            eventListener.onModifiedMutationShortlabel(event);
         }
     }
 
@@ -32,9 +38,9 @@ public class ShortlabelGeneratorManager {
         }
     }
 
-    public void fireOnFeatureAnnotationFoundEvent(FeatureAnnotationFoundEvent event) {
+    public void fireOnAnnotationFoundEvent(AnnotationFoundEvent event) {
         for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
-            eventListener.onFeatureAnnotationFound(event);
+            eventListener.onAnnotationFound(event);
         }
     }
 
@@ -50,9 +56,9 @@ public class ShortlabelGeneratorManager {
         }
     }
 
-    public void fireOnTypeErrorEvent(TypeErrorEvent event) {
+    public void fireOnObjectTypeErrorEvent(TypeErrorEvent event) {
         for (ShortlabelGeneratorListener eventListener : getListeners(ShortlabelGeneratorListener.class)){
-            eventListener.onFeatureTypeError(event);
+            eventListener.onObjectTypeError(event);
         }
     }
 

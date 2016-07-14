@@ -9,16 +9,18 @@ import java.util.EventListener;
  */
 public interface ShortlabelGeneratorListener extends EventListener {
     void onRangeError(RangeErrorEvent event);
-    
-    void onSuccessfulGenerated(SuccessfulGeneratedEvent event);
-    
+
+    void onModifiedMutationShortlabel(ModifiedMutationShortlabelEvent event);
+
+    void onUnmodifiedMutationShortlabel(UnmodifiedMutationShortlabelEvent event);
+
     void onRetrieveObjectError(ObjRetrieveErrorEvent event);
 
-    void onFeatureAnnotationFound(FeatureAnnotationFoundEvent event);
+    void onAnnotationFound(AnnotationFoundEvent event);
 
     void onSequenceError(SequenceErrorEvent event);
 
     void onResultingSequenceChanged(ResultingSequenceChangedEvent event);
 
-    void onFeatureTypeError(TypeErrorEvent event);
+    void onObjectTypeError(TypeErrorEvent event);
 }
