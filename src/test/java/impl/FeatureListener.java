@@ -23,9 +23,19 @@ public class FeatureListener implements ShortlabelGeneratorListener {
     }
 
     @Override
-    public void onSuccessfulGenerated(SuccessfulGeneratedEvent event) {
-        System.out.println("Everything seems fine about " + event.getFeatureAc() + "OS: " + event.getOriginalShortlabel() + " -> " + event.getFeatureEvidence().getShortName());
+    public void onModifiedMutationShortlabel(ModifiedMutationShortlabelEvent event) {
+
     }
+
+    @Override
+    public void onUnmodifiedMutationShortlabel(UnmodifiedMutationShortlabelEvent event) {
+
+    }
+
+//    @Override
+//    public void onSuccessfulGenerated(SuccessfulGeneratedEvent event) {
+//        System.out.println("Everything seems fine about " + event.getFeatureAc() + "OS: " + event.getOriginalShortlabel() + " -> " + event.getFeatureEvidence().getShortName());
+//    }
 
     @Override
     public void onRetrieveObjectError(ObjRetrieveErrorEvent event) {
@@ -33,7 +43,7 @@ public class FeatureListener implements ShortlabelGeneratorListener {
     }
 
     @Override
-    public void onFeatureAnnotationFound(FeatureAnnotationFoundEvent event) {
+    public void onAnnotationFound(AnnotationFoundEvent event) {
         System.out.println(event.getMessage());
     }
 
@@ -48,7 +58,7 @@ public class FeatureListener implements ShortlabelGeneratorListener {
     }
 
     @Override
-    public void onFeatureTypeError(TypeErrorEvent event) {
+    public void onObjectTypeError(TypeErrorEvent event) {
         System.out.println(event.getMessage());
     }
 }
