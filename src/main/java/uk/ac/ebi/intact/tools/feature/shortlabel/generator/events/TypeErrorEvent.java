@@ -34,7 +34,7 @@ public class TypeErrorEvent {
     }
 
     public enum ObjTypeErrorType {
-        WRONG_INTERACTOR_TYPE("Interactor is not of type mutation"),
+        WRONG_INTERACTOR_TYPE("Interactor is not of type protein/peptide"),
         WRONG_FEATURE_TYPE("Feature is not of type mutation");
 
         private String message;
