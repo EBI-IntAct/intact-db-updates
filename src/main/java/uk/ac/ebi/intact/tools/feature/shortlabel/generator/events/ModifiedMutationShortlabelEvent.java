@@ -5,17 +5,19 @@ import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 /**
  * Created by Maximilian Koch (mkoch@ebi.ac.uk).
  */
-public class SuccessfulGeneratedEvent {
+public class ModifiedMutationShortlabelEvent {
     private String featureAc;
     private String interactorAc;
     private IntactFeatureEvidence featureEvidence;
     private String originalShortlabel;
+    private boolean noMutationUpdate;
 
-    public SuccessfulGeneratedEvent(String featureAc, String interactorAc, IntactFeatureEvidence featureEvidence, String originalShortlabel) {
+    public ModifiedMutationShortlabelEvent(String featureAc, String interactorAc, IntactFeatureEvidence featureEvidence, String originalShortlabel, boolean noMutationUpdate) {
         this.featureAc = (featureAc == null) ? "undefined" : featureAc;
         this.interactorAc = (interactorAc == null) ? "undefined" : interactorAc;
         this.featureEvidence = featureEvidence;
-        this.originalShortlabel = originalShortlabel;
+        this.originalShortlabel =  (originalShortlabel == null) ? "undefined" : originalShortlabel;
+        this.noMutationUpdate = noMutationUpdate;
     }
 
     public String getFeatureAc() {
@@ -32,5 +34,9 @@ public class SuccessfulGeneratedEvent {
 
     public String getOriginalShortlabel() {
         return originalShortlabel;
+    }
+
+    public boolean isNoMutationUpdate() {
+        return noMutationUpdate;
     }
 }
