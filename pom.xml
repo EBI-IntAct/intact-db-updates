@@ -20,9 +20,9 @@
 
     <properties>
         <currentVersion>${version}</currentVersion>
-        <core.version>2.6.12-SNAPSHOT</core.version>
-        <bridges.version>2.1.20-SNAPSHOT</bridges.version>
-        <protein.mapping.version>1.0.7-SNAPSHOT</protein.mapping.version>
+        <core.version>2.6.11</core.version>
+        <bridges.version>2.1.19</bridges.version>
+        <protein.mapping.version>1.0.6</protein.mapping.version>
         <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
 
@@ -116,21 +116,4 @@
             <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-snapshots/</url>
         </repository>
     </repositories>
-
-    <!-- Overwrites the previous repositories-->
-    <distributionManagement>
-        <!-- EBI repo -->
-        <repository>
-            <id>pst-release</id>
-            <name>EBI Nexus Repository</name>
-            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-release</url>
-        </repository>
-        <!-- EBI SNAPSHOT repo -->
-        <snapshotRepository>
-            <uniqueVersion>false</uniqueVersion>
-            <id>pst-snapshots</id>
-            <name>EBI Nexus Snapshots Repository</name>
-            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
