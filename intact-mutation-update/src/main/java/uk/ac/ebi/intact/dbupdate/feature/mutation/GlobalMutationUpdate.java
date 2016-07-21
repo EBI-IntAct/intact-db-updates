@@ -2,10 +2,8 @@ package uk.ac.ebi.intact.dbupdate.feature.mutation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.helper.MutationUpdateDaoImpl;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.writer.FileReportHandler;
 
 import java.io.File;
@@ -37,8 +35,8 @@ public class GlobalMutationUpdate {
 //      log.info("database = " + database);
         log.info("Update database = " + isUpdate);
 
-        MutationUpdateProcessorConfig config = MutationUpdateContext.getInstance().getConfig();
-
+        MutationUpdateConfig config = MutationUpdateContext.getInstance().getConfig();
+        config.setMutationUpdateDao(new MutationUpdateDaoImpl());
 
         try {
             MutationUpdateProcessor mutationUpdateProcessor = new MutationUpdateProcessor();
