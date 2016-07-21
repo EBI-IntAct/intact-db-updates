@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.dbupdate.feature.mutation;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateConfig;
 
 /**
  * Created by Maximilian Koch (mkoch@ebi.ac.uk).

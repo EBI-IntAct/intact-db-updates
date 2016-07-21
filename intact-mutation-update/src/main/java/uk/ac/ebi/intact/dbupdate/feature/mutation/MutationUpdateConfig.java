@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.feature.mutation.processor;
+package uk.ac.ebi.intact.dbupdate.feature.mutation;
 
 import uk.ac.ebi.intact.dbupdate.feature.mutation.helper.MutationUpdateDao;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.writer.FileReportHandler;

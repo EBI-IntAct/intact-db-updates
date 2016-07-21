@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateConfig;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateContext;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.listener.LoggingListener;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.listener.ReportWriterListener;

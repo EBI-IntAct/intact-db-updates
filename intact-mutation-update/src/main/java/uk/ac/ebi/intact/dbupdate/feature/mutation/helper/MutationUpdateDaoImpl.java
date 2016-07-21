@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import psidev.psi.mi.jami.model.CvTerm;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateContext;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateConfig;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateConfig;
 import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.jami.synchronizer.FinderException;
 import uk.ac.ebi.intact.jami.synchronizer.PersisterException;

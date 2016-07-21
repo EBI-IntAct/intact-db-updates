@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.mi.jami.model.CvTerm;
 import psidev.psi.mi.jami.model.impl.DefaultAnnotation;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateContext;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateConfig;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateConfig;
 import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.events.ModifiedMutationShortlabelEvent;
 
