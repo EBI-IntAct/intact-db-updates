@@ -8,10 +8,7 @@ import uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateContext;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.listener.LoggingListener;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.listener.ReportWriterListener;
 import uk.ac.ebi.intact.dbupdate.feature.mutation.listener.UpdateListener;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.writer.FileReportHandler;
-import uk.ac.ebi.intact.jami.dao.IntactDao;
 import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
-import uk.ac.ebi.intact.tools.feature.shortlabel.generator.ShortlabelGenerator;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.utils.OntologyServiceHelper;
 
 import java.util.HashSet;
@@ -24,15 +21,9 @@ import java.util.Set;
 public class MutationUpdateProcessor {
     private static final Log log = LogFactory.getLog(MutationUpdateProcessor.class);
 
-    private ShortlabelGenerator shortlabelGenerator;
-    private IntactDao intactDao;
-    private FileReportHandler fileReportHandler;
+    private MutationUpdateConfig config = MutationUpdateContext.getInstance().getConfig();
 
     private void init() {
-        MutationUpdateProcessorConfig config = MutationUpdateContext.getInstance().getConfig();
-        shortlabelGenerator = config.getShortlabelGenerator();
-        intactDao = config.getIntactDao();
-        fileReportHandler = config.getFileReportHandler();
         initListener();
     }
 
@@ -47,15 +38,15 @@ public class MutationUpdateProcessor {
     public void updateByACs(Set<IntactFeatureEvidence> intactFeatureEvidences) {
         for (IntactFeatureEvidence intactFeatureEvidence : intactFeatureEvidences) {
             log.info("Generate shortlabel for: " + intactFeatureEvidence.getAc());
-            shortlabelGenerator.generateNewShortLabel(intactFeatureEvidence);
+            config.getShortlabelGenerator().generateNewShortLabel(intactFeatureEvidence);
         }
     }
 
     private void initListener() {
         log.info("Initialise event listeners...");
-        shortlabelGenerator.addListener(new ReportWriterListener(fileReportHandler));
-        shortlabelGenerator.addListener(new UpdateListener());
-        shortlabelGenerator.addListener(new LoggingListener());
+        config.getShortlabelGenerator().addListener(new ReportWriterListener(config.getFileReportHandler()));
+        config.getShortlabelGenerator().addListener(new UpdateListener());
+        config.getShortlabelGenerator().addListener(new LoggingListener());
     }
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
@@ -68,7 +59,7 @@ public class MutationUpdateProcessor {
             if (term.equals("MI:0429")) {
                 continue;
             }
-            featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, term));
+            featureEvidences.addAll(config.getMutationUpdateDao().getFeatureEvidenceByType(term));
         }
         log.info("Retrieved all features of type mutation. Excluded MI:0429(necessary binding region)");
         return featureEvidences;
