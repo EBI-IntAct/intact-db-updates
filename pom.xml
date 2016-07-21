@@ -41,7 +41,7 @@
         <module>intact-cv-update</module>
         <module>intact-bioactiveentities-update</module>
         <module>intact-genes-update</module>
-        <!--<module>intact-feature-shortlabel-update</module>-->
+        <module>intact-mutation-update</module>
     </modules>
     
     <build>
