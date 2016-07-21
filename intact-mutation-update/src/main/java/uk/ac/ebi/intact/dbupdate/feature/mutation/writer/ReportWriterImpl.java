@@ -32,7 +32,6 @@ public class ReportWriterImpl implements ReportWriter {
         if (headerCols > 0 && colValues.length != headerCols) {
             throw new IllegalArgumentException("Unexpected number of values, as the header contains " + headerCols + " columns and the values provided were: " + colValues.length);
         }
-
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < colValues.length; i++) {
