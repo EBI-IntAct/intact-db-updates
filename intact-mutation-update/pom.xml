@@ -10,14 +10,15 @@
         <version>2.1.14-SNAPSHOT</version>
     </parent>
 
-    <artifactId>mutation-feature-update</artifactId>
+    <artifactId>intact-mutation-update</artifactId>
+    <name>IntAct Database Update :: Mutation Update</name>
 
     <properties>
         <folder>/ebi/sp/pro6/intact/local/data/mutation-feature-update-report/</folder>
     </properties>
 
     <build>
-        <finalName>mutation-feature-update</finalName>
+        <finalName>intact-mutation-update</finalName>
         <plugins>
             <plugin>
                 <groupId>external.atlassian.jgitflow</groupId>
@@ -149,5 +150,4 @@
             <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-snapshots/</url>
         </repository>
     </repositories>
-
 </project>
