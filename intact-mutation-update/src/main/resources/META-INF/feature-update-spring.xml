@@ -12,7 +12,7 @@
 
     <tx:annotation-driven transaction-manager="jamiTransactionManager" proxy-target-class="true"/>
 
-    <bean name="config" class="uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateProcessorConfig">
+    <bean name="config" class="uk.ac.ebi.intact.dbupdate.feature.mutation.MutationUpdateConfig">
         <property name="intactDao" ref="intactDao"/>
         <property name="shortlabelGenerator" ref="generator"/>
     </bean>
