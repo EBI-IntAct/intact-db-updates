@@ -2,31 +2,31 @@ package uk.ac.ebi.intact.dbupdate.feature.mutation;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.processor.MutationUpdateConfig;
 
 /**
  * Created by Maximilian Koch (mkoch@ebi.ac.uk).
  */
 public class MutationUpdateContext {
 
-    private static MutationUpdateContext ourInstance = new MutationUpdateContext();
-    private MutationUpdateProcessorConfig config;
+    private static MutationUpdateContext context = new MutationUpdateContext();
+    private MutationUpdateConfig config;
 
     private MutationUpdateContext() {
         // initialize here default configuration
         ApplicationContext context = new ClassPathXmlApplicationContext("META-INF/feature-update-spring.xml", "META-INF/shortlabel-generator-config.xml");
-        this.config = context.getBean(MutationUpdateProcessorConfig.class);
+        this.config = context.getBean(MutationUpdateConfig.class);
     }
 
     public static MutationUpdateContext getInstance() {
-        return ourInstance;
+        return context;
     }
 
-    public MutationUpdateProcessorConfig getConfig() {
+    public MutationUpdateConfig getConfig() {
         return config;
     }
 
-    public void setConfig(MutationUpdateProcessorConfig config) {
+    public void setConfig(MutationUpdateConfig config) {
         this.config = config;
     }
 }
