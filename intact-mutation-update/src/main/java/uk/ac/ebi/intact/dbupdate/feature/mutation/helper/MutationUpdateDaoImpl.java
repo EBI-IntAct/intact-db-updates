@@ -44,6 +44,6 @@ public class MutationUpdateDaoImpl implements MutationUpdateDao {
 
     @Override
     public CvTerm getCVTermByAc(String ac) {
-        return null;
+        return config.getIntactDao().getCvTermDao().getByAc(ac);
     }
 }
