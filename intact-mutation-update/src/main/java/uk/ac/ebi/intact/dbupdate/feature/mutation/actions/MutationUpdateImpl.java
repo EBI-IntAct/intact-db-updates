@@ -20,6 +20,8 @@ import java.util.Date;
 public class MutationUpdateImpl implements MutationUpdate {
     private static final Log log = LogFactory.getLog(MutationUpdateImpl.class);
 
+    private final String REMARK_INTERNAL_CV_AC = "EBI-20";
+
     private MutationUpdateConfig config = MutationUpdateContext.getInstance().getConfig();
 
     @Override
@@ -39,6 +41,6 @@ public class MutationUpdateImpl implements MutationUpdate {
 
     @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager")
     private CvTerm getRemarkInternal() {
-        return config.getMutationUpdateDao().getCVTermByAc("EBI-20");
+        return config.getMutationUpdateDao().getCVTermByAc(REMARK_INTERNAL_CV_AC);
     }
 }
