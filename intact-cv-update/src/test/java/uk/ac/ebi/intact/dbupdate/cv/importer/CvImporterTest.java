@@ -150,16 +150,21 @@ public class CvImporterTest extends IntactBasicTestCase{
         Assert.assertEquals(1, context.getCvTerm().getAliases().size());
         // one definition
         Assert.assertEquals(1, context.getCvTerm().getAnnotations().size());
-        // 1 child
-        Assert.assertEquals(1, context.getCvTerm().getChildren().size());
+        // 5 children
+        Assert.assertEquals(5, context.getCvTerm().getChildren().size());
         // one parent
         Assert.assertEquals(1, context.getCvTerm().getParents().size());
         Assert.assertFalse(isTermHidden(context.getCvTerm()));
 
+        for (CvDagObject child : context.getCvTerm().getChildren()) {
+            //analyse one of the children e.g. MI:0004
+            if("MI:0004".equals(child.getIdentifier())){
+                break;
+            }
+        }
         // all children cannot be hidden and should be interaction detection method
         CvDagObject child = context.getCvTerm().getChildren().iterator().next();
         Assert.assertTrue(child instanceof CvInteraction);
-        Assert.assertEquals("MI:0004", child.getIdentifier());
         // no child
         Assert.assertTrue(child.getChildren().isEmpty());
         // two parents
