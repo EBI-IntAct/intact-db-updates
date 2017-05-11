@@ -77,6 +77,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
+    //Todo: This test needs investigation. It doesn't pass but the reason it is still unknown
     public void test_update_allTerms() throws CvUpdateException {
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();
@@ -134,6 +135,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, term2.getAnnotations().size());
 
         // no new term have been created (comment should not have been created)
+        // **** The term is created as a parent and the test is failing because of this. It needs review ****
         Assert.assertNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0669"));
 
         getDataContext().commitTransaction(status2);
