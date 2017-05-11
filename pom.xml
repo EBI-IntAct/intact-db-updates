@@ -21,9 +21,9 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.11</core.version>
-        <bridges.version>2.1.21-SNAPSHOT</bridges.version>
+        <bridges.version>2.1.21</bridges.version>
         <protein.mapping.version>1.0.6</protein.mapping.version>
-        <uniprot.japi.version>1.0.9</uniprot.japi.version>
+        <uniprot.japi.version>1.0.11</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
     </properties>
 
@@ -105,9 +105,8 @@
 
     <repositories>
         <repository>
-            <id>ebi-repo</id>
-            <name>ebi-repo</name>
-            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+            <id>nexus-ebi-repo-old</id>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
         </repository>
         <repository>
             <id>nexus-ebi-release-repo</id>
@@ -118,4 +117,21 @@
             <url>http://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-snapshots/</url>
         </repository>
     </repositories>
+
+    <!-- Overwrites the previous repositories-->
+    <distributionManagement>
+        <!-- EBI repo -->
+        <repository>
+            <id>pst-release</id>
+            <name>EBI Nexus Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-release</url>
+        </repository>
+        <!-- EBI SNAPSHOT repo -->
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>pst-snapshots</id>
+            <name>EBI Nexus Snapshots Repository</name>
+            <url>http://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

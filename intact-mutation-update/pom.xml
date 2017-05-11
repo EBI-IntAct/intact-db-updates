@@ -98,8 +98,8 @@
     <dependencies>
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
-            <artifactId>feature-shortabel-genrator</artifactId>
-            <version>1.0.2</version>
+            <artifactId>feature-shortlabel-generator</artifactId>
+            <version>1.0.7</version>
         </dependency>
 
         <dependency>
@@ -110,13 +110,6 @@
 
 
         <!-- Other third party dependencies -->
-        <!-- Tests -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
