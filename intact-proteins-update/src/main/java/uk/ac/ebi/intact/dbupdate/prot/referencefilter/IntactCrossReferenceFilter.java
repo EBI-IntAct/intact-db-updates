@@ -47,6 +47,8 @@ public class IntactCrossReferenceFilter implements CrossReferenceFilter {
         db2mi.put( format( "go" ), "MI:0448");
         db2mi.put( format( "interpro" ), "MI:0449");
         db2mi.put( format( "pdb" ), "MI:0460");
+        db2mi.put( format( "dip" ), "MI:0465");
+        db2mi.put( format( "mint" ), "MI:0471");
         db2mi.put( format( "cygd"), "MI:0464");
         db2mi.put( format("reactome"), "MI:0467");
         db2mi.put( format( "ensembl"), "MI:0476");
