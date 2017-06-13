@@ -116,7 +116,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.dbupdate</groupId>
             <artifactId>intact-biosource-update</artifactId>
-            <version>${pom.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>uk.ac.ebi.intact.bridges</groupId>
@@ -169,7 +169,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>1.0.20070617</version>
+            <version>1.4.192</version>
         </dependency>
 
         <dependency>
@@ -179,12 +179,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-                
         <!-- Apache -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
