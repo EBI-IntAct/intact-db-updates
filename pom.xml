@@ -12,7 +12,7 @@
     <groupId>uk.ac.ebi.intact.dbupdate</groupId>
     <artifactId>dbupdate-master</artifactId>
     <packaging>pom</packaging>
-    <version>2.1.15</version>
+    <version>2.1.16</version>
 
     <name>IntAct Database Update</name>
     <description>Database Update Master POM</description>
@@ -21,10 +21,14 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.11</core.version>
-        <bridges.version>2.1.21</bridges.version>
-        <protein.mapping.version>1.0.6</protein.mapping.version>
-        <uniprot.japi.version>1.0.11</uniprot.japi.version>
+        <bridges.version>2.1.23</bridges.version>
+        <uniprot.japi.version>1.0.15</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
+        <chebi.ws.version>2.3.2</chebi.ws.version>
+
+        <!--intact-tools-->
+        <protein.mapping.version>1.0.8</protein.mapping.version>
+        <feature.shortlabel.generator.version>1.0.8</feature.shortlabel.generator.version>
     </properties>
 
     <scm>
@@ -62,6 +66,22 @@
                     </flowInitContext>
                     <!-- see goals wiki page for configuration options -->
                     <allowUntracked>true</allowUntracked>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
                 </configuration>
             </plugin>
         </plugins>

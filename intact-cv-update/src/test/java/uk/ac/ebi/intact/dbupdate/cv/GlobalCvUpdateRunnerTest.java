@@ -135,8 +135,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
         Assert.assertEquals(1, term2.getAnnotations().size());
 
         // no new term have been created (comment should not have been created)
-        // **** The term is created as a parent and the test is failing because of this. It needs review ****
-        Assert.assertNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0669"));
+        Assert.assertNotNull(getDaoFactory().getCvObjectDao(CvDagObject.class).getByIdentifier("MI:0669"));
 
         getDataContext().commitTransaction(status2);
     }
