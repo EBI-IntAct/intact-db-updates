@@ -15,45 +15,6 @@
         <folder>/ebi/sp/pro6/intact/local/data/mutation-feature-update-report/</folder>
     </properties>
 
-    <build>
-        <finalName>intact-mutation-update</finalName>
-        <plugins>
-            <plugin>
-                <groupId>external.atlassian.jgitflow</groupId>
-                <artifactId>jgitflow-maven-plugin</artifactId>
-                <version>1.0-m5.1</version>
-                <configuration>
-                    <flowInitContext>
-                        <masterBranchName>master</masterBranchName>
-                        <developBranchName>develop</developBranchName>
-                        <featureBranchPrefix>feature-</featureBranchPrefix>
-                        <releaseBranchPrefix>release-</releaseBranchPrefix>
-                        <hotfixBranchPrefix>hotfix-</hotfixBranchPrefix>
-                        <versionTagPrefix>${project.artifactId}-</versionTagPrefix>
-                    </flowInitContext>
-                    <!-- see goals wiki page for configuration options -->
-                    <allowUntracked>true</allowUntracked>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <includes>
-                        <include>**/*Tests.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <profiles>
         <profile>
             <id>global-feature-report</id>
@@ -97,7 +58,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
             <artifactId>feature-shortlabel-generator</artifactId>
-            <version>1.0.7</version>
+            <version>${feature.shortlabel.generator.version}</version>
         </dependency>
 
         <dependency>

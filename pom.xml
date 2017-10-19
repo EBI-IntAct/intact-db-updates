@@ -21,11 +21,14 @@
     <properties>
         <currentVersion>${version}</currentVersion>
         <core.version>2.6.11</core.version>
-        <bridges.version>2.1.22</bridges.version>
-        <protein.mapping.version>1.0.7</protein.mapping.version>
+        <bridges.version>2.1.23</bridges.version>
         <uniprot.japi.version>1.0.15</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
         <chebi.ws.version>2.3.2</chebi.ws.version>
+
+        <!--intact-tools-->
+        <protein.mapping.version>1.0.8</protein.mapping.version>
+        <feature.shortlabel.generator.version>1.0.8</feature.shortlabel.generator.version>
     </properties>
 
     <scm>
