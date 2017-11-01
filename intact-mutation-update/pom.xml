@@ -13,6 +13,7 @@
 
     <properties>
         <folder>/ebi/sp/pro6/intact/local/data/mutation-feature-update-report/</folder>
+        <database>dev</database>
     </properties>
 
     <profiles>
@@ -40,11 +41,11 @@
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>uk.ac.ebi.intact.dbupdate.feature.mutation.GlobalMutationUpdate</argument>
-                                <!--&lt;!&ndash; database to update &ndash;&gt;-->
-                                <!--<argument>${database}</argument>-->
-                                <!--&lt;!&ndash; repository where to find the log files &ndash;&gt;-->
-                                <!--<argument>${folder}</argument>-->
-                                <!--&lt;!&ndash;<argument>classpath*:/META-INF/fea</argument>&ndash;&gt;-->
+                                <!-- database to update -->
+                                <argument>${database}</argument>
+                                <!-- repository where to find the log files -->
+                                <argument>${folder}</argument>
+                                <!--<argument>classpath*:/META-INF/fea</argument>-->
                             </arguments>
                         </configuration>
                     </plugin>

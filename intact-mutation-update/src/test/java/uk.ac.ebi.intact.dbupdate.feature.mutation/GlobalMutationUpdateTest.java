@@ -11,6 +11,7 @@ public class GlobalMutationUpdateTest{
 
     @Test
     public void test (){
+        //TODO add the assertion for the test
         //EBI-1153050
 //        IntactFeatureEvidence intactFeatureEvidence = new IntactFeatureEvidence();
 //        intactFeatureEvidence.setShortName("test11-22test");
@@ -22,7 +23,6 @@ public class GlobalMutationUpdateTest{
 //        Position end1 = new DefaultPosition(11);
 //        ResultingSequence resultingSequence1 = new DefaultResultingSequence("K", "R");
 //        Range range1 = new DefaultRange(start1, end1, resultingSequence1);
-//
     }
 
 }

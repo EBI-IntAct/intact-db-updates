@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.feature.mutation.listener;
 
 import uk.ac.ebi.intact.dbupdate.feature.mutation.actions.MutationUpdate;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.actions.MutationUpdateImpl;
+import uk.ac.ebi.intact.dbupdate.feature.mutation.actions.impl.MutationUpdateImpl;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.events.ModifiedMutationShortlabelEvent;
 
 /**
