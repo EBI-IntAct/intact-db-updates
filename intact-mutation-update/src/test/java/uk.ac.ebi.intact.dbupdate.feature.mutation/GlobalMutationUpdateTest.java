@@ -4,6 +4,7 @@ package uk.ac.ebi.intact.dbupdate.feature.mutation;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import psidev.psi.mi.jami.model.Xref;
 
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
