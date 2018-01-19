@@ -2,7 +2,6 @@ package uk.ac.ebi.intact.dbupdate.feature.mutation.writer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.dbupdate.feature.mutation.GlobalMutationUpdate;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -76,6 +75,7 @@ public class FileReportHandler {
         return unmodifiedMutationsReport;
     }
 
+    //TODO investigate where should be call
     public void close() throws IOException {
         this.rangeErrorReport.close();
         this.retrieveObjectErrorReport.close();

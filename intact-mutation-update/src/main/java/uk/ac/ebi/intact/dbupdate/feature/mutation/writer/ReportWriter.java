@@ -7,10 +7,12 @@ import java.io.IOException;
 /**
  * Created by Maximilian Koch (mkoch@ebi.ac.uk).
  */
+//TODO Add documentation
 public interface ReportWriter extends Flushable, Closeable {
-    void writeHeaderIfNecessary(String ... colHeaderTexts) throws IOException;
 
-    void writeColumnValues(String ... colValues) throws IOException;
+    void writeHeaderIfNecessary(String... colHeaderTexts) throws IOException;
+
+    void writeColumnValues(String... colValues) throws IOException;
 
     void writeLine(String str) throws IOException;
 }
