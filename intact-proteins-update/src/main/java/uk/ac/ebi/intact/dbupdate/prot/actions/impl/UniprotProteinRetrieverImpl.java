@@ -4,7 +4,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.remoting.RemoteAccessException;
-import org.springframework.remoting.RemoteConnectFailureException;
 import uk.ac.ebi.intact.dbupdate.prot.*;
 import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
@@ -483,6 +482,7 @@ public class UniprotProteinRetrieverImpl implements UniprotProteinRetriever{
         Collection<UniprotProtein> uniprotProteins;
         uniprotService.start();
         try{
+            //BRIDGES
             uniprotProteins = uniprotService.retrieve( primaryAc );
         } catch (RemoteAccessException ce) {
             if (retryAttempt >= MAX_RETRY_ATTEMPTS) {

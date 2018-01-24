@@ -59,6 +59,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
      * false otherwise
      * @throws ProcessorException
      */
+    //TODO Fix the check "If is the parent of isoform/feature chain with interactions, don't delete it
     public boolean hasToBeDeleted(ProteinEvent evt) throws ProcessorException {
         final Protein protein = evt.getProtein();
 
