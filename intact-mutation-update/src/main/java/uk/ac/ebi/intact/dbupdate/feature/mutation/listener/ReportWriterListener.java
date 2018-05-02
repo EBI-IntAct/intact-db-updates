@@ -148,10 +148,14 @@ public class ReportWriterListener extends AbstractShortlabelGeneratorListener {
         String rangeAc = event.getRangeAc();
         String changeType = event.getChangeType().name();
         String changeMessage = event.getMessage();
+        String oSeq=event.getoSeq();
+        String rSeq=event.getrSeq();
+        String rangeStart=event.getRangeStart()+"";
+        String rangeEnd=event.getRangeEnd()+"";
         try {
             ReportWriter resultingSequenceChangedWriter = fileReportHandler.getResultingSequenceChangedReport();
-            resultingSequenceChangedWriter.writeHeaderIfNecessary("feature_ac", "interactor_ac", "range_ac", "change_type", "change_message");
-            resultingSequenceChangedWriter.writeColumnValues(featureAc, interactorAc, rangeAc, changeType, changeMessage);
+            resultingSequenceChangedWriter.writeHeaderIfNecessary("feature_ac", "interactor_ac","original_sequence","resulting_sequence", "range_ac","range_start","range_end","change_type", "change_message");
+            resultingSequenceChangedWriter.writeColumnValues(featureAc, interactorAc,oSeq,rSeq,rangeAc,rangeStart,rangeEnd,changeType,changeMessage);
             resultingSequenceChangedWriter.flush();
         } catch (IOException e) {
             e.printStackTrace();

@@ -28,7 +28,7 @@
 
         <!--intact-tools-->
         <protein.mapping.version>1.0.8</protein.mapping.version>
-        <feature.shortlabel.generator.version>1.0.9</feature.shortlabel.generator.version>
+        <feature.shortlabel.generator.version>1.0.10-SNAPSHOT</feature.shortlabel.generator.version>
     </properties>
 
     <scm>
