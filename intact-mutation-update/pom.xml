@@ -5,7 +5,7 @@
     <parent>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
         <artifactId>dbupdate-master</artifactId>
-        <version>2.1.18</version>
+        <version>2.1.19</version>
     </parent>
 
     <artifactId>intact-mutation-update</artifactId>
@@ -36,8 +36,9 @@
                         <configuration>
                             <executable>java</executable>
                             <arguments>
-                                <argument>-Xmx4048m</argument>
                                 <argument>-Xms256m</argument>
+                                <argument>-Xmx8096m</argument>
+                                <argument>-XX:+UseConcMarkSweepGC</argument>
 
                                 <argument>-classpath</argument>
                                 <classpath />
