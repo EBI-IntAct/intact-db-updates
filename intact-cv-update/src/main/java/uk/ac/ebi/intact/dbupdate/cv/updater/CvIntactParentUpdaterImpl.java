@@ -56,6 +56,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
         classMap.put( CvParameterType.class, "MI:0640" );
         classMap.put( CvParameterUnit.class, "MI:0647" );
         classMap.put( CvConfidenceType.class, "MI:1064" );
+        classMap.put( CvCausalInteraction.class,  "MI:2233" );
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

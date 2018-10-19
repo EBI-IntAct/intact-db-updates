@@ -20,7 +20,7 @@
 
     <properties>
         <currentVersion>${version}</currentVersion>
-        <core.version>2.6.11</core.version>
+        <core.version>2.6.12</core.version>
         <bridges.version>2.1.23</bridges.version>
         <uniprot.japi.version>1.0.15</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
