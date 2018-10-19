@@ -25,7 +25,7 @@ public class GlobalMutationUpdate {
 
         final String database = args[0];
         //TODO Review configuration in lsf
-        final String filename = "/home/anjali/Documents/projects_docs/featureUpdateReport";
+        final String filename = "/home/anjali/Documents/projects_docs/featureUpdateReport/";
         boolean isUpdate = false;
 
         if (args.length == 3) {
