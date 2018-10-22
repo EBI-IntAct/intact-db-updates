@@ -69,7 +69,7 @@ public class UniProtRestQueryTest {
                 };
 
         Assert.assertEquals(
-                "http://www.uniprot.org/uniprot/?query=ENSMUSG00000034391&columns=entry+name%2Cgenes%2Corganism%2Corganism-id%2Cid%2Creviewed%2Cprotein+names&reviewed=yes&format=xml",
+                "https://www.uniprot.org/uniprot/?query=ENSMUSG00000034391&columns=entry+name%2Cgenes%2Corganism%2Corganism-id%2Cid%2Creviewed%2Cprotein+names&reviewed=yes&format=xml",
                 UniProtRestQuery.queryURLGenerator("uniprot", parameters)
         );
 

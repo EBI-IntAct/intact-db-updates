@@ -24,7 +24,7 @@ import java.util.List;
 public class UniProtRestQuery {
 
 	public static final Log log = LogFactory.getLog(UniProtRestQuery.class);
-	private static final String UNIPROT_SERVER = "http://www.uniprot.org/";
+	private static final String UNIPROT_SERVER = "https://www.uniprot.org/";
 
 	private UniProtParser uniProtParser;
 
