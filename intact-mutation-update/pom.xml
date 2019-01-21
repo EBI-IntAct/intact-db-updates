@@ -12,8 +12,6 @@
     <name>IntAct Database Update :: Mutation Update</name>
 
     <properties>
-        <folder>/ebi/sp/pro6/intact/local/data/mutation-feature-update-report/</folder>
-        <database>dev</database>
         <db.url>${db.protocol}:${db.subprotocol}${db.separator}${db.alias}</db.url>
     </properties>
 
@@ -43,10 +41,12 @@
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>uk.ac.ebi.intact.dbupdate.feature.mutation.GlobalMutationUpdate</argument>
-                                <!-- database to update -->
-                                <argument>${database}</argument>
+
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
+                                <!-- database to update -->
+                                <argument>${database}</argument>
+
                                 <!--<argument>classpath*:/META-INF/fea</argument>-->
                             </arguments>
                         </configuration>
