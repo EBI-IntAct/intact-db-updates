@@ -41,13 +41,10 @@
                                 <argument>-classpath</argument>
                                 <classpath />
                                 <argument>uk.ac.ebi.intact.dbupdate.feature.mutation.GlobalMutationUpdate</argument>
-
-                                <!-- repository where to find the log files -->
-                                <argument>${folder}</argument>
                                 <!-- database to update -->
                                 <argument>${database}</argument>
-
-                                <!--<argument>classpath*:/META-INF/fea</argument>-->
+                                <!-- repository where to find the log files -->
+                                <argument>${folder}</argument>
                             </arguments>
                         </configuration>
                     </plugin>
