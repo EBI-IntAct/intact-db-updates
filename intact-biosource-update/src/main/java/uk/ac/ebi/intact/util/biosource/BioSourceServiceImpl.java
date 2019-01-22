@@ -8,9 +8,10 @@ package uk.ac.ebi.intact.util.biosource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.TransactionStatus;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyServiceException;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyTerm;
+import psidev.psi.mi.jami.bridges.exception.BridgeFailedException;
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
+import psidev.psi.mi.jami.model.Alias;
+import psidev.psi.mi.jami.model.Organism;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -46,17 +47,17 @@ public class BioSourceServiceImpl implements BioSourceService {
     /**
      * Adapter allowing to get access to the Taxonomy data.
      */
-    private TaxonomyService taxonomyService;
+    private OrganismFetcher taxonomyService;
 
     ///////////////////////////
     // Constructor
 
-    public BioSourceServiceImpl(TaxonomyService taxonomyService) {
+    public BioSourceServiceImpl(OrganismFetcher taxonomyService) {
         // set default institution
         this(taxonomyService, null);
     }
 
-    public BioSourceServiceImpl(TaxonomyService taxonomyAdapter, Institution institution) {
+    public BioSourceServiceImpl(OrganismFetcher taxonomyAdapter, Institution institution) {
         setTaxonomyService(taxonomyAdapter);
         setInstitution(institution);
     }
@@ -64,7 +65,7 @@ public class BioSourceServiceImpl implements BioSourceService {
     //////////////////////
     // Setters
 
-    private void setTaxonomyService(TaxonomyService taxonomyService) {
+    private void setTaxonomyService(OrganismFetcher taxonomyService) {
         if (taxonomyService == null) {
             throw new IllegalArgumentException();
         }
@@ -263,10 +264,10 @@ public class BioSourceServiceImpl implements BioSourceService {
 
             if (bs == null) {
                 // it is not a special BioSource, use the taxonomy service to retreive data.
-                TaxonomyTerm taxTerm = null;
+                Organism taxTerm = null;
                 try {
-                    taxTerm = taxonomyService.getTaxonomyTerm(taxidInt);
-                } catch (TaxonomyServiceException e) {
+                    taxTerm = taxonomyService.fetchByTaxID(taxidInt);
+                } catch (BridgeFailedException e) {
                     throw new BioSourceServiceException("Error while retreiving Taxonomy term.", e);
                 }
 
@@ -276,19 +277,19 @@ public class BioSourceServiceImpl implements BioSourceService {
                 }
 
                 //Sometimes the common name is null in Newt, therefore we choose as shortlabel the taxid.
-                String shortlabel = taxTerm.getMnemonic() != null ? taxTerm.getMnemonic() : taxTerm.getCommonName();
-                if (shortlabel == null || (shortlabel != null && shortlabel.trim().length() == 0)) {
-                    shortlabel = taxTerm.getTaxid() + "";
+                String shortlabel = taxTerm.getCommonName();
+                if (shortlabel == null || shortlabel.trim().length() == 0) {
+                    shortlabel = taxTerm.getTaxId() + "";
                 }
 
                 bs = createAndPersistBioSource(shortlabel.toLowerCase(),
                         taxTerm.getScientificName(),
-                        String.valueOf(taxTerm.getTaxid()));
+                        String.valueOf(taxTerm.getTaxId()));
 
-                if (!taxTerm.getSynonyms().isEmpty()){
+                if (!taxTerm.getAliases().isEmpty()){
                     CvAliasType synType = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvAliasType.class).getByPsiMiRef(CvAliasType.SYNONYM_MI_REF);
-                    for (String syn : taxTerm.getSynonyms()){
-                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn));
+                    for (Alias syn : taxTerm.getAliases()){
+                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn.getName()));
                     }
                 }
             }
@@ -321,10 +322,10 @@ public class BioSourceServiceImpl implements BioSourceService {
 
             if (bs == null) {
                 // it is not a special BioSource, use the taxonomy service to retreive data.
-                TaxonomyTerm taxTerm = null;
+                Organism taxTerm = null;
                 try {
-                    taxTerm = taxonomyService.getTaxonomyTerm(taxidInt);
-                } catch (TaxonomyServiceException e) {
+                    taxTerm = taxonomyService.fetchByTaxID(taxidInt);
+                } catch (BridgeFailedException e) {
                     throw new BioSourceServiceException("Error while retreiving Taxonomy term.", e);
                 }
 
@@ -334,18 +335,18 @@ public class BioSourceServiceImpl implements BioSourceService {
                 }
 
                 //Sometimes the common name is null in Newt, therefore we choose as shortlabel the taxid.
-                String shortlabel = taxTerm.getMnemonic() != null ? taxTerm.getMnemonic() : taxTerm.getCommonName();
-                if (shortlabel == null || (shortlabel != null && shortlabel.trim().length() == 0)) {
-                    shortlabel = taxTerm.getTaxid() + "";
+                String shortlabel = taxTerm.getCommonName();
+                if (shortlabel == null || shortlabel.trim().length() == 0) {
+                    shortlabel = taxTerm.getTaxId() + "";
                 }
 
                 bs = createBioSource(shortlabel.toLowerCase(),
                         taxTerm.getScientificName(),
-                        String.valueOf(taxTerm.getTaxid()));
-                if (!taxTerm.getSynonyms().isEmpty()){
+                        String.valueOf(taxTerm.getTaxId()));
+                if (!taxTerm.getAliases().isEmpty()){
                     CvAliasType synType = IntactContext.getCurrentInstance().getDaoFactory().getCvObjectDao(CvAliasType.class).getByPsiMiRef(CvAliasType.SYNONYM_MI_REF);
-                    for (String syn : taxTerm.getSynonyms()){
-                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn));
+                    for (Alias syn : taxTerm.getAliases()){
+                        bs.getAliases().add(new BioSourceAlias(IntactContext.getCurrentInstance().getInstitution(), bs, synType, syn.getName()));
                     }
                 }
             }
@@ -371,17 +372,17 @@ public class BioSourceServiceImpl implements BioSourceService {
             throw new BioSourceServiceException("A taxid is expected to be an Integer value: " + taxid);
         }
 
-        TaxonomyTerm term = null;
+        Organism term = null;
         try {
-            term = taxonomyService.getTaxonomyTerm(t);
-        } catch (TaxonomyServiceException e) {
+            term = taxonomyService.fetchByTaxID(t);
+        } catch (BridgeFailedException e) {
             throw new BioSourceServiceException("Error while accessing the taxonomy service.", e);
         }
 
-        return String.valueOf(term.getTaxid());
+        return String.valueOf(term.getTaxId());
     }
 
-    public TaxonomyService getTaxonomyService() {
+    public OrganismFetcher getTaxonomyService() {
         return taxonomyService;
     }
 }

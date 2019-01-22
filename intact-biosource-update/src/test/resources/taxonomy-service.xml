@@ -8,7 +8,7 @@
         instanciated.
     </description>
 
-    <bean id="dummy" class="uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService"/>
+    <bean id="dummy" class="psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher"/>
 
     <bean id="biosourceLoaderBean" class="uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl">
         <constructor-arg>

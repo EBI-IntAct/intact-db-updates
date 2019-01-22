@@ -8,7 +8,7 @@ package uk.ac.ebi.intact.util.biosource;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.core.io.ClassPathResource;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
 
 /**
  * Factory building BioSourceServices.
@@ -44,7 +44,7 @@ public class BioSourceServiceFactory {
         return service;
     }
 
-    public BioSourceService buildBioSourceService( TaxonomyService taxonomyService ) {
+    public BioSourceService buildBioSourceService( OrganismFetcher taxonomyService ) {
         if ( taxonomyService == null ) {
             throw new IllegalArgumentException( "You must give a non null TaxonomyBridgeAdapter." );
         }

@@ -1,8 +1,8 @@
 package uk.ac.ebi.intact.util.biosource;
 
-import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
+import psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher;
 
 /**
  * BioSourceServiceFactory Tester.
@@ -16,7 +16,7 @@ public class BioSourceServiceFactoryTest {
     @Test
     public void testGetInstance() throws Exception {
         BioSourceServiceFactory factory = BioSourceServiceFactory.getInstance();
-        BioSourceService service = factory.buildBioSourceService( new DummyTaxonomyService() );
+        BioSourceService service = factory.buildBioSourceService( new MockOrganismFetcher() );
         Assert.assertNotNull( service );
 
         try {
