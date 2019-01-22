@@ -19,7 +19,6 @@
     <url>http://www.ebi.ac.uk/~intact/devsite/dbupdate</url>
 
     <properties>
-        <currentVersion>${version}</currentVersion>
         <core.version>2.6.12</core.version>
         <bridges.version>2.1.27</bridges.version>
         <uniprot.japi.version>1.0.23</uniprot.japi.version>
