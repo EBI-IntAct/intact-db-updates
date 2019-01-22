@@ -10,8 +10,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
@@ -73,7 +73,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -155,7 +155,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -186,7 +186,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
                 Assert.assertTrue(false);
             }
         }
-
+        //TODO Review if comment should be an annotation in this conetext becasue it wasn't when using intact-bridges.
         Assert.assertEquals(2, term.getAnnotations().size());
 
         for (Annotation ann : term.getAnnotations()){
@@ -230,7 +230,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -268,7 +268,7 @@ public class CvUpdaterTest extends IntactBasicTestCase{
         Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
         Assert.assertEquals(def.getAnnotationText(), "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins.");
 
-        Assert.assertEquals(1, term.getAliases().size());
+        Assert.assertEquals(2, term.getAliases().size());
         Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
         Assert.assertEquals(1, term.getParents().size());
 

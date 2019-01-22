@@ -1,10 +1,10 @@
 package uk.ac.ebi.intact.dbupdate.cv.importer;
 
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
-import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
+import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdater;
 import uk.ac.ebi.intact.model.CvDagObject;
 
 import java.util.Map;
@@ -22,13 +22,13 @@ public interface CvImporter {
 
     public void importCv(CvUpdateContext updateContext, boolean importChildren) throws InstantiationException, IllegalAccessException, CvUpdateException;
     public void importCv(CvUpdateContext updateContext, boolean importChildren, Class<? extends CvDagObject> termClass) throws InstantiationException, IllegalAccessException, CvUpdateException;
-    public Set<Class<? extends CvDagObject>> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess);
-    public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException;
-    public Set<IntactOntologyTermI> collectDeepestChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI parent);
+    public Set<Class<? extends CvDagObject>> findCvClassFor(MIOntologyTermI ontologyTerm, MIOntologyAccess ontologyAccess);
+    public CvDagObject createCvObjectFrom(MIOntologyTermI ontologyTerm, MIOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException;
+    public Set<MIOntologyTermI> collectDeepestChildren(MIOntologyAccess ontologyAccess, MIOntologyTermI parent);
     public Map<String, Class<? extends CvDagObject>> getClassMap();
     public Map<String, Set<CvDagObject>> getMissingRootParents();
     public CvUpdater getCvUpdater();
-    public boolean isFromAnotherClassCategory(IntactOntologyTermI term, IntactOntologyAccess access, Class<? extends CvDagObject> termClass);
+    public boolean isFromAnotherClassCategory(MIOntologyTermI term, MIOntologyAccess access, Class<? extends CvDagObject> termClass);
 
     public void clear();
 

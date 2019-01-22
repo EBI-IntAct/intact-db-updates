@@ -1,7 +1,8 @@
 package uk.ac.ebi.intact.dbupdate.cv;
 
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.model.CvDagObject;
 import uk.ac.ebi.intact.model.CvObjectXref;
 
@@ -18,8 +19,8 @@ public class CvUpdateContext {
     private String identifier;
     private CvObjectXref identityXref;
     private CvDagObject cvTerm;
-    private IntactOntologyTermI ontologyTerm;
-    private IntactOntologyAccess ontologyAccess;
+    private MIOntologyTermI ontologyTerm;
+    private MIOntologyAccess ontologyAccess;
     private boolean isTermObsolete = false;
 
     private CvUpdateManager manager;
@@ -44,19 +45,19 @@ public class CvUpdateContext {
         this.cvTerm = cvTerm;
     }
 
-    public IntactOntologyTermI getOntologyTerm() {
+    public MIOntologyTermI getOntologyTerm() {
         return ontologyTerm;
     }
 
-    public void setOntologyTerm(IntactOntologyTermI ontologyTerm) {
+    public void setOntologyTerm(MIOntologyTermI ontologyTerm) {
         this.ontologyTerm = ontologyTerm;
     }
 
-    public IntactOntologyAccess getOntologyAccess() {
+    public MIOntologyAccess getOntologyAccess() {
         return ontologyAccess;
     }
 
-    public void setOntologyAccess(IntactOntologyAccess ontologyAccess) {
+    public void setOntologyAccess(MIOntologyAccess ontologyAccess) {
         this.ontologyAccess = ontologyAccess;
     }
 

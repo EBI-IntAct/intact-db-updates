@@ -4,8 +4,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -24,8 +24,6 @@ import uk.ac.ebi.intact.model.*;
 import javax.annotation.PostConstruct;
 import javax.persistence.Query;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This class allows to import a Cv object.
@@ -46,8 +44,8 @@ public class CvImporterImpl implements CvImporter{
 
     private Map<String, CvDagObject> loadedTerms;
 
-    private Set<IntactOntologyTermI> hiddenParents;
-    private Set<IntactOntologyTermI> unHiddenChildren;
+    private Set<MIOntologyTermI> hiddenParents;
+    private Set<MIOntologyTermI> unHiddenChildren;
 
     private CvUpdater cvUpdater;
     private CvUpdateContext importUpdateContext;
@@ -58,8 +56,8 @@ public class CvImporterImpl implements CvImporter{
         classMap = new HashMap<String, Class<? extends CvDagObject>>();
         missingRootParents = new HashMap<String, Set<CvDagObject>>();
         loadedTerms = new HashMap<String, CvDagObject>();
-        hiddenParents = new HashSet<IntactOntologyTermI>();
-        unHiddenChildren = new HashSet<IntactOntologyTermI>();
+        hiddenParents = new HashSet<MIOntologyTermI>();
+        unHiddenChildren = new HashSet<MIOntologyTermI>();
         importUpdateContext = new CvUpdateContext(null);
 
     }
@@ -94,8 +92,8 @@ public class CvImporterImpl implements CvImporter{
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void importCv(CvUpdateContext updateContext, boolean importChildren) throws InstantiationException, IllegalAccessException, CvUpdateException {
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
         Set<Class<? extends CvDagObject>> termClasses = findCvClassFor(ontologyTerm, ontologyAccess);
 
@@ -111,8 +109,8 @@ public class CvImporterImpl implements CvImporter{
         unHiddenChildren.clear();
         cvUpdater.clear();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
 
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
 
@@ -141,12 +139,12 @@ public class CvImporterImpl implements CvImporter{
                 unHiddenChildren.addAll(ontologyAccess.getAllChildren(ontologyTerm));
 
                 // collect deepest children
-                Set<IntactOntologyTermI> deepestNodes = collectDeepestChildren(ontologyAccess, ontologyTerm);
+                Set<MIOntologyTermI> deepestNodes = collectDeepestChildren(ontologyAccess, ontologyTerm);
 
                 // the term has children, so we import starting from the children
                 if (!deepestNodes.isEmpty()){
                     // for each child, create term and then create parent recursively
-                    for (IntactOntologyTermI child : deepestNodes){
+                    for (MIOntologyTermI child : deepestNodes){
 
                         updateOrCreateChild(updateContext, termClass, child, rootTermsToExclude);
                     }
@@ -168,7 +166,7 @@ public class CvImporterImpl implements CvImporter{
         cvUpdater.clear();
     }
 
-    private void importTermWithoutChildren(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyAccess ontologyAccess, IntactOntologyTermI ontologyTerm, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {
+    private void importTermWithoutChildren(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, MIOntologyAccess ontologyAccess, MIOntologyTermI ontologyTerm, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {
         // we don't import root terms but we can import obsolete terms if necessary. The obsolete terms are root terms
         if (!rootTermsToExclude.contains(ontologyTerm.getTermAccession())){
             List<CvDagObject> cvObjects = fetchIntactCv(ontologyTerm.getTermAccession(), ontologyAccess.getDatabaseIdentifier(), termClass.getSimpleName());
@@ -210,15 +208,15 @@ public class CvImporterImpl implements CvImporter{
      * @param termClass
      * @return true if the term is from another class category, false otherwise
      */
-    public boolean isFromAnotherClassCategory(IntactOntologyTermI term, IntactOntologyAccess access, Class<? extends CvDagObject> termClass){
+    public boolean isFromAnotherClassCategory(MIOntologyTermI term, MIOntologyAccess access, Class<? extends CvDagObject> termClass){
        
         Set<Class<? extends CvDagObject>> existingCategories = findCvClassFor(term, access);
 
         return !existingCategories.contains(termClass);
     }
-    private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, IntactOntologyTermI child, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+    private void updateOrCreateChild(CvUpdateContext updateContext, Class<? extends CvDagObject> termClass, MIOntologyTermI child, Collection<String> rootTermsToExclude) throws IllegalAccessException, InstantiationException, CvUpdateException {
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         // we only create the child if it has not been loaded yet and it is not a root term and is not from another class
         if (!loadedTerms.containsKey(child.getTermAccession()) && !rootTermsToExclude.contains(child.getTermAccession()) && !isFromAnotherClassCategory(child, ontologyAccess, termClass)){
@@ -291,7 +289,7 @@ public class CvImporterImpl implements CvImporter{
         return query.getResultList();
     }
 
-    public Set<Class<? extends CvDagObject>> findCvClassFor(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
+    public Set<Class<? extends CvDagObject>> findCvClassFor(MIOntologyTermI ontologyTerm, MIOntologyAccess ontologyAccess){
 
         Set<Class<? extends CvDagObject>> setsOfClasses = new HashSet<Class<? extends CvDagObject>>();
         
@@ -301,11 +299,11 @@ public class CvImporterImpl implements CvImporter{
             return setsOfClasses;
         }
         else {
-            Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(ontologyTerm);
+            Set<MIOntologyTermI> parents = ontologyAccess.getDirectParents(ontologyTerm);
 
             if (!parents.isEmpty()){
 
-                for (IntactOntologyTermI parent : parents){
+                for (MIOntologyTermI parent : parents){
                     Set<Class<? extends CvDagObject>> termClasses = findCvClassFor(parent, ontologyAccess);
 
                     if (!termClasses.isEmpty()){
@@ -319,7 +317,7 @@ public class CvImporterImpl implements CvImporter{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public CvDagObject createCvObjectFrom(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException {
+    public CvDagObject createCvObjectFrom(MIOntologyTermI ontologyTerm, MIOntologyAccess ontologyAccess, Class<? extends CvDagObject> termClass, boolean hideParents, CvUpdateContext updateContext) throws IllegalAccessException, InstantiationException, CvUpdateException {
 
         String accession = ontologyTerm.getTermAccession();
 
@@ -350,16 +348,16 @@ public class CvImporterImpl implements CvImporter{
         return cvObject;
     }
 
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents, Collection<String> rootTermsToExclude) throws InstantiationException, IllegalAccessException, CvUpdateException {
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+    private void importParents(CvDagObject cvChild, MIOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, boolean hideParents, Collection<String> rootTermsToExclude) throws InstantiationException, IllegalAccessException, CvUpdateException {
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
-        Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);
+        Set<MIOntologyTermI> parents = ontologyAccess.getDirectParents(child);
 
         // the term has parents
         if (!parents.isEmpty()){
 
             // create parents or update them
-            for (IntactOntologyTermI parent : parents){
+            for (MIOntologyTermI parent : parents){
                 // if the parent is not excluded from the import
                 if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent, ontologyAccess, termClass)){
 
@@ -449,14 +447,14 @@ public class CvImporterImpl implements CvImporter{
         }
     }
 
-    private void importParents(CvDagObject cvChild, IntactOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, String currentTerm, Collection<String> rootTermsToExclude) throws InstantiationException, IllegalAccessException, CvUpdateException {
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+    private void importParents(CvDagObject cvChild, MIOntologyTermI child, Class<? extends CvDagObject> termClass, CvUpdateContext updateContext, String currentTerm, Collection<String> rootTermsToExclude) throws InstantiationException, IllegalAccessException, CvUpdateException {
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
-        Set<IntactOntologyTermI> parents = ontologyAccess.getDirectParents(child);
+        Set<MIOntologyTermI> parents = ontologyAccess.getDirectParents(child);
 
         if (!parents.isEmpty()){
 
-            for (IntactOntologyTermI parent : parents){
+            for (MIOntologyTermI parent : parents){
 
                 // we don't import root terms or cvs from other category
                 if (!rootTermsToExclude.contains(parent.getTermAccession()) && !isFromAnotherClassCategory(parent, ontologyAccess, termClass)){
@@ -583,19 +581,19 @@ public class CvImporterImpl implements CvImporter{
         }
     }
 
-    public Set<IntactOntologyTermI> collectDeepestChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI parent){
+    public Set<MIOntologyTermI> collectDeepestChildren(MIOntologyAccess ontologyAccess, MIOntologyTermI parent){
 
-        Set<IntactOntologyTermI> directChildren = ontologyAccess.getDirectChildren(parent);
+        Set<MIOntologyTermI> directChildren = ontologyAccess.getDirectChildren(parent);
 
         if (!directChildren.isEmpty()){
-            Set<IntactOntologyTermI> directChildrenCopy = new HashSet<IntactOntologyTermI>(directChildren);
+            Set<MIOntologyTermI> directChildrenCopy = new HashSet<MIOntologyTermI>(directChildren);
 
-            for (IntactOntologyTermI child : directChildrenCopy){
+            for (MIOntologyTermI child : directChildrenCopy){
                 directChildren.addAll(collectDeepestChildren(ontologyAccess, child));
             }
         }
         else {
-            directChildren = new HashSet<IntactOntologyTermI>(1);
+            directChildren = new HashSet<MIOntologyTermI>(1);
             directChildren.add(parent);
         }
 

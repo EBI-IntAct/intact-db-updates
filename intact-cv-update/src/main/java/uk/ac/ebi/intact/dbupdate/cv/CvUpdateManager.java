@@ -5,14 +5,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyManager;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
-import uk.ac.ebi.intact.bridges.ontology_manager.IntactOntologyManager;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
-import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateErrorFactory;
@@ -54,7 +53,7 @@ public class CvUpdateManager {
 
     private ObsoleteCvRemapper cvRemapper;
 
-    private IntactOntologyManager intactOntologyManager;
+    private MIOntologyManager miOntologyManager;
 
     private File reportDirectory;
 
@@ -78,7 +77,7 @@ public class CvUpdateManager {
         InputStream ontology = ontologyConfigPath.openStream();
 
         try{
-            intactOntologyManager = new IntactOntologyManager(ontology);
+            miOntologyManager = new MIOntologyManager(ontology);
 
             updateContext = new CvUpdateContext(this);
         }
@@ -101,7 +100,7 @@ public class CvUpdateManager {
             reportDirectory = new File(reportDirectoryName);
             registerBasicListeners(reportDirectory);
 
-            intactOntologyManager = new IntactOntologyManager(ontology);
+            miOntologyManager = new MIOntologyManager(ontology);
             updateContext = new CvUpdateContext(this);
         }
         finally {
@@ -114,7 +113,7 @@ public class CvUpdateManager {
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
 
         try{
-            intactOntologyManager = new IntactOntologyManager(ontology);
+            miOntologyManager = new MIOntologyManager(ontology);
             updateContext = new CvUpdateContext(this);
         }
         finally {
@@ -136,7 +135,7 @@ public class CvUpdateManager {
             reportDirectory = new File(reportDirectoryName);
             registerBasicListeners(reportDirectory);
 
-            intactOntologyManager = new IntactOntologyManager(ontology);
+            miOntologyManager = new MIOntologyManager(ontology);
 
             this.cvUpdater = cvUpdater;
             this.cvImporter = cvImporter;
@@ -153,7 +152,7 @@ public class CvUpdateManager {
         InputStream ontology = CvUpdateManager.class.getResource("/ontologies.xml").openStream();
 
         try{
-            intactOntologyManager = new IntactOntologyManager(ontology);
+            miOntologyManager = new MIOntologyManager(ontology);
 
             this.cvUpdater = cvUpdater;
             this.cvImporter = cvImporter;
@@ -170,7 +169,7 @@ public class CvUpdateManager {
     /**
      * Checks if we have some duplicated terms in the ontology
      */
-    public void checkDuplicatedCvTerms(IntactOntologyAccess access){
+    public void checkDuplicatedCvTerms(MIOntologyAccess access){
         List<Object[]> duplicatedTerms = getDuplicatedCvObjects(access);
 
         for (Object [] object : duplicatedTerms){
@@ -249,13 +248,13 @@ public class CvUpdateManager {
             throw new IllegalArgumentException("The root term " + identifier + " is excluded. We cannot import this term because too unspecific");
         }
 
-        IntactOntologyAccess access = getIntactOntologyManager().getOntologyAccess(ontologyId);
+        MIOntologyAccess access = getMiOntologyManager().getOntologyAccess(ontologyId);
         if (access == null){
             throw new IllegalArgumentException("The ontology identifier " + ontologyId + " is not recognized and we cannot import the cv object.");
         }
         updateContext.setOntologyAccess(access);
 
-        IntactOntologyTermI ontologyTerm = access.getTermForAccession(identifier);
+        MIOntologyTermI ontologyTerm = access.getTermForAccession(identifier);
         if (ontologyTerm == null){
             log.error("The term identifier " + identifier + " cannot be found in ontology " + ontologyId);
             return null;
@@ -293,10 +292,10 @@ public class CvUpdateManager {
         updateContext.setIdentifier(missingAc);
 
         boolean hasFoundOntology = false;
-        IntactOntologyAccess access = null;
+        MIOntologyAccess access = null;
 
-        for (String ontologyId : getIntactOntologyManager().getOntologyIDs()){
-            IntactOntologyAccess otherAccess = getIntactOntologyManager().getOntologyAccess(ontologyId);
+        for (String ontologyId : getMiOntologyManager().getOntologyIDs()){
+            MIOntologyAccess otherAccess = getMiOntologyManager().getOntologyAccess(ontologyId);
 
             if (otherAccess != null && otherAccess.getDatabaseRegexp() != null){
                 Matcher matcher = otherAccess.getDatabaseRegexp().matcher(missingAc);
@@ -332,7 +331,7 @@ public class CvUpdateManager {
         else {
             updateContext.setOntologyAccess(access);
 
-            IntactOntologyTermI ontologyTerm = access.getTermForAccession(missingAc);
+            MIOntologyTermI ontologyTerm = access.getTermForAccession(missingAc);
 
             if (ontologyTerm != null && !rootTermsToExclude.contains(ontologyTerm.getTermAccession())){
                 updateContext.setOntologyTerm(ontologyTerm);
@@ -372,7 +371,7 @@ public class CvUpdateManager {
     /**
      * Imports all the children of a root term of a given ontology if the root term is not obsolete
      */
-    public void importNonObsoleteRootAndChildren(IntactOntologyAccess ontologyAccess, IntactOntologyTermI subRoot) throws CvUpdateException, IllegalAccessException, InstantiationException {
+    public void importNonObsoleteRootAndChildren(MIOntologyAccess ontologyAccess, MIOntologyTermI subRoot) throws CvUpdateException, IllegalAccessException, InstantiationException {
         if (!rootTermsToExclude.contains(subRoot.getTermAccession())){
             updateContext.clear();
             updateContext.setOntologyAccess(ontologyAccess);
@@ -390,7 +389,7 @@ public class CvUpdateManager {
      * Collects cv intact acs associated with a specific ontology
      */
     public List<String> getValidCvObjects(String ontologyId){
-        IntactOntologyAccess ontologyAccess = intactOntologyManager.getOntologyAccess(ontologyId);
+        MIOntologyAccess ontologyAccess = miOntologyManager.getOntologyAccess(ontologyId);
 
         if (ontologyAccess != null){
             DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
@@ -433,7 +432,7 @@ public class CvUpdateManager {
     /**
      * Collects duplicated cv intact acs
      */
-    public List<Object[]> getDuplicatedCvObjects(IntactOntologyAccess ontologyAccess){
+    public List<Object[]> getDuplicatedCvObjects(MIOntologyAccess ontologyAccess){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
         Query query = factory.getEntityManager().createQuery("select distinct c.ac, c2.ac from CvDagObject c join c.xrefs as x," +
@@ -497,7 +496,7 @@ public class CvUpdateManager {
      */
     public void updateCv(CvDagObject cvObject, String ontologyId) throws CvUpdateException {
 
-        IntactOntologyAccess ontologyAccess = intactOntologyManager.getOntologyAccess(ontologyId);
+        MIOntologyAccess ontologyAccess = miOntologyManager.getOntologyAccess(ontologyId);
 
         if (ontologyAccess != null){
             log.info("Update cv " + cvObject.getAc() + ", label = " + cvObject.getShortLabel() + ", identifier = " + cvObject.getIdentifier());
@@ -514,7 +513,7 @@ public class CvUpdateManager {
             if (identity != null){
                 updateContext.setIdentifier(identity);
 
-                IntactOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(cvObject.getIdentifier());
+                MIOntologyTermI ontologyTerm = ontologyAccess.getTermForAccession(cvObject.getIdentifier());
 
                 if (ontologyTerm != null){
                     Set<Class<? extends CvDagObject>> classesForTerm = cvImporter.findCvClassFor(ontologyTerm, ontologyAccess);
@@ -582,7 +581,7 @@ public class CvUpdateManager {
      */
     public void updateIntactCv(CvDagObject cvObject, String ontologyId) throws CvUpdateException {
 
-        IntactOntologyAccess ontologyAccess = getIntactOntologyManager().getOntologyAccess(ontologyId);
+        MIOntologyAccess ontologyAccess = getMiOntologyManager().getOntologyAccess(ontologyId);
         // initialize context
         this.updateContext.clear();
         this.updateContext.setCvTerm(cvObject);
@@ -605,7 +604,7 @@ public class CvUpdateManager {
      * @param ontologyAccess
      * @return
      */
-    private String extractIdentityFrom(CvDagObject cvObject, IntactOntologyAccess ontologyAccess) {
+    private String extractIdentityFrom(CvDagObject cvObject, MIOntologyAccess ontologyAccess) {
         String identity = null;
         Collection<CvObjectXref> identities = CvUpdateUtils.extractIdentityXrefFrom(cvObject, ontologyAccess.getDatabaseIdentifier());
 
@@ -758,8 +757,8 @@ public class CvUpdateManager {
         }
     }
 
-    public IntactOntologyManager getIntactOntologyManager() {
-        return intactOntologyManager;
+    public MIOntologyManager getMiOntologyManager() {
+        return miOntologyManager;
     }
 
     public void setReportDirectory(File reportDirectory) {
@@ -820,8 +819,8 @@ public class CvUpdateManager {
         return new HashMap<String, Set<CvDagObject>>(this.cvImporter.getMissingRootParents());
     }
 
-    public IntactOntologyAccess getIntactOntologyAccessFor(String ontologyId){
-        return this.intactOntologyManager.getOntologyAccess(ontologyId);
+    public MIOntologyAccess getIntactOntologyAccessFor(String ontologyId){
+        return this.miOntologyManager.getOntologyAccess(ontologyId);
     }
 
     public void clear(){

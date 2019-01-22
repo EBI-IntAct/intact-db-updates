@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.TermAnnotation;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
+import psidev.psi.mi.jami.utils.AnnotationUtils;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -16,10 +16,7 @@ import uk.ac.ebi.intact.model.CvDagObject;
 import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Updater of cv annotations
@@ -29,8 +26,9 @@ import java.util.TreeSet;
  * @since <pre>13/12/11</pre>
  */
 
+//TODO Deal with comments and URL
 public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
-    private TreeSet<TermAnnotation> sortedOntologyAnnotations;
+    private TreeSet<psidev.psi.mi.jami.model.Annotation> sortedOntologyAnnotations;
     private TreeSet<Annotation> sortedCvAnnotations;
 
     // boolean value to know if url is in the annotations
@@ -43,7 +41,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
     private boolean isHidden = false;
 
     private Annotation currentIntact;
-    private TermAnnotation currentOntologyRef;
+    private psidev.psi.mi.jami.model.Annotation currentOntologyRef;
     private CvTopic cvTopic = null;
 
     // the comments to create
@@ -53,8 +51,8 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
     private CvTopic comment = null;
 
     public CvAnnotationUpdaterImpl(){
-        sortedCvAnnotations = new TreeSet<Annotation>(new CvAnnotationComparator());
-        sortedOntologyAnnotations = new TreeSet<TermAnnotation>(new OntologyAnnotationComparator());
+        sortedCvAnnotations = new TreeSet<>(new CvAnnotationComparator());
+        sortedOntologyAnnotations = new TreeSet<>(new OntologyAnnotationComparator());
 
         comments = new HashSet<String>();
     }
@@ -63,7 +61,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
     public void updateAnnotations(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
         boolean isObsolete = updateContext.isTermObsolete();
         clear();
@@ -71,11 +69,18 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         sortedCvAnnotations.addAll(term.getAnnotations());
         Iterator<Annotation> intactIterator = sortedCvAnnotations.iterator();
 
-        sortedOntologyAnnotations.addAll(ontologyTerm.getAnnotations());
-        Iterator<TermAnnotation> ontologyIterator = sortedOntologyAnnotations.iterator();
+        sortedOntologyAnnotations.addAll(ontologyTerm.getDelegate().getAnnotations());
+        Iterator<psidev.psi.mi.jami.model.Annotation> ontologyIterator = sortedOntologyAnnotations.iterator();
 
-        // the comments to create
-        comments.addAll(ontologyTerm.getComments());
+        // the comments to create.
+        // We extract only the value part for the comments to maintain the logic that was in the updater before
+        // migrating CvUpdate to jami-ontology-manager.
+        Collection<psidev.psi.mi.jami.model.Annotation> commentAnnotations = AnnotationUtils.collectAllAnnotationsHavingTopic(
+                ontologyTerm.getDelegate().getAnnotations(),CvTopic.COMMENT_MI_REF, CvTopic.COMMENT);
+
+        for (psidev.psi.mi.jami.model.Annotation commentAnnotation : commentAnnotations) {
+            comments.add(commentAnnotation.getValue());
+        }
 
         if (intactIterator.hasNext() && ontologyIterator.hasNext()){
             currentIntact = intactIterator.next();
@@ -84,19 +89,19 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
             if (cvTopic != null){
                 do{
-                    int topicComparator = cvTopic.getIdentifier().compareTo(currentOntologyRef.getTopicId());
+                    int topicComparator = cvTopic.getIdentifier().compareTo(currentOntologyRef.getTopic().getMIIdentifier());
 
                     // we have a db match
                     if (topicComparator == 0) {
                         int acComparator;
-                        if (currentOntologyRef.getDescription() == null && currentIntact.getAnnotationText() == null){
+                        if (currentOntologyRef.getValue() == null && currentIntact.getAnnotationText() == null){
                             acComparator = 0;
                         }
-                        else if (currentOntologyRef.getDescription() != null && currentIntact.getAnnotationText() == null){
+                        else if (currentOntologyRef.getValue() != null && currentIntact.getAnnotationText() == null){
                             acComparator = -1;
                         }
                         else {
-                            acComparator = currentIntact.getAnnotationText().compareTo(currentOntologyRef.getDescription());
+                            acComparator = currentIntact.getAnnotationText().compareTo(currentOntologyRef.getValue());
                         }
 
                         // we have a primary id match
@@ -133,7 +138,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         else {
                             CvTopic cvTop = cvTopic;
 
-                            Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                            Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getValue());
                             term.addAnnotation(newAnnot);
 
                             if (updateEvt != null){
@@ -156,8 +161,8 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                                 hasFoundDefinition = true;
 
                                 // we update existing definition
-                                if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
-                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                                if (!ontologyTerm.getDelegate().getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                                    currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                                     if (updateEvt != null){
                                         updateEvt.getUpdatedAnnotations().add(currentIntact); 
@@ -185,7 +190,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                                     }
                                 }
                                 else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
-                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                                    currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                                     if (updateEvt != null){
                                         updateEvt.getUpdatedAnnotations().add(currentIntact);
@@ -214,7 +219,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                             // comment does not exist but can be updated
                             else if (!comments.contains(currentIntact.getAnnotationText()) && comments.size() > 0){
                                 currentIntact.setAnnotationText(comments.iterator().next());
-                                
+
                                 if (updateEvt != null){
                                     updateEvt.getUpdatedAnnotations().add(currentIntact);
                                 }
@@ -234,8 +239,8 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                             if (!hasFoundURL){
                                 hasFoundURL = true;
 
-                                if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
-                                    currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                                if (!ontologyTerm.getDelegate().getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                                    currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                                     if (updateEvt != null){
                                         updateEvt.getUpdatedAnnotations().add(currentIntact);
@@ -260,14 +265,14 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                     }
                     //ontology xref has no match in intact, needs to create it
                     else {
-                        CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopicId());
+                        CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopic().getMIIdentifier());
 
                         if (cvTop == null){
-                            cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopicId(), currentOntologyRef.getTopic());
+                            cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopic().getMIIdentifier(), currentOntologyRef.getTopic().getShortName());
                             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvTop);
                         }
 
-                        Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                        Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getValue());
                         term.addAnnotation(newAnnot);
 
                         if (updateEvt != null){
@@ -299,10 +304,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                         hasFoundDefinition = true;
 
                         // we update existing definition
-                        if ((ontologyTerm.getDefinition() != null && currentIntact.getAnnotationText() != null && !ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText()))
-                                || (ontologyTerm.getDefinition() == null && currentIntact.getAnnotationText() != null) ||
-                                (ontologyTerm.getDefinition() != null && currentIntact.getAnnotationText() == null)){
-                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                        if ((ontologyTerm.getDelegate().getDefinition() != null && currentIntact.getAnnotationText() != null && !ontologyTerm.getDelegate().getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText()))
+                                || (ontologyTerm.getDelegate().getDefinition() == null && currentIntact.getAnnotationText() != null) ||
+                                (ontologyTerm.getDelegate().getDefinition() != null && currentIntact.getAnnotationText() == null)){
+                            currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                             if (updateEvt != null){
                                 updateEvt.getUpdatedAnnotations().add(currentIntact);
@@ -329,7 +334,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                             }
                         }
                         else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
-                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                            currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                             if (updateEvt != null){
                                 updateEvt.getUpdatedAnnotations().add(currentIntact);
@@ -377,8 +382,8 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                     if (!hasFoundURL){
                         hasFoundURL = true;
 
-                        if (!ontologyTerm.getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
-                            currentIntact.setAnnotationText(ontologyTerm.getDefinition());
+                        if (!ontologyTerm.getDelegate().getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())){
+                            currentIntact.setAnnotationText(ontologyTerm.getDelegate().getDefinition());
 
                             if (updateEvt != null){
                                 updateEvt.getUpdatedAnnotations().add(currentIntact);
@@ -409,14 +414,14 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
             do {
                 //ontology has no match in intact
-                CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopicId());
+                CvTopic cvTop = factory.getCvObjectDao(CvTopic.class).getByIdentifier(currentOntologyRef.getTopic().getMIIdentifier());
 
                 if (cvTop == null){
-                    cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopicId(), currentOntologyRef.getTopic());
+                    cvTop = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvTopic.class, currentOntologyRef.getTopic().getMIIdentifier(), currentOntologyRef.getTopic().getShortName());
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvTop);
                 }
 
-                Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getDescription());
+                Annotation newAnnot = new Annotation(cvTop, currentOntologyRef.getValue());
                 term.addAnnotation(newAnnot);
 
                 if (updateEvt != null){
@@ -435,7 +440,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         }
 
         // create missing definition
-        if (!hasFoundDefinition && ontologyTerm.getDefinition() != null){
+        if (!hasFoundDefinition && ontologyTerm.getDelegate().getDefinition() != null){
             CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.DEFINITION);
 
             if (topicFromDb == null){
@@ -443,7 +448,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(topicFromDb);
             }
 
-            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getDefinition());
+            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getDelegate().getDefinition());
             term.addAnnotation(newAnnotation);
 
             if (updateEvt != null){
@@ -451,8 +456,11 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
         }
 
-        // create missing url
-        if (!hasFoundURL && ontologyTerm.getURL() != null){
+//        // create missing url
+        psidev.psi.mi.jami.model.Annotation urlAnnotation = AnnotationUtils.collectFirstAnnotationWithTopic(
+                ontologyTerm.getDelegate().getAnnotations(),CvTopic.URL_MI_REF, CvTopic.URL);
+
+        if (!hasFoundURL && urlAnnotation != null){
             CvTopic topicFromDb = factory.getCvObjectDao(CvTopic.class).getByIdentifier(CvTopic.URL_MI_REF);
 
             if (topicFromDb == null){
@@ -460,7 +468,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(topicFromDb);
             }
 
-            Annotation newAnnotation = new Annotation(topicFromDb, ontologyTerm.getURL());
+            Annotation newAnnotation = new Annotation(topicFromDb, urlAnnotation.getValue());
             term.addAnnotation(newAnnotation);
 
             if (updateEvt != null){
@@ -535,7 +543,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         cvTopic = null;
 
         // the comments to create
-        comments.clear();
+//        comments.clear();
 
         // the CvTopic for comment
         comment = null;

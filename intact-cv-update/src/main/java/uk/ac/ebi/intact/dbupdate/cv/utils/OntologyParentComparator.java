@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.cv.utils;
 
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 
 import java.util.Comparator;
 
@@ -12,10 +13,10 @@ import java.util.Comparator;
  * @since <pre>13/12/11</pre>
  */
 
-public class OntologyParentComparator implements Comparator<IntactOntologyTermI> {
+public class OntologyParentComparator implements Comparator<MIOntologyTermI> {
 
     @Override
-    public int compare(IntactOntologyTermI o1, IntactOntologyTermI o2) {
+    public int compare(MIOntologyTermI o1, MIOntologyTermI o2) {
         final int BEFORE = -1;
         final int EQUAL = 0;
         final int AFTER = 1;

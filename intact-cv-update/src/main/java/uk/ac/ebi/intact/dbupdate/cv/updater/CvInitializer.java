@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -42,8 +42,8 @@ public class CvInitializer extends CvUpdaterImpl{
         // use dao factory
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
         String identifier = updateContext.getIdentifier();
         boolean isObsolete = updateContext.isTermObsolete();
@@ -53,7 +53,7 @@ public class CvInitializer extends CvUpdaterImpl{
         synchronizeShortLabel(ontologyTerm, term);
 
         // update fullName
-        term.setFullName(ontologyTerm.getFullName());
+        term.setFullName(ontologyTerm.getDelegate().getFullName());
 
         // update identifier if necessary
         term.setIdentifier(identifier);
@@ -107,9 +107,9 @@ public class CvInitializer extends CvUpdaterImpl{
     }
 
     @Override
-    protected boolean synchronizeShortLabel(IntactOntologyTermI ontologyTerm, CvDagObject term) {
+    protected boolean synchronizeShortLabel(MIOntologyTermI ontologyTerm, CvDagObject term) {
         // update shortLabel
-        String fixedLabel = CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getShortLabel(), term.getClass());
+        String fixedLabel = CvUpdateUtils.createSyncLabelIfNecessary(ontologyTerm.getDelegate().getShortName(), term.getClass());
         Integer currentIndex = CvUpdateUtils.extractChunkNumberFromShortLabel(fixedLabel);
         term.setShortLabel(fixedLabel);
 
@@ -121,7 +121,7 @@ public class CvInitializer extends CvUpdaterImpl{
             Integer index = createdLabels.get(fixedLabel);
             // the term has already been loaded once without any index chunk so we start from index 2
             if (index == 0){
-                fixedLabel2 = ontologyTerm.getShortLabel() + "-2";
+                fixedLabel2 = ontologyTerm.getDelegate().getShortName() + "-2";
                 createdLabels.put(fixedLabel, 2);
 
                 term.setShortLabel(fixedLabel2);
@@ -129,7 +129,7 @@ public class CvInitializer extends CvUpdaterImpl{
             else {
 
                 int newIndex = index + 1;
-                fixedLabel2 = ontologyTerm.getShortLabel() + "-" + Integer.toString(newIndex);
+                fixedLabel2 = ontologyTerm.getDelegate().getShortName() + "-" + Integer.toString(newIndex);
                 createdLabels.put(fixedLabel, newIndex);
 
                 term.setShortLabel(fixedLabel2);
@@ -141,7 +141,7 @@ public class CvInitializer extends CvUpdaterImpl{
             int newIndex = index + 1;
             createdLabels.put(fixedLabel, newIndex);
 
-            String fixedLabel2 = ontologyTerm.getShortLabel() + "-" + Integer.toString(newIndex);
+            String fixedLabel2 = ontologyTerm.getDelegate().getShortName() + "-" + Integer.toString(newIndex);
 
             term.setShortLabel(fixedLabel2);
         }

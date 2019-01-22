@@ -3,13 +3,15 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
-import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.Annotation;
+import uk.ac.ebi.intact.model.CvDagObject;
+import uk.ac.ebi.intact.model.CvTopic;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 
 import javax.annotation.PostConstruct;
@@ -58,11 +60,11 @@ public class UsedInClassAnnotationUpdaterImpl implements UsedInClassAnnotationUp
         return false;
     }
 
-    private void extractUsedInClassForTerm(IntactOntologyTermI ontologyTerm, IntactOntologyAccess ontologyAccess){
+    private void extractUsedInClassForTerm(MIOntologyTermI ontologyTerm, MIOntologyAccess ontologyAccess){
 
-        Collection<IntactOntologyTermI> allParents = ontologyAccess.getAllParents(ontologyTerm);
+        Collection<MIOntologyTermI> allParents = ontologyAccess.getAllParents(ontologyTerm);
 
-        for (IntactOntologyTermI parent : allParents){
+        for (MIOntologyTermI parent : allParents){
             if (cvTopic2UsedInClass.containsKey(parent.getTermAccession())){
                 setOfUsedInClass.add(cvTopic2UsedInClass.get(parent.getTermAccession()));
             }
@@ -75,8 +77,8 @@ public class UsedInClassAnnotationUpdaterImpl implements UsedInClassAnnotationUp
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
 
         CvDagObject term = updateContext.getCvTerm();
 

@@ -3,8 +3,8 @@ package uk.ac.ebi.intact.dbupdate.cv;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.dbupdate.cv.errors.CvUpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.errors.UpdateError;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdateErrorEvent;
@@ -85,7 +85,7 @@ public class GlobalCvUpdateRunner {
             cvUpdateManager.clear();
 
             // get the ontologyAcces for this ontology id
-            IntactOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyManager().getOntologyAccess(ontologyId);
+            MIOntologyAccess ontologyAccess = cvUpdateManager.getMiOntologyManager().getOntologyAccess(ontologyId);
 
             if (ontologyAccess == null){
                 throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
@@ -132,7 +132,7 @@ public class GlobalCvUpdateRunner {
 
             cvUpdateManager.clear();
 
-            IntactOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyManager().getOntologyAccess(ontologyId);
+            MIOntologyAccess ontologyAccess = cvUpdateManager.getMiOntologyManager().getOntologyAccess(ontologyId);
 
             if (ontologyAccess == null){
                 throw new IllegalArgumentException("Cannot update terms of ontology " + ontologyId + ". The ontologies possible to update are in the configuration file (/resources/ontologies.xml)");
@@ -172,7 +172,7 @@ public class GlobalCvUpdateRunner {
 
             cvUpdateManager.clear();
 
-            IntactOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyManager().getOntologyAccess("MI");
+            MIOntologyAccess ontologyAccess = cvUpdateManager.getMiOntologyManager().getOntologyAccess("MI");
 
             if (ontologyAccess == null){
                 throw new IllegalArgumentException("Cannot update IntAct terms because cannot access the parent MI ontology");
@@ -321,18 +321,18 @@ public class GlobalCvUpdateRunner {
      */
     private void createMissingTerms(String ontologyId) {
 
-        IntactOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyAccessFor(ontologyId);
+        MIOntologyAccess ontologyAccess = cvUpdateManager.getIntactOntologyAccessFor(ontologyId);
 
         if (ontologyAccess != null){
 
-            Collection<IntactOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
+            Collection<MIOntologyTermI> rootTerms = ontologyAccess.getRootTerms();
 
             // import root terms if not obsolete and has children
-            for (IntactOntologyTermI root : rootTerms){
-                Collection<IntactOntologyTermI> children = ontologyAccess.getDirectChildren(root);
+            for (MIOntologyTermI root : rootTerms){
+                Collection<MIOntologyTermI> children = ontologyAccess.getDirectChildren(root);
 
                 if (!children.isEmpty()){
-                    for (IntactOntologyTermI child : children){
+                    for (MIOntologyTermI child : children){
                         try {
                             cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, child);
                         } catch (Exception e) {
