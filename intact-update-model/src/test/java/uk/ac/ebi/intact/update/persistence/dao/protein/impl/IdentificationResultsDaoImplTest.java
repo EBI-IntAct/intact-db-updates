@@ -246,13 +246,13 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(report);
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
@@ -269,11 +269,11 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsToBeReviewedByACurator();
 
@@ -287,13 +287,13 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentMappingReport report = getMockBuilder().createUpdateReportWithNoSequenceNoIdentityXRef();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(report);
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         updateResultDao.persist( results );
         updateResultDao.flush();
@@ -310,11 +310,11 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         List<PersistentIdentificationResults> list = updateResultDao.getProteinNotUpdatedBecauseNoSequenceAndNoIdentityXrefs();
 
@@ -347,11 +347,11 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         List<PersistentIdentificationResults> list = updateResultDao.getUnsuccessfulUpdateResults();
 
@@ -385,11 +385,11 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictsBetweenActions();
 
@@ -422,11 +422,11 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         Assert.assertEquals( 0, updateResultDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport picr = getMockBuilder().createPICRReport();
+        PersistentMappingReport uniprotProteinAPI = getMockBuilder().createUniprotProteinAPIReport();
         PersistentBlastReport remapping = getMockBuilder().createSwissprotRemappingReport();
 
         results.addActionReport(remapping);
-        results.addActionReport(picr);
+        results.addActionReport(uniprotProteinAPI);
 
         List<PersistentIdentificationResults> list = updateResultDao.getUpdateResultsWithConflictBetweenSwissprotSequenceAndFeatureRanges();
 

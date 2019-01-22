@@ -17,7 +17,7 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -83,7 +83,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private TreeSet<UniprotXref> sortedUniprotXrefs;
     private TreeSet<InteractorAlias> sortedInteractorAliases;
 
-    public UniprotProteinUpdaterImpl(TaxonomyService taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
+    public UniprotProteinUpdaterImpl(OrganismFetcher taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();

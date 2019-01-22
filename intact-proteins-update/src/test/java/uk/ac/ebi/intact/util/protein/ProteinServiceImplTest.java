@@ -5,7 +5,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import uk.ac.ebi.intact.bridges.taxonomy.DummyTaxonomyService;
+import psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher;
 import uk.ac.ebi.intact.core.IntactTransactionException;
 import uk.ac.ebi.intact.core.config.CvPrimer;
 import uk.ac.ebi.intact.core.context.IntactContext;
@@ -65,13 +65,13 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
     private ProteinService buildProteinService() {
         UniprotService uniprotService = new MockUniprotService();
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         return service;
     }
 
     private ProteinService buildProteinService( UniprotService uniprotService ) {
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         return service;
     }
 
@@ -412,7 +412,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotService.add( "P60952", canfa );
 
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
 
 
 
@@ -475,7 +475,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotService.add( MockUniprotProtein.CANFA_SECONDARY_AC_2, canfa );
 
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         //Create the CANFA protein in the empty database, assert it has been created And commit.
         UniprotServiceResult uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         assertEquals(3,uniprotServiceResult.getProteins().size());
@@ -491,7 +491,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotService.add( MockUniprotProtein.CDC42_SECONDARY_AC_3, canfa );
 
         service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         //Create the CANFA protein in the empty database, assert it has been created And commit.
         uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
 
@@ -523,7 +523,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotService.add( MockUniprotProtein.CANFA_SECONDARY_AC_2, canfa );
 
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         //Create the CANFA protein in the empty database, assert it has been created And commit.
         UniprotServiceResult uniprotServiceResult = service.retrieve( MockUniprotProtein.CDC42_PRIMARY_AC );
         assertEquals(0, uniprotServiceResult.getProteins().size());
@@ -558,7 +558,7 @@ public class ProteinServiceImplTest extends IntactBasicTestCase {
         uniprotService.add( MockUniprotProtein.CANFA_SECONDARY_AC_1, canfa );
         uniprotService.add( MockUniprotProtein.CANFA_SECONDARY_AC_2, canfa );
         ProteinService service = ProteinServiceFactory.getInstance().buildProteinService( uniprotService );
-        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new DummyTaxonomyService() ) );
+        service.setBioSourceService( BioSourceServiceFactory.getInstance().buildBioSourceService( new MockOrganismFetcher() ) );
         //Create the CANFA protein in the empty database, assert it has been created And commit.
         UniprotServiceResult uniprotServiceResult = service.retrieve( MockUniprotProtein.CANFA_PRIMARY_AC );
         Collection<Protein> proteins = uniprotServiceResult.getProteins();

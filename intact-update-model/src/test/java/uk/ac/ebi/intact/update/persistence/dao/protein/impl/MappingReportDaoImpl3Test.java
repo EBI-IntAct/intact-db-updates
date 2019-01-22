@@ -203,7 +203,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport report = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsdao.persist( results );
@@ -211,7 +211,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.PICR_accession, id);
+        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.UniprotProteinAPI_accession, id);
 
         Assert.assertTrue(!list.isEmpty());
         Assert.assertNotNull(list.get(0).getUpdateResult());
@@ -227,13 +227,13 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport report = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsdao.persist( results );
         updateResultsdao.flush();
 
-        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.PICR_accession, 1);
+        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.UniprotProteinAPI_accession, 1);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -247,7 +247,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport report = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsdao.persist( results );
@@ -271,7 +271,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         Assert.assertEquals( 0, updateResultsdao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport report = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsdao.persist( results );

@@ -7,7 +7,7 @@ import uk.ac.ebi.intact.protein.mapping.model.actionReport.impl.DefaultIntactCrc
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.impl.DefaultIntactReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentUniprotProteinAPIReport;
 
 /**
  * This reports factory return reports which can be persisted with the current persistence unit
@@ -39,7 +39,7 @@ public class PersistentReportsFactory implements ReportsFactory {
     }
 
     @Override
-    public PICRReport getPICRReport(ActionName name) {
-        return new PersistentPICRReport(name);
+    public UniprotProteinAPIReport getUniprotProteinAPIReport(ActionName name) {
+        return new PersistentUniprotProteinAPIReport(name);
     }
 }

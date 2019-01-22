@@ -54,16 +54,16 @@ public class UpdateDaoFactory implements Serializable{
     private BlastResultsDao blastResultsDao;
 
     /**
-     * The PersistentPICRCrossReferences instance
+     * The PersistentUniprotProteinAPICrossReferences instance
      */
     @Autowired
-    private PICRCrossReferencesDao picrCrossReferencesDao;
+    private UniprotProteinAPICrossReferencesDao uniprotProteinAPICrossReferencesDao;
 
     /**
-     * The PICRReportDao instance
+     * The UniprotProteinAPIReportDao instance
      */
     @Autowired
-    private PICRReportDao picrReportDao;
+    private UniprotProteinAPIReportDao uniprotProteinAPIReportDao;
 
     /**
      * The updateResultsDao instance
@@ -199,8 +199,8 @@ public class UpdateDaoFactory implements Serializable{
      *
      * @return the PicrCrossReferencesDao
      */
-    public PICRCrossReferencesDao getPicrCrossReferencesDao() {
-        return picrCrossReferencesDao;
+    public UniprotProteinAPICrossReferencesDao getUniprotProteinAPICrossReferencesDao() {
+        return uniprotProteinAPICrossReferencesDao;
     }
 
     /**
@@ -221,10 +221,10 @@ public class UpdateDaoFactory implements Serializable{
 
     /**
      *
-     * @return the PICRReportDao
+     * @return the UniprotProteinAPIReportDao
      */
-    public PICRReportDao getPICRReportDao() {
-        return picrReportDao;
+    public UniprotProteinAPIReportDao getUniprotProteinAPIReportDao() {
+        return uniprotProteinAPIReportDao;
     }
 
     /**
@@ -266,10 +266,6 @@ public class UpdateDaoFactory implements Serializable{
     public UpdatedAliasDao getUpdatedAliasDao() {
 
         return updatedAliasDao;
-    }
-
-    public PICRReportDao getPicrReportDao() {
-        return picrReportDao;
     }
 
     public DeadProteinEventDao getDeadProteinEventDao() {

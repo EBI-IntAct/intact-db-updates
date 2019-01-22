@@ -17,10 +17,10 @@ import uk.ac.ebi.intact.update.model.protein.events.OutOfDateParticipantEvent;
 import uk.ac.ebi.intact.update.model.protein.events.UniprotUpdateEvent;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentUniprotProteinAPIReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentUniprotProteinAPICrossReferences;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentInvalidRange;
 import uk.ac.ebi.intact.update.model.protein.range.PersistentUpdatedRange;
 
@@ -117,10 +117,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return an auto-generated PICRCrossReference instance
+     * @return an auto-generated UniprotProteinAPICrossReference instance
      */
-    public PersistentPICRCrossReferences createPICRCrossReferences(){
-        PersistentPICRCrossReferences pc = new PersistentPICRCrossReferences();
+    public PersistentUniprotProteinAPICrossReferences createUniprotProteinAPICrossReferences(){
+        PersistentUniprotProteinAPICrossReferences pc = new PersistentUniprotProteinAPICrossReferences();
 
         pc.setDatabase("Ensembl");
         pc.addAccession("ENSG0007777");
@@ -130,10 +130,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
 
     /**
      *
-     * @return auto-generated PersistentPICRReport
+     * @return auto-generated PersistentUniprotProteinAPIReport
      */
-    public PersistentPICRReport createPICRReport(){
-        PersistentPICRReport report = new PersistentPICRReport(ActionName.PICR_accession);
+    public PersistentUniprotProteinAPIReport createUniprotProteinAPIReport(){
+        PersistentUniprotProteinAPIReport report = new PersistentUniprotProteinAPIReport(ActionName.UniprotProteinAPI_accession);
 
         report.setIsASwissprotEntry(false);
         report.setStatus(new Status(StatusLabel.COMPLETED, null));
@@ -260,10 +260,10 @@ public class CurationMockBuilder extends IntactMockBuilder {
      * @return auto-generated PersistentMappingReport with a status FAILED
      */
     public PersistentMappingReport createReportWithStatusFailed(){
-        PersistentMappingReport report = new PersistentMappingReport(ActionName.PICR_accession);
+        PersistentMappingReport report = new PersistentMappingReport(ActionName.UniprotProteinAPI_accession);
 
         report.setIsASwissprotEntry(false);
-        report.setStatus(new Status(StatusLabel.FAILED, "PICR couldn't match the accession to any Uniprot entries"));
+        report.setStatus(new Status(StatusLabel.FAILED, "UniprotProteinAPI couldn't match the accession to any Uniprot entries"));
         return report;
     }
 

@@ -35,9 +35,9 @@ import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.BlastReport;
 import uk.ac.ebi.intact.protein.mapping.model.actionReport.MappingReport;
-import uk.ac.ebi.intact.protein.mapping.model.actionReport.PICRReport;
+import uk.ac.ebi.intact.protein.mapping.model.actionReport.UniprotProteinAPIReport;
 import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
-import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.results.UniprotProteinAPICrossReferences;
 import uk.ac.ebi.intact.util.protein.utils.AliasUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.AnnotationUpdateReport;
 import uk.ac.ebi.intact.util.protein.utils.ProteinNameUpdateReport;
@@ -827,15 +827,15 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                         }
                     }
 
-                    if (report instanceof PICRReport){
+                    if (report instanceof UniprotProteinAPIReport){
                         actions.append(", ");
 
-                        PICRReport<PICRCrossReferences> picr = (PICRReport) report;
-                        actions.append("Is a Swissprot entry : " + picr.isASwissprotEntry());
+                        UniprotProteinAPIReport<UniprotProteinAPICrossReferences> uniprotProteinAPIReport = (UniprotProteinAPIReport) report;
+                        actions.append("Is a Swissprot entry : " + uniprotProteinAPIReport.isASwissprotEntry());
 
-                        if (!picr.getCrossReferences().isEmpty()){
+                        if (!uniprotProteinAPIReport.getCrossReferences().isEmpty()){
                             actions.append(", other cross references : ");
-                            for (PICRCrossReferences xrefs : picr.getCrossReferences()){
+                            for (UniprotProteinAPICrossReferences xrefs : uniprotProteinAPIReport.getCrossReferences()){
                                 actions.append(xrefs.getDatabase() + " : " + xrefs.getAccessions() + ";");
                             }
                         }

@@ -1,16 +1,16 @@
 package uk.ac.ebi.intact.update.model.protein.mapping.results;
 
 import org.apache.commons.collections.CollectionUtils;
-import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.results.UniprotProteinAPICrossReferences;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistentImpl;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentUniprotProteinAPIReport;
 
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class contains the cross references that returns PICR for an identifier/sequence
+ * This class contains the cross references that returns UniprotProteinAPI for an identifier/sequence
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -18,27 +18,27 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "ia_picr_xrefs")
-public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl implements PICRCrossReferences {
+public class PersistentUniprotProteinAPICrossReferences extends HibernateUpdatePersistentImpl implements UniprotProteinAPICrossReferences {
 
     /**
-     * The database name returned by PICR
+     * The database name returned by UniprotProteinAPI
      */
     private String database;
 
     /**
-     * The list of accessions from this database PICR returned
+     * The list of accessions from this database UniprotProteinAPI returned
      */
     private Set<String> accessions = new HashSet<String>();
 
     /**
      * The updateProcess report
      */
-    private PersistentPICRReport picrReport;
+    private PersistentUniprotProteinAPIReport uniprotProteinAPIReport;
 
     /**
-     * Create a new PersistentPICRCrossReferences instance
+     * Create a new PersistentUniprotProteinAPICrossReferences instance
      */
-    public PersistentPICRCrossReferences() {
+    public PersistentUniprotProteinAPICrossReferences() {
         database = null;
     }
 
@@ -134,16 +134,16 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
      */
     @ManyToOne
     @JoinColumn(name="picr_report_id")
-    public PersistentPICRReport getPicrReport() {
-        return picrReport;
+    public PersistentUniprotProteinAPIReport getUniprotProteinAPIReport() {
+        return uniprotProteinAPIReport;
     }
 
     /**
      * Set the updateProcess report
-     * @param picrReport
+     * @param uniprotProteinAPIReport
      */
-    public void setPicrReport(PersistentPICRReport picrReport) {
-        this.picrReport = picrReport;
+    public void setUniprotProteinAPIReport(PersistentUniprotProteinAPIReport uniprotProteinAPIReport) {
+        this.uniprotProteinAPIReport = uniprotProteinAPIReport;
     }
 
     @Override
@@ -152,7 +152,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
             return false;
         }
 
-        final PersistentPICRCrossReferences refs = (PersistentPICRCrossReferences) o;
+        final PersistentUniprotProteinAPICrossReferences refs = (PersistentUniprotProteinAPICrossReferences) o;
 
         if ( database != null ) {
             if (!database.equals( refs.getDatabase() )){
@@ -193,7 +193,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
             return false;
         }
 
-        final PersistentPICRCrossReferences refs = (PersistentPICRCrossReferences) o;
+        final PersistentUniprotProteinAPICrossReferences refs = (PersistentUniprotProteinAPICrossReferences) o;
 
         if ( database != null ) {
             if (!database.equals( refs.getDatabase() )){
@@ -211,7 +211,7 @@ public class PersistentPICRCrossReferences extends HibernateUpdatePersistentImpl
     public String toString() {
         StringBuffer buffer = new StringBuffer();
 
-        buffer.append("PICR cross reference : [" + database != null ? database : "");
+        buffer.append("UniprotProteinAPI cross reference : [" + database != null ? database : "");
 
         return buffer.toString();
     }
