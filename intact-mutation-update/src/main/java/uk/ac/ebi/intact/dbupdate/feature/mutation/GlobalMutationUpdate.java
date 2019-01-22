@@ -17,24 +17,17 @@ public class GlobalMutationUpdate {
     private static final Log log = LogFactory.getLog(GlobalMutationUpdate.class);
 
     public static void main(String[] args) {
-//         three possible arguments
-        if (args.length != 2 && args.length != 3) {
-            System.err.println("Usage: GlobalUpdate <database> <folder> <update>");
+        if (args.length != 2 ) {
+            System.err.println("Usage: GlobalUpdate <database> <folder>");
             System.exit(1);
         }
 
-        final String database = args[0];
         //TODO Review configuration in lsf
-        final String filename = "/home/anjali/Documents/projects_docs/featureUpdateReport/";
-        boolean isUpdate = false;
-
-        if (args.length == 3) {
-            isUpdate = Boolean.parseBoolean(args[2]);
-        }
+        final String database = args[0];
+        final String filename = args[1];
 
         log.info("folder where are the log files = " + filename);
         log.info("database = " + database);
-        log.info("Update database = " + isUpdate);
 
         MutationUpdateProcessorConfig config = MutationUpdateContext.getInstance().getConfig();
 

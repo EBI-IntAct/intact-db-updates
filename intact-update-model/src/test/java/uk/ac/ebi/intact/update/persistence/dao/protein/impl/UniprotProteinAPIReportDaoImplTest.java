@@ -4,47 +4,47 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentUniprotProteinAPIReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.dao.protein.IdentificationResultsDao;
-import uk.ac.ebi.intact.update.persistence.dao.protein.PICRReportDao;
+import uk.ac.ebi.intact.update.persistence.dao.protein.UniprotProteinAPIReportDao;
 
 import java.util.List;
 
 /**
- * Unit test for PICRReportDaoImpl
+ * Unit test for UniprotProteinAPIReportDaoImpl
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>21-May-2010</pre>
  */
 
-public class PICRReportDaoImplTest extends UpdateBasicTestCase {
+public class UniprotProteinAPIReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     @DirtiesContext
     public void search_all() throws Exception {
-        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
-        Assert.assertEquals( 0, picrReportDao.countAll() );
+        final UniprotProteinAPIReportDao uniprotProteinAPIReportDao = getUpdateDaoFactory().getUniprotProteinAPIReportDao();
+        Assert.assertEquals( 0, uniprotProteinAPIReportDao.countAll() );
 
-        PersistentPICRReport report = getMockBuilder().createPICRReport();
+        PersistentUniprotProteinAPIReport report = getMockBuilder().createUniprotProteinAPIReport();
 
-        picrReportDao.persist( report );
-        picrReportDao.flush();
-        Assert.assertEquals( 1, picrReportDao.countAll() );
+        uniprotProteinAPIReportDao.persist( report );
+        uniprotProteinAPIReportDao.flush();
+        Assert.assertEquals( 1, uniprotProteinAPIReportDao.countAll() );
     }
 
     @Test
     @DirtiesContext
-    public void search_PICRReport_ByResultId_successful() throws Exception {
-        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
+    public void search_UniprotProteinAPIReport_ByResultId_successful() throws Exception {
+        final UniprotProteinAPIReportDao uniprotProteinAPIReportDao = getUpdateDaoFactory().getUniprotProteinAPIReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, picrReportDao.countAll() );
+        Assert.assertEquals( 0, uniprotProteinAPIReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentPICRReport report = getMockBuilder().createPICRReport();
+        PersistentUniprotProteinAPIReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -52,7 +52,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentPICRReport> r = picrReportDao.getPICRReportsByResultsId(id);
+        List<PersistentUniprotProteinAPIReport> r = uniprotProteinAPIReportDao.getUniprotProteinAPIReportsByResultsId(id);
 
         Assert.assertTrue(!r.isEmpty());
         Assert.assertTrue(r.get(0).getUpdateResult() != null);
@@ -61,14 +61,14 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
     @Test
     @DirtiesContext
-    public void search_PICRReport_ByResultId_Unsuccessful() throws Exception {
-        final PICRReportDao picrReportDao = getUpdateDaoFactory().getPICRReportDao();
+    public void search_UniprotProteinAPIReport_ByResultId_Unsuccessful() throws Exception {
+        final UniprotProteinAPIReportDao uniprotProteinAPIReportDao = getUpdateDaoFactory().getUniprotProteinAPIReportDao();
         final IdentificationResultsDao updateResultsDao = getUpdateDaoFactory().getUpdateResultsDao();
-        Assert.assertEquals( 0, picrReportDao.countAll() );
+        Assert.assertEquals( 0, uniprotProteinAPIReportDao.countAll() );
         Assert.assertEquals( 0, updateResultsDao.countAll() );
 
         PersistentIdentificationResults results = getMockBuilder().createUpdateResult();
-        PersistentMappingReport report = getMockBuilder().createPICRReport();
+        PersistentMappingReport report = getMockBuilder().createUniprotProteinAPIReport();
         results.addActionReport(report);
 
         updateResultsDao.persist( results );
@@ -76,7 +76,7 @@ public class PICRReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentPICRReport> r = picrReportDao.getPICRReportsByResultsId(1);
+        List<PersistentUniprotProteinAPIReport> r = uniprotProteinAPIReportDao.getUniprotProteinAPIReportsByResultsId(1);
 
         Assert.assertTrue(r.isEmpty());
     }

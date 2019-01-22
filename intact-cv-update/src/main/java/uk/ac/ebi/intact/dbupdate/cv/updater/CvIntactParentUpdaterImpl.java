@@ -2,9 +2,10 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.*;
+import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
+import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
 import uk.ac.ebi.intact.dbupdate.cv.events.UpdatedEvent;
@@ -56,6 +57,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
         classMap.put( CvParameterType.class, "MI:0640" );
         classMap.put( CvParameterUnit.class, "MI:0647" );
         classMap.put( CvConfidenceType.class, "MI:1064" );
+        classMap.put( CvCausalInteraction.class,  "MI:2233" );
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -63,7 +65,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
         CvDagObject term = updateContext.getCvTerm();
 
         this.currentIntactParent = null;
@@ -160,7 +162,7 @@ public class CvIntactParentUpdaterImpl implements CvParentUpdater{
         return missingParents;
     }
 
-    private void initializeIdentityValue(IntactOntologyAccess ontologyAccess){
+    private void initializeIdentityValue(MIOntologyAccess ontologyAccess){
         CvObjectXref currentIdentityXref = XrefUtils.getIdentityXref(currentIntactParent, ontologyAccess.getDatabaseIdentifier());
         // this parent cannot be updated because is not from the same ontology
         if (currentIdentityXref == null && ontologyAccess.getDatabaseRegexp() != null){

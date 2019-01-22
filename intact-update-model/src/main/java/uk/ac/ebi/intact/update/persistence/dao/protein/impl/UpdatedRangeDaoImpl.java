@@ -34,7 +34,7 @@ public class UpdatedRangeDaoImpl<T extends AbstractUpdatedRange> extends UpdateB
     }
 
     /**
-     * create a new PICRReportDaoImpl with entity manager
+     * create a new UniprotProteinAPIReportDaoImpl with entity manager
      * @param entityClass
      * @param entityManager
      */

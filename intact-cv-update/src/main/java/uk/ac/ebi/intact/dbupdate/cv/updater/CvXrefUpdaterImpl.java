@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.TermDbXref;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
+import psidev.psi.mi.jami.model.Xref;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -29,22 +29,22 @@ import java.util.TreeSet;
 
 public class CvXrefUpdaterImpl implements CvXrefUpdater{
     private TreeSet<CvObjectXref> sortedCvXrefs;
-    private TreeSet<TermDbXref> sortedOntologyXrefs;
+    private TreeSet<Xref> sortedOntologyXrefs;
     private CvObjectXref currentIntact;
-    private TermDbXref currentOntologyRef;
+    private Xref currentOntologyRef;
     private CvDatabase cvDatabase;
     private CvXrefQualifier cvQualifier;
 
     public CvXrefUpdaterImpl(){
         sortedCvXrefs = new TreeSet<CvObjectXref>(new CvXrefComparator());
-        sortedOntologyXrefs = new TreeSet<TermDbXref>(new OntologyXrefComparator());
+        sortedOntologyXrefs = new TreeSet<Xref>(new OntologyXrefComparator());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public void updateXrefs(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
         sortedCvXrefs.clear();
@@ -52,8 +52,8 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
         Iterator<CvObjectXref> intactIterator = sortedCvXrefs.iterator();
 
         sortedOntologyXrefs.clear();
-        sortedOntologyXrefs.addAll(ontologyTerm.getDbXrefs());
-        Iterator<TermDbXref> ontologyIterator = sortedOntologyXrefs.iterator();
+        sortedOntologyXrefs.addAll(ontologyTerm.getDelegate().getXrefs());
+        Iterator<Xref> ontologyIterator = sortedOntologyXrefs.iterator();
 
         currentIntact = null;
         currentOntologyRef = null;
@@ -68,16 +68,16 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
 
             if (cvDatabase != null && cvQualifier != null){
                 do{
-                    int dbComparator = cvDatabase.getIdentifier().compareTo(currentOntologyRef.getDatabaseId());
+                    int dbComparator = cvDatabase.getIdentifier().compareTo(currentOntologyRef.getDatabase().getMIIdentifier());
 
                     // we have a db match
                     if (dbComparator == 0) {
 
-                        int qualifierComparator = cvQualifier.getIdentifier().compareTo(currentOntologyRef.getQualifierId());
+                        int qualifierComparator = cvQualifier.getIdentifier().compareTo(currentOntologyRef.getQualifier().getMIIdentifier());
 
                         // we have a qualifier match
                         if (qualifierComparator == 0) {
-                            int acComparator = currentIntact.getPrimaryId().compareTo(currentOntologyRef.getAccession());
+                            int acComparator = currentIntact.getPrimaryId().compareTo(currentOntologyRef.getId());
 
                             // we have a primary id match
                             if (acComparator == 0) {
@@ -119,7 +119,7 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                                 CvDatabase cvDb = cvDatabase;
                                 CvXrefQualifier cvQ = cvQualifier;
 
-                                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getId(), cvQ);
                                 term.addXref(newXref);
 
                                 if (updateEvt != null){
@@ -158,14 +158,14 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                         else {
                             //otology has no match in intact
                             CvDatabase cvDb = cvDatabase;
-                            CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+                            CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifier().getMIIdentifier());
 
                             if (cvQ== null){
-                                cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                                cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifier().getMIIdentifier(), currentOntologyRef.getQualifier().getShortName());
                                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
                             }
 
-                            CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                            CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getId(), cvQ);
                             term.addXref(newXref);
 
                             if (updateEvt != null){
@@ -202,21 +202,21 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
                     }
                     //ontology xref has no match in intact, needs to create it
                     else {
-                        CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabaseId());
+                        CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabase().getMIIdentifier());
 
                         if (cvDb == null){
-                            cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabaseId(), currentOntologyRef.getDatabase());
+                            cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabase().getMIIdentifier(), currentOntologyRef.getDatabase().getShortName());
                             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDb);
                         }
 
-                        CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+                        CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifier().getMIIdentifier());
 
                         if (cvQ== null){
-                            cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                            cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifier().getMIIdentifier(), currentOntologyRef.getQualifier().getShortName());
                             IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
                         }
 
-                        CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                        CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getId(), cvQ);
                         term.addXref(newXref);
 
                         if (updateEvt != null){
@@ -272,26 +272,25 @@ public class CvXrefUpdaterImpl implements CvXrefUpdater{
 
             do {
                 //ontology has no match in intact
-                CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabaseId());
+                CvDatabase cvDb = factory.getCvObjectDao(CvDatabase.class).getByIdentifier(currentOntologyRef.getDatabase().getMIIdentifier());
 
                 if (cvDb == null){
-                    cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabaseId(), currentOntologyRef.getDatabase());
+                    cvDb = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvDatabase.class, currentOntologyRef.getDatabase().getMIIdentifier(), currentOntologyRef.getDatabase().getShortName());
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvDb);
                 }
 
-                CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifierId());
+                CvXrefQualifier cvQ = factory.getCvObjectDao(CvXrefQualifier.class).getByIdentifier(currentOntologyRef.getQualifier().getMIIdentifier());
 
                 if (cvQ == null){
-                    cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifierId(), currentOntologyRef.getQualifier());
+                    cvQ = CvObjectUtils.createCvObject(IntactContext.getCurrentInstance().getInstitution(), CvXrefQualifier.class, currentOntologyRef.getQualifier().getMIIdentifier(), currentOntologyRef.getQualifier().getShortName());
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(cvQ);
                 }
 
-                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getAccession(), cvQ);
+                CvObjectXref newXref = new CvObjectXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentOntologyRef.getId(), cvQ);
                 term.addXref(newXref);
 
                 if (updateEvt != null){
                     updateEvt.getCreatedXrefs().add(newXref);
-
                 }
 
                 if (ontologyIterator.hasNext()){

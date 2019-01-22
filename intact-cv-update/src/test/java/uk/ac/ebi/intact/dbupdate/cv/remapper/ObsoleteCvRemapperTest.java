@@ -10,8 +10,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
@@ -73,7 +73,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -121,7 +121,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
         System.out.println(cv.getAc());
@@ -181,7 +181,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -248,7 +248,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -317,7 +317,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -397,7 +397,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -455,7 +455,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 
@@ -509,7 +509,7 @@ public class ObsoleteCvRemapperTest extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
 
-        IntactOntologyAccess access = cvManager.getIntactOntologyManager().getOntologyAccess("MI");
+        MIOntologyAccess access = cvManager.getMiOntologyManager().getOntologyAccess("MI");
 
         TransactionStatus status2 = getDataContext().beginTransaction();
 

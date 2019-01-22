@@ -3,10 +3,10 @@ package uk.ac.ebi.intact.update.model.protein.mapping.factories;
 import uk.ac.ebi.intact.protein.mapping.factories.ResultsFactory;
 import uk.ac.ebi.intact.protein.mapping.results.BlastResults;
 import uk.ac.ebi.intact.protein.mapping.results.IdentificationResults;
-import uk.ac.ebi.intact.protein.mapping.results.PICRCrossReferences;
+import uk.ac.ebi.intact.protein.mapping.results.UniprotProteinAPICrossReferences;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentIdentificationResults;
-import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentPICRCrossReferences;
+import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentUniprotProteinAPICrossReferences;
 
 /**
  * Factory returning results which can be persisted with the current persistence unit
@@ -28,7 +28,7 @@ public class PersistentResultsFactory implements ResultsFactory{
     }
 
     @Override
-    public PICRCrossReferences getPICRCrossReferences() {
-        return new PersistentPICRCrossReferences();
+    public UniprotProteinAPICrossReferences getUniprotProteinAPICrossReferences() {
+        return new PersistentUniprotProteinAPICrossReferences();
     }
 }

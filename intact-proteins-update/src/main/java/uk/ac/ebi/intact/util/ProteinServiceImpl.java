@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.taxonomy.UniprotTaxonomyService;
+import psidev.psi.mi.jami.bridges.uniprot.taxonomy.UniprotTaxonomyFetcher;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -53,14 +53,14 @@ public class ProteinServiceImpl implements ProteinService{
 
     public ProteinServiceImpl(){
         this.uniprotService = new SimpleUniprotRemoteService();
-        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
+        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyFetcher());
 
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
         databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
     }
 
     public ProteinServiceImpl(UniprotService service){
-        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
+        this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyFetcher());
 
         if (service != null){
             this.uniprotService = service;
@@ -75,7 +75,7 @@ public class ProteinServiceImpl implements ProteinService{
         }
         else {
             log.warn("No biosource service is given, a default uniprot taxonomy service will be used");
-            this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
+            this.biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyFetcher());
         }
 
         IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();

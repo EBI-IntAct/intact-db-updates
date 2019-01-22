@@ -5,8 +5,8 @@
  */
 package uk.ac.ebi.intact.util.biosource;
 
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
 import uk.ac.ebi.intact.model.BioSource;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
 
 /**
  * Defines a BioSourceService.
@@ -40,7 +40,7 @@ public interface BioSourceService {
      */
     public BioSource getBiosourceByTaxid( String taxid ) throws BioSourceServiceException;
 
-    public TaxonomyService getTaxonomyService();
+    public OrganismFetcher getTaxonomyService();
 
     public BioSource getUnsavedBiosourceByTaxid( String taxid ) throws BioSourceServiceException;
 }

@@ -2,9 +2,10 @@ package uk.ac.ebi.intact.util.biosource;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.transaction.TransactionStatus;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyServiceException;
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyTerm;
+import psidev.psi.mi.jami.bridges.exception.BridgeFailedException;
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
+import psidev.psi.mi.jami.model.Alias;
+import psidev.psi.mi.jami.model.Organism;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.model.*;
@@ -48,7 +49,7 @@ public class BioSourceUpdater {
         final List<BioSource> bioSources = daoFactory.getBioSourceDao().getAll();
 
         BioSourceService service = BioSourceServiceFactory.getInstance().buildBioSourceService();
-        final TaxonomyService taxonomy = service.getTaxonomyService();
+        final OrganismFetcher taxonomy = service.getTaxonomyService();
 
         final CvAliasType synonymType = getOrCreateSynonymType( daoFactory );
 
@@ -83,19 +84,17 @@ public class BioSourceUpdater {
             printBiosource( bs, cellType, tissue );
 
             try {
-                final TaxonomyTerm taxon = taxonomy.getTaxonomyTerm( Integer.parseInt( bs.getTaxId() ) );
+                final Organism taxon = taxonomy.fetchByTaxID( Integer.parseInt( bs.getTaxId() ) );
 
-                if( ! bs.getTaxId().equals(String.valueOf( taxon.getTaxid() ) ) ) {
-                    bs.setTaxId( String.valueOf( taxon.getTaxid() ) );
+                //Update the BioSource TaxId if they are different
+                if( ! bs.getTaxId().equals(String.valueOf( taxon.getTaxId() ) ) ) {
+                    bs.setTaxId( String.valueOf( taxon.getTaxId() ) );
                 }
 
                 boolean updatedShortlabel = false;
                 // shortlabel
-                if( taxon.hasMnemonic() ) {
-                    bs.setShortLabel( taxon.getMnemonic().toLowerCase() );
-                    updatedShortlabel = true;
-                } else if( taxon.hasCommonName() ) {
-                    bs.setShortLabel( taxon.getCommonName() );
+                if( taxon.getCommonName() != null) {
+                    bs.setShortLabel( taxon.getCommonName().toLowerCase() );
                     updatedShortlabel = true;
                 }
 
@@ -113,17 +112,17 @@ public class BioSourceUpdater {
                 // fullName
                 if( tissue == null && cellType == null ) {
                     bs.setFullName( taxon.getScientificName() );
-                    if( taxon.hasCommonName() ) {
+                    if( taxon.getCommonName()!= null ) {
                         bs.setFullName( bs.getFullName() + " ("+ taxon.getCommonName() +")" );
                     }
                 }
 
                 // aliases
                 bs.getAliases().clear();
-                if( ! taxon.getSynonyms().isEmpty() ) {
+                if( ! taxon.getAliases().isEmpty() ) {
 
-                    for ( final String synonym : taxon.getSynonyms() ) {
-                         bs.addAlias( new BioSourceAlias( bs.getOwner(), bs, synonymType, synonym) );
+                    for ( final Alias synonym : taxon.getAliases() ) {
+                         bs.addAlias( new BioSourceAlias( bs.getOwner(), bs, synonymType, synonym.getName()) );
                     }
                 }
 
@@ -146,7 +145,7 @@ public class BioSourceUpdater {
                 System.out.println( "Saving biosource..." );
                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate( bs );
 
-            } catch ( TaxonomyServiceException e ) {
+            } catch ( BridgeFailedException e ) {
                 e.printStackTrace();
             }
 

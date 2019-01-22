@@ -24,7 +24,7 @@ import java.util.Collection;
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"}  )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class ProteinUpdateProcessorTest3 extends IntactBasicTestCase {
+public class ProteinUpdateProcessor3Test extends IntactBasicTestCase {
 
     @Before
     public void before() throws Exception {

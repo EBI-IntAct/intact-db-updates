@@ -33,7 +33,7 @@ public class UpdateProcessDaoImpl<T extends UpdateProcessImpl> extends UpdateBas
     }
 
     /**
-     * create a new PICRReportDaoImpl with entity manager
+     * create a new UniprotProteinAPIReportDaoImpl with entity manager
      * @param entityManager
      */
     public UpdateProcessDaoImpl(Class<T> entityClass, EntityManager entityManager) {

@@ -5,15 +5,13 @@
     <parent>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
         <artifactId>dbupdate-master</artifactId>
-        <version>2.1.21</version>
+        <version>2.1.22</version>
     </parent>
 
     <artifactId>intact-mutation-update</artifactId>
     <name>IntAct Database Update :: Mutation Update</name>
 
     <properties>
-        <folder>/ebi/sp/pro6/intact/local/data/mutation-feature-update-report/</folder>
-        <database>dev</database>
         <db.url>${db.protocol}:${db.subprotocol}${db.separator}${db.alias}</db.url>
     </properties>
 
@@ -47,7 +45,6 @@
                                 <argument>${database}</argument>
                                 <!-- repository where to find the log files -->
                                 <argument>${folder}</argument>
-                                <!--<argument>classpath*:/META-INF/fea</argument>-->
                             </arguments>
                         </configuration>
                     </plugin>

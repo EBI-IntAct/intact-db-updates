@@ -432,7 +432,7 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
      */
     private Protein[] createDuplicatedSpliceVariants() throws Exception {
 
-        // http://www.uniprot.org/uniprot/P18459
+        // https://www.uniprot.org/uniprot/P18459
 
         // we use our own persister to make sure we can duplicate master and isoform.
         CorePersister persister = new CorePersisterImpl( IntactContext.getCurrentInstance(), new DefaultFinder( ){
@@ -495,7 +495,7 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         // check that splice variants do get gene names like the masters do.
 
-        // http://www.uniprot.org/uniprot/P18459
+        // https://www.uniprot.org/uniprot/P18459
 
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
         configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );

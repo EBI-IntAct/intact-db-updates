@@ -191,8 +191,8 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         // check that splice variants do get gene names like the masters do.
 
-        // http://www.uniprot.org/uniprot/P18459
-         DataContext context = getDataContext();
+        // https://www.uniprot.org/uniprot/P18459
+        DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();
 
         CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");

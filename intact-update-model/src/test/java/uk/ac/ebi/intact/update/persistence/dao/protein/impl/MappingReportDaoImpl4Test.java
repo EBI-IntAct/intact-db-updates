@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentMappingReport;
-import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentPICRReport;
+import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentUniprotProteinAPIReport;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
 import uk.ac.ebi.intact.update.persistence.dao.protein.MappingReportDao;
 
@@ -72,31 +72,31 @@ public class MappingReportDaoImpl4Test extends UpdateBasicTestCase {
 
     @Test
     @DirtiesContext
-    public void search_PICRReport_successful() throws Exception {
-        final MappingReportDao<PersistentPICRReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentPICRReport.class);
+    public void search_UniprotProteinAPIReport_successful() throws Exception {
+        final MappingReportDao<PersistentUniprotProteinAPIReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentUniprotProteinAPIReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
-        PersistentPICRReport report = getMockBuilder().createPICRReport();
+        PersistentUniprotProteinAPIReport report = getMockBuilder().createUniprotProteinAPIReport();
 
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        List<PersistentPICRReport> r = actionReportDao.getAll();
+        List<PersistentUniprotProteinAPIReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(!r.isEmpty());
     }
 
     @Test
     @DirtiesContext
-    public void search_PICRReport_Unsuccessful() throws Exception {
-        final MappingReportDao<PersistentPICRReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentPICRReport.class);
+    public void search_UniprotProteinAPIReport_Unsuccessful() throws Exception {
+        final MappingReportDao<PersistentUniprotProteinAPIReport> actionReportDao = getUpdateDaoFactory().getMappingReportDao(PersistentUniprotProteinAPIReport.class);
         Assert.assertEquals( 0, actionReportDao.countAll() );
 
         PersistentMappingReport report = getMockBuilder().createActionReportWithWarning();
 
         getUpdateDaoFactory().getMappingReportDao(PersistentMappingReport.class).persist( report );
 
-        List<PersistentPICRReport> r = actionReportDao.getAll();
+        List<PersistentUniprotProteinAPIReport> r = actionReportDao.getAll();
 
         Assert.assertTrue(r.isEmpty());
     }

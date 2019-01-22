@@ -29,7 +29,7 @@ public class InvalidRangeDaoImpl extends UpdatedRangeDaoImpl<PersistentInvalidRa
     }
 
     /**
-     * create a new PICRReportDaoImpl with entity manager
+     * create a new UniprotProteinAPIReportDaoImpl with entity manager
      * @param entityManager
      */
     public InvalidRangeDaoImpl(EntityManager entityManager) {

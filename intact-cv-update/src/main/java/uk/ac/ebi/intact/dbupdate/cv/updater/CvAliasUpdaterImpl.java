@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -43,7 +43,7 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
     public void updateAliases(CvUpdateContext updateContext, UpdatedEvent updateEvt){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
         CvAliasType aliasType = factory.getCvObjectDao(CvAliasType.class).getByIdentifier(ALIAS_TYPE_MI);
@@ -58,7 +58,7 @@ public class CvAliasUpdaterImpl implements CvAliasUpdater{
 
         // the aliases in the ontology to create
         sortedOntologyAliases.clear();
-        sortedOntologyAliases.addAll(ontologyTerm.getAliases());
+        sortedOntologyAliases.addAll(ontologyTerm.getNameSynonyms());
         Iterator<String> ontologyIterator = sortedOntologyAliases.iterator();
 
         sortedCvAliases.clear();

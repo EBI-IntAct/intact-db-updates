@@ -1,14 +1,12 @@
 package uk.ac.ebi.intact.dbupdate.cv.remapper;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
@@ -55,8 +53,8 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
     public void remapObsoleteCvTerm(CvUpdateContext updateContext){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
         String identifier = updateContext.getIdentifier();
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
@@ -76,7 +74,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
         if (ontologyTerm.getRemappedTerm() != null && !rootTermsToExclude.contains(ontologyTerm.getRemappedTerm()) && ontologyAccess.getDatabaseRegexp() != null){
             String remappedDb = null;
 
-            IntactOntologyTermI remappedTerm = null;
+            MIOntologyTermI remappedTerm = null;
             Matcher matcher = ontologyAccess.getDatabaseRegexp().matcher(ontologyTerm.getRemappedTerm());
 
             boolean isMatchingRegexp = matcher.find();
@@ -305,7 +303,7 @@ public class ObsoleteCvRemapperImpl implements ObsoleteCvRemapper{
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean updateReferencesToObsoleteTerm(CvUpdateContext updateContext, DaoFactory factory, IntactOntologyTermI ontologyTerm, CvDagObject term, boolean couldRemap, CvUpdateManager manager, CvDagObject termFromDb, int resultUpdate) {
+    public boolean updateReferencesToObsoleteTerm(CvUpdateContext updateContext, DaoFactory factory, MIOntologyTermI ontologyTerm, CvDagObject term, boolean couldRemap, CvUpdateManager manager, CvDagObject termFromDb, int resultUpdate) {
         if (term instanceof CvAliasType && termFromDb instanceof CvAliasType){
             Query query = factory.getEntityManager().createQuery("update Alias a set a.cvAliasType = :type" +
                     " where a.cvAliasType = :duplicate");

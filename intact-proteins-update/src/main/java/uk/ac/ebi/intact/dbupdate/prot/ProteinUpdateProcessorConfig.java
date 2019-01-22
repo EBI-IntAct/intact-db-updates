@@ -15,7 +15,7 @@
  */
 package uk.ac.ebi.intact.dbupdate.prot;
 
-import uk.ac.ebi.intact.bridges.taxonomy.TaxonomyService;
+import psidev.psi.mi.jami.bridges.fetcher.OrganismFetcher;
 import uk.ac.ebi.intact.dbupdate.prot.errors.DefaultProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
@@ -63,7 +63,7 @@ public class ProteinUpdateProcessorConfig {
 
     private UniprotService uniprotService;
 
-    private TaxonomyService taxonomyService;
+    private OrganismFetcher taxonomyService;
 
     private boolean isGlobalProteinUpdate = false;
 
@@ -127,11 +127,11 @@ public class ProteinUpdateProcessorConfig {
         this.uniprotService = uniprotService;
     }
 
-    public TaxonomyService getTaxonomyService() {
+    public OrganismFetcher getTaxonomyService() {
         return taxonomyService;
     }
 
-    public void setTaxonomyService(TaxonomyService taxonomyService) {
+    public void setTaxonomyService(OrganismFetcher taxonomyService) {
         this.taxonomyService = taxonomyService;
     }
 

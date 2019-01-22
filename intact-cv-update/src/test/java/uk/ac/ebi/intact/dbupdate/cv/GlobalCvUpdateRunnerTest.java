@@ -120,7 +120,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
         Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
         Assert.assertEquals(def.getAnnotationText(), "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins.");
 
-        Assert.assertEquals(1, term.getAliases().size());
+        Assert.assertEquals(2, term.getAliases().size());
         Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
         // the missing parent has been created
         Assert.assertEquals(2, term.getParents().size());
@@ -187,7 +187,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
         Assert.assertEquals(def.getCvTopic().getShortLabel(), CvTopic.DEFINITION);
         Assert.assertEquals(def.getAnnotationText(), "This class of approaches is characterised by the use of affinity resins as tools to purify molecule of interest (baits) and their binding partners. The baits can be captured by a variety of high affinity ligands linked to a resin - for example, antibodies specific for the bait itself, antibodies for specific tags engineered to be expressed as part of the bait or other high affinity binders such as glutathione resins for GST fusion proteins, metal resins for histidine-tagged proteins.");
 
-        Assert.assertEquals(1, term.getAliases().size());
+        Assert.assertEquals(2, term.getAliases().size());
         Assert.assertEquals("Affinity purification", term.getAliases().iterator().next().getName());
         // the missing parent has been created
         Assert.assertEquals(2, term.getParents().size());

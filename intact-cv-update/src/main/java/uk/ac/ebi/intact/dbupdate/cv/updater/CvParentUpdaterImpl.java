@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.cv.updater;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyAccess;
-import uk.ac.ebi.intact.bridges.ontology_manager.interfaces.IntactOntologyTermI;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
+import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
@@ -29,17 +29,17 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
     private Map<String, Set<CvDagObject>> missingParents;
 
     private TreeSet<CvDagObject> sortedCvParents;
-    private TreeSet<IntactOntologyTermI> sortedOntologyParents;
+    private TreeSet<MIOntologyTermI> sortedOntologyParents;
 
     private CvDagObject currentIntactParent;
-    private IntactOntologyTermI currentOntologyParent;
+    private MIOntologyTermI currentOntologyParent;
     private String currentIdentity;
 
     public CvParentUpdaterImpl(){
         missingParents = new HashMap<String, Set<CvDagObject>>();
 
         sortedCvParents = new TreeSet<CvDagObject>(new CvParentComparator());
-        sortedOntologyParents = new TreeSet<IntactOntologyTermI>(new OntologyParentComparator());
+        sortedOntologyParents = new TreeSet<MIOntologyTermI>(new OntologyParentComparator());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -47,8 +47,8 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
 
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        IntactOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
-        IntactOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
+        MIOntologyAccess ontologyAccess = updateContext.getOntologyAccess();
+        MIOntologyTermI ontologyTerm = updateContext.getOntologyTerm();
         CvDagObject term = updateContext.getCvTerm();
 
         sortedCvParents.clear();
@@ -65,7 +65,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
         Iterator<CvDagObject> intactIterator = sortedCvParents.iterator();
 
         sortedOntologyParents.addAll(ontologyAccess.getDirectParents(ontologyTerm));
-        Iterator<IntactOntologyTermI> ontologyIterator = sortedOntologyParents.iterator();
+        Iterator<MIOntologyTermI> ontologyIterator = sortedOntologyParents.iterator();
 
         // root terms to exclude
         Collection<String> rootTermsToExclude = Collections.EMPTY_LIST;
@@ -100,7 +100,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
                     }
                     // intact has a parent which is not in the ontology and which should be deleted because from same ontology
                     else if (idComparator < 0) {
-                        IntactOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
+                        MIOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
 
                         // the term does not exist in the ontology, we can delete it
                         if (parentNotInOntology == null){
@@ -168,7 +168,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
             if (currentIdentity != null){
                 do {
                     //intact has no match in ontology and should be deleted
-                    IntactOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
+                    MIOntologyTermI parentNotInOntology = ontologyAccess.getTermForAccession(currentIdentity);
 
                     // the term does not exist in the ontology, we can delete it
                     if (parentNotInOntology == null){
@@ -241,7 +241,7 @@ public class CvParentUpdaterImpl implements CvParentUpdater{
         return missingParents;
     }
 
-    private void initializeIdentityValue(IntactOntologyAccess ontologyAccess){
+    private void initializeIdentityValue(MIOntologyAccess ontologyAccess){
         CvObjectXref currentIdentityXref = XrefUtils.getIdentityXref(currentIntactParent, ontologyAccess.getDatabaseIdentifier());
         // this parent cannot be updated because is not from the same ontology
         if (currentIdentityXref == null && ontologyAccess.getDatabaseRegexp() != null){
