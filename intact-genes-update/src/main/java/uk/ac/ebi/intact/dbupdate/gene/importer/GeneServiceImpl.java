@@ -2,7 +2,7 @@ package uk.ac.ebi.intact.dbupdate.gene.importer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.taxonomy.UniprotTaxonomyService;
+import psidev.psi.mi.jami.bridges.uniprot.taxonomy.UniprotTaxonomyFetcher;
 import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
 import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserXML;
 import uk.ac.ebi.intact.dbupdate.gene.utils.GeneUtils;
@@ -52,7 +52,7 @@ public class GeneServiceImpl implements GeneService {
         //configure automatically from in the future
         UniProtParser parser = new UniProtParserXML();
         uniProtRestQuery = new UniProtRestQuery(parser);
-        biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyService());
+        biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyFetcher());
 
         log.info("A default uniprot taxonomy service will be used to retrieve the Biosource");
     }
