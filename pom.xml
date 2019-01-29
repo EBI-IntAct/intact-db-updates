@@ -111,6 +111,13 @@
                 </exclusions>
             </dependency>
 
+            <!--TODO: Remove temporary dependency for testing protein update-->
+            <dependency>
+                <groupId>psidev.psi.mi.jami.bridges</groupId>
+                <artifactId>jami-uniprot-protein-api</artifactId>
+                <version>3.2.1-SNAPSHOT</version>
+            </dependency>
+
             <dependency>
                 <groupId>log4j</groupId>
                 <artifactId>log4j</artifactId>
