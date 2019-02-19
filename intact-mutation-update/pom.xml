@@ -58,7 +58,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
             <artifactId>feature-shortlabel-generator</artifactId>
-            <version>${feature.shortlabel.generator.version}</version>
+            <version>${intact.tools.version}</version>
         </dependency>
 
         <dependency>

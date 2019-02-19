@@ -20,15 +20,14 @@
 
     <properties>
         <core.version>2.6.12</core.version>
-        <bridges.version>2.1.27</bridges.version>
-        <uniprot.japi.version>1.0.23</uniprot.japi.version>
+        <bridges.version>2.1.28</bridges.version>
+        <intact.tools.version>1.0.14</intact.tools.version>
+        <uniprot.japi.version>1.0.25</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
         <chebi.ws.version>2.3.2</chebi.ws.version>
-        <jami.version>3.2.0</jami.version>
+        <jami.version>3.2.1</jami.version>
 
         <!--intact-tools-->
-        <protein.mapping.version>1.0.13</protein.mapping.version>
-        <feature.shortlabel.generator.version>1.0.13</feature.shortlabel.generator.version>
     </properties>
 
     <scm>
@@ -109,13 +108,6 @@
                         <artifactId>uniprotjapi</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-
-            <!--TODO: Remove temporary dependency for testing protein update-->
-            <dependency>
-                <groupId>psidev.psi.mi.jami.bridges</groupId>
-                <artifactId>jami-uniprot-protein-api</artifactId>
-                <version>3.2.1-SNAPSHOT</version>
             </dependency>
 
             <dependency>

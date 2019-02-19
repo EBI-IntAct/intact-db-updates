@@ -175,7 +175,7 @@
         <dependency>
             <groupId>uk.ac.ebi.intact.tools</groupId>
             <artifactId>protein-mapping</artifactId>
-            <version>${protein.mapping.version}</version>
+            <version>${intact.tools.version}</version>
         </dependency>
 
         <dependency>
