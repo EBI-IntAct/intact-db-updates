@@ -152,7 +152,7 @@ public class CvImporterTest extends IntactBasicTestCase{
         // one definition
         Assert.assertEquals(1, context.getCvTerm().getAnnotations().size());
         // 5 children
-        Assert.assertEquals(5, context.getCvTerm().getChildren().size());
+        Assert.assertEquals(6, context.getCvTerm().getChildren().size());
         // one parent
         Assert.assertEquals(1, context.getCvTerm().getParents().size());
         Assert.assertFalse(isTermHidden(context.getCvTerm()));

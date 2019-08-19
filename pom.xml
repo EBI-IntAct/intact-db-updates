@@ -12,7 +12,7 @@
     <groupId>uk.ac.ebi.intact.dbupdate</groupId>
     <artifactId>dbupdate-master</artifactId>
     <packaging>pom</packaging>
-    <version>2.1.24</version>
+    <version>2.1.25</version>
 
     <name>IntAct Database Update</name>
     <description>Database Update Master POM</description>
@@ -25,7 +25,7 @@
         <uniprot.japi.version>1.0.25</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
         <chebi.ws.version>2.3.2</chebi.ws.version>
-        <jami.version>3.2.2</jami.version>
+        <jami.version>3.2.3</jami.version>
 
         <!--intact-tools-->
     </properties>
