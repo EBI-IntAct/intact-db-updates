@@ -20,12 +20,12 @@
 
     <properties>
         <core.version>2.6.12</core.version>
-        <bridges.version>2.1.28</bridges.version>
-        <intact.tools.version>1.0.15</intact.tools.version>
-        <uniprot.japi.version>1.0.25</uniprot.japi.version>
+        <bridges.version>2.1.29</bridges.version>
+        <intact.tools.version>1.0.16</intact.tools.version>
+        <uniprot.japi.version>1.0.27</uniprot.japi.version>
         <spring.version>3.2.9.RELEASE</spring.version>
         <chebi.ws.version>2.3.2</chebi.ws.version>
-        <jami.version>3.2.3</jami.version>
+        <jami.version>3.2.4</jami.version>
 
         <!--intact-tools-->
     </properties>
