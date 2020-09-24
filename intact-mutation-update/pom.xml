@@ -35,7 +35,7 @@
                             <executable>java</executable>
                             <arguments>
                                 <argument>-Xms256m</argument>
-                                <argument>-Xmx8096m</argument>
+                                <argument>-Xmx24288m</argument>
                                 <argument>-XX:+UseConcMarkSweepGC</argument>
 
                                 <argument>-classpath</argument>
