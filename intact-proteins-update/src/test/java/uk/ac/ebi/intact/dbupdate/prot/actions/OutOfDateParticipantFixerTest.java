@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Tester of OutOfDateParticipantFixerImpl
+ * Tester of OutOfDateParticipantFixer
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -40,10 +40,10 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
 
-    private OutOfDateParticipantFixerImpl participantFixer;
+    private OutOfDateParticipantFixer participantFixer;
     @Before
     public void setUp(){
-        participantFixer = new OutOfDateParticipantFixerImpl(new RangeFixerImpl());
+        participantFixer = new OutOfDateParticipantFixer(new RangeFixer());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -108,7 +108,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript = participantFixer.createDeprecatedProtein(evt);
 
         Assert.assertNotNull(proteinTranscript);
-        Assert.assertNull(proteinTranscript.getUniprotVariant());
+        Assert.assertNull(proteinTranscript.getUniprotProteinTranscript());
         Assert.assertEquals(1, primary.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript.getProtein().getActiveInstances().size());
         Assert.assertTrue(hasAnnotation(proteinTranscript.getProtein(), null, CvTopic.NON_UNIPROT));
@@ -226,7 +226,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
-        Assert.assertNull(proteinTranscript.getUniprotVariant());
+        Assert.assertNull(proteinTranscript.getUniprotProteinTranscript());
         Assert.assertEquals(1, primary.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript.getProtein().getActiveInstances().size());
         Assert.assertTrue(hasAnnotation(proteinTranscript.getProtein(), null, CvTopic.NON_UNIPROT));
@@ -310,7 +310,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
-        Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
+        Assert.assertEquals(variant, proteinTranscript.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript.getProtein().getActiveInstances().size());
@@ -328,7 +328,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
-        Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());
+        Assert.assertEquals(chain, proteinTranscript2.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryChain.getActiveInstances().size());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript2.getProtein().getActiveInstances().size());
@@ -394,9 +394,9 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionIsoform = getMockBuilder().createInteraction(primaryIsoform, random1);
         Interaction interactionChain = getMockBuilder().createInteraction(primaryChain, random2);
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variant));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(featureChain, chain));
 
         RangeUpdateReport reportIsoform = new RangeUpdateReport();
@@ -431,7 +431,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
-        Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
+        Assert.assertEquals(variant, proteinTranscript.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
         Assert.assertEquals(isoform.getAc(), proteinTranscript.getProtein().getAc());
@@ -445,7 +445,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
-        Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());
+        Assert.assertEquals(chain, proteinTranscript2.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryChain.getActiveInstances().size());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(featureChain.getAc(), proteinTranscript2.getProtein().getAc());
@@ -508,9 +508,9 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         Interaction interactionIsoform = getMockBuilder().createInteraction(primaryIsoform, random1);
         Interaction interactionChain = getMockBuilder().createInteraction(primaryChain, random2);
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variant));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(featureChain, chain));
 
         RangeUpdateReport reportIsoform = new RangeUpdateReport();
@@ -545,7 +545,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript = participantFixer.fixParticipantWithRangeConflicts(evt, true, true);
 
         Assert.assertNotNull(proteinTranscript);
-        Assert.assertEquals(variant, proteinTranscript.getUniprotVariant());
+        Assert.assertEquals(variant, proteinTranscript.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(1, primaryChain.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript.getProtein().getActiveInstances().size());
@@ -564,7 +564,7 @@ public class OutOfDateParticipantFixerTest  extends IntactBasicTestCase {
         ProteinTranscript proteinTranscript2 = participantFixer.fixParticipantWithRangeConflicts(evt2, true, true);
 
         Assert.assertNotNull(proteinTranscript2);
-        Assert.assertEquals(chain, proteinTranscript2.getUniprotVariant());
+        Assert.assertEquals(chain, proteinTranscript2.getUniprotProteinTranscript());
         Assert.assertEquals(0, primaryChain.getActiveInstances().size());
         Assert.assertEquals(0, primaryIsoform.getActiveInstances().size());
         Assert.assertEquals(1, proteinTranscript2.getProtein().getActiveInstances().size());

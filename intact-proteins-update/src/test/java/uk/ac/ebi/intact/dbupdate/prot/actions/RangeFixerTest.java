@@ -13,8 +13,8 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.model.*;
@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Tester of RangeFixerImpl
+ * Tester of RangeFixer
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -37,10 +37,10 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class RangeFixerTest extends IntactBasicTestCase {
 
-    private RangeFixerImpl rangeFixer;
+    private RangeFixer rangeFixer;
     @Before
     public void setUp(){
-        rangeFixer = new RangeFixerImpl();
+        rangeFixer = new RangeFixer();
 
         TransactionStatus status = getDataContext().beginTransaction();
 

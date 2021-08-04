@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.IntactTranscriptParentUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.IntactTranscriptParentUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.CvDatabase;
@@ -37,10 +37,10 @@ import java.util.List;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
-    private IntactTranscriptParentUpdaterImpl intactUpdater;
+    private IntactTranscriptParentUpdater intactUpdater;
     @Before
     public void setUp(){
-        intactUpdater = new IntactTranscriptParentUpdaterImpl();
+        intactUpdater = new IntactTranscriptParentUpdater();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -80,7 +80,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
         Assert.assertTrue(hasXRef(parentToFind, oldParent, CvDatabase.INTACT, "intact-secondary"));
         Assert.assertEquals(0, context.getDaoFactory().getProteinDao().getSpliceVariants(parentToFind).size());
 
-        List<Protein> transcriptsToReview = new ArrayList<Protein>();
+        List<Protein> transcriptsToReview = new ArrayList<>();
         intactUpdater.checkConsistencyProteinTranscript(new ProteinEvent(new ProteinUpdateProcessor(), context, isoform), transcriptsToReview);
 
         Assert.assertTrue(hasXRef(isoform, parentToFind.getAc(), CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
@@ -97,7 +97,6 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
         TransactionStatus status = context.beginTransaction();
 
         CvDatabase intact = context.getDaoFactory().getCvObjectDao(CvDatabase.class).getByPsiMiRef(CvDatabase.INTACT_MI_REF);
-        CvXrefQualifier intactSecondary = context.getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByShortLabel("intact-secondary");
         CvXrefQualifier isoformParent = context.getDaoFactory().getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
 
         Protein isoform = getMockBuilder().createProtein("P12345-1", "isoform");
@@ -110,7 +109,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
         Assert.assertTrue(hasXRef(isoform, oldParent, CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));
 
-        List<Protein> transcriptsToReview = new ArrayList<Protein>();
+        List<Protein> transcriptsToReview = new ArrayList<>();
         boolean canUpdate = intactUpdater.checkConsistencyProteinTranscript(new ProteinEvent(new ProteinUpdateProcessor(), context, isoform), transcriptsToReview);
 
         Assert.assertTrue(canUpdate);
@@ -137,7 +136,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
         getCorePersister().saveOrUpdate(parentToFind);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(parentToFind);
 
         Protein isoform = getMockBuilder().createProtein("P12345-1", "isoform");
@@ -145,7 +144,7 @@ public class IntactParentUpdaterTest extends IntactBasicTestCase {
 
         getCorePersister().saveOrUpdate(isoform);
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, null));
 
         Assert.assertTrue(hasXRef(isoform, oldParent, CvDatabase.INTACT, CvXrefQualifier.ISOFORM_PARENT));

@@ -14,8 +14,8 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinMapperImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.mappers.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -37,7 +37,7 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
     public void setUp(){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setBlastEnabled(false);
-        mapper = new UniprotProteinMapperImpl(config.getUniprotService());
+        mapper = new UniprotProteinMapper(config.getUniprotService());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -78,7 +78,7 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
         protein.getXrefs().clear();
 
         Annotation noUniprotUpdate = getMockBuilder().createAnnotation(null, null, "no-uniprot-update");
-        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixerImpl.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixer.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         protein.addAnnotation(noUniprotUpdate);
         protein.addAnnotation(caution);
 
@@ -117,13 +117,13 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
                 "AHHSQQQQQLQQQQHHQQQQQHSHQQQQQHLLSSVTITPNFHPAQQQHHHQPMRGHQQQH" +
                 "PQTTAGNMVAQNNSNNHSNGSNPLQQQQHMAQQVAVKHTPHSPGKRTRGENKKCRKVYGM" +
                 "EKRDQWCTQCRWKKACSRFGD";
-        String ac = "Q9VH52";
+
         Protein protein = getMockBuilder().createProtein("P12345", "prot");
         protein.getBioSource().setTaxId( "7227");
         protein.setSequence(sequence);
 
         Annotation noUniprotUpdate = getMockBuilder().createAnnotation(null, null, "no-uniprot-update");
-        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixerImpl.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixer.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         protein.addAnnotation(noUniprotUpdate);
         protein.addAnnotation(caution);
 
@@ -167,7 +167,7 @@ public class UniprotProteinMapperTest extends IntactBasicTestCase {
         protein.getXrefs().clear();
 
         Annotation noUniprotUpdate = getMockBuilder().createAnnotation(null, null, "no-uniprot-update");
-        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixerImpl.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
+        Annotation caution = getMockBuilder().createAnnotation(DeadUniprotProteinFixer.CAUTION_OBSOLETE, CvTopic.CAUTION_MI_REF, CvTopic.CAUTION);
         protein.addAnnotation(noUniprotUpdate);
         protein.addAnnotation(caution);
 

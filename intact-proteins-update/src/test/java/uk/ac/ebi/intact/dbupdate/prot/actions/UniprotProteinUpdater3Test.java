@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -38,11 +38,11 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
-    private UniprotProteinUpdaterImpl updater;
+    private UniprotProteinUpdater updater;
 
     @Before
     public void before() throws Exception {
-        updater = new UniprotProteinUpdaterImpl(new OutOfDateParticipantFixerImpl(new RangeFixerImpl()));
+        updater = new UniprotProteinUpdater(new OutOfDateParticipantFixer(new RangeFixer()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -76,7 +76,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -126,7 +126,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -193,7 +193,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -271,7 +271,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -348,7 +348,7 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -414,23 +414,4 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
         return hasFoundAlias;
     }
 
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
-    }
 }

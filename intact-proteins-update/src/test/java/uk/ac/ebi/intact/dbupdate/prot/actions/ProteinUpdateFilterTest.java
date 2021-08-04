@@ -11,11 +11,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.filters.ProteinUpdateFilter;
+import uk.ac.ebi.intact.dbupdate.prot.actions.mappers.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProteinUpdateFilterImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinMapperImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Tester of the ProteinUpdateFilterImpl
+ * Tester of the ProteinUpdateFilter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -36,11 +35,11 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
-    ProteinUpdateFilterImpl filter;
+    ProteinUpdateFilter filter;
 
     @Before
     public void before() throws Exception {
-        filter = new ProteinUpdateFilterImpl(new UniprotProteinMapperImpl(new UniprotRemoteService()));
+        filter = new ProteinUpdateFilter(new UniprotProteinMapper(new UniprotRemoteService()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -66,7 +65,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProteinRandom();
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
@@ -92,7 +91,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
@@ -117,10 +116,10 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         ref.setCvDatabase(getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.INTACT_MI_REF, CvDatabase.INTACT));
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
-        
+
         Assert.assertFalse(ProteinTools.hasUniqueDistinctUniprotIdentity(prot));
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
 
         String uniprotIdentity = filter.filterOnUniprotIdentity(evt);
@@ -143,10 +142,10 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
         prot.addXref(getMockBuilder().createIdentityXref(prot, "P12345", getMockBuilder().createCvObject(CvDatabase.class, CvDatabase.UNIPROT_MI_REF, CvDatabase.UNIPROT)));
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
-        
+
         Assert.assertEquals(2, ProteinTools.getAllUniprotIdentities(prot).size());
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
 
@@ -180,19 +179,19 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         Assert.assertEquals(6, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(prot);
         primaryProteins.add(prot3);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(prot2);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(prot4, null));
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot5, null));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(prot6, null));
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
                 secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
@@ -239,19 +238,19 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         Assert.assertEquals(6, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(prot);
         primaryProteins.add(prot3);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(prot2);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(prot4, null));
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot5, null));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(prot6, null));
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
                 secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
@@ -305,19 +304,19 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         Assert.assertEquals(6, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(prot);
         primaryProteins.add(prot3);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(prot2);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(prot4, null));
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot5, null));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(prot6, null));
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
                 secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");
@@ -341,7 +340,7 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
     @Test
     @DirtiesContext
-    @Transactional(propagation = Propagation.NEVER)    
+    @Transactional(propagation = Propagation.NEVER)
     /**
      * The protein has several uniprot identities, doesn't pass the filter
      */
@@ -367,19 +366,19 @@ public class ProteinUpdateFilterTest extends IntactBasicTestCase {
 
         Assert.assertEquals(6, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(prot);
         primaryProteins.add(prot3);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(prot2);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(prot4, null));
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot5, null));
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(prot6, null));
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
 
         UpdateCaseEvent evt = new UpdateCaseEvent(processor, IntactContext.getCurrentInstance().getDataContext(), null, primaryProteins,
                 secondaryProteins, primaryIsoforms, secondaryIsoforms, primaryChains, "P12345");

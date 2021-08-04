@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.deleters.ProtWithoutInteractionDeleter;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProtWithoutInteractionDeleterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Second tester of ProtWithoutInteractionDeleterImpl
+ * Second tester of ProtWithoutInteractionDeleter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -36,10 +36,10 @@ import java.util.Set;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
 
-    private ProtWithoutInteractionDeleterImpl deleter;
+    private ProtWithoutInteractionDeleter deleter;
     @Before
     public void before_schema() throws Exception {
-        deleter = new ProtWithoutInteractionDeleterImpl();
+        deleter = new ProtWithoutInteractionDeleter();
 
         TransactionStatus status = getDataContext().beginTransaction();
 
@@ -88,11 +88,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getProteinChains(masterProt).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryFeatureChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryFeatureChains = new ArrayList<>();
         primaryFeatureChains.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -146,11 +146,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getSpliceVariants(masterProt).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -198,9 +198,9 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(0, getDaoFactory().getProteinDao().getSpliceVariants(masterProt).size());
         Assert.assertEquals(0, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -251,11 +251,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(0, getDaoFactory().getInteractionDao().countAll());
 
         // isDeleteProteinTranscriptWhitoutInteractions = true
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -277,11 +277,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         // isDeleteProteinTranscriptWhitoutInteractions = false
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        Collection<Protein> primaryProteins2 = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins2 = new ArrayList<>();
         primaryProteins2.add(masterProt);
-        Collection<Protein> secondaryProteins2 = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins2 = new ArrayList<>();
         secondaryProteins2.add(randomProt);
-        Collection<ProteinTranscript> primaryChains2 = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains2 = new ArrayList<>();
         primaryChains2.add(new ProteinTranscript(chain, null));
 
         UpdateCaseEvent evt2 = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -337,11 +337,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(0, getDaoFactory().getInteractionDao().countAll());
 
         // isDeleteProteinTranscriptWhitoutInteractions = true
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -363,11 +363,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         // isDeleteProteinTranscriptWhitoutInteractions = false
         config.setDeleteProteinTranscriptWithoutInteractions(false);
 
-        Collection<Protein> primaryProteins2 = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins2 = new ArrayList<>();
         primaryProteins2.add(masterProt);
-        Collection<Protein> secondaryProteins2 = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins2 = new ArrayList<>();
         secondaryProteins2.add(randomProt);
-        Collection<ProteinTranscript> primaryIsoforms2 = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms2 = new ArrayList<>();
         primaryIsoforms2.add(new ProteinTranscript(spliceVar1, null));
 
         UpdateCaseEvent evt2 = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
@@ -426,11 +426,11 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getProteinChains(masterProt).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryFeatureChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryFeatureChains = new ArrayList<>();
         primaryFeatureChains.add(new ProteinTranscript(chain, null));
         primaryFeatureChains.add(new ProteinTranscript(chain2, null));
 
@@ -487,13 +487,13 @@ public class ProtWithoutInteractionDeleter2Test  extends IntactBasicTestCase {
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getSpliceVariants(masterProt).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(spliceVar1, null));
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(spliceVar2, null));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),
