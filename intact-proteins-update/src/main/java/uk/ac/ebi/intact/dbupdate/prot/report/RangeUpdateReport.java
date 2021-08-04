@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot;
+package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
@@ -20,9 +20,9 @@ import java.util.Map;
 
 public class RangeUpdateReport {
 
-    private Map<Component, Collection<InvalidRange>> invalidComponents = new HashMap<Component, Collection<InvalidRange>>();
-    private Map<String, AnnotationUpdateReport> updatedFeatureAnnotations = new HashMap<String, AnnotationUpdateReport>();
-    private Collection<UpdatedRange> shiftedRanges = new ArrayList<UpdatedRange>();
+    private Map<Component, Collection<InvalidRange>> invalidComponents = new HashMap<>();
+    private Map<String, AnnotationUpdateReport> updatedFeatureAnnotations = new HashMap<>();
+    private Collection<UpdatedRange> shiftedRanges = new ArrayList<>();
 
     public Map<Component, Collection<InvalidRange>> getInvalidComponents() {
         return invalidComponents;
