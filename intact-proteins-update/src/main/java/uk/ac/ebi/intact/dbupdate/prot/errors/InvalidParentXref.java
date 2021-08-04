@@ -33,15 +33,8 @@ public class InvalidParentXref extends DefaultProteinUpdateError implements Inta
             return this.errorMessage;
         }
 
-        StringBuffer error = new StringBuffer();
-        error.append("The protein ");
-        error.append(proteinAc);
-        error.append(" has a parent cross reference to the protein ");
-        error.append(invalidParent);
-        error.append(" which is not valid because ");
-        error.append(this.errorMessage);
-
-        return error.toString();
+        return "The protein " + proteinAc + " has a parent cross reference to the protein " + invalidParent +
+                " which is not valid because " + this.errorMessage;
     }
 
     @Override

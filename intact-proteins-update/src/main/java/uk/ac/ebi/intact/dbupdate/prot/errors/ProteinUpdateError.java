@@ -10,6 +10,6 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
 
 public interface ProteinUpdateError {
 
-    public UpdateError getErrorLabel();
-    public String getErrorMessage();
+    UpdateError getErrorLabel();
+    String getErrorMessage();
 }

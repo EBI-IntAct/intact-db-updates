@@ -10,8 +10,8 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
 
 public class NonExistingMasterProtein extends DeadUniprotAc {
 
-    private String transcriptUniprotAc;
-    private String transcriptIntactAc;
+    private final String transcriptUniprotAc;
+    private final String transcriptIntactAc;
 
     public NonExistingMasterProtein(String proteinAc, String deadMasterAc, String transcriptUniprotAc, String transcriptIntactAc) {
         super(UpdateError.dead_protein_with_transcripts_not_dead, proteinAc, deadMasterAc);
@@ -34,7 +34,7 @@ public class NonExistingMasterProtein extends DeadUniprotAc {
             return "";
         }
 
-        StringBuffer error = new StringBuffer();
+        StringBuilder error = new StringBuilder();
         error.append("The protein transcript ");
         error.append(proteinAc);
         error.append(" refers to a valid uniprot entry ");

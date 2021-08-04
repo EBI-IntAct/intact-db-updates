@@ -41,17 +41,8 @@ public class OrganismConflict extends DefaultProteinUpdateError implements Intac
             return super.getErrorMessage();
         }
 
-        StringBuffer error = new StringBuffer();
-        error.append("The protein ");
-        error.append(proteinAc);
-        error.append(" refers to taxId ");
-        error.append(wrongTaxId);
-        error.append(" but is associated with uniprot entry ");
-        error.append(this.uniprotAc);
-        error.append(" which refers to a different taxId ") ;
-        error.append(this.uniprotTaxId);;
-
-        return error.toString();
+        return "The protein " + proteinAc + " refers to taxId " + wrongTaxId + " but is associated with uniprot entry "
+                + this.uniprotAc + " which refers to a different taxId " + this.uniprotTaxId;
     }
 
     @Override

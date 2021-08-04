@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import org.junit.After;
@@ -25,7 +10,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
@@ -52,7 +36,7 @@ import java.util.Iterator;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     public void before() throws Exception {
@@ -74,6 +58,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
+    //This test fails usually if executed via maven test, but it works trough the intelliJ tests.
     public void simulation() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -243,8 +228,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         dupe3.setShortLabel("dupe3");
         dupe3.setCreated(dupe1.getCreated());
 
-        for (Iterator<InteractorXref> xrefIter = dupe3.getXrefs().iterator(); xrefIter.hasNext();) {
-            InteractorXref xref =  xrefIter.next();
+        for (InteractorXref xref : dupe3.getXrefs()) {
             if (CvDatabase.UNIPROT_MI_REF.equals(xref.getCvDatabase().getMiIdentifier())) {
                 xref.setPrimaryId("P12352");
             }
@@ -442,15 +426,11 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
     private static int countLinesInFile(File file) {
         int count = 0;
         try {
-            BufferedReader in = new BufferedReader(new FileReader(file));
-            try{
+            try (BufferedReader in = new BufferedReader(new FileReader(file))) {
                 String str;
                 while ((str = in.readLine()) != null) {
                     count++;
                 }
-            }
-            finally{
-                in.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

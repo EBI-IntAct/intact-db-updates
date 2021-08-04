@@ -44,7 +44,7 @@ public class FatalErrorDuringUpdate extends DefaultProteinUpdateError implements
             return super.getErrorMessage();
         }
 
-        StringBuffer error = new StringBuffer();
+        StringBuilder error = new StringBuilder();
         if (proteinAc != null){
             error.append("Impossible to update the protein ");
             error.append(proteinAc);

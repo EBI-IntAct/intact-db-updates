@@ -1,7 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.prot.event;
 
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 
 /**

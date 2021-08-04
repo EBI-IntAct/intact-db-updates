@@ -35,13 +35,7 @@ public class DeadUniprotAc extends DefaultProteinUpdateError implements IntactUp
             return "";
         }
 
-        StringBuffer error = new StringBuffer();
-        error.append("The protein ");
-        error.append(proteinAc);
-        error.append(" refers to a dead uniprot ac ");
-        error.append(deadUniprot);
-
-        return error.toString();
+        return "The protein " + proteinAc + " refers to a dead uniprot ac " + deadUniprot;
     }
 
     @Override

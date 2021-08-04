@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.util.protein.utils;
 
 import org.junit.Assert;
@@ -22,6 +7,10 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.Xref;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * TODO comment that class header
@@ -35,18 +24,19 @@ public class XrefUpdaterReportTest extends IntactBasicTestCase {
 
     @Test
     public void updated() {
-        Xref[] created = new Xref[0];
-        Xref[] deleted = new Xref[0];
+        Collection<Xref> created = Collections.emptyList();
+        Collection<Xref> deleted = Collections.emptyList();
 
         XrefUpdaterReport report = new XrefUpdaterReport(getMockBuilder().createProteinRandom(), created, deleted);
         Assert.assertFalse(report.isUpdated());
     }
-    
+
     @Test
     public void created() {
         Protein protein = getMockBuilder().createProteinRandom();
-        Xref[] created = new Xref[] { protein.getXrefs().iterator().next() };
-        Xref[] deleted = new Xref[0];
+        Collection<Xref> created = new ArrayList<>();
+        created.add(protein.getXrefs().iterator().next());
+        Collection<Xref> deleted = Collections.emptyList();
 
         XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());
@@ -55,18 +45,21 @@ public class XrefUpdaterReportTest extends IntactBasicTestCase {
     @Test
     public void deleted() {
         Protein protein = getMockBuilder().createProteinRandom();
-        Xref[] created = new Xref[0];
-        Xref[] deleted = new Xref[] { protein.getXrefs().iterator().next() };
+        Collection<Xref> created = Collections.emptyList();
+        Collection<Xref> deleted = new ArrayList<>();
+        deleted.add(protein.getXrefs().iterator().next());
 
         XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());
     }
-    
+
     @Test
     public void created_deleted() {
         Protein protein = getMockBuilder().createProteinRandom();
-        Xref[] created = new Xref[] { protein.getXrefs().iterator().next() };
-        Xref[] deleted = new Xref[] { protein.getXrefs().iterator().next() };
+        Collection<Xref> created = new ArrayList<>();
+        created.add(protein.getXrefs().iterator().next());
+        Collection<Xref> deleted = new ArrayList<>();
+        deleted.add(protein.getXrefs().iterator().next());
 
         XrefUpdaterReport report = new XrefUpdaterReport(protein, created, deleted);
         Assert.assertTrue(report.isUpdated());

@@ -10,5 +10,5 @@ package uk.ac.ebi.intact.dbupdate.prot.errors;
 
 public interface IntactUpdateError extends ProteinUpdateError{
 
-    public String getProteinAc();
+    String getProteinAc();
 }

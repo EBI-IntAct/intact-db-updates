@@ -489,10 +489,6 @@ public class RangeChecker2Test extends IntactBasicTestCase {
 
         TransactionStatus status = getDataContext().beginTransaction();
 
-
-        String oldFeatureSequence = "BQKN";
-        //String newFeatureSequence = "AQKN";
-
         String previousSequence = "MMAVABQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
                 "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
                 "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +

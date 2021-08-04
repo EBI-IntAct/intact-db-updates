@@ -35,7 +35,7 @@ public class UniprotSequenceNull extends DefaultProteinUpdateError implements In
             return super.getErrorMessage();
         }
 
-        StringBuffer error = new StringBuffer();
+        StringBuilder error = new StringBuilder();
         error.append("The uniprot entry ");
         error.append(uniprotAc);
         error.append(" does not have a sequence ");

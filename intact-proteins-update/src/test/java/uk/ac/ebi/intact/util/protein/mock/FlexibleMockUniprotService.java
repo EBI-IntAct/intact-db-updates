@@ -22,7 +22,7 @@ import java.util.*;
  */
 public class FlexibleMockUniprotService extends AbstractUniprotService {
 
-    private Map<String, Collection<UniprotProtein>> proteins = new HashMap<String, Collection<UniprotProtein>>( );
+    private Map<String, Collection<UniprotProtein>> proteins = new HashMap<>();
 
     ////////////////////////////////////////////////
     // Control of proteins served by the service.
@@ -43,7 +43,7 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
     // AbstractUniprotService
 
     public Collection<UniprotProtein> retrieve( String ac ) {
-        Collection<UniprotProtein> myProteins = new ArrayList<UniprotProtein>( 2 );
+        Collection<UniprotProtein> myProteins = new ArrayList<>(2);
         if(proteins.containsKey(ac)){
             myProteins.addAll( proteins.get( ac ) );
         }
@@ -54,13 +54,9 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
         throw new UnsupportedOperationException();
     }
 
-    @Deprecated
-    public Collection<UniprotProtein> retreive(String s) {
-        return retrieve(s);
-    }
 
     public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs ) {
-        Map<String, Collection<UniprotProtein>> results = new HashMap<String, Collection<UniprotProtein>>( acs.size() );
+        Map<String, Collection<UniprotProtein>> results = new HashMap<>(acs.size());
         for ( String ac : acs ) {
             results.put( ac, retrieve( ac ) );
         }
@@ -68,12 +64,7 @@ public class FlexibleMockUniprotService extends AbstractUniprotService {
     }
 
     public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs, boolean processSpliceVars ) {
-        throw new UnsupportedOperationException();        
-    }
-
-    @Deprecated
-    public Map<String, Collection<UniprotProtein>> retreive(Collection<String> strings){
-        return retrieve(strings);
+        throw new UnsupportedOperationException();
     }
 
     @Override

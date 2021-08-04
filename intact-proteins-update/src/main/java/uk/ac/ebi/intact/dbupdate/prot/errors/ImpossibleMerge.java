@@ -36,10 +36,10 @@ public class ImpossibleMerge extends DefaultProteinUpdateError implements Intact
             return super.getErrorMessage();
         }
 
-        StringBuffer error = new StringBuffer();
+        StringBuilder error = new StringBuilder();
         error.append("The protein ");
         error.append(proteinAc != null ? proteinAc : "");
-        error.append(" having uniprot ac "+uniprotAc);
+        error.append(" having uniprot ac ").append(uniprotAc);
         error.append(" could not be merged ");
 
         if (originalProtein != null){
@@ -55,7 +55,7 @@ public class ImpossibleMerge extends DefaultProteinUpdateError implements Intact
 
     @Override
     public String getProteinAc() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return this.proteinAc;
     }
 
     @Override
