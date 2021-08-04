@@ -115,38 +115,6 @@ public class MockUniprotProtein {
                 .build();
     }
 
-    public static UniprotProtein build_CDC42_CANFA_WITH_NO_SPLICE_VARIANT() {
-        return new UniprotProteinBuilder()
-                .setSource( UniprotProteinType.SWISSPROT )
-                .setId( CANFA_ID )
-                .setPrimaryAc( CANFA_PRIMARY_AC )
-                .setSecondaryAcs( Arrays.asList( CANFA_SECONDARY_AC_1, CANFA_SECONDARY_AC_2 ) )
-                .setOrganism( new Organism( CANFA_ORGA_TAXID, CANFA_ORGA_NAME ) )
-                .setDescription( CANFA_DESCRIPTION )
-                .setGenes( Arrays.asList( CANFA_GENE ) )
-                .setSynomyms( NONE )
-                .setOrfs( NONE )
-                .setLocuses( NONE )
-                .setLastSequenceUpdate( buildDate( CANFA_SEQ_UPDATE ) )
-                .setLastAnnotationUpdate( buildDate( CANFA_ANNOT_UPDATE ) )
-                .setDiseases( NONE )
-                .setFunctions( NONE )
-                .setKeywords( NONE )
-                .setCrossReferences(
-                        new UniprotProteinXrefBuilder()
-                                .add( "IPR003578", "InterPro", "GTPase_Rho" )
-                                .add( "IPR013753", "InterPro", "Ras" )
-                                .add( "IPR001806", "InterPro", "Ras_trnsfrmng" )
-                                .add( "IPR005225", "InterPro", "Small_GTP_bd" )
-                                .build()
-                )
-                .setCrc64( "34B44F9225EC106B" )
-                .setSequence( CANFA_SEQUENCE )
-                .setSpliceVariants(null)
-                .setFeatureChains( null )
-                .build();
-    }
-
     public static UniprotProtein build_CDC42_HUMAN() {
         return new UniprotProteinBuilder()
                 .setSource( UniprotProteinType.SWISSPROT )
