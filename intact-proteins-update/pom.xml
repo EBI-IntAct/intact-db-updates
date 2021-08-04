@@ -10,7 +10,7 @@
 
     <artifactId>intact-proteins-update</artifactId>
     <name>IntAct Database Update :: Proteins Update</name>
-    
+
     <properties>
         <folder>/ebi/sp/pro6/intact/local/data/protein-update-report/</folder>
         <blast>false</blast>
@@ -22,10 +22,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>-Xms128m -Xmx256m</argLine>
-                    <forkMode>pertest</forkMode>
-                </configuration>
             </plugin>
         </plugins>
     </build>
