@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeletedComponentEvent;
@@ -236,11 +236,6 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
     }
 
     @Override
-    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-        // the listener does not take into account this event as it is taken into account when processing onDuplicateFound events and onUpdateCase events
-    }
-
-    @Override
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
         // the listener does not take into account this event as it is taken into account when processing onOutOfDateParticipant events
     }
@@ -352,7 +347,7 @@ public class EventPersisterListener implements ProteinUpdateProcessorListener {
             InteractorXref oldPrimary = ProteinUtils.getUniprotXref(prot);
             String oldAc = oldPrimary != null ? oldPrimary.getPrimaryId() : null;
 
-            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, oldAc, protTrans.getUniprotVariant().getPrimaryAc());
+            SecondaryProteinEvent protEvt = new SecondaryProteinEvent(updateProcess, prot, oldAc, protTrans.getUniprotProteinTranscript().getPrimaryAc());
 
             IntactUpdateContext.getCurrentInstance().getUpdateFactory().getSecondaryProteinEventDao().persist(protEvt);
         }

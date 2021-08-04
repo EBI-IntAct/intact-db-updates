@@ -7,7 +7,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
@@ -40,7 +39,7 @@ import java.util.List;
 @ContextConfiguration(locations = {"classpath*:/META-INF/db-update-test.spring.xml"})
 public class EventPersisterListener3Test extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     @Transactional(propagation = Propagation.NEVER)
