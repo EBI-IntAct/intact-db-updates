@@ -1,6 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.prot.util;
 
-import org.hibernate.Hibernate;
 import uk.ac.ebi.intact.commons.util.DiffUtils;
 import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.commons.util.diff.Operation;
@@ -9,15 +8,11 @@ import uk.ac.ebi.intact.core.persistence.dao.AliasDao;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
-import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 
 import java.util.*;
 
@@ -31,12 +26,6 @@ public class ProteinTools {
 
     private ProteinTools() {}
 
-    public static void moveInteractionsBetweenProteins(Protein destinationProtein, Collection<? extends Protein> sourceProteins, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
-        for (Protein sourceProtein : sourceProteins) {
-            moveInteractionsBetweenProteins(destinationProtein, sourceProtein, context, processor, primaryUniprot);
-        }
-    }
-
     /**
      * Move the interactions attached to the source protein to the destination protein
      * @param destinationProtein : protein where to move the interactions
@@ -45,36 +34,9 @@ public class ProteinTools {
      */
     public static Set<String> moveInteractionsBetweenProteins(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, String primaryUniprot) {
 
-        List<Component> componentsToMove = new ArrayList<Component>(sourceProtein.getActiveInstances());
+        List<Component> componentsToMove = new ArrayList<>(sourceProtein.getActiveInstances());
 
         return ComponentTools.moveComponents(destinationProtein, sourceProtein, context, processor, componentsToMove, primaryUniprot);
-    }
-
-    /**
-     * Copy the non identity cross reference from a source protein to a destination protein
-     * @param destinationProtein
-     * @param sourceProtein
-     * @return the list of cross references we copied
-     */
-    public static List<InteractorXref> copyNonIdentityXrefs(Protein destinationProtein, Protein sourceProtein) {
-        List<InteractorXref> copied = new ArrayList<InteractorXref>();
-
-        for (InteractorXref xref : sourceProtein.getXrefs()) {
-
-            if (xref.getCvXrefQualifier() != null && CvXrefQualifier.IDENTITY_MI_REF.equals(xref.getCvXrefQualifier().getIdentifier())) {
-                continue;
-            }
-            if (!destinationProtein.getXrefs().contains(xref)) {
-                final InteractorXref clonedXref = new InteractorXref(xref.getOwner(), xref.getCvDatabase(),
-                        xref.getPrimaryId(), xref.getSecondaryId(),
-                        xref.getDbRelease(), xref.getCvXrefQualifier());
-
-                destinationProtein.addXref(clonedXref);
-                copied.add(xref);
-            }
-        }
-
-        return copied;
     }
 
     /**
@@ -108,8 +70,8 @@ public class ProteinTools {
      * @return the set of distinct uniprot identities attached to this protein
      */
     public static Set<InteractorXref> getDistinctUniprotIdentities(Protein prot){
-        Set<InteractorXref> uniprotIdentities = new HashSet<InteractorXref>(prot.getXrefs().size());
-        Set<String> uniqueUniprotAc = new HashSet<String>(prot.getXrefs().size());
+        Set<InteractorXref> uniprotIdentities = new HashSet<>(prot.getXrefs().size());
+        Set<String> uniqueUniprotAc = new HashSet<>(prot.getXrefs().size());
 
         for (InteractorXref ref : prot.getXrefs()){
             CvDatabase database = ref.getCvDatabase();
@@ -138,7 +100,7 @@ public class ProteinTools {
      */
     public static List<InteractorXref> getAllUniprotIdentities(Protein prot){
         final List<InteractorXref> identities = ProteinUtils.getIdentityXrefs( prot );
-        List<InteractorXref> uniprotIdentities = new ArrayList<InteractorXref>();
+        List<InteractorXref> uniprotIdentities = new ArrayList<>();
 
         for (InteractorXref ref : identities){
             CvDatabase database = ref.getCvDatabase();
@@ -165,19 +127,6 @@ public class ProteinTools {
         return true;
     }
 
-    public static void filterNonUniprotAndMultipleUniprot(Collection<ProteinImpl> primaryProteins) {
-        for (Iterator<ProteinImpl> proteinIterator = primaryProteins.iterator(); proteinIterator.hasNext();) {
-            ProteinImpl protein = proteinIterator.next();
-
-            if (!ProteinUtils.isFromUniprot(protein)) {
-                proteinIterator.remove();
-            }
-            else if (!ProteinTools.hasUniqueDistinctUniprotIdentity(protein)){
-                proteinIterator.remove();
-            }
-        }
-    }
-
     /**
      * Will add intact secondary xref to the destination protein. Will copy all previous intact-secondary xref from source
      * protein to destination protein and return them.
@@ -188,7 +137,7 @@ public class ProteinTools {
      */
     public static Collection<InteractorXref> addIntactSecondaryReferences(Protein original, Protein duplicate, DaoFactory factory){
 
-        Collection<InteractorXref> addedIntactSecondary = new ArrayList<InteractorXref>();
+        Collection<InteractorXref> addedIntactSecondary = new ArrayList<>();
 
         // create an "intact-secondary" xref to the protein to be kept.
         // This will allow the user to search using old ACs
@@ -212,7 +161,7 @@ public class ProteinTools {
             factory.getCvObjectDao(CvXrefQualifier.class).saveOrUpdate(intactSecondary);
         }
 
-        List<String> existingSecondaryAcs = new ArrayList<String>();
+        List<String> existingSecondaryAcs = new ArrayList<>();
 
         for (InteractorXref ref : original.getXrefs()){
             if (ref.getCvDatabase() != null){
@@ -238,7 +187,7 @@ public class ProteinTools {
             original.addXref(xref);
         }
 
-        Collection<InteractorXref> refsToRemove = new ArrayList(duplicate.getXrefs());
+        Collection<InteractorXref> refsToRemove = new ArrayList<>(duplicate.getXrefs());
         for (InteractorXref ref : refsToRemove){
             if (ref.getCvDatabase() != null){
                 if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
@@ -265,33 +214,8 @@ public class ProteinTools {
         return addedIntactSecondary;
     }
 
-    public static void loadCollections(List<ProteinImpl> proteinsInIntact) {
-        for (Protein p : proteinsInIntact){
-            Hibernate.initialize(p.getXrefs());
-            Hibernate.initialize(p.getAnnotations());
-            Hibernate.initialize(p.getAliases());
-            for (Component c : p.getActiveInstances()){
-                Hibernate.initialize(c.getXrefs());
-                Hibernate.initialize(c.getAnnotations());
-
-                for (Feature f : c.getBindingDomains()){
-                    Hibernate.initialize(f.getAnnotations());
-                    Hibernate.initialize(f.getRanges());
-                    Hibernate.initialize(f.getAliases());
-                    Hibernate.initialize(f.getXrefs());
-                }
-
-                Hibernate.initialize(c.getExperimentalRoles());
-                Hibernate.initialize(c.getAliases());
-                Hibernate.initialize(c.getExperimentalPreparations());
-                Hibernate.initialize(c.getParameters());
-                Hibernate.initialize(c.getParticipantDetectionMethods());
-            }
-        }
-    }
-
     public static Collection<String> updateProteinTranscripts(DaoFactory factory, Protein originalProt, Protein duplicate) {
-        Collection<String> updatedTranscripts = new ArrayList<String>();
+        Collection<String> updatedTranscripts = new ArrayList<>();
 
         final List<ProteinImpl> isoforms = factory.getProteinDao().getSpliceVariants( duplicate );
 
@@ -364,7 +288,7 @@ public class ProteinTools {
     }
 
     public static void deleteInteractorXRef(Protein protein, DataContext context, InteractorXref xref) {
-        List<InteractorXref> xrefDuplicates = new ArrayList<InteractorXref>();
+        List<InteractorXref> xrefDuplicates = new ArrayList<>();
 
         for (InteractorXref ref : protein.getXrefs()){
             if (xref.equals(ref)){
@@ -410,7 +334,7 @@ public class ProteinTools {
     }
 
     public static void deleteAlias(Protein protein, DataContext context, InteractorAlias alias) {
-        List<InteractorAlias> aliasDuplicates = new ArrayList<InteractorAlias>();
+        List<InteractorAlias> aliasDuplicates = new ArrayList<>();
 
         for (InteractorAlias a : protein.getAliases()){
             if (alias.equals(a)){
@@ -456,7 +380,7 @@ public class ProteinTools {
     }
 
     public static void deleteAnnotation(AnnotatedObject ao, DataContext context, Annotation annotation) {
-        List<Annotation> annotationDuplicates = new ArrayList<Annotation>();
+        List<Annotation> annotationDuplicates = new ArrayList<>();
 
         for (Annotation a : ao.getAnnotations()){
             if (annotation.equals(a)){
@@ -514,134 +438,5 @@ public class ProteinTools {
             }
         }
         return false;
-    }
-
-    public static void processProteinMappingResults(UpdateCaseEvent caseEvent, Collection<Protein> proteinsToDelete, Protein protein, boolean isPrimary) {
-        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protein);
-
-        if (uniprotIdentity != null){
-            if (ProteinUtils.isSpliceVariant(protein)){
-                proteinsToDelete.add(protein);
-
-                boolean hasFoundSpliceVariant = false;
-                for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
-                    if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
-                        hasFoundSpliceVariant = true;
-                        break;
-                    }
-                    else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
-                        hasFoundSpliceVariant = true;
-                        break;
-                    }
-                }
-
-                if (!hasFoundSpliceVariant){
-                    caseEvent.getProteins().remove(protein.getAc());
-                }
-            }
-            else if (ProteinUtils.isFeatureChain(protein)){
-                proteinsToDelete.add(protein);
-
-                boolean hasFoundChain = false;
-                for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
-                    if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
-                        hasFoundChain = true;
-                        break;
-                    }
-                }
-
-                if (!hasFoundChain){
-                    caseEvent.getProteins().remove(protein.getAc());
-                }
-            }
-            else{
-                if (!caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-                    proteinsToDelete.add(protein);
-
-                    caseEvent.getProteins().remove(protein.getAc());
-                }
-                else if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId()) && isPrimary){
-                    proteinsToDelete.add(protein);
-
-                    caseEvent.getSecondaryProteins().add(protein);
-                }
-                else if (caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId()) && !isPrimary){
-                    proteinsToDelete.add(protein);
-
-                    caseEvent.getPrimaryProteins().add(protein);
-                }
-            }
-        }
-
-    }
-
-    public static void processProteinMappingResultsForTranscripts(UpdateCaseEvent caseEvent, Collection<ProteinTranscript> proteinsToDelete, ProteinTranscript proteinTranscript, boolean isSpliceVariant) {
-        Protein protein = proteinTranscript.getProtein();
-
-        InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(protein);
-
-        if (uniprotIdentity != null){
-            if (ProteinUtils.isSpliceVariant(protein)){
-
-                boolean hasFoundSpliceVariant = false;
-
-                for (UniprotSpliceVariant sv : caseEvent.getProtein().getSpliceVariants()){
-                    if (sv.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getPrimaryIsoforms().add(new ProteinTranscript(protein, sv));
-                        hasFoundSpliceVariant = true;
-                        break;
-                    }
-                    else if (sv.getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getSecondaryIsoforms().add(new ProteinTranscript(protein, sv));
-                        hasFoundSpliceVariant = true;
-                        break;
-                    }
-                }
-
-                if (!hasFoundSpliceVariant || !isSpliceVariant){
-                    proteinsToDelete.add(proteinTranscript);
-
-                    if (!hasFoundSpliceVariant){
-                        caseEvent.getProteins().remove(protein.getAc());
-                    }
-                }
-            }
-            else if (ProteinUtils.isFeatureChain(protein)){
-                boolean hasFoundChain = false;
-
-                for (UniprotFeatureChain fc : caseEvent.getProtein().getFeatureChains()){
-                    if (fc.getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-                        caseEvent.getPrimaryFeatureChains().add(new ProteinTranscript(protein, fc));
-                        hasFoundChain = true;
-                        break;
-                    }
-                }
-
-                if (!hasFoundChain || isSpliceVariant){
-                    proteinsToDelete.add(proteinTranscript);
-                    if (!hasFoundChain){
-                        caseEvent.getProteins().remove(protein.getAc());
-                    }
-                }
-            }
-            else{
-                proteinsToDelete.add(proteinTranscript);
-
-                if (caseEvent.getProtein().getSecondaryAcs().contains(uniprotIdentity.getPrimaryId())){
-
-                    caseEvent.getSecondaryProteins().add(protein);
-                }
-                else if (caseEvent.getProtein().getPrimaryAc().equalsIgnoreCase(uniprotIdentity.getPrimaryId())){
-
-                    caseEvent.getPrimaryProteins().add(protein);
-                }
-                else {
-                    caseEvent.getProteins().remove(protein.getAc());
-                }
-            }
-        }
     }
 }
