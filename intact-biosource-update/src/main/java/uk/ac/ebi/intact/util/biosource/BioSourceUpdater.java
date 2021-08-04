@@ -70,11 +70,11 @@ public class BioSourceUpdater {
             final CvTissue tissue = bs.getCvTissue();
 
             String log = bs.getAc() + "\t" +
-                       bs.getTaxId() + "\t" +
-                       bs.getShortLabel() + "\t" +
-                       bs.getFullName() + "\t" +
-                       (tissue==null?"-":tissue.getShortLabel()) + "\t" +
-                       (cellType==null?"-":cellType.getShortLabel()) + "\t";
+                    bs.getTaxId() + "\t" +
+                    bs.getShortLabel() + "\t" +
+                    bs.getFullName() + "\t" +
+                    (tissue==null?"-":tissue.getShortLabel()) + "\t" +
+                    (cellType==null?"-":cellType.getShortLabel()) + "\t";
 
 
             if( tissue != null && cellType != null ) {
@@ -112,9 +112,6 @@ public class BioSourceUpdater {
                 // fullName
                 if( tissue == null && cellType == null ) {
                     bs.setFullName( taxon.getScientificName() );
-                    if( taxon.getCommonName()!= null ) {
-                        bs.setFullName( bs.getFullName() + " ("+ taxon.getCommonName() +")" );
-                    }
                 }
 
                 // aliases
@@ -122,7 +119,7 @@ public class BioSourceUpdater {
                 if( ! taxon.getAliases().isEmpty() ) {
 
                     for ( final Alias synonym : taxon.getAliases() ) {
-                         bs.addAlias( new BioSourceAlias( bs.getOwner(), bs, synonymType, synonym.getName()) );
+                        bs.addAlias( new BioSourceAlias( bs.getOwner(), bs, synonymType, synonym.getName()) );
                     }
                 }
 
@@ -173,10 +170,10 @@ public class BioSourceUpdater {
 
     private static void printBiosource( BioSource bs, CvCellType cellType, CvTissue tissue ) {
         System.out.println( "Updating biosource: " + bs.getShortLabel() +
-                            "(taxid: " + bs.getTaxId() +
-                            " | CellType: " + (cellType != null ? cellType.getShortLabel() : "-") +
-                            " | Tissue: " + (tissue != null ? tissue.getShortLabel() : "-") +
-                            " | #alias: "+ bs.getAliases().size() +")" );
+                "(taxid: " + bs.getTaxId() +
+                " | CellType: " + (cellType != null ? cellType.getShortLabel() : "-") +
+                " | Tissue: " + (tissue != null ? tissue.getShortLabel() : "-") +
+                " | #alias: "+ bs.getAliases().size() +")" );
     }
 
     private static CvAliasType getOrCreateSynonymType( DaoFactory daoFactory ) {
@@ -203,7 +200,7 @@ public class BioSourceUpdater {
             throw new IllegalArgumentException( "You must give a non null identity" );
         }
 
-                synonymType = new CvAliasType( owner, "synonym" );
+        synonymType = new CvAliasType( owner, "synonym" );
         synonymType.setIdentifier( "MI:1041" );
         synonymType.addXref( new CvObjectXref(owner, psimi, "MI:1041", identity));
 
