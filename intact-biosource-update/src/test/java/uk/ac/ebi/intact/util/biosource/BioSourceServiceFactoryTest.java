@@ -14,7 +14,7 @@ import psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher;
 public class BioSourceServiceFactoryTest {
 
     @Test
-    public void testGetInstance() throws Exception {
+    public void testGetInstance() {
         BioSourceServiceFactory factory = BioSourceServiceFactory.getInstance();
         BioSourceService service = factory.buildBioSourceService( new MockOrganismFetcher() );
         Assert.assertNotNull( service );
@@ -28,10 +28,11 @@ public class BioSourceServiceFactoryTest {
     }
 
     @Test
-    public void testGetInstance_noParam() throws Exception {
+    public void testGetInstance_noParam() {
         // Test Spring bean injection
         BioSourceServiceFactory factory = BioSourceServiceFactory.getInstance();
         BioSourceService service = factory.buildBioSourceService();
-        Assert.assertNotNull( service );
+        Assert.assertNotNull(service);
+        Assert.assertTrue(service.getTaxonomyService() instanceof MockOrganismFetcher);
     }
 }
