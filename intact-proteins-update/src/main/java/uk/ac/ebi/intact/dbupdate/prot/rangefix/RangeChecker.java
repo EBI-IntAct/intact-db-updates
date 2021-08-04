@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import org.apache.commons.logging.Log;
@@ -22,7 +7,7 @@ import uk.ac.ebi.intact.commons.util.diff.Diff;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
@@ -94,7 +79,7 @@ public class RangeChecker {
 
         List<Diff> diffs = DiffUtils.diff(oldSequence, newSequence);
 
-        UpdatedRange updatedRange = null;
+        UpdatedRange updatedRange;
 
         if (!FeatureUtils.isABadRange(range, oldSequence)){
             Range oldRange = new Range(range.getFromCvFuzzyType(), range.getFromIntervalStart(), range.getFromIntervalEnd(), range.getToCvFuzzyType(), range.getToIntervalStart(), range.getToIntervalEnd(), null);
@@ -121,7 +106,7 @@ public class RangeChecker {
     public Collection<UpdatedRange> prepareFeatureSequences(Feature feature, String newSequence, DataContext context) {
         if (feature == null) throw new NullPointerException("Feature was null");
 
-        List<UpdatedRange> updatedRanges = new ArrayList<UpdatedRange>();
+        List<UpdatedRange> updatedRanges = new ArrayList<>();
 
         for (Range range : feature.getRanges()) {
             if (!FeatureUtils.isABadRange(range, newSequence)){
@@ -192,8 +177,6 @@ public class RangeChecker {
 
         // the old full feature sequence
         String oldFullFeatureSequence = range.getFullSequence();
-        // the old truncated sequence (100 aa)
-        String oldTruncatedFeatureSequence = range.getSequence();
 
         // case 'from': undetermined, cannot be shifted
         // if not undetermined, we have different cases.
@@ -720,9 +703,9 @@ public class RangeChecker {
             throw new IllegalArgumentException("The new protein sequence should not be null");
         }
 
-        Collection<InvalidRange> invalidRanges = new ArrayList<InvalidRange>();
+        Collection<InvalidRange> invalidRanges = new ArrayList<>();
 
-        List<Diff> diffs = new ArrayList<Diff>();
+        List<Diff> diffs = new ArrayList<>();
         if (oldSequence != null){
             diffs = DiffUtils.diff(oldSequence, newSequence);
         }
@@ -777,7 +760,7 @@ public class RangeChecker {
 
         InvalidRange invalidRange = null;
 
-        List<Diff> diffs = new ArrayList<Diff>();
+        List<Diff> diffs = new ArrayList<>();
         if (oldSequence != null){
             diffs = DiffUtils.diff(oldSequence, newSequence);
         }

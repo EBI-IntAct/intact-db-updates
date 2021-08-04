@@ -33,7 +33,7 @@ public class InvalidRange extends UpdatedRange{
      */
     String message;
 
-    boolean isOutOfDate = false;
+    boolean isOutOfDate;
 
     private String fromStatus;
     private String toStatus;
@@ -47,33 +47,6 @@ public class InvalidRange extends UpdatedRange{
         this.sequence = sequence;
         this.message = message;
         this.validSequenceVersion = -1;
-        this.uniprotAc = null;
-
-        this.fromStatus = fromStatus;
-        this.toStatus = toStatus;
-        this.isOutOfDate = outOfDate;
-
-        if (range != null){
-            oldPositions = FeatureUtils.convertRangeIntoString(range);
-        }
-        else{
-            oldPositions = null;
-        }
-
-        if (newRange != null){
-            newRangePositions = FeatureUtils.convertRangeIntoString(newRange);
-        }
-        else{
-            newRangePositions = null;
-        }
-    }
-
-    public InvalidRange(Range range, Range newRange, String sequence, String message, int sequenceVersion, String fromStatus, String toStatus, boolean outOfDate) {
-        super(range, newRange);
-
-        this.sequence = sequence;
-        this.message = message;
-        this.validSequenceVersion = sequenceVersion;
         this.uniprotAc = null;
 
         this.fromStatus = fromStatus;
@@ -131,16 +104,8 @@ public class InvalidRange extends UpdatedRange{
         return toStatus;
     }
 
-    public void setToStatus(String toStatus) {
-        this.toStatus = toStatus;
-    }
-
     public String getFromStatus() {
         return fromStatus;
-    }
-
-    public void setFromStatus(String fromStatus) {
-        this.fromStatus = fromStatus;
     }
 
     public boolean isOutOfDate() {

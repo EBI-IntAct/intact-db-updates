@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.logging.Log;
@@ -60,11 +45,6 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
         if (log.isDebugEnabled()) log.debug("Non-uniprot protein found: "+evt.getProtein().getShortLabel());
     }
 
-    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("Range ("+evt.getUpdatedRange().getNewRange().getAc()+
-                ") changed from "+evt.getUpdatedRange().getOldRange()+" to "+evt.getUpdatedRange().getNewRange());
-    }
-
     public void onInvalidRange(InvalidRangeEvent evt) throws ProcessorException {
         if (log.isDebugEnabled()) log.debug("Range "+evt.getInvalidRange().getRangeAc()+" wasn't updated because it " +
                 "is invalid (range "+evt.getInvalidRange().getOldRange()+")");
@@ -81,11 +61,11 @@ public class LoggingProcessorListener extends AbstractProteinUpdateProcessorList
     }
 
     public void onProcessErrorFound(UpdateErrorEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("An error of type " + evt.getError().toString() + " occured");        
+        if (log.isDebugEnabled()) log.debug("An error of type " + evt.getError().toString() + " occured");
     }
 
     public void onSecondaryAcsFound(UpdateCaseEvent evt) throws ProcessorException {
-        if (log.isDebugEnabled()) log.debug("We found "+evt.getSecondaryProteins().size()+" secondary proteins matching the uniprot Protein " + evt.getProtein().getPrimaryAc());        
+        if (log.isDebugEnabled()) log.debug("We found "+evt.getSecondaryProteins().size()+" secondary proteins matching the uniprot Protein " + evt.getProtein().getPrimaryAc());
     }
 
     public void onProteinTranscriptWithSameSequence(ProteinTranscriptWithSameSequenceEvent evt) throws ProcessorException{
