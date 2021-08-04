@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.fixers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -9,7 +9,6 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.DeadUniprotProteinFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.DeadUniprotEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
@@ -29,12 +28,12 @@ import java.util.List;
  * @since <pre>01-Oct-2010</pre>
  */
 
-public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
+public class DeadUniprotProteinFixer {
 
     /**
      * Logger for this class
      */
-    private static final Log log = LogFactory.getLog( DeadUniprotProteinFixerImpl.class );
+    private static final Log log = LogFactory.getLog( DeadUniprotProteinFixer.class );
 
     public static final String CAUTION_OBSOLETE = "The sequence has been withdrawn from uniprot.";
 
@@ -62,7 +61,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
             DeadUniprotEvent deadEvt = new DeadUniprotEvent(updateProcessor, evt.getDataContext(), evt.getProtein());
 
             // delete all other xrefs which are not intact or uniprot identity and update the uniprot identity
-            updateXRefs(protein, evt.getDataContext(), updateProcessor, deadEvt);
+            updateXRefs(protein, evt.getDataContext(), deadEvt);
 
             // log the dead protein in 'dead_proteins.csv'
             updateProcessor.fireOnUniprotDeadEntry(deadEvt);
@@ -134,7 +133,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
     private Collection<InteractorXref> retrieveDuplicateOfSameUniprotIdentity(List<InteractorXref> uniprotIdentities){
         InteractorXref original = XrefUpdaterUtils.getOlderUniprotIdentity(uniprotIdentities);
 
-        Collection<InteractorXref> deletedDuplicate = new ArrayList<InteractorXref>();
+        Collection<InteractorXref> deletedDuplicate = new ArrayList<>();
 
         if (original != null){
             for (InteractorXref ref : uniprotIdentities){
@@ -154,7 +153,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
      * This method removes all the cross references which are not intact cross references and replace the uniprot identity with 'uniprot-removed-ac'
      * @param protein : the dead protein in IntAct
      */
-    private void updateXRefs(Protein protein, DataContext context, ProteinUpdateProcessor processor, DeadUniprotEvent deadEvt){
+    private void updateXRefs(Protein protein, DataContext context, DeadUniprotEvent deadEvt){
 
         DaoFactory factory = context.getDaoFactory();
 
@@ -163,7 +162,7 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         List<InteractorXref> uniprotIdentities = ProteinTools.getAllUniprotIdentities(protein);
 
         // the collection of xrefs to delete
-        Collection<InteractorXref> xRefsToRemove = new ArrayList<InteractorXref>(protein.getXrefs().size());
+        Collection<InteractorXref> xRefsToRemove = new ArrayList<>(protein.getXrefs().size());
 
         // if we have more than one uniprot identity, merge the uniprot identities and keep the oldest xref
         if (uniprotIdentities.size() > 1){
@@ -240,8 +239,8 @@ public class DeadUniprotProteinFixerImpl implements DeadUniprotProteinFixer{
         }
 
         // we delete the xrefs to be deleted
-        for (Xref refToRemove : xRefsToRemove){
-            ProteinTools.deleteInteractorXRef(protein, context, (InteractorXref) refToRemove);
+        for (InteractorXref refToRemove : xRefsToRemove){
+            ProteinTools.deleteInteractorXRef(protein, context, refToRemove);
         }
 
         deadEvt.setDeletedXrefs(xRefsToRemove);

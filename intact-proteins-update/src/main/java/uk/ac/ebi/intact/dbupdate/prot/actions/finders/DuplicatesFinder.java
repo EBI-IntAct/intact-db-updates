@@ -1,38 +1,25 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.finders;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DuplicatesFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
-import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
+import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Duplicate detection for proteins.
@@ -40,18 +27,18 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class DuplicatesFinderImpl implements DuplicatesFinder {
+public class DuplicatesFinder {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( DuplicatesFixerImpl.class );
+    private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
 
     /**
      * In the update case event, if the list of primary proteins and secondary proteins contain more than 1 protein, returns
      * a DuplicatesFoundEvent.
      * It is not necessary to check the uniprot ac because a update case event is supposed to represent a single uniprot entry and so
-     * we should have only one master protein matching this uniprot entry. 
+     * we should have only one master protein matching this uniprot entry.
      * @param evt : the update case event containing the list of primary proteins and secondary proteins
      * @return DuplicatesFoundEvent if the evt has more than one primary protein and one or more secondary proteins, null otherwise
      * @throws ProcessorException
@@ -59,7 +46,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public DuplicatesFoundEvent findProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // list of protein duplicates
-        List<Protein> possibleDuplicates = new ArrayList<Protein>(evt.getPrimaryProteins().size() + evt.getSecondaryIsoforms().size());
+        List<Protein> possibleDuplicates = new ArrayList<>(evt.getPrimaryProteins().size() + evt.getSecondaryIsoforms().size());
 
         // add all primary proteins and secondary proteins
         possibleDuplicates.addAll(evt.getPrimaryProteins());
@@ -97,12 +84,12 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public Collection<DuplicatesFoundEvent> findIsoformDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // the possible duplicates are both in the primary isoforms and secondary isoforms
-        List<ProteinTranscript> possibleDuplicates = new ArrayList<ProteinTranscript>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
+        List<ProteinTranscript> possibleDuplicates = new ArrayList<>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
 
         possibleDuplicates.addAll(evt.getPrimaryIsoforms());
         possibleDuplicates.addAll(evt.getSecondaryIsoforms());
 
-        return findProteinTranscriptDuplicates(possibleDuplicates, evt.getDataContext(), (ProteinProcessor) evt.getSource(), true);
+        return findProteinTranscriptDuplicates(possibleDuplicates, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), true);
     }
 
     /**
@@ -118,41 +105,10 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
     public Collection<DuplicatesFoundEvent> findFeatureChainDuplicates(UpdateCaseEvent evt) throws ProcessorException {
 
         // the possible duplicates are in the list of primary feature chains
-        List<ProteinTranscript> possibleDuplicates = new ArrayList(evt.getPrimaryFeatureChains());
+        List<ProteinTranscript> possibleDuplicates = new ArrayList<>(evt.getPrimaryFeatureChains());
 
-        return findProteinTranscriptDuplicates(possibleDuplicates, evt.getDataContext(), (ProteinProcessor) evt.getSource(), false);
+        return findProteinTranscriptDuplicates(possibleDuplicates, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource(), false);
 
-    }
-
-    /**
-     *
-     * @param possibleDuplicates
-     * @param evt
-     * @deprecated use the DuplicateFuxer listener
-     */
-    @Deprecated
-    private void checkAndFixDuplication(List<? extends Protein> possibleDuplicates, ProteinEvent evt, String uniprotSequenceToUseForRangeShifting, String crc64) {
-        List<Protein> realDuplicates = new ArrayList<Protein>();
-
-        // here there is a chance we keep proteins that have an other identity than the one of the original
-        // protein we were processing. Say in the case where it is at index > 0 in the list.
-
-        Protein firstProtein = possibleDuplicates.get(0);
-
-        for (int i = 1; i < possibleDuplicates.size(); i++) {
-            Protein possibleDuplicate =  possibleDuplicates.get(i);
-
-            if (ProteinUtils.containTheSameIdentities(firstProtein, possibleDuplicate)) {
-                if (realDuplicates.isEmpty()) realDuplicates.add(firstProtein);
-                realDuplicates.add(possibleDuplicate);
-            }
-        }
-
-        if (!realDuplicates.isEmpty()) {
-            // fire a duplication event
-            final ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
-            processor.fireOnProteinDuplicationFound(new DuplicatesFoundEvent(processor, evt.getDataContext(), realDuplicates, uniprotSequenceToUseForRangeShifting, crc64, evt.getUniprotIdentity(), null));
-        }
     }
 
     /**
@@ -196,18 +152,18 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
      * @return  the collection of duplicetFoundEvent for each set of duplicated transcript in the list of possible duplicates
      * @throws ProcessorException
      */
-    private Collection<DuplicatesFoundEvent> findProteinTranscriptDuplicates(List<ProteinTranscript> possibleDuplicates, DataContext context, ProteinProcessor processor, boolean isSpliceVariant) throws ProcessorException {
+    private Collection<DuplicatesFoundEvent> findProteinTranscriptDuplicates(List<ProteinTranscript> possibleDuplicates, DataContext context, ProteinUpdateProcessor processor, boolean isSpliceVariant) throws ProcessorException {
         // the list containing the duplicateFoundEvents
-        Collection<DuplicatesFoundEvent> duplicateEvents = new ArrayList<DuplicatesFoundEvent>();
+        Collection<DuplicatesFoundEvent> duplicateEvents = new ArrayList<>();
 
         // if there are possible duplicates (more than 1 result), check and fix when necessary
         if (possibleDuplicates.size() > 1) {
 
             // the collection containing all the possible duplicates
-            Collection<ProteinTranscript> totalProteins = new ArrayList(possibleDuplicates);
+            Collection<ProteinTranscript> totalProteins = new ArrayList<>(possibleDuplicates);
 
             // the collection which will contain the duplicates of a same protein transcript
-            Collection<ProteinTranscript> duplicates = new ArrayList<ProteinTranscript>(possibleDuplicates.size());
+            Collection<ProteinTranscript> duplicates = new ArrayList<>(possibleDuplicates.size());
 
             // while the list of possible duplicates has not been fully treated, we need to check the duplicates
             while (totalProteins.size() > 0){
@@ -278,7 +234,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                 // if we have more than two proteins in the duplicate list, we merge them
                 if (duplicates.size() > 1){
                     // get the uniprot transcript
-                    UniprotProteinTranscript transcript = trans.getUniprotVariant();
+                    UniprotProteinTranscript transcript = trans.getUniprotProteinTranscript();
 
                     // set the uniprot sequence and CRC64 of the event
                     String uniprotSequence = null;
@@ -294,7 +250,7 @@ public class DuplicatesFinderImpl implements DuplicatesFinder {
                     }
 
                     // list of duplicates
-                    Collection<Protein> duplicateToFix = new ArrayList<Protein>(duplicates.size());
+                    Collection<Protein> duplicateToFix = new ArrayList<>(duplicates.size());
 
                     for (ProteinTranscript t : duplicates){
                         duplicateToFix.add(t.getProtein());

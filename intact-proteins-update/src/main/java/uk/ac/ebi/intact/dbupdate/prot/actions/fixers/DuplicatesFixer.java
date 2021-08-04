@@ -1,19 +1,4 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.fixers;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -23,10 +8,14 @@ import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.util.DebugUtil;
 import uk.ac.ebi.intact.dbupdate.prot.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.finders.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.actions.deleters.ProteinDeleter;
+import uk.ac.ebi.intact.dbupdate.prot.actions.retrievers.UniprotProteinRetriever;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
@@ -44,64 +33,47 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class DuplicatesFixerImpl implements DuplicatesFixer{
+public class DuplicatesFixer {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( DuplicatesFixerImpl.class );
+    private static final Log log = LogFactory.getLog( DuplicatesFixer.class );
 
     /**
      * The protein deleter for this class
      */
-    private ProteinDeleter proteinDeleter;
+    private final ProteinDeleter proteinDeleter;
 
     /**
      * The out of date participant fixer (when participant have feature range conflicts when trying to merge)
      */
-    private OutOfDateParticipantFixer deprecatedParticipantFixer;
+    private final OutOfDateParticipantFixer deprecatedParticipantFixer;
 
-    private DuplicatesFinder duplicatesFinder;
+    private final DuplicatesFinder duplicatesFinder;
 
     public static String CAUTION_PREFIX = "The protein could not be merged with ";
 
-    /**
-     * The range updater
-     */
-    private RangeFixer rangeFixer;
-
-    public DuplicatesFixerImpl(ProteinDeleter proteinDeleter, OutOfDateParticipantFixer participantFixer, DuplicatesFinder duplicateFinder){
+    public DuplicatesFixer(ProteinDeleter proteinDeleter, OutOfDateParticipantFixer participantFixer, DuplicatesFinder duplicateFinder){
         if (proteinDeleter != null) {
             this.proteinDeleter = proteinDeleter;
         }
         else {
-            this.proteinDeleter = new ProteinDeleterImpl();
+            this.proteinDeleter = new ProteinDeleter();
         }
 
-        if (deprecatedParticipantFixer != null) {
+        if (participantFixer != null) {
             this.deprecatedParticipantFixer = participantFixer;
-
-            if (participantFixer.getRangeFixer() == null){
-                this.rangeFixer = new RangeFixerImpl();
-                participantFixer.setRangeFixer(this.rangeFixer);
-            }
-            else{
-                this.rangeFixer = participantFixer.getRangeFixer();
-            }
         }
         else {
-            if (this.rangeFixer == null){
-                this.rangeFixer = new RangeFixerImpl();
-            }
-
-            this.deprecatedParticipantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
+            this.deprecatedParticipantFixer = new OutOfDateParticipantFixer(new RangeFixer());
         }
 
         if (duplicateFinder != null) {
             this.duplicatesFinder = duplicateFinder;
         }
         else {
-            this.duplicatesFinder = new DuplicatesFinderImpl();
+            this.duplicatesFinder = new DuplicatesFinder();
         }
     }
 
@@ -116,6 +88,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         mergeDuplicates(evt.getProteins(), evt);
     }
 
+    /**
+     *
+     * @return the participant fixer which is charged to create deprecated proteins if the original protein have range conflicts with uniprot
+     */
     public Protein fixAllProteinDuplicates(UpdateCaseEvent evt) throws ProcessorException {
         Protein masterProtein = null;
 
@@ -160,14 +136,14 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         UniprotProtein masterUniprot = evt.getProtein();
 
         if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-        Collection<ProteinTranscript> mergedIsoforms = new ArrayList<ProteinTranscript>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
+        Collection<ProteinTranscript> mergedIsoforms = new ArrayList<>(evt.getPrimaryIsoforms().size() + evt.getSecondaryIsoforms().size());
 
         for (DuplicatesFoundEvent duplEvt : duplicateEvents){
             processDuplicatedTranscript(evt, duplEvt, masterProtein, true, mergedIsoforms);
 
             if (duplEvt.getReferenceProtein() != null){
 
-                UniprotProteinTranscript uniprotTranscript = UniprotProteinRetrieverImpl.findUniprotSpliceVariant(duplEvt.getPrimaryUniprotAc(), masterUniprot);
+                UniprotProteinTranscript uniprotTranscript = UniprotProteinRetriever.findUniprotSpliceVariant(duplEvt.getPrimaryUniprotAc(), masterUniprot);
 
                 mergedIsoforms.add(new ProteinTranscript(duplEvt.getReferenceProtein(), uniprotTranscript));
                 // updated the original protein
@@ -190,12 +166,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         Collection<DuplicatesFoundEvent> duplicateEvents2 = duplicatesFinder.findFeatureChainDuplicates(evt);
 
         if (log.isTraceEnabled()) log.trace("Fix the duplicates." );
-        Collection<ProteinTranscript> mergedChains = new ArrayList<ProteinTranscript>(evt.getPrimaryFeatureChains().size());
+        Collection<ProteinTranscript> mergedChains = new ArrayList<>(evt.getPrimaryFeatureChains().size());
 
         for (DuplicatesFoundEvent duplEvt : duplicateEvents2){
             processDuplicatedTranscript(evt, duplEvt, masterProtein, false, mergedChains);
             if (duplEvt.getReferenceProtein() != null){
-                UniprotProteinTranscript uniprotTranscript = UniprotProteinRetrieverImpl.findUniprotFeatureChain(duplEvt.getPrimaryUniprotAc(), masterUniprot);
+                UniprotProteinTranscript uniprotTranscript = UniprotProteinRetriever.findUniprotFeatureChain(duplEvt.getPrimaryUniprotAc(), masterUniprot);
 
                 mergedChains.add(new ProteinTranscript(duplEvt.getReferenceProtein(), uniprotTranscript));
 
@@ -222,7 +198,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      * @returna map of duplicated proteins sorted per taxId
      */
     private Map<String, List<Protein>> sortDuplicatesPerOrganism(Collection<Protein> duplicates){
-        Map<String, List<Protein>> duplicatesSortedByOrganism = new HashMap<String, List<Protein>>(duplicates.size());
+        Map<String, List<Protein>> duplicatesSortedByOrganism = new HashMap<>(duplicates.size());
 
         for (Protein prot : duplicates){
             BioSource biosource = prot.getBioSource();
@@ -236,7 +212,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 duplicatesSortedByOrganism.get(taxId).add(prot);
             }
             else {
-                List<Protein> duplicatesAsList = new ArrayList<Protein>();
+                List<Protein> duplicatesAsList = new ArrayList<>();
                 duplicatesAsList.add(prot);
 
                 duplicatesSortedByOrganism.put(taxId, duplicatesAsList);
@@ -261,10 +237,10 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         if (log.isDebugEnabled()) log.debug("Merging duplicates: "+ DebugUtil.acList(duplicates));
 
         // the collection which will contain the duplicates having the same sequence
-        List<Protein> duplicatesHavingSameSequence = new ArrayList<Protein>(duplicates.size());
+        List<Protein> duplicatesHavingSameSequence = new ArrayList<>(duplicates.size());
 
         // the collection which will contain the duplicates having different sequences
-        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<Protein>(duplicates.size());
+        List<Protein> duplicatesHavingDifferentSequence = new ArrayList<>(duplicates.size());
 
         // sort the duplicates per organism
         Map<String, List<Protein>> duplicatesSortedByOrganism = sortDuplicatesPerOrganism(duplicates);
@@ -273,7 +249,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
             if (evt.getSource() instanceof ProteinUpdateProcessor){
                 ProteinUpdateProcessor processor = (ProteinUpdateProcessor) evt.getSource();
 
-                StringBuffer reason = new StringBuffer();
+                StringBuilder reason = new StringBuilder();
                 reason.append("Impossible to merge proteins having different taxIds : ");
 
                 int index = 0;
@@ -352,12 +328,12 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 if (evt.getUniprotSequence() != null){
                     // in case of feature conflicts, we will only attach the interactions without feature conflicts to the original protein and keep the
                     // duplicate as no-uniprot-update with the interactions having feature conflicts
-                    Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<String, Collection<Component>>();
+                    Map<String, Collection<Component>> proteinNeedingPartialMerge = new HashMap<>();
 
                     // we try to shift the ranges of each protein to merge and collect the components with feature conflicts
                     for (Protein p : duplicatesHavingDifferentSequence){
                         // update the ranges with the new uniprot sequence for each duplicate
-                        RangeUpdateReport rangeReport = rangeFixer.updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
+                        RangeUpdateReport rangeReport = deprecatedParticipantFixer.getRangeFixer().updateRanges(p, evt.getUniprotSequence(), (ProteinUpdateProcessor) evt.getSource(), evt.getDataContext());
 
                         if (!rangeReport.getShiftedRanges().isEmpty() || (rangeReport.getInvalidComponents().isEmpty() && !rangeReport.getUpdatedFeatureAnnotations().isEmpty())){
                             evt.getUpdatedRanges().put(p.getAc(), rangeReport);
@@ -409,7 +385,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
      */
     private Collection<Annotation> addAnnotationsForBadParticipant(Protein protein, String previousAc, DaoFactory factory){
 
-        Collection<Annotation> badAnnotations = new ArrayList<Annotation>(2);
+        Collection<Annotation> badAnnotations = new ArrayList<>(2);
 
         CvTopic no_uniprot_update = factory.getCvObjectDao(CvTopic.class).getByShortLabel(CvTopic.NON_UNIPROT);
 
@@ -648,33 +624,6 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
     }
 
-    public ProteinDeleter getProteinDeleter() {
-        return proteinDeleter;
-    }
-
-    @Override
-    public void setProteinDeleter(ProteinDeleter deleter) {
-        this.proteinDeleter = deleter;
-    }
-
-    public RangeFixer getRangeFixer() {
-        return rangeFixer;
-    }
-
-    @Override
-    public void setRangeFixer(RangeFixer rangeFixer) {
-        this.rangeFixer = rangeFixer;
-    }
-
-    public OutOfDateParticipantFixer getDeprecatedParticipantFixer() {
-        return deprecatedParticipantFixer;
-    }
-
-    @Override
-    public void setDeprecatedParticipantFixer(OutOfDateParticipantFixer participantFixer) {
-        this.deprecatedParticipantFixer = participantFixer;
-    }
-
     private void processDuplicatedTranscript(UpdateCaseEvent caseEvent, DuplicatesFoundEvent duplEvt, Protein masterProtein, boolean isIsoform, Collection<ProteinTranscript> mergedTranscripts) {
         fixProteinDuplicates(duplEvt);
 
@@ -710,7 +659,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
 
                     if (isFromUniprot){
                         // we identified a new transcript (isoform)
-                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotProteinTranscript().getPrimaryAc())){
                             String ac = fixedProtein.getProtein().getAc();
 
                             if (ac != null){
@@ -741,7 +690,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                             }
                         }
                         // we identified a new feature chain
-                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotProteinTranscript().getPrimaryAc())){
                             String ac = fixedProtein.getProtein().getAc();
 
                             if (ac != null){
@@ -828,8 +777,8 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                 if (fixedProtein != null){
 
                     // if uniprot variant is null, it means that a deprecated protein has been created because the protein with range conflicts is a master protein
-                    if (fixedProtein.getUniprotVariant() != null){
-                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                    if (fixedProtein.getUniprotProteinTranscript() != null){
+                        if (IdentifierChecker.isSpliceVariantId(fixedProtein.getUniprotProteinTranscript().getPrimaryAc())){
                             String ac = fixedProtein.getProtein().getAc();
 
                             if (ac != null){
@@ -855,7 +804,7 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
                                 }
                             }
                         }
-                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotVariant().getPrimaryAc())){
+                        else if (IdentifierChecker.isFeatureChainId(fixedProtein.getUniprotProteinTranscript().getPrimaryAc())){
                             String ac = fixedProtein.getProtein().getAc();
 
                             if (ac != null){
@@ -912,19 +861,11 @@ public class DuplicatesFixerImpl implements DuplicatesFixer{
         }
     }
 
-    public DuplicatesFinder getDuplicatesFinder() {
-        return duplicatesFinder;
-    }
-
-    public void setDuplicatesFinder(DuplicatesFinder duplicatesFinder) {
-        this.duplicatesFinder = duplicatesFinder;
-    }
-
     private void reportMovedInteraction(Protein sourceProtein, Set<String> movedInteractionAcs, DuplicatesFoundEvent evt) {
         Map<String, Set<String>> movedInteractions = evt.getMovedInteractions();
 
         if (!movedInteractions.containsKey(sourceProtein.getAc())){
-            movedInteractions.put(sourceProtein.getAc(), new HashSet(movedInteractionAcs));
+            movedInteractions.put(sourceProtein.getAc(), new HashSet<>(movedInteractionAcs));
         }
         else {
             movedInteractions.get(sourceProtein.getAc()).addAll(movedInteractionAcs);

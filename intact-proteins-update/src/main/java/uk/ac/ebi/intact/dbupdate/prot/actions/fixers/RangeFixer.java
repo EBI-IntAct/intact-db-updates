@@ -1,19 +1,4 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.fixers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,16 +9,13 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.FeatureDao;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
-import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidRangeEvent;
-import uk.ac.ebi.intact.dbupdate.prot.event.RangeChangedEvent;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidFeatureReport;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.RangeChecker;
-import uk.ac.ebi.intact.dbupdate.prot.rangefix.UpdatedRange;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
@@ -51,12 +33,12 @@ import java.util.Map;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class RangeFixerImpl implements RangeFixer{
+public class RangeFixer {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( RangeFixerImpl.class );
+    private static final Log log = LogFactory.getLog( RangeFixer.class );
 
     /**
      * The range checker
@@ -89,16 +71,11 @@ public class RangeFixerImpl implements RangeFixer{
     public static final String sequenceVersion = "sequence-version";
 
     /**
-     * in the feature annotation, the sequence version is separated from the uniprot ac by this separator
-     */
-    public static final String sequenceVersionSeparator = ",";
-
-    /**
      * The unisave service
      */
     protected UnisaveService unisave;
 
-    public RangeFixerImpl(){
+    public RangeFixer(){
         this.checker = new RangeChecker();
         this.unisave = new UnisaveService();
     }
@@ -135,25 +112,24 @@ public class RangeFixerImpl implements RangeFixer{
      * @param context
      * @return
      */
-    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor, RangeUpdateReport rangeReport){
+    protected Map<String, InvalidFeatureReport> checkConsistencyFeatureBeforeRangeShifting(Feature feature, DataContext context, RangeUpdateReport rangeReport){
         DaoFactory factory = context.getDaoFactory();
 
         Map<String, AnnotationUpdateReport> featureReport = rangeReport.getUpdatedFeatureAnnotations();
 
         // a collection containing the feature annotations
-        Collection<Annotation> annotationsFeature = new ArrayList<Annotation>();
-        annotationsFeature.addAll(feature.getAnnotations());
+        Collection<Annotation> annotationsFeature = new ArrayList<>(feature.getAnnotations());
 
         // this map contains all the annotations reporting information about a specific range per range ac
-        Map<String, InvalidFeatureReport> featureReports = new HashMap<String, InvalidFeatureReport>();
+        Map<String, InvalidFeatureReport> featureReports = new HashMap<>();
 
         // this map contains all the ranges acs attached to the current feature and the boolean value is here to say if the range is totally undetermined
         // or not. It will help to know if an annotation is out of date because the invalid range is not undetermined anymore (the annotations
         // are only valid when the concerned ranges are undetermined).
-        Map<String, Boolean> existingRanges = new HashMap<String, Boolean>();
+        Map<String, Boolean> existingRanges = new HashMap<>();
 
         // a list of invalid range acs for what the protein update cannot do anything
-        Collection<String> invalidRanges = new ArrayList<String>();
+        Collection<String> invalidRanges = new ArrayList<>();
 
         // collect all the rang acs attached to this feature
         for (Range r : feature.getRanges()){
@@ -382,19 +358,18 @@ public class RangeFixerImpl implements RangeFixer{
      * @param feature
      * @param context
      */
-    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DataContext context, ProteinUpdateProcessor processor, RangeUpdateReport report){
+    protected void checkConsistencyFeatureAfterRangeShifting(Feature feature, DataContext context, RangeUpdateReport report){
         DaoFactory factory = context.getDaoFactory();
 
         Map<String, AnnotationUpdateReport> featureReport = report.getUpdatedFeatureAnnotations();
 
         // a collection containing the feature annotations
-        Collection<Annotation> annotationsFeature = new ArrayList<Annotation>();
-        annotationsFeature.addAll(feature.getAnnotations());
+        Collection<Annotation> annotationsFeature = new ArrayList<>(feature.getAnnotations());
 
         // this map contains all the ranges acs attached to the current feature and the boolean value is here to say if the range is totally undetermined
         // or not. It will help to know if an annotation is out of date because the invalid range is not undetermined anymore (the annotations
         // are only valid when the concerned ranges are undetermined).
-        Map<String, Boolean> existingInvalidRanges = new HashMap<String, Boolean>();
+        Map<String, Boolean> existingInvalidRanges = new HashMap<>();
 
         // collect all the rang acs attached to this feature
         for (Range r : feature.getRanges()){
@@ -456,46 +431,6 @@ public class RangeFixerImpl implements RangeFixer{
     }
 
     /**
-     * Shift the positions of all ranges attached to a component
-     * @param oldSequence
-     * @param newSequence
-     * @param componentsToUpdate
-     * @param processor
-     * @param context
-     * @throws ProcessorException
-     */
-    protected void shiftRanges(String oldSequence, String newSequence, Collection<Component> componentsToUpdate, ProteinUpdateProcessor processor, DataContext context, RangeUpdateReport report) throws ProcessorException {
-
-        // oldsequence not null, new sequence not null, the range may have to be shifted
-        if (oldSequence != null && newSequence != null) {
-
-            for (Component component : componentsToUpdate) {
-                for (Feature feature : component.getBindingDomains()) {
-
-                    // shift the ranges whenever it is necessary (don't touch ranges impossible to shift)
-                    checker.shiftFeatureRanges(feature, oldSequence, newSequence, context, report);
-                }
-            }
-        }
-        // TODO : caution?
-        // old sequence null, new sequence not null, the range cannot be shifted but we can now extract a feature sequence
-        else if (oldSequence == null && newSequence != null){
-            for (Component component : componentsToUpdate) {
-                for (Feature feature : component.getBindingDomains()) {
-
-                    // extract feature sequence whenever it is necessary (don't touch ranges invalids with the new sequence)
-                    Collection<UpdatedRange> updatedRanges = checker.prepareFeatureSequences(feature, newSequence, context);
-
-                    // fire the events for the range changes
-                    for (UpdatedRange updatedRange : updatedRanges) {
-                        processor.fireOnRangeChange(new RangeChangedEvent(context, updatedRange));
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Shift range positions of a specific range
      * @param oldSequence
      * @param newSequence
@@ -515,7 +450,7 @@ public class RangeFixerImpl implements RangeFixer{
         // old sequence null, new sequence not null, the range cannot be shifted but we can now extract a feature sequence
         else if (oldSequence == null && newSequence != null){
 
-            // extract feature sequence whenever it is necessary (don't touch ranges invalids with the new sequence)            
+            // extract feature sequence whenever it is necessary (don't touch ranges invalids with the new sequence)
             checker.prepareFeatureSequence(range, newSequence, context);
         }
     }
@@ -547,9 +482,9 @@ public class RangeFixerImpl implements RangeFixer{
     }
 
     /**
-     * Fix invalid ranges by adding annotations at the feature level and set the range to undetermined
-     * @param evt
-     */
+         * Fix invalid ranges from the beginning
+         * @param evt
+         */
     public void fixInvalidRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor){
 
         RangeUpdateReport report = evt.getRangeReport();
@@ -593,10 +528,10 @@ public class RangeFixerImpl implements RangeFixer{
 
                 // invalid positions
                 CvTopic invalidPositions = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixerImpl.invalidPositions);
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.invalidPositions);
 
                 if (invalidPositions == null) {
-                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.invalidPositions);
+                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.invalidPositions);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalidPositions);
                 }
 
@@ -670,9 +605,9 @@ public class RangeFixerImpl implements RangeFixer{
     }
 
     /**
-     * Fix out of date ranges by adding annotations at the feature level and set the range to undetermined
-     * @param evt
-     */
+         * Fix valid ranges impossible to shift with the new uniprot sequence
+         * @param evt
+         */
     public void fixOutOfDateRanges(InvalidRangeEvent evt, ProteinUpdateProcessor processor){
         RangeUpdateReport report = evt.getRangeReport();
 
@@ -714,28 +649,28 @@ public class RangeFixerImpl implements RangeFixer{
                 // get the invalid_caution from the DB or create it and persist it
                 final DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
                 CvTopic invalid_caution = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixerImpl.rangeConflicts);
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.rangeConflicts);
 
                 if (invalid_caution == null) {
-                    invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.rangeConflicts);
+                    invalid_caution = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.rangeConflicts);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalid_caution);
                 }
 
                 // invalid positions
                 CvTopic invalidPositions = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixerImpl.invalidPositions);
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.invalidPositions);
 
                 if (invalidPositions == null) {
-                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.invalidPositions);
+                    invalidPositions = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.invalidPositions);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(invalidPositions);
                 }
 
                 // sequence version
                 CvTopic sequenceVersion = daoFactory
-                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixerImpl.sequenceVersion);
+                        .getCvObjectDao(CvTopic.class).getByShortLabel(RangeFixer.sequenceVersion);
 
                 if (sequenceVersion == null) {
-                    sequenceVersion = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixerImpl.sequenceVersion);
+                    sequenceVersion = CvObjectUtils.createCvObject(range.getOwner(), CvTopic.class, null, RangeFixer.sequenceVersion);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(sequenceVersion);
                 }
 
@@ -811,7 +746,7 @@ public class RangeFixerImpl implements RangeFixer{
                     feature.addAnnotation(validSeqVersion);
                     annotationReport.getAddedAnnotations().add(validSeqVersion);
                 }
-                // existing sequence version annotation : needs to be updated because a valid sequence version exists for this range                
+                // existing sequence version annotation : needs to be updated because a valid sequence version exists for this range
                 else if (sv != null && validSequenceVersion != -1 && evt.getInvalidRange().getUniprotAc() != null) {
                     sv.setAnnotationText(validSequence);
                     daoFactory.getAnnotationDao().update(sv);
@@ -858,16 +793,16 @@ public class RangeFixerImpl implements RangeFixer{
     }
 
     /**
-     * For each component with range conflicts, fix the invalid or out of date ranges
-     * @param protein : protein having range conflicts
-     * @param context
-     * @param uniprotAc : the uniprot ac
-     * @param oldSequence : the previous sequence of the protein
-     * @param report : the range update report
-     * @param fixedProtein : the proteins the ranges can be remapped to
-     * @param processor
-     * @param fixOutOfDateRanges : enable or not to fix the out of date ranges
-     */
+         * Fix invalid ranges and out of date ranges
+         * @param protein : protein having range conflicts
+         * @param context
+         * @param uniprotAc : the uniprot ac
+         * @param oldSequence : the previous sequence
+         * @param report : the range update report
+         * @param fixedProtein : the proteins the ranges can be remapped to
+         * @param processor
+         * @param fixOutOfDateRanges : enable or not to fix the out of date ranges
+         */
     public void processInvalidRanges(Protein protein, DataContext context, String uniprotAc, String oldSequence, RangeUpdateReport report, ProteinTranscript fixedProtein, ProteinUpdateProcessor processor, boolean fixOutOfDateRanges) {
         // for each component with range conflicts
         for (Map.Entry<Component, Collection<InvalidRange>> entry : report.getInvalidComponents().entrySet()){
@@ -920,7 +855,7 @@ public class RangeFixerImpl implements RangeFixer{
      */
     private String retrieveSequenceInUnisave(String uniprotAc, int version){
         if (uniprotAc != null && version != -1){
-            String oldSequence = null;
+            String oldSequence;
             try {
                 oldSequence = unisave.getSequenceFor(uniprotAc, false, version);
 
@@ -983,13 +918,13 @@ public class RangeFixerImpl implements RangeFixer{
     }
 
     /**
-     * Update ranges if the protein sequence need to be updated
-     * @param protein
-     * @param uniprotSequence
-     * @param processor
-     * @param datacontext
-     * @return
-     */
+         * Update ranges attached to a protein
+         * @param protein
+         * @param uniprotSequence
+         * @param processor
+         * @param datacontext
+         * @return
+         */
     public RangeUpdateReport updateRanges(Protein protein, String uniprotSequence, ProteinUpdateProcessor processor, DataContext datacontext){
 
         // create a range update report
@@ -1008,11 +943,11 @@ public class RangeFixerImpl implements RangeFixer{
             // get the features
             Collection<Feature> features = component.getFeatures();
             // the list of invalid ranges attached to this feature
-            Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
+            Collection<InvalidRange> totalInvalidRanges = new ArrayList<>();
 
             for (Feature feature : features){
                 // collect previous reports about previous range conflicts
-                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor, report);
+                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, report);
 
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){
@@ -1084,7 +1019,7 @@ public class RangeFixerImpl implements RangeFixer{
                     }
 
                     // clean annotations features if necessary
-                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext, processor, report);
+                    checkConsistencyFeatureAfterRangeShifting(feature, datacontext, report);
                 }
 
                 if (!totalInvalidRanges.isEmpty()){
@@ -1119,12 +1054,9 @@ public class RangeFixerImpl implements RangeFixer{
             // get the features
             Collection<Feature> features = component.getBindingDomains();
             // the list of invalid ranges attached to this feature
-            Collection<InvalidRange> totalInvalidRanges = new ArrayList<InvalidRange>();
+            Collection<InvalidRange> totalInvalidRanges = new ArrayList<>();
 
             for (Feature feature : features){
-                // collect previous reports about previous range conflicts
-                Map<String, InvalidFeatureReport> featureReports = checkConsistencyFeatureBeforeRangeShifting(feature, datacontext, processor, report);
-
                 // shift ranges without conflicts first
                 for (Range r : feature.getRanges()){
                     // collect a non null invalid range if the range cannot be shifted, null if it can be shifted successfully

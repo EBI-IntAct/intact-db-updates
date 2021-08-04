@@ -1,15 +1,15 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.filters;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.dbupdate.prot.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.ProteinUpdateFilter;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.actions.mappers.UniprotProteinMapper;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -29,21 +29,21 @@ import java.util.Set;
  * @since <pre>03-Nov-2010</pre>
  */
 
-public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
+public class ProteinUpdateFilter {
 
     /**
      * The logger for this class
      */
-    private static final Log log = LogFactory.getLog( ProteinUpdateFilterImpl.class );
+    private static final Log log = LogFactory.getLog( ProteinUpdateFilter.class );
 
     private UniprotProteinMapper proteinMappingManager;
 
-    public ProteinUpdateFilterImpl(UniprotProteinMapper uniprotProteinMapper){
+    public ProteinUpdateFilter(UniprotProteinMapper uniprotProteinMapper){
         if (uniprotProteinMapper != null){
             proteinMappingManager = uniprotProteinMapper;
         }
         else{
-            proteinMappingManager = new UniprotProteinMapperImpl(new SimpleUniprotRemoteService());
+            proteinMappingManager = new UniprotProteinMapper(new SimpleUniprotRemoteService());
         }
     }
 
@@ -164,7 +164,7 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
      * @param proteins : the isoforms/feature chains to look at
      * @param caseEvent
      */
-    private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent, boolean isSpliceVariant){
+    private void processListOfProteinsTranscript(Collection<ProteinTranscript> proteins, UpdateCaseEvent caseEvent){
 
         for (Iterator<ProteinTranscript> proteinIterator = proteins.iterator(); proteinIterator.hasNext();) {
             ProteinTranscript t = proteinIterator.next();
@@ -217,9 +217,9 @@ public class ProteinUpdateFilterImpl implements ProteinUpdateFilter{
         // process all the proteins for this uniprot entry
         processListOfProteins(primaryProteins, evt);
         processListOfProteins(secondaryProteins, evt);
-        processListOfProteinsTranscript(primaryIsoforms, evt, true);
-        processListOfProteinsTranscript(secondaryIsoforms, evt, true);
-        processListOfProteinsTranscript(primaryChains, evt, false);
+        processListOfProteinsTranscript(primaryIsoforms, evt);
+        processListOfProteinsTranscript(secondaryIsoforms, evt);
+        processListOfProteinsTranscript(primaryChains, evt);
     }
 
     public UniprotProteinMapper getProteinMappingManager() {

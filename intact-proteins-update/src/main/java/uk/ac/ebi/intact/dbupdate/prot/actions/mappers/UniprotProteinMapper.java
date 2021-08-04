@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.mappers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -7,7 +7,9 @@ import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DuplicatesFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -38,12 +40,12 @@ import java.util.Collection;
  * @since <pre>05-Jan-2011</pre>
  */
 
-public class UniprotProteinMapperImpl implements UniprotProteinMapper{
+public class UniprotProteinMapper {
 
     /**
      * Sets up a logger for that class.
      */
-    public static final Log log = LogFactory.getLog( UniprotProteinMapperImpl.class );
+    public static final Log log = LogFactory.getLog( UniprotProteinMapper.class );
 
     /**
      * the strategy used to update the proteins
@@ -58,7 +60,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
     /**
      * create a new ProteinUpdate manager.The strategy for update doesn't take into account the isoforms and keep the canonical sequence.
      */
-    public UniprotProteinMapperImpl(UniprotService service){
+    public UniprotProteinMapper(UniprotService service){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
 
         this.strategy = new StrategyForProteinUpdate(service);
@@ -123,7 +125,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
     }
 
     /**
-     * Remap proteins to a single uniprot entry if the protein is allowed to be remapped to. 
+     * Remap proteins to a single uniprot entry if the protein is allowed to be remapped to.
      * @param evt : evt with the protein to remap
      * @return true if the protein has been remapped, false otherwise
      */
@@ -155,7 +157,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 addIdentityCrossreferencesToContext(refs, context);
 
                 // result
-                IdentificationResults<MappingReport> result = null;
+                IdentificationResults<MappingReport> result;
                 try {
                     result = this.strategy.identifyProtein(context);
 
@@ -206,7 +208,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                         addUniprotCrossReferenceTo((ProteinImpl) protein, result.getFinalUniprotId(), factory);
 
                         if (!IdentifierChecker.isSpliceVariantId(result.getFinalUniprotId()) && !IdentifierChecker.isFeatureChainId(result.getFinalUniprotId())){
-                            removeParentCrossReferenceTo((ProteinImpl) protein, evt.getDataContext(), (ProteinUpdateProcessor) evt.getSource());
+                            removeParentCrossReferenceTo((ProteinImpl) protein, evt.getDataContext());
                         }
 
                         factory.getProteinDao().update( (ProteinImpl) protein );
@@ -244,7 +246,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 context.setIntactAccession(accession);
                 addIdentityCrossreferencesToContext(refs, context);
 
-                IdentificationResults result = null;
+                IdentificationResults result;
                 try {
                     result = this.strategy.identifyProtein(context);
 
@@ -277,48 +279,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
         return false;
     }
 
-    /*protected Query getProteinsWithoutUniprotXrefs(DataContext dataContext){
-        // get all the intact entries without any uniprot cross reference or with uniprot cross reference with a qualifier different from 'identity' and which can only be uniprot-removed-ac
-        final DaoFactory daoFactory = dataContext.getDaoFactory();
-        final Query query = daoFactory.getEntityManager().createQuery("select distinct p from InteractorImpl p "+
-                "left join p.sequenceChunks as seq " +
-                "left join p.xrefs as xrefs " +
-                "left join p.annotations as annotations " +
-                "where p.objClass = 'uk.ac.ebi.intact.model.ProteinImpl' "+
-                "and p not in ( "+
-                "select p2 "+
-                "from InteractorImpl p2 join p2.xrefs as xrefs "+
-                "where p2.objClass = 'uk.ac.ebi.intact.model.ProteinImpl' "+
-                "and xrefs.cvDatabase.ac = 'EBI-31' " +
-                "and xrefs.cvXrefQualifier.shortLabel <> 'uniprot-removed-ac' )");
-
-        return query;
-    }
-
-    protected Query getProteinsWithUniprotXrefsWithoutIdentity(DataContext dataContext){
-        // get all the intact entries without any uniprot cross reference or with uniprot cross reference with a qualifier different from 'identity' and which can only be uniprot-removed-ac
-        final DaoFactory daoFactory = dataContext.getDaoFactory();
-        final Query query = daoFactory.getEntityManager().createQuery("select distinct p from InteractorImpl p "+
-                "left join p.sequenceChunks as seq " +
-                "left join p.xrefs as xrefs " +
-                "left join p.annotations as annotations " +
-                "where p.objClass = 'uk.ac.ebi.intact.model.ProteinImpl' "+
-                "and p not in ( "+
-                "select p2 "+
-                "from InteractorImpl p2 join p2.xrefs as xrefs "+
-                "where p2.objClass = 'uk.ac.ebi.intact.model.ProteinImpl' "+
-                "and xrefs.cvDatabase.ac = 'EBI-31' " +
-                "and xrefs.cvXrefQualifier.shortLabel = 'identity') " +
-                "and p in ( " +
-                "select p2 " +
-                "from InteractorImpl p2 join p2.xrefs as xrefs " +
-                "where p2.objClass = 'uk.ac.ebi.intact.model.ProteinImpl' " +
-                "and xrefs.cvDatabase.ac = 'EBI-31' " +
-                "and xrefs.cvXrefQualifier.shortLabel <> 'uniprot-removed-ac')");
-
-        return query;
-    }*/
-
     /**
      * This method query IntAct to get the list of protein to update and for each one create an updateContext
      * Write the results of the protein update process
@@ -326,52 +286,6 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
      * @throws uk.ac.ebi.intact.protein.mapping.update.ProteinUpdateException
      * @throws uk.ac.ebi.intact.protein.mapping.strategies.exceptions.StrategyException
      */
-    /*public void writeResultsOfProteinUpdate() throws ProteinUpdateException, StrategyException {
-        // disable the update
-        this.strategy.setUpdateEnabled(false);
-
-        try {
-            IntactContext intactContext = IntactContext.getCurrentInstance();
-
-            File file = new File("updateReport_"+ Calendar.getInstance().getTime().getTime() +".txt");
-            Writer writer = new FileWriter(file);
-
-            // set the intact data context
-            final DataContext dataContext = intactContext.getDataContext();
-            TransactionStatus transactionStatus = dataContext.beginTransaction();
-
-            // get all the intact entries without any uniprot cross reference or with uniprot cross reference with a qualifier different from 'identity' and which can only be uniprot-removed-ac
-            final Query query = getProteinsWithoutUniprotXrefs(dataContext);
-
-            proteinToUpdate = query.getResultList();
-            log.info(proteinToUpdate.size());
-
-            for (ProteinImpl prot : proteinToUpdate){
-                this.context.clean();
-
-                String accession = prot.getAc();
-                Collection<InteractorXref> refs = prot.getXrefs();
-                String sequence = prot.getSequence();
-                BioSource organism = prot.getBioSource();
-
-                context.setSequence(sequence);
-                context.setOrganism(organism);
-                context.setIntactAccession(accession);
-                addIdentityCrossreferencesToContext(refs, context);
-
-                log.info("protAc = " + accession);
-                IdentificationResults result = this.strategy.identifyProtein(context);
-                writeResultReports(accession, result, writer);
-
-            }
-            dataContext.commitTransaction(transactionStatus);
-            writer.close();
-        } catch (IntactTransactionException e) {
-            throw new ProteinUpdateException(e);
-        } catch (IOException e) {
-            throw new ProteinUpdateException(e);
-        }
-    }*/
 
     /**
      *
@@ -446,7 +360,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 CvTopic topic = a.getCvTopic();
 
                 if (a.getAnnotationText() != null){
-                    if (a.getAnnotationText().equalsIgnoreCase(DeadUniprotProteinFixerImpl.CAUTION_OBSOLETE)){
+                    if (a.getAnnotationText().equalsIgnoreCase(DeadUniprotProteinFixer.CAUTION_OBSOLETE)){
                         if (topic.getIdentifier() != null){
                             if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
                                 return a;
@@ -470,7 +384,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 CvTopic topic = a.getCvTopic();
 
                 if (a.getAnnotationText() != null){
-                    if (a.getAnnotationText().equalsIgnoreCase(OutOfDateParticipantFixerImpl.FEATURE_OBSOLETE)){
+                    if (a.getAnnotationText().equalsIgnoreCase(OutOfDateParticipantFixer.FEATURE_OBSOLETE)){
                         if (topic.getIdentifier() != null){
                             if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
                                 return a;
@@ -494,7 +408,7 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
                 CvTopic topic = a.getCvTopic();
 
                 if (a.getAnnotationText() != null){
-                    if (a.getAnnotationText().startsWith(DuplicatesFixerImpl.CAUTION_PREFIX)){
+                    if (a.getAnnotationText().startsWith(DuplicatesFixer.CAUTION_PREFIX)){
                         if (topic.getIdentifier() != null){
                             if (topic.getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
                                 return a;
@@ -558,9 +472,9 @@ public class UniprotProteinMapperImpl implements UniprotProteinMapper{
         }
     }
 
-    private void removeParentCrossReferenceTo(ProteinImpl prot, DataContext context, ProteinUpdateProcessor processor){
+    private void removeParentCrossReferenceTo(ProteinImpl prot, DataContext context){
 
-        Collection<InteractorXref> intRef = new ArrayList(prot.getXrefs());
+        Collection<InteractorXref> intRef = new ArrayList<>(prot.getXrefs());
         for (InteractorXref ref : intRef){
             if (ref.getCvDatabase().getIdentifier().equals(CvDatabase.INTACT_MI_REF)){
                 if (ref.getCvXrefQualifier() != null){

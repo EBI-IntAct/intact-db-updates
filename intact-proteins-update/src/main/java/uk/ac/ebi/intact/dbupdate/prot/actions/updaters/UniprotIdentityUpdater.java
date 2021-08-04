@@ -1,16 +1,17 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.updaters;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotIdentityUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.actions.retrievers.UniprotProteinRetriever;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.InteractorXref;
 import uk.ac.ebi.intact.model.Protein;
@@ -32,12 +33,12 @@ import java.util.List;
  * @since <pre>04-Nov-2010</pre>
  */
 
-public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
+public class UniprotIdentityUpdater {
 
     /**
      * Logger for this class
      */
-    private static final Log log = LogFactory.getLog( UniprotProteinRetrieverImpl.class );
+    private static final Log log = LogFactory.getLog( UniprotProteinRetriever.class );
 
     /**
      *
@@ -64,7 +65,6 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
                 + uniprotProtein.getOrganism().getName() +" ("+uniprotProtein.getOrganism().getTaxid()+")");
 
         // we will assign the proteins to two collections - primary / secondary
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
 
         // all intact proteins having the same uniprot primary ac as uniprot identity
         List<ProteinImpl> proteinsInIntact = proteinDao.getByUniprotId(uniprotAc);
@@ -73,10 +73,10 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         //ProteinTools.loadCollections(proteinsInIntact);
 
         // the proteins are added to the list of primary proteins to update
-        primaryProteins.addAll(proteinsInIntact);
+        Collection<Protein> primaryProteins = new ArrayList<>(proteinsInIntact);
 
         // the collection containing secondary proteins
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
 
         // try to collect each intact protein having one of the uniprot secondary ac as uniprot identity
         for (String secondaryAc : uniprotProtein.getSecondaryAcs()) {
@@ -185,8 +185,8 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         Collection<UniprotSpliceVariant> variants = evt.getProtein().getSpliceVariants();
 
         // lists of splice variants in intact
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
@@ -207,7 +207,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         // collect all feature chains of the uniprot entry
         Collection<UniprotFeatureChain> chains = evt.getProtein().getFeatureChains();
         // list of feature chains in intact
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
         // set lists of isoforms
@@ -371,7 +371,7 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
-        Collection<Protein> secondaryProteins = new ArrayList(evt.getSecondaryProteins());
+        Collection<Protein> secondaryProteins = new ArrayList<>(evt.getSecondaryProteins());
         Collection<Protein> primaryProteins = evt.getPrimaryProteins();
 
         UniprotProtein uniprotProtein = evt.getProtein();
@@ -417,14 +417,14 @@ public class UniprotIdentityUpdaterImpl implements UniprotIdentityUpdater{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
-        Collection<ProteinTranscript> secondaryProteins = new ArrayList(evt.getSecondaryIsoforms());
+        Collection<ProteinTranscript> secondaryProteins = new ArrayList<>(evt.getSecondaryIsoforms());
         Collection<ProteinTranscript> primaryProteins = evt.getPrimaryIsoforms();
 
         UniprotProtein uniprotProtein = evt.getProtein();
         String dbRelease = uniprotProtein.getReleaseVersion();
 
         for (ProteinTranscript prot : secondaryProteins){
-            UniprotProteinTranscript spliceVariant = prot.getUniprotVariant();
+            UniprotProteinTranscript spliceVariant = prot.getUniprotProteinTranscript();
 
             if (spliceVariant != null){
                 // check that organism is matching before updating uniprot ac

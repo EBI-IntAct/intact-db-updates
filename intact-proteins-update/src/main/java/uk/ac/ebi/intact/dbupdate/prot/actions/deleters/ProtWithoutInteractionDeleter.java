@@ -1,30 +1,15 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.deleters;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.dbupdate.prot.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.ProtWithoutInteractionDeleter;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateErrorEvent;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.model.ProteinImpl;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -45,12 +30,12 @@ import java.util.*;
  *
  * @version $Id$
  */
-public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteractionDeleter {
+public class ProtWithoutInteractionDeleter {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleterImpl.class );
+    private static final Log log = LogFactory.getLog( ProtWithoutInteractionDeleter.class );
 
     /**
      *
@@ -61,44 +46,44 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
      */
     //TODO Fix the check "If is the parent of isoform/feature chain with interactions, don't delete it
     public boolean hasToBeDeleted(ProteinEvent evt) throws ProcessorException {
-        final Protein protein = evt.getProtein();
+        final Protein intactProtein = evt.getProtein();
 
         if (log.isDebugEnabled()) {
-            log.debug("Checking if the protein has interactions: "+ protein.getAc() );
+            log.debug("Checking if the protein has interactions: "+ intactProtein.getAc() );
         }
 
-        if (protein.getAc() == null) {
+        if (intactProtein.getAc() == null) {
             return true;
         }
 
-        final boolean isProteinTranscript = isProteinTranscript(protein);
-
-//        final boolean isFeatureChain = ProteinUtils.isFeatureChain(protein);
+        final boolean isProteinTranscript = isProteinTranscript(intactProtein);
 
         ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-        // collect number of active instances
-        final Integer interactionCount = protein.getActiveInstances().size();
+        // collect number of active instances -> number of participants that contains the protein
+        final int interactionCount = intactProtein.getActiveInstances().size();
 
         // it is not a splice variant, not a feature chain but a protein
         if( !isProteinTranscript ) {
 
             // check the number of interactions in which this protein is involved. If none,
-            // check if the protein has splice variants/chains as they cannot be removed
+            // check if the protein has splice variants/chains associated they cannot be removed
 
             // Checking is any splice variant or feature chain is involved in interactions
+            // TODO: This is not working because the xref for isoform parent and chain parent is not added properly since
+            //  jami is in place. Needs to be fixed at database, large scale imports and editor.
             boolean hasTranscriptInvolvedInInteractionsAttached = false;
             // splice variants
-            List<ProteinImpl> transcripts = proteinDao.getSpliceVariants(protein);
+            List<ProteinImpl> transcripts = proteinDao.getSpliceVariants(intactProtein);
             // feature chains
-            transcripts.addAll(proteinDao.getProteinChains(protein));
+            transcripts.addAll(proteinDao.getProteinChains(intactProtein));
 
             for (Protein transcript : transcripts) {
 
                 if (transcript.getActiveInstances().size() > 0) {
                     hasTranscriptInvolvedInInteractionsAttached = true;
                 } else if (isDeleteProteinTranscriptsWithoutInteractions()) {
-                    if (log.isDebugEnabled()) log.debug("Protein transcripts for protein '"+protein.getShortLabel()+"' will be deleted: "+transcript.getAc());
+                    if (log.isDebugEnabled()) log.debug("Protein transcripts for protein '"+intactProtein.getShortLabel()+"' will be deleted: "+transcript.getAc());
                     evt.setMessage("Protein transcript without any interactions");
                 } else {
                     hasTranscriptInvolvedInInteractionsAttached = true;
@@ -107,14 +92,14 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
 
             // if no splice variant/chain attached to that master either and it is not involved in interactions, then delete it.
             if ( interactionCount == 0 && ! hasTranscriptInvolvedInInteractionsAttached) {
-                if (log.isDebugEnabled()) log.debug("Protein '"+protein.getAc()+"' will be deleted as it doesn't have interaction and has no isoform/chain attached." );
+                if (log.isDebugEnabled()) log.debug("Protein '"+intactProtein.getAc()+"' will be deleted as it doesn't have interaction and has no isoform/chain attached." );
                 evt.setMessage("Protein without any interactions");
                 return true;
             }
 
         } else if ( isProteinTranscript && interactionCount == 0) {
 
-            if (log.isDebugEnabled()) log.debug("Protein transcript will be deleted: "+protein.getAc());
+            if (log.isDebugEnabled()) log.debug("Protein transcript will be deleted: "+intactProtein.getAc());
             evt.setMessage("Protein transcript without any interactions");
             return true;
 
@@ -130,7 +115,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
      * proteins to update and return them
      */
     public Set<Protein> collectAndRemoveProteinsWithoutInteractions(UpdateCaseEvent evt){
-        Set<Protein> protToDelete = new HashSet<Protein>();
+        Set<Protein> protToDelete = new HashSet<>();
 
         if (!evt.getPrimaryIsoforms().isEmpty()){
             collectProteinsTranscriptsWithoutInteractionsFrom(evt.getPrimaryIsoforms(), protToDelete, evt);
@@ -170,7 +155,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
 
                 ProteinDao proteinDao = evt.getDataContext().getDaoFactory().getProteinDao();
 
-                final Integer interactionCount = p.getActiveInstances().size();
+                final int interactionCount = p.getActiveInstances().size();
 
                 // check the number of interactions in which this protein is involved. If none,
                 // check if the protein has splice variants/chains as they cannot be removed
@@ -225,7 +210,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
-        Collection<ProteinTranscript> transcriptToDelete = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> transcriptToDelete = new ArrayList<>();
 
         for (ProteinTranscript p : protToInspect){
             if (p.getProtein().getAc() == null) {
@@ -239,7 +224,7 @@ public class ProtWithoutInteractionDeleterImpl implements ProtWithoutInteraction
             }
             else {
 
-                final Integer interactionCount = p.getProtein().getActiveInstances().size();
+                final int interactionCount = p.getProtein().getActiveInstances().size();
 
                 if ( interactionCount == 0) {
 

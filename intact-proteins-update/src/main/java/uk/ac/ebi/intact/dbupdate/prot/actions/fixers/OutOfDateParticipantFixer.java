@@ -1,14 +1,12 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.fixers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.AnnotationDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.OutOfDateParticipantFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.util.ComponentTools;
@@ -34,23 +32,23 @@ import java.util.Collection;
  * @since <pre>29-Oct-2010</pre>
  */
 
-public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer {
+public class OutOfDateParticipantFixer {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( OutOfDateParticipantFixerImpl.class );
+    private static final Log log = LogFactory.getLog( OutOfDateParticipantFixer.class );
 
     public static final String FEATURE_OBSOLETE = "This protein is not up-to-date anymore with the uniprot protein because of feature conflicts. ";
 
     private RangeFixer rangeFixer;
 
-    public OutOfDateParticipantFixerImpl(RangeFixer rangeFixer){
+    public OutOfDateParticipantFixer(RangeFixer rangeFixer){
         if (rangeFixer != null){
             this.rangeFixer = rangeFixer;
         }
         else {
-            this.rangeFixer = new RangeFixerImpl();
+            this.rangeFixer = new RangeFixer();
         }
     }
     /**
@@ -62,7 +60,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      */
     public UniprotProteinTranscript findTranscriptsWithIdenticalSequence(String sequence, UniprotProtein uniprotProtein){
         // get all the isoforms and feature chains attached to the uniprot entry
-        Collection<UniprotProteinTranscript> proteinTranscripts = new ArrayList<UniprotProteinTranscript>();
+        Collection<UniprotProteinTranscript> proteinTranscripts = new ArrayList<>();
         proteinTranscripts.addAll(uniprotProtein.getSpliceVariants());
         proteinTranscripts.addAll(uniprotProtein.getFeatureChains());
 
@@ -78,41 +76,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         }
 
         // not transcript in uniprot has this exact sequence
-        return null;
-    }
-
-    /**
-     *
-     * @param sequence : the protein sequence to retrieve
-     * @param uniprotProteinTranscript : the uniprot transcript with the sequence we want to exclude
-     * @param uniprotProtein : the uniprot entry to look into
-     * @return the UniprotProteinTranscript with the exact same sequence and which is not uniprotproteinTranscript. Return null if
-     * not protein transcript matches the exact sequence
-     */
-    public UniprotProteinTranscript findTranscriptsWithIdenticalSequence(String sequence, UniprotProteinTranscript uniprotProteinTranscript, UniprotProtein uniprotProtein){
-        // get all the isoforms and feature chains attached to the uniprot entry
-        Collection<UniprotProteinTranscript> proteinTranscripts = new ArrayList<UniprotProteinTranscript>();
-        proteinTranscripts.addAll(uniprotProtein.getSpliceVariants());
-        proteinTranscripts.addAll(uniprotProtein.getFeatureChains());
-
-        // if the uniprot entry contains isoforms and feature chains different from the uniprotprotein transcript we want to exclude
-        if (!(proteinTranscripts.size() == 1 && proteinTranscripts.contains(uniprotProteinTranscript)) && !proteinTranscripts.isEmpty()){
-
-            for (UniprotProteinTranscript pt : proteinTranscripts){
-                if (sequence.equalsIgnoreCase(pt.getSequence()) ){
-
-                    if (uniprotProteinTranscript != null){
-                        if (!sequence.equalsIgnoreCase(uniprotProteinTranscript.getSequence())){
-                            return pt;
-                        }
-                    }
-                    else {
-                        return pt;
-                    }
-                }
-            }
-        }
-
         return null;
     }
 
@@ -352,7 +315,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      */
     private ProteinTranscript findAndMoveInteractionsToIntactProteinTranscript(DataContext context, Protein protein, String sequenceWithoutConflicts, UniprotProteinTranscript possibleMatch, Collection<ProteinTranscript> proteinTranscripts, ProteinUpdateProcessor processor) {
         for (ProteinTranscript p : proteinTranscripts){
-            if (possibleMatch.equals(p.getUniprotVariant()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts) && !protein.getAc().equals(p.getProtein().getAc())){
+            if (possibleMatch.equals(p.getUniprotProteinTranscript()) && !ProteinTools.isSequenceChanged(p.getProtein().getSequence(), sequenceWithoutConflicts) && !protein.getAc().equals(p.getProtein().getAc())){
                 ProteinTools.moveInteractionsBetweenProteins(p.getProtein(), protein, context, processor, possibleMatch.getPrimaryAc());
                 return p;
             }
@@ -401,7 +364,6 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         return new ProteinTranscript(noUniprotUpdate, null);
     }
 
-    @Override
     public RangeFixer getRangeFixer() {
         return this.rangeFixer;
     }
@@ -417,9 +379,9 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @return a new Protein having same biosource, xrefs, sequence, aliases as the protein to clone
      */
     private Protein cloneDeprecatedProtein(DaoFactory factory, Protein protein) {
-        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel() +"_deprecated", protein.getCvInteractorType());
+        ProteinImpl created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel() +"_deprecated", protein.getCvInteractorType());
 
-        factory.getProteinDao().persist((ProteinImpl) created);
+        factory.getProteinDao().persist(created);
 
         for (InteractorAlias a : protein.getAliases()){
             InteractorAlias copy = new InteractorAlias(a.getOwner(), created, a.getCvAliasType(), a.getName());
@@ -450,7 +412,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
      * @return a new Protein transcript having same biosource and sequence as the protein to clone
      */
     private Protein cloneProteinForTranscript(DaoFactory factory, Protein protein, String primaryAc) {
-        Protein created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel()+"_clone", protein.getCvInteractorType());
+        ProteinImpl created = new ProteinImpl(protein.getOwner(), protein.getBioSource(), protein.getShortLabel()+"_clone", protein.getCvInteractorType());
 
         InteractorXref identity = ProteinUtils.getUniprotXref(protein);
 
@@ -460,7 +422,7 @@ public class OutOfDateParticipantFixerImpl implements OutOfDateParticipantFixer 
         created.setCrc64(protein.getCrc64());
         created.setSequence(protein.getSequence());
 
-        factory.getProteinDao().persist((ProteinImpl) created);
+        factory.getProteinDao().persist(created);
         return created;
     }
 

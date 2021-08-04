@@ -1,19 +1,4 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.updaters;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,30 +9,31 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
-import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
-import uk.ac.ebi.intact.dbupdate.prot.*;
-import uk.ac.ebi.intact.dbupdate.prot.actions.OutOfDateParticipantFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.RangeFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
+import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
-import uk.ac.ebi.intact.dbupdate.prot.referencefilter.IntactCrossReferenceFilter;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.util.ProteinTools;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.CvObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.uniprot.model.*;
+import uk.ac.ebi.intact.uniprot.model.Organism;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotProteinTranscript;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
 import uk.ac.ebi.intact.util.Crc64;
 import uk.ac.ebi.intact.util.biosource.BioSourceService;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceException;
 import uk.ac.ebi.intact.util.biosource.BioSourceServiceFactory;
 import uk.ac.ebi.intact.util.protein.CvHelper;
-import uk.ac.ebi.intact.util.protein.ProteinServiceException;
 import uk.ac.ebi.intact.util.protein.utils.*;
 import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorAliasComparator;
-import uk.ac.ebi.intact.util.protein.utils.comparator.InteractorXrefComparator;
-import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.*;
 
@@ -57,18 +43,10 @@ import java.util.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
+public class UniprotProteinUpdater {
 
-    private static final Log log = LogFactory.getLog( UniprotProteinUpdaterImpl.class );
+    private static final Log log = LogFactory.getLog( UniprotProteinUpdater.class );
     public static final String FEATURE_CHAIN_UNKNOWN_POSITION = "?";
-
-    private final int MAX_RETRY_ATTEMPTS = 100;
-    private int retryAttempt = 0;
-
-    /**
-     * Mapping allowing to specify which database shortlabel correspond to which MI reference.
-     */
-    private Map<String, String> databaseName2mi = new HashMap<String, String>();
 
     private ProteinUpdateProcessor processor;
     private RangeFixer rangeFixer;
@@ -79,32 +57,24 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private BioSourceService bioSourceService;
     private OutOfDateParticipantFixer participantFixer;
 
-    private TreeSet<InteractorXref> sortedInteractorXrefs;
-    private TreeSet<UniprotXref> sortedUniprotXrefs;
-    private TreeSet<InteractorAlias> sortedInteractorAliases;
+    private final TreeSet<InteractorAlias> sortedInteractorAliases;
 
-    public UniprotProteinUpdaterImpl(OrganismFetcher taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
+    public UniprotProteinUpdater(OrganismFetcher taxonomyService, OutOfDateParticipantFixer outOfDateParticipantFixer) {
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService(taxonomyService));
-        IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
-        databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
         this.participantFixer = outOfDateParticipantFixer;
         this.rangeFixer = this.participantFixer.getRangeFixer();
-        sortedInteractorAliases = new TreeSet<InteractorAlias>(new InteractorAliasComparator());
-        sortedInteractorXrefs = new TreeSet<InteractorXref>(new InteractorXrefComparator());
-        sortedUniprotXrefs = new TreeSet<UniprotXref>(new UniprotXrefComparator(databaseName2mi));
+        sortedInteractorAliases = new TreeSet<>(new InteractorAliasComparator());
     }
 
-    public UniprotProteinUpdaterImpl(OutOfDateParticipantFixer outOfDateParticipantFixer) {
+    public UniprotProteinUpdater(OutOfDateParticipantFixer outOfDateParticipantFixer) {
         // Build default taxonomy service
         setBioSourceService(BioSourceServiceFactory.getInstance().buildBioSourceService());
-        IntactCrossReferenceFilter intactCrossReferenceFilter = new IntactCrossReferenceFilter();
-        databaseName2mi = intactCrossReferenceFilter.getDb2Mi();
 
         if (outOfDateParticipantFixer != null) {
             this.participantFixer = outOfDateParticipantFixer;
 
             if (participantFixer.getRangeFixer() == null){
-                this.rangeFixer = new RangeFixerImpl();
+                this.rangeFixer = new RangeFixer();
                 participantFixer.setRangeFixer(this.rangeFixer);
             }
             else{
@@ -113,43 +83,36 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         }
         else {
             if (this.rangeFixer == null){
-                this.rangeFixer = new RangeFixerImpl();
+                this.rangeFixer = new RangeFixer();
             }
 
-            this.participantFixer = new OutOfDateParticipantFixerImpl(this.rangeFixer);
+            this.participantFixer = new OutOfDateParticipantFixer(this.rangeFixer);
         }
 
-        sortedInteractorAliases = new TreeSet<InteractorAlias>(new InteractorAliasComparator());
-        sortedInteractorXrefs = new TreeSet<InteractorXref>(new InteractorXrefComparator());
-        sortedUniprotXrefs = new TreeSet<UniprotXref>(new UniprotXrefComparator(databaseName2mi));
+        sortedInteractorAliases = new TreeSet<>(new InteractorAliasComparator());
     }
 
     /**
-     * Create or update a protein.
-     *
-     *
-     * @return an up-to-date IntAct protein.
-     *
-     * @throws ProteinServiceException
+     * Create or update the master proteins
+     * @param evt : contains the uniprot entry and the list of proteins to update
      */
-    public void createOrUpdateProtein( UpdateCaseEvent evt) throws ProteinServiceException{
+    public void createOrUpdateProtein( UpdateCaseEvent evt) throws BioSourceServiceException, IntactTransactionException{
         this.processor = (ProteinUpdateProcessor) evt.getSource();
         UniprotProtein uniprotProtein = evt.getProtein();
 
         // we will assign the proteins to two collections - primary / secondary
-        Collection<Protein> primaryProteins = new ArrayList<Protein>(evt.getPrimaryProteins());
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>(evt.getSecondaryProteins());
+        Collection<Protein> primaryProteins = new ArrayList<>(evt.getPrimaryProteins());
+        Collection<Protein> secondaryProteins = new ArrayList<>(evt.getSecondaryProteins());
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
 
         if (log.isTraceEnabled()) log.trace("Found "+countPrimary+" primary and "+countSecondary+" secondary for "+uniprotProtein.getPrimaryAc());
 
-        // TODO returned proteins are not used here
         processProteinCase(uniprotProtein, primaryProteins, secondaryProteins, evt);
     }
 
-    private void processProteinCase(UniprotProtein uniprotProtein, Collection<Protein> primaryProteins, Collection<Protein> secondaryProteins, UpdateCaseEvent evt) throws ProteinServiceException{
+    private void processProteinCase(UniprotProtein uniprotProtein, Collection<Protein> primaryProteins, Collection<Protein> secondaryProteins, UpdateCaseEvent evt) throws BioSourceServiceException, IntactTransactionException {
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
 
@@ -176,11 +139,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     }
 
     /**
-     * create or update a protein transcript
-
-     * @param masterProtein : the IntAct master protein
-     * @return the list of protein transcripts created or updated
-     * @throws ProteinServiceException
+     * Create of update the isoforms
+     * @param caseEvent : contains the uniprot entry and the list of proteins to update
+     * @param masterProtein : the master protein which is the parent of the isoforms
      */
     public void createOrUpdateIsoform( UpdateCaseEvent caseEvent, Protein masterProtein){
         this.processor = (ProteinUpdateProcessor) caseEvent.getSource();
@@ -188,8 +149,8 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         UniprotProtein uniprotProtein = caseEvent.getProtein();
 
         // we will assign the proteins to two collections - primary / secondary
-        Collection<ProteinTranscript> primaryProteins = new ArrayList<ProteinTranscript>(caseEvent.getPrimaryIsoforms());
-        Collection<ProteinTranscript> secondaryProteins = new ArrayList<ProteinTranscript>(caseEvent.getSecondaryIsoforms());
+        Collection<ProteinTranscript> primaryProteins = new ArrayList<>(caseEvent.getPrimaryIsoforms());
+        Collection<ProteinTranscript> secondaryProteins = new ArrayList<>(caseEvent.getSecondaryIsoforms());
 
         int countPrimary = primaryProteins.size();
         int countSecondary = secondaryProteins.size();
@@ -200,13 +161,18 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         processIsoform(uniprotProtein, masterProtein, primaryProteins, secondaryProteins, caseEvent);
     }
 
+    /**
+     * Create of update the feature chains
+     * @param caseEvent : contains the uniprot entry and the list of proteins to update
+     * @param masterProtein : the master protein which is the parent of the isoforms
+     */
     public void createOrUpdateFeatureChain( UpdateCaseEvent caseEvent, Protein masterProtein){
         this.processor = (ProteinUpdateProcessor) caseEvent.getSource();
 
         UniprotProtein uniprotProtein = caseEvent.getProtein();
 
         // we will assign the proteins to two collections - primary / secondary
-        Collection<ProteinTranscript> primaryProteins = new ArrayList<ProteinTranscript>(caseEvent.getPrimaryFeatureChains());
+        Collection<ProteinTranscript> primaryProteins = new ArrayList<>(caseEvent.getPrimaryFeatureChains());
 
         int countPrimary = primaryProteins.size();
 
@@ -223,7 +189,6 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      * @param primaryProteins
      * @param secondaryProteins
      * @return
-     * @throws ProteinServiceException
      */
     private void processIsoform(UniprotProtein uniprotProtein, Protein masterProtein, Collection<ProteinTranscript> primaryProteins, Collection<ProteinTranscript> secondaryProteins, UpdateCaseEvent evt){
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
@@ -232,7 +197,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             boolean hasFoundSpliceVariant = false;
 
             for (ProteinTranscript protTrans : primaryProteins){
-                if (ut.equals(protTrans.getUniprotVariant())){
+                if (ut.equals(protTrans.getUniprotProteinTranscript())){
                     hasFoundSpliceVariant = true;
                     break;
                 }
@@ -240,7 +205,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
             if (!hasFoundSpliceVariant){
                 for (ProteinTranscript protTrans : secondaryProteins){
-                    if (ut.equals(protTrans.getUniprotVariant())){
+                    if (ut.equals(protTrans.getUniprotProteinTranscript())){
                         hasFoundSpliceVariant = true;
                         break;
                     }
@@ -250,7 +215,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             if (!hasFoundSpliceVariant){
                 if (!config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions()){
                     if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
-                    Protein protein = createMinimalisticProteinTranscript( ut, masterProtein.getAc(), masterProtein.getBioSource(), uniprotProtein, evt.getDataContext() );
+                    Protein protein = createMinimalisticProteinTranscript( ut, masterProtein.getAc(), masterProtein.getBioSource(), evt.getDataContext() );
                     evt.getPrimaryIsoforms().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
@@ -267,13 +232,13 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc and "+countSecondary+" protein(s) on with secondaryAc.");
 
         for (ProteinTranscript protein : primaryProteins){
-            if (protein.getUniprotVariant() != null){
-                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotProteinTranscript() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotProteinTranscript(), uniprotProtein, evt);
             }
         }
         for (ProteinTranscript protein : secondaryProteins){
-            if (protein.getUniprotVariant() != null){
-                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotProteinTranscript() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotProteinTranscript(), uniprotProtein, evt);
             }
         }
     }
@@ -285,7 +250,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             boolean hasFoundFeatureChain = false;
 
             for (ProteinTranscript protTrans : primaryProteins){
-                if (ut.equals(protTrans.getUniprotVariant())){
+                if (ut.equals(protTrans.getUniprotProteinTranscript())){
                     hasFoundFeatureChain = true;
                     break;
                 }
@@ -294,7 +259,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             if (!hasFoundFeatureChain){
                 if (!config.isGlobalProteinUpdate() && !config.isDeleteProteinTranscriptWithoutInteractions()){
                     if (log.isDebugEnabled()) log.debug( "Could not find IntAct protein by UniProt primary or secondary AC." );
-                    Protein protein = createMinimalisticProteinTranscript( ut, masterProtein.getAc(), masterProtein.getBioSource(), uniprotProtein, evt.getDataContext() );
+                    Protein protein = createMinimalisticProteinTranscript( ut, masterProtein.getAc(), masterProtein.getBioSource(), evt.getDataContext() );
                     evt.getPrimaryFeatureChains().add(new ProteinTranscript(protein, ut));
 
                     updateProteinTranscript(protein, masterProtein, ut, uniprotProtein, evt);
@@ -310,100 +275,95 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             log.debug("Found in IntAct"+countPrimary+" protein(s) with primaryAc");
 
         for (ProteinTranscript protein : primaryProteins){
-            if (protein.getUniprotVariant() != null){
-                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotVariant(), uniprotProtein, evt);
+            if (protein.getUniprotProteinTranscript() != null){
+                updateProteinTranscript( protein.getProtein(), masterProtein, protein.getUniprotProteinTranscript(), uniprotProtein, evt);
             }
         }
     }
 
     /**
-     * Update an existing intact protein's annotations.
-     * <p/>
-     * That includes, all Xrefs, Aliases, splice variants.
-     *
-     * @param protein        the intact protein to update.
-     * @param uniprotProtein the uniprot protein used for data input.
+     * Update an existing intact protein
      */
-    private void updateProtein( Protein protein, UniprotProtein uniprotProtein, UpdateCaseEvent evt){
+    private void updateProtein(Protein intactProtein, UniprotProtein uniprotProtein, UpdateCaseEvent evt) {
 
         // check that both protein carry the same organism information
-        if (!UpdateBioSource(protein, uniprotProtein.getOrganism(), uniprotProtein.getPrimaryAc(), evt.getDataContext())){
-            evt.getPrimaryProteins().remove(protein);
+        if (!updateBioSource(intactProtein, uniprotProtein.getOrganism(), uniprotProtein.getPrimaryAc(), evt.getDataContext())) {
+            evt.getPrimaryProteins().remove(intactProtein);
             return;
         }
 
         boolean hasBeenUpdated = false;
 
-        // Fullname
-        String fullname = uniprotProtein.getDescription();
-        if ( fullname != null && fullname.length() > 250 ) {
-            if ( log.isDebugEnabled() ) {
-                log.debug( "Truncating fullname to the first 250 first chars." );
+        // update fullName and shortLabel
+        // Noe: 24/06/2021 The interactor.fullname in the database is a varchar2 of 1000 so I think truncating the fullname can be update to 1000
+        String fullName = uniprotProtein.getDescription();
+        if (fullName != null && fullName.length() > 250) {
+            if (log.isDebugEnabled()) {
+                log.debug("Truncating fullname to the first 250 first chars.");
             }
-            fullname = fullname.substring( 0, 250 );
+            fullName = fullName.substring(0, 250);
         }
 
-        if (fullname != null && !fullname.equals(protein.getFullName())){
-            protein.setFullName( fullname );
-        }
-        else if (protein.getFullName() != null && !protein.getFullName().equals(fullname)){
-            protein.setFullName( fullname );
+        if (fullName != null && !fullName.equals(intactProtein.getFullName())) {
+            intactProtein.setFullName(fullName);
+        } else if (intactProtein.getFullName() != null && !intactProtein.getFullName().equals(fullName)) {
+            intactProtein.setFullName(fullName);
         }
         // no update done
         else {
-            fullname = null;
+            fullName = null;
         }
 
-        String shortLabel = generateProteinShortlabel( uniprotProtein );
+        String shortLabel = generateProteinShortlabel(uniprotProtein);
 
-        if (shortLabel != null && !shortLabel.equals(protein.getShortLabel())){
-            protein.setShortLabel(shortLabel);
-        }
-        else if (protein.getShortLabel() != null && !protein.getShortLabel().equals(shortLabel)){
-            protein.setShortLabel(shortLabel);
+        if (shortLabel != null && !shortLabel.equals(intactProtein.getShortLabel())) {
+            intactProtein.setShortLabel(shortLabel);
+        } else if (intactProtein.getShortLabel() != null && !intactProtein.getShortLabel().equals(shortLabel)) {
+            intactProtein.setShortLabel(shortLabel);
         }
         // no update done
         else {
             shortLabel = null;
         }
 
-        if (shortLabel != null || fullname != null){
+        // add a report if updated shortlabel or fullname
+        if (shortLabel != null || fullName != null) {
             hasBeenUpdated = true;
 
-            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(protein.getAc(), shortLabel, fullname);
+            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(intactProtein.getAc(), shortLabel, fullName);
             evt.addNameUpdaterReport(nameReport);
         }
 
-        // Xrefs -- but UniProt's as they are supposed to be up-to-date at this stage.
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllXrefs( protein, uniprotProtein, databaseName2mi, evt.getDataContext(), processor, this.sortedInteractorXrefs, this.sortedUniprotXrefs );
-        if (reports != null){
+        // update all Xrefs UniProt Xrefs included
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinXrefs(intactProtein, uniprotProtein, evt.getDataContext());
+        if (reports != null) {
             hasBeenUpdated = true;
 
             evt.addXrefUpdaterReport(reports);
         }
 
-        // Aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAliases(uniprotProtein, protein, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
-        if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
+        // update aliases from the uniprot protein aliases
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateAliases(uniprotProtein, intactProtein, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
+        if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()) {
             hasBeenUpdated = true;
 
             evt.addAliasUpdaterReport(aliasReport);
         }
 
-        // Sequence
-        if (updateProteinSequence(protein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, protein.getAc())){
+        // update sequence
+        if (updateProteinSequence(intactProtein, uniprotProtein.getSequence(), uniprotProtein.getCrc64(), evt, intactProtein.getAc())) {
             hasBeenUpdated = true;
         }
 
         // Persist changes
-        if (hasBeenUpdated){
+        if (hasBeenUpdated) {
             DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
             ProteinDao pdao = daoFactory.getProteinDao();
-            pdao.update( ( ProteinImpl ) protein );
+            pdao.update((ProteinImpl) intactProtein);
         }
     }
 
-    private boolean UpdateBioSource(Protein protein, Organism organism, String uniprotAc, DataContext context) {
+    private boolean updateBioSource(Protein protein, Organism organism, String uniprotAc, DataContext context) {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
@@ -486,12 +446,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             }
 
             if (!report.getInvalidComponents().isEmpty()){
-                boolean createDeprecatedProtein = false;
+                boolean createDeprecatedProtein = ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein);
 
                 // no unisave sequence for splice variants and feature chains so if we have conflicts, it is better to create a no-uniprot protein with the sequence of the moment
-                if (ProteinUtils.isSpliceVariant(protein) || ProteinUtils.isFeatureChain(protein)){
-                    createDeprecatedProtein = true;
-                }
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
                 ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, createDeprecatedProtein, true);
@@ -525,7 +482,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                             }
 
                             if (hasToBeAdded){
-                                if (fixedProtein.getUniprotVariant() instanceof UniprotSpliceVariant){
+                                if (fixedProtein.getUniprotProteinTranscript() instanceof UniprotSpliceVariant){
                                     evt.getPrimaryIsoforms().add(fixedProtein);
                                 }
                                 else {
@@ -555,7 +512,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             if (!report.getInvalidComponents().isEmpty()){
 
                 OutOfDateParticipantFoundEvent participantEvent = new OutOfDateParticipantFoundEvent(evt.getSource(), evt.getDataContext(), protein, evt.getProtein(), report, evt.getPrimaryIsoforms(), evt.getSecondaryIsoforms(), evt.getPrimaryFeatureChains(), masterProteinAc);
-                ProteinTranscript fixedProtein = participantFixer.fixParticipantWithRangeConflicts(participantEvent, false, true);
+                participantFixer.fixParticipantWithRangeConflicts(participantEvent, false, true);
             }
         }
 
@@ -564,36 +521,31 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
 
     /**
      * Update an existing splice variant.
-     *
-     * @param transcript
-     * @param uniprotTranscript
      */
-    private void updateProteinTranscript( Protein transcript, Protein master,
-                                             UniprotProteinTranscript uniprotTranscript,
-                                             UniprotProtein uniprotProtein,
-                                             UpdateCaseEvent evt) {
-        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-        ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+    private void updateProteinTranscript(Protein intactTranscript,
+                                         Protein master,
+                                         UniprotProteinTranscript uniprotTranscript,
+                                         UniprotProtein uniprotProtein,
+                                         UpdateCaseEvent evt) {
 
-        boolean hasBeenUpdated = false;
-
-        if (!UpdateBioSource(transcript, uniprotTranscript.getOrganism(), uniprotTranscript.getPrimaryAc(), evt.getDataContext())){
+        // check that both protein carry the same organism information
+        if (!updateBioSource(intactTranscript, uniprotTranscript.getOrganism(), uniprotTranscript.getPrimaryAc(), evt.getDataContext())){
             ProteinTranscript transcriptToRemove = null;
             for (ProteinTranscript t : evt.getPrimaryIsoforms()){
-                if (t.getProtein().getAc().equals(transcript.getAc())){
+                if (t.getProtein().getAc().equals(intactTranscript.getAc())){
                     transcriptToRemove = t;
                 }
             }
             if (transcriptToRemove == null){
                 for (ProteinTranscript t : evt.getSecondaryIsoforms()){
-                    if (t.getProtein().getAc().equals(transcript.getAc())){
+                    if (t.getProtein().getAc().equals(intactTranscript.getAc())){
                         transcriptToRemove = t;
                     }
                 }
 
                 if (transcriptToRemove == null){
                     for (ProteinTranscript t : evt.getPrimaryFeatureChains()){
-                        if (t.getProtein().getAc().equals(transcript.getAc())){
+                        if (t.getProtein().getAc().equals(intactTranscript.getAc())){
                             transcriptToRemove = t;
                         }
                     }
@@ -612,19 +564,9 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             return;
         }
 
-        String shortLabel = uniprotTranscript.getPrimaryAc().toLowerCase();
+        boolean hasBeenUpdated = false;
 
-        if (shortLabel != null && !shortLabel.equals(transcript.getShortLabel())){
-            transcript.setShortLabel(shortLabel);
-        }
-        else if (transcript.getShortLabel() != null && !transcript.getShortLabel().equals(shortLabel)){
-            transcript.setShortLabel(shortLabel);
-        }
-        // no update done
-        else {
-            shortLabel = null;
-        }
-
+        // update fullName and shortLabel
         String fullName;
         // we have a feature chain
         if (uniprotTranscript.getDescription() != null){
@@ -635,74 +577,86 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             fullName = master.getFullName();
         }
 
-        if (fullName != null && !fullName.equals(transcript.getFullName())){
-            transcript.setFullName( fullName );
-        }
-        else if (transcript.getFullName() != null && !transcript.getFullName().equals(fullName)){
-            transcript.setFullName( fullName );
+        if (fullName != null && !fullName.equals(intactTranscript.getFullName())){
+            intactTranscript.setFullName( fullName );
+        } else if (intactTranscript.getFullName() != null && !intactTranscript.getFullName().equals(fullName)){
+            intactTranscript.setFullName( fullName );
         }
         // no update done
         else {
             fullName = null;
         }
 
+        String shortLabel = uniprotTranscript.getPrimaryAc().toLowerCase();
+        if (!shortLabel.equals(intactTranscript.getShortLabel())){
+            intactTranscript.setShortLabel(shortLabel);
+        } else if (intactTranscript.getShortLabel() != null && !intactTranscript.getShortLabel().equals(shortLabel)){
+            intactTranscript.setShortLabel(shortLabel);
+        }
+        // no update done
+        else {
+            shortLabel = null;
+        }
+
         // add a report if updated shortlabel or fullname
         if (shortLabel != null || fullName != null){
             hasBeenUpdated = true;
 
-            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(transcript.getAc(), shortLabel, fullName);
+            ProteinNameUpdateReport nameReport = new ProteinNameUpdateReport(intactTranscript.getAc(), shortLabel, fullName);
             evt.addNameUpdaterReport(nameReport);
         }
 
-        // update all Xrefs
-        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs( transcript, uniprotTranscript, uniprotProtein, evt.getDataContext(), processor );
+        // update all Xrefs UniProt Xrefs included
+        XrefUpdaterReport reports = XrefUpdaterUtils.updateAllProteinTranscriptXrefs(intactTranscript, uniprotTranscript, uniprotProtein, evt.getDataContext() );
         if (reports != null){
             hasBeenUpdated = true;
 
             evt.addXrefUpdaterReport(reports);
         }
 
-        // Update Aliases from the uniprot protein aliases
-        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateIsoformAliases(uniprotProtein, uniprotTranscript, transcript, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
+        // update aliases from the uniprot protein aliases
+        AliasUpdateReport aliasReport = AliasUpdaterUtils.updateIsoformAliases(uniprotProtein, uniprotTranscript, intactTranscript, evt.getDataContext().getDaoFactory().getAliasDao(InteractorAlias.class), this.sortedInteractorAliases);
         if (!aliasReport.getAddedAliases().isEmpty() || !aliasReport.getRemovedAliases().isEmpty()){
             hasBeenUpdated = true;
 
             evt.addAliasUpdaterReport(aliasReport);
         }
 
-        // Sequence
+        // update sequence
         if (uniprotTranscript.getSequence() != null){
-            if (updateProteinSequence(transcript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc())){
+            if (updateProteinSequence(intactTranscript, uniprotTranscript.getSequence(), Crc64.getCrc64(uniprotTranscript.getSequence()), evt, master.getAc())){
                 hasBeenUpdated = true;
             }
-        }
-        else if (uniprotTranscript.isNullSequenceAllowed() && transcript.getSequence() != null){
-            ProteinUpdateError sequenceNull = errorFactory.createUniprotSequenceNullError(transcript.getAc(), uniprotTranscript.getPrimaryAc(), transcript.getSequence());
-            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), sequenceNull, transcript, uniprotTranscript.getPrimaryAc()));
+        } // uniprot transcript sequence is likely to be null
+        else if (uniprotTranscript.isNullSequenceAllowed() && intactTranscript.getSequence() != null){
+            ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+            ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
+            ProteinUpdateError sequenceNull = errorFactory.createUniprotSequenceNullError(intactTranscript.getAc(), uniprotTranscript.getPrimaryAc(), intactTranscript.getSequence());
+            processor.fireOnProcessErrorFound(new UpdateErrorEvent(processor, evt.getDataContext(), sequenceNull, intactTranscript, uniprotTranscript.getPrimaryAc()));
         }
 
-        // Add IntAct Xref
-
-        // Update Note
+        // update annotations
+        // If the transcript has a note, we store it as an isoform comment
         String note = uniprotTranscript.getNote();
-        Collection<Annotation> newAnnotations = new ArrayList<Annotation>(3);
+        Collection<Annotation> newAnnotations = new ArrayList<>(3);
 
         if ( ( note != null ) && ( !note.trim().equals( "" ) ) ) {
-            Institution owner = transcript.getOwner();
+            Institution owner = intactTranscript.getOwner();
             DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
             CvObjectDao<CvTopic> cvDao = daoFactory.getCvObjectDao( CvTopic.class );
             CvTopic comment = cvDao.getByShortLabel( CvTopic.ISOFORM_COMMENT );
 
+            // if isoform-comment cv is not in the db we create it first.
             if (comment == null) {
                 comment = CvObjectUtils.createCvObject(owner, CvTopic.class, null, CvTopic.ISOFORM_COMMENT);
                 IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(comment);
             }
 
-            boolean hasComment = false;
+            boolean hasAlreadyAnIsoformComment = false;
 
-            for (Annotation annot : transcript.getAnnotations()) {
+            for (Annotation annot : intactTranscript.getAnnotations()) {
                 if (CvTopic.ISOFORM_COMMENT.equals(annot.getCvTopic().getShortLabel())) {
-                    hasComment = true;
+                    hasAlreadyAnIsoformComment = true;
 
                     if (!note.equalsIgnoreCase(annot.getAnnotationText())){
                         annot.setAnnotationText(note);
@@ -714,7 +668,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 }
             }
 
-            if (!hasComment){
+            if (!hasAlreadyAnIsoformComment){
 
                 Annotation annotation = new Annotation( owner, comment );
                 annotation.setAnnotationText( note );
@@ -722,11 +676,11 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 newAnnotations.add(annotation);
 
                 evt.getDataContext().getDaoFactory().getAnnotationDao().persist(annotation);
-                transcript.addAnnotation(annotation);
+                intactTranscript.addAnnotation(annotation);
             }
         }
 
-        // in case the protin transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
+        // in case the protein transcript is a feature chain, we need to add two annotations containing the end and start positions of the feature chain
         if (CvXrefQualifier.CHAIN_PARENT_MI_REF.equalsIgnoreCase(uniprotTranscript.getParentXRefQualifier())){
             boolean hasStartPosition = false;
             boolean hasEndPosition = false;
@@ -751,7 +705,7 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             DaoFactory factory = evt.getDataContext().getDaoFactory();
 
             // check if the annotated object already contains a start and or end position
-            for (Annotation annot : transcript.getAnnotations()) {
+            for (Annotation annot : intactTranscript.getAnnotations()) {
                 if (CvTopic.CHAIN_SEQ_START.equals(annot.getCvTopic().getShortLabel())) {
                     hasStartPosition = true;
 
@@ -783,13 +737,13 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 CvTopic startPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_START);
 
                 if (startPosition == null){
-                    startPosition = CvObjectUtils.createCvObject(transcript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_START);
+                    startPosition = CvObjectUtils.createCvObject(intactTranscript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_START);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(startPosition);
                 }
                 Annotation start = new Annotation(startPosition, startToString);
                 factory.getAnnotationDao().persist(start);
 
-                transcript.addAnnotation(start);
+                intactTranscript.addAnnotation(start);
 
                 newAnnotations.add(start);
             }
@@ -798,13 +752,13 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
                 CvTopic endPosition = cvTopicDao.getByShortLabel(CvTopic.CHAIN_SEQ_END);
 
                 if (endPosition == null){
-                    endPosition = CvObjectUtils.createCvObject(transcript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_END);
+                    endPosition = CvObjectUtils.createCvObject(intactTranscript.getOwner(), CvTopic.class, null, CvTopic.CHAIN_SEQ_END);
                     IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(endPosition);
                 }
                 Annotation end = new Annotation(endPosition, endToString);
                 factory.getAnnotationDao().persist(end);
 
-                transcript.addAnnotation(end);
+                intactTranscript.addAnnotation(end);
 
                 newAnnotations.add(end);
             }
@@ -814,14 +768,14 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
         if (!newAnnotations.isEmpty()){
             hasBeenUpdated = true;
 
-            evt.addNewAnnotationReport(transcript.getAc(), newAnnotations);
+            evt.addNewAnnotationReport(intactTranscript.getAc(), newAnnotations);
         }
 
         // Persist changes
         if (hasBeenUpdated){
             DaoFactory daoFactory = evt.getDataContext().getDaoFactory();
             ProteinDao pdao = daoFactory.getProteinDao();
-            pdao.update( ( ProteinImpl ) transcript );
+            pdao.update( ( ProteinImpl ) intactTranscript );
         }
     }
 
@@ -860,54 +814,46 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
      *
      * @return a non null, persisted intact protein.
      */
-    private Protein createMinimalisticProtein( UniprotProtein uniprotProtein, DataContext context ) throws ProteinServiceException {
-        try{
-            if (uniprotProtein == null) {
-                throw new NullPointerException("Passed a null UniprotProtein");
-            }
+    private Protein createMinimalisticProtein(UniprotProtein uniprotProtein, DataContext context) throws BioSourceServiceException, IntactTransactionException {
 
-            if (bioSourceService == null) {
-                throw new IllegalStateException("BioSourceService should not be null");
-            }
-
-            DaoFactory daoFactory = context.getDaoFactory();
-            ProteinDao pdao = daoFactory.getProteinDao();
-
-            if (uniprotProtein.getOrganism() == null) {
-                throw new IllegalStateException("Uniprot protein without organism: "+uniprotProtein);
-            }
-
-            BioSource biosource = null;
-            try {
-                biosource = bioSourceService.getBiosourceByTaxid( String.valueOf( uniprotProtein.getOrganism().getTaxid() ) );
-            } catch ( BioSourceServiceException e ) {
-                throw new ProteinServiceException(e);
-            }
-
-            Protein protein = new ProteinImpl( CvHelper.getInstitution(),
-                    biosource,
-                    generateProteinShortlabel( uniprotProtein ),
-                    CvHelper.getProteinType() );
-            protein.setSequence(uniprotProtein.getSequence());
-            protein.setCrc64(uniprotProtein.getCrc64());
-
-            pdao.persist( ( ProteinImpl ) protein );
-
-            // Create UniProt Xrefs
-            XrefUpdaterUtils.updateUniprotXrefs( protein, uniprotProtein, context, processor);
-
-            pdao.update( ( ProteinImpl ) protein );
-            return protein;
-
-        }catch( IntactTransactionException e){
-            throw new ProteinServiceException(e);
+        if (uniprotProtein == null) {
+            throw new NullPointerException("Passed a null UniprotProtein");
         }
+
+        if (bioSourceService == null) {
+            throw new IllegalStateException("BioSourceService should not be null");
+        }
+
+        DaoFactory daoFactory = context.getDaoFactory();
+        ProteinDao pdao = daoFactory.getProteinDao();
+
+        if (uniprotProtein.getOrganism() == null) {
+            throw new IllegalStateException("Uniprot protein without organism: " + uniprotProtein);
+        }
+
+        BioSource biosource = bioSourceService.getBiosourceByTaxid(String.valueOf(uniprotProtein.getOrganism().getTaxid()));
+
+        ProteinImpl protein = new ProteinImpl(CvHelper.getInstitution(),
+                biosource,
+                generateProteinShortlabel(uniprotProtein),
+                CvHelper.getProteinType());
+        protein.setSequence(uniprotProtein.getSequence());
+        protein.setCrc64(uniprotProtein.getCrc64());
+
+        pdao.persist(protein);
+
+        // Create UniProt Xrefs
+        // We delegate the creation of UniProt Xrefs to updateProtein() it is call always after createMinimalisticProtein
+        // XrefUpdaterUtils.updateUniprotXrefs(protein, uniprotProtein, context);
+
+        pdao.update(protein);
+        return protein;
 
     }
 
     public static String generateProteinShortlabel( UniprotProtein uniprotProtein ) {
 
-        String name = null;
+        String name;
 
         if ( uniprotProtein == null ) {
             throw new NullPointerException( "uniprotProtein must not be null." );
@@ -930,14 +876,13 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
     private Protein createMinimalisticProteinTranscript( UniprotProteinTranscript uniprotProteinTranscript,
                                                          String masterAc,
                                                          BioSource masterBiosource,
-                                                         UniprotProtein uniprotProtein,
                                                          DataContext context
     ) {
 
         DaoFactory daoFactory = context.getDaoFactory();
         ProteinDao pdao = daoFactory.getProteinDao();
 
-        Protein variant = new ProteinImpl( CvHelper.getInstitution(),
+        ProteinImpl variant = new ProteinImpl( CvHelper.getInstitution(),
                 masterBiosource,
                 uniprotProteinTranscript.getPrimaryAc().toLowerCase(),
                 CvHelper.getProteinType() );
@@ -949,27 +894,22 @@ public class UniprotProteinUpdaterImpl implements UniprotProteinUpdater{
             log.warn("Uniprot splice variant without sequence: "+variant);
         }
 
-        pdao.persist( ( ProteinImpl ) variant );
+        pdao.persist(variant);
 
         // Create isoform-parent or chain-parent Xref
         CvXrefQualifier isoformParent = CvHelper.getQualifierByMi( uniprotProteinTranscript.getParentXRefQualifier() );
         CvDatabase intact = CvHelper.getDatabaseByMi( CvDatabase.INTACT_MI_REF );
         InteractorXref xref = new InteractorXref( CvHelper.getInstitution(), intact, masterAc, isoformParent );
         variant.addXref( xref );
-        XrefDao xdao = daoFactory.getXrefDao();
-        xdao.persist( xref );
+        daoFactory.getXrefDao().persist(xref);
 
         // Create UniProt Xrefs
-        XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, context, processor);
+        // We delegate the creation of UniProt Xrefs to updateProteinTranscript() it is call always after createMinimalisticProteinTranscript
+        // XrefUpdaterUtils.updateProteinTranscriptUniprotXrefs( variant, uniprotProteinTranscript, uniprotProtein, context);
 
-        pdao.update( ( ProteinImpl ) variant );
+        pdao.update(variant );
 
         return variant;
-    }
-
-    private String getProteinDescription(Protein protein){
-        InteractorXref uniprotXref = ProteinUtils.getUniprotXref(protein);
-        return "[" + protein.getAc() + ","+ protein.getShortLabel() + "," + uniprotXref.getPrimaryId() + "]";
     }
 
     public OutOfDateParticipantFixer getParticipantFixer() {

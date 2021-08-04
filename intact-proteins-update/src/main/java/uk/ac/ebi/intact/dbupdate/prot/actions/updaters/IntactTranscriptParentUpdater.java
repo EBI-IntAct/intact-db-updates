@@ -1,4 +1,4 @@
-package uk.ac.ebi.intact.dbupdate.prot.actions.impl;
+package uk.ac.ebi.intact.dbupdate.prot.actions.updaters;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -6,14 +6,13 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
 import uk.ac.ebi.intact.core.persistence.dao.XrefDao;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateErrorFactory;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
-import uk.ac.ebi.intact.dbupdate.prot.actions.IntactTranscriptParentUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.InvalidIntactParentFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
@@ -36,12 +35,12 @@ import java.util.List;
  * @since <pre>06-Dec-2010</pre>
  */
 
-public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParentUpdater {
+public class IntactTranscriptParentUpdater {
 
     /**
      * The logger of this class
      */
-    private static final Log log = LogFactory.getLog( IntactTranscriptParentUpdaterImpl.class );
+    private static final Log log = LogFactory.getLog( IntactTranscriptParentUpdater.class );
 
     /**
      *
@@ -50,6 +49,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
      * and if this parent ac still exists in the database. If not, will try to update it by looking for intact proteins
      * having the parent ac as secondary ac.
      */
+    //TODO Review if this can fix the isoform parent problems from jami
     public boolean checkConsistencyProteinTranscript(ProteinEvent evt, List<Protein> transcriptsToReview){
         // get the errorFactory in case we may need it
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
@@ -233,7 +233,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
         ProteinUpdateErrorFactory errorFactory = config.getErrorFactory();
 
         // the list of protein transcript to remove from the update case event because impossible to update
-        Collection<ProteinTranscript> transcriptToDelete = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> transcriptToDelete = new ArrayList<>();
 
         // for each protein transcript to review
         for (ProteinTranscript p : transcriptsToReview){
@@ -400,7 +400,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
      * Remove all protein transcripts with invalid parents from the list of proteins to update
      */
     public List<Protein> checkConsistencyOfAllTranscripts(UpdateCaseEvent evt){
-        List<Protein> proteinTranscriptsWithoutParent = new ArrayList<Protein>();
+        List<Protein> proteinTranscriptsWithoutParent = new ArrayList<>();
 
         checkConsistencyOf(evt.getPrimaryIsoforms(), evt, proteinTranscriptsWithoutParent);
         checkConsistencyOf(evt.getSecondaryIsoforms(), evt, proteinTranscriptsWithoutParent);
@@ -433,7 +433,7 @@ public class IntactTranscriptParentUpdaterImpl implements IntactTranscriptParent
                 for (Protein t : transcripts){
                     InteractorXref uniprotIdentity = ProteinUtils.getUniprotXref(t);
 
-                    CvXrefQualifier parentXRef = null;
+                    CvXrefQualifier parentXRef;
 
                     if (IdentifierChecker.isSpliceVariantId(uniprotIdentity.getPrimaryId())){
                         parentXRef = factory.getCvObjectDao(CvXrefQualifier.class).getByPsiMiRef(CvXrefQualifier.ISOFORM_PARENT_MI_REF);
