@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotIdentityUpdaterImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotIdentityUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Annotation;
@@ -34,11 +34,11 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
 
-    private UniprotIdentityUpdaterImpl updater;
+    private UniprotIdentityUpdater updater;
 
     @Before
     public void setUp(){
-        updater = new UniprotIdentityUpdaterImpl();
+        updater = new UniprotIdentityUpdater();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

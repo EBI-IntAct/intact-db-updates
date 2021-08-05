@@ -11,8 +11,6 @@
     <bean id="dummy" class="psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher"/>
 
     <bean id="biosourceLoaderBean" class="uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl">
-        <constructor-arg>
-            <ref bean="dummy"/>
-        </constructor-arg>
+        <constructor-arg ref="dummy"/>
     </bean>
 </beans>

@@ -14,7 +14,7 @@ import java.util.Set;
 
 public class MultiUniprotIdentities extends DefaultProteinUpdateError implements IntactUpdateError {
 
-    protected Set<String> uniprotIdentities = new HashSet<String>();
+    protected Set<String> uniprotIdentities = new HashSet<>();
     protected String proteinAc;
 
     public MultiUniprotIdentities(String proteinAc) {
@@ -40,7 +40,7 @@ public class MultiUniprotIdentities extends DefaultProteinUpdateError implements
         StringBuffer error = new StringBuffer();
         error.append("The protein ");
         error.append(proteinAc);
-        error.append(" has " + this.uniprotIdentities.size());
+        error.append(" has ").append(this.uniprotIdentities.size());
         error.append(" uniprot identities : ");
 
         writeUniprotAcs(error);

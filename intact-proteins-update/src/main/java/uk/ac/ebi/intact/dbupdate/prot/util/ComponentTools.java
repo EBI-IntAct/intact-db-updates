@@ -176,7 +176,7 @@ public class ComponentTools {
             return false;
         }
 
-        List<String> uniqueStrings1 = new ArrayList<String>();
+        List<String> uniqueStrings1 = new ArrayList<>();
 
         for (IntactObject io1 : intactObjects1) {
             uniqueStrings1.add(createUniqueString(io1));
@@ -296,7 +296,7 @@ public class ComponentTools {
     public static Set<String> moveComponents(Protein destinationProtein, Protein sourceProtein, DataContext context, ProteinUpdateProcessor processor, Collection<Component> componentsToMove, String uniprot) {
         DaoFactory factory = context.getDaoFactory();
 
-        Collection<Component> deletedComponents = new ArrayList<Component>(componentsToMove.size());
+        Collection<Component> deletedComponents = new ArrayList<>(componentsToMove.size());
 
         for (Component component : componentsToMove) {
             sourceProtein.removeActiveInstance(component);
@@ -338,7 +338,7 @@ public class ComponentTools {
         //factory.getProteinDao().update((ProteinImpl) destinationProtein);
 
         Collection<Component> components = CollectionUtils.subtract(componentsToMove, deletedComponents);
-        Set<String> interactionAcs = new HashSet<String>(components.size());
+        Set<String> interactionAcs = new HashSet<>(components.size());
 
         for (Component comp : components){
            if(comp.getInteraction() != null){

@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
 import java.io.File;
@@ -27,25 +12,25 @@ import java.io.IOException;
  */
 public class FileReportHandler implements UpdateReportHandler{
 
-    private ReportWriter duplicatesWriter;
-    private ReportWriter deletedWriter;
-    private ReportWriter createdWriter;
-    private ReportWriter nonUniprotProteinWriter;
-    private ReportWriter updateCasesWriter;
-    private ReportWriter sequenceChangedWriter;
-    private ReportWriter rangeChangedWriter;
-    private ReportWriter featureChangedWriter;
-    private ReportWriter invalidRangeWriter;
-    private ReportWriter outOfDateRangeWriter;
-    private ReportWriter deadProteinWriter;
-    private ReportWriter outOfDateParticipantWriter;
-    private ReportWriter preprocessErrorWriter;
-    private ReportWriter secondaryProteinsWriter;
-    private ReportWriter transcriptWithSameSequenceWriter;
-    private ReportWriter updatedIntactParentWriter;
-    private ReportWriter proteinMappingWriter;
-    private ReportWriter sequenceChangedCautionWriter;
-    private ReportWriter deletedComponentWriter;
+    private final ReportWriter duplicatesWriter;
+    private final ReportWriter deletedWriter;
+    private final ReportWriter createdWriter;
+    private final ReportWriter nonUniprotProteinWriter;
+    private final ReportWriter updateCasesWriter;
+    private final ReportWriter sequenceChangedWriter;
+    private final ReportWriter rangeChangedWriter;
+    private final ReportWriter featureChangedWriter;
+    private final ReportWriter invalidRangeWriter;
+    private final ReportWriter outOfDateRangeWriter;
+    private final ReportWriter deadProteinWriter;
+    private final ReportWriter outOfDateParticipantWriter;
+    private final ReportWriter preprocessErrorWriter;
+    private final ReportWriter secondaryProteinsWriter;
+    private final ReportWriter transcriptWithSameSequenceWriter;
+    private final ReportWriter updatedIntactParentWriter;
+    private final ReportWriter proteinMappingWriter;
+    private final ReportWriter sequenceChangedCautionWriter;
+    private final ReportWriter deletedComponentWriter;
 
     public FileReportHandler(File dirFile) throws IOException {
         if (!dirFile.exists()) {
@@ -76,15 +61,15 @@ public class FileReportHandler implements UpdateReportHandler{
         this.deletedComponentWriter = new ReportWriterImpl(new FileWriter(new File(dirFile, "deleted_component.csv")));
     }
 
-    public ReportWriter getDuplicatedWriter() throws IOException {
+    public ReportWriter getDuplicatedWriter() {
         return duplicatesWriter;
     }
 
-    public ReportWriter getDeletedWriter() throws IOException {
+    public ReportWriter getDeletedWriter() {
         return deletedWriter;
     }
 
-    public ReportWriter getCreatedWriter() throws IOException {
+    public ReportWriter getCreatedWriter() {
         return createdWriter;
     }
 
@@ -92,11 +77,11 @@ public class FileReportHandler implements UpdateReportHandler{
         return nonUniprotProteinWriter;
     }
 
-    public ReportWriter getUpdateCasesWriter() throws IOException {
+    public ReportWriter getUpdateCasesWriter() {
         return updateCasesWriter;
     }
 
-    public ReportWriter getSequenceChangedWriter() throws IOException {
+    public ReportWriter getSequenceChangedWriter() {
         return sequenceChangedWriter;
     }
 
@@ -104,11 +89,11 @@ public class FileReportHandler implements UpdateReportHandler{
         return rangeChangedWriter;
     }
 
-    public ReportWriter getInvalidRangeWriter() throws IOException {
+    public ReportWriter getInvalidRangeWriter() {
         return invalidRangeWriter;
     }
 
-    public ReportWriter getDeadProteinWriter() throws IOException {
+    public ReportWriter getDeadProteinWriter() {
         return deadProteinWriter;
     }
 
@@ -129,32 +114,32 @@ public class FileReportHandler implements UpdateReportHandler{
     }
 
     @Override
-    public ReportWriter getIntactParentWriter() throws IOException {
+    public ReportWriter getIntactParentWriter() {
         return updatedIntactParentWriter;
     }
 
     @Override
-    public ReportWriter getProteinMappingWriter() throws IOException {
+    public ReportWriter getProteinMappingWriter() {
         return this.proteinMappingWriter;
     }
 
     @Override
-    public ReportWriter getOutOfDateRangeWriter() throws IOException {
+    public ReportWriter getOutOfDateRangeWriter() {
         return this.outOfDateRangeWriter;
     }
 
     @Override
-    public ReportWriter getSequenceChangedCautionWriter() throws IOException {
+    public ReportWriter getSequenceChangedCautionWriter() {
         return this.sequenceChangedCautionWriter;
     }
 
     @Override
-    public ReportWriter getDeletedComponentWriter() throws IOException {
+    public ReportWriter getDeletedComponentWriter() {
         return this.deletedComponentWriter;
     }
 
     @Override
-    public ReportWriter getFeatureChangedWriter() throws IOException {
+    public ReportWriter getFeatureChangedWriter() {
         return this.featureChangedWriter;
     }
 

@@ -12,7 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.*;
+import uk.ac.ebi.intact.dbupdate.prot.actions.deleters.ProteinDeleter;
+import uk.ac.ebi.intact.dbupdate.prot.actions.finders.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DuplicatesFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -34,11 +38,11 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class DuplicateFixerTest extends IntactBasicTestCase{
 
-    private DuplicatesFixerImpl duplicateFixer;
+    private DuplicatesFixer duplicateFixer;
 
     @Before
     public void setUp(){
-        duplicateFixer = new DuplicatesFixerImpl(new ProteinDeleterImpl(), new OutOfDateParticipantFixerImpl(new RangeFixerImpl()), new DuplicatesFinderImpl());
+        duplicateFixer = new DuplicatesFixer(new ProteinDeleter(), new OutOfDateParticipantFixer(new RangeFixer()), new DuplicatesFinder());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -77,7 +81,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -158,7 +162,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -243,7 +247,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -346,7 +350,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -433,7 +437,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -529,7 +533,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -599,7 +603,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -699,7 +703,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -799,7 +803,7 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 

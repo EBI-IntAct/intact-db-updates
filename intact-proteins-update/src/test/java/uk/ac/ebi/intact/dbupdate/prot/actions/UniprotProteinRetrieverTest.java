@@ -11,11 +11,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinMapperImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinRetrieverImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.mappers.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.actions.retrievers.UniprotProteinRetriever;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.Protein;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -25,7 +24,7 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
 /**
- * Tester of UniprotProteinRetrieverImpl
+ * Tester of UniprotProteinRetriever
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -33,12 +32,12 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
-    UniprotProteinRetrieverImpl retriever;
+    UniprotProteinRetriever retriever;
 
     @Before
     public void before() throws Exception {
         UniprotService uniprotService = new MockUniprotService();
-        retriever = new UniprotProteinRetrieverImpl(uniprotService, new UniprotProteinMapperImpl(uniprotService), new DeadUniprotProteinFixerImpl());
+        retriever = new UniprotProteinRetriever(uniprotService, new UniprotProteinMapper(uniprotService), new DeadUniprotProteinFixer());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -65,7 +64,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P60952");
 
@@ -90,7 +89,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P21181");
 
@@ -114,7 +113,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P00012");
         Assert.assertNull(evt.getUniprotProtein());
@@ -140,7 +139,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
         // one of the protein is human
         prot.getBioSource().setTaxId("9606");
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P21181");
 
@@ -169,7 +168,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P00012");
 
@@ -193,7 +192,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, IntactContext.getCurrentInstance().getDataContext(), prot);
         evt.setUniprotIdentity("P12345");
 
@@ -217,7 +216,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181-1");
 
@@ -242,7 +241,7 @@ public class UniprotProteinRetrieverTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P00012-1");
 

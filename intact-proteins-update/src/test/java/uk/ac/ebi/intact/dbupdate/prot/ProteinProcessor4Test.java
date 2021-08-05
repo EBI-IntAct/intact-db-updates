@@ -34,7 +34,7 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor4Test extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     public void before() throws Exception {
@@ -62,7 +62,7 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
      * There are two duplicates of the same protein in IntAct. Should be merged because
      * the configuration allows to fix duplicates and only the original protein should be updated
      */
-    public void update_protein_and_fix_duplicates() throws Exception{
+    public void update_protein_and_fix_duplicates() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
 
@@ -105,12 +105,12 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    /**
+    /*
      * There are two duplicates of the same protein in IntAct. Should not be merged because
      * the configuration doesn't allow to fix duplicates and both proteins should be updated.
      * The isoforms and chains cannot be updated because we don't have a single parent in intact
      */
-    public void update_protein_and_fix_duplicates_no() throws Exception{
+    public void update_protein_and_fix_duplicates_no() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(false);
 
@@ -376,7 +376,7 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
      * there are feature conflicts and only the original protein should be updated.
      * The duplicated protein is deleted because it was possible to remap the sequence to one isoform
      */
-    public void update_protein_and_fix_duplicates_conflicts_transcripts_yes() throws Exception{
+    public void update_protein_and_fix_duplicates_conflicts_transcripts_yes() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -718,21 +718,5 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
         }
 
         return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
     }
 }

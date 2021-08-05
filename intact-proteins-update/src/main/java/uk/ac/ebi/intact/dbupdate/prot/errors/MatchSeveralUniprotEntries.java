@@ -15,7 +15,7 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implement
 
     protected String uniprotAc;
     protected String taxId;
-    protected Set<String> uniprotFromDifferentOrganisms = new HashSet<String>();
+    protected Set<String> uniprotFromDifferentOrganisms = new HashSet<>();
 
     public MatchSeveralUniprotEntries(String proteinAc, String uniprotAc, String taxId, UpdateError errorLabel) {
         super(proteinAc, errorLabel);
@@ -42,16 +42,16 @@ public class MatchSeveralUniprotEntries extends MultiUniprotIdentities implement
         }
 
         StringBuffer error = new StringBuffer();
-        error.append("The protein (TaxId = "+(taxId != null ? taxId : "null")+" ");
+        error.append("The protein (TaxId = ").append(taxId != null ? taxId : "null").append(" ");
         error.append(proteinAc);
         error.append(" has a uniprot ac (");
         error.append(uniprotAc);
-        error.append(" which can match " + this.uniprotIdentities.size());
+        error.append(" which can match ").append(this.uniprotIdentities.size());
         error.append(" different uniprot entries having same taxId : ");
 
         writeUniprotAcs(error);
 
-        error.append(" and which can match " + this.uniprotFromDifferentOrganisms.size());
+        error.append(" and which can match ").append(this.uniprotFromDifferentOrganisms.size());
         error.append(" different uniprot entries having a different taxId : ");
 
         writeUniprotAcs(error, this.uniprotFromDifferentOrganisms);

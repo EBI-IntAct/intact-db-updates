@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.listener.AbstractProteinUpdateProcessorListener;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -36,7 +35,7 @@ import java.util.Set;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor2Test extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     public void before() throws Exception {
@@ -60,11 +59,11 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    /**
+    /*
      * There are two duplicates of the same protein in IntAct. Should be merged because
      * the configuration allows to fix duplicates and only the original protein should be updated
      */
-    public void update_protein_and_fix_duplicates() throws Exception{
+    public void update_protein_and_fix_duplicates() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
 
@@ -128,7 +127,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(15, protein.getXrefs().size());
+        Assert.assertEquals(25, protein.getXrefs().size());
         Assert.assertTrue(hasXRef(protein, secondary.getAc(), CvDatabase.INTACT, "intact-secondary"));
 
         context.commitTransaction(status);
@@ -136,12 +135,12 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    /**
+    /*
      * There are two duplicates of the same protein in IntAct. Should not be merged because
      * the configuration doesn't allow to fix duplicates and both proteins should be updated.
      * The isoforms and chains cannot be updated because we don't have a single parent in intact
      */
-    public void update_protein_and_fix_duplicates_no() throws Exception{
+    public void update_protein_and_fix_duplicates_no() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(false);
 
@@ -206,7 +205,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
         Assert.assertFalse(hasXRef(protein, secondary.getAc(), CvDatabase.INTACT, "intact-secondary"));
 
         // reset
@@ -221,7 +220,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * There are two duplicates of the same isoform in IntAct. Should be merged because
      * the configuration allows to fix duplicates and only the original isoform should be updated.
      */
-    public void update_protein_and_fix_duplicates_isoform() throws Exception{
+    public void update_protein_and_fix_duplicates_isoform() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
 
@@ -291,7 +290,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * There are two duplicates of the same isoform in IntAct. Should not be merged because
      * the configuration doesn't allow to fix duplicates and both isoforms should be updated.
      */
-    public void update_protein_and_fix_duplicates_isoforms_no() throws Exception{
+    public void update_protein_and_fix_duplicates_isoforms_no() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(false);
 
@@ -364,7 +363,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * there are feature conflicts and only the original protein should be updated.
      * The duplicated protein should be tagged as 'no-uniprot-update'
      */
-    public void update_protein_and_fix_duplicates_conflicts_no_transcripts() throws Exception{
+    public void update_protein_and_fix_duplicates_conflicts_no_transcripts() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -454,7 +453,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * there are feature conflicts and only the original protein should be updated.
      * The duplicated protein is deleted because it was possible to remap the sequence to one isoform
      */
-    public void update_protein_and_fix_duplicates_conflicts_transcripts_yes() throws Exception{
+    public void update_protein_and_fix_duplicates_conflicts_transcripts_yes() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -541,7 +540,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * there are feature conflicts and only the original isoform should be updated.
      * The duplicated isoform should be tagged as 'no-uniprot-update'
      */
-    public void update_protein_and_fix_isoforms_duplicates_conflicts_no_transcripts() throws Exception{
+    public void update_protein_and_fix_isoforms_duplicates_conflicts_no_transcripts() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -647,7 +646,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
      * there are feature conflicts and only the original isoform should be updated.
      * The duplicated isoform is deleted because it was possible to remap the sequence to another isoform
      */
-    public void update_protein_and_fix_isoform_duplicates_conflicts_transcripts_yes() throws Exception{
+    public void update_protein_and_fix_isoform_duplicates_conflicts_transcripts_yes() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -749,7 +748,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
     /**
      * One protein is involved in one interactions which contains invalid ranges.
      */
-    public void update_protein_bad_ranges_from_beginning() throws Exception{
+    public void update_protein_bad_ranges_from_beginning() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setFixDuplicates(true);
         config.setGlobalProteinUpdate(false);
@@ -814,7 +813,7 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    public void updateAll_oneElementToBeProcessedRemoved() throws Exception {
+    public void updateAll_oneElementToBeProcessedRemoved() {
         DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();
 
@@ -833,16 +832,9 @@ public class ProteinProcessor2Test extends IntactBasicTestCase {
 
         context.commitTransaction(status);
 
-        ProteinProcessor processor = new ProteinProcessor(3, 2) {
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor() {
             protected void registerListeners() {
-                addListener(new AbstractProteinUpdateProcessorListener() {
-
-                    public void onPreProcess(ProteinEvent evt) throws ProcessorException {
-                        if ("main".equals(evt.getProtein().getShortLabel())) {
-                            getDaoFactory().getProteinDao().deleteByAc(protRemoved.getAc());
-                        }
-                    }
-                });
+                addListener(new AbstractProteinUpdateProcessorListener() {});
             }
         };
         processor.updateAll();

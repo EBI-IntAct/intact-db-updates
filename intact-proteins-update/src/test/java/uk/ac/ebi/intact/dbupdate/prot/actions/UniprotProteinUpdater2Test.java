@@ -12,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Second tester of UniprotProteinUpdaterImpl
+ * Second tester of UniprotProteinUpdater
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -42,11 +42,11 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
-    private UniprotProteinUpdaterImpl updater;
+    private UniprotProteinUpdater updater;
 
     @Before
     public void before() throws Exception {
-        updater = new UniprotProteinUpdaterImpl(new OutOfDateParticipantFixerImpl(new RangeFixerImpl()));
+        updater = new UniprotProteinUpdater(new OutOfDateParticipantFixer(new RangeFixer()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -117,9 +117,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(isoform, variant));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -144,7 +144,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         ProteinTranscript transcript = evt.getSecondaryIsoforms().iterator().next();
         Assert.assertEquals(isoform.getAc(), transcript.getProtein().getAc());
-        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(variant, transcript.getUniprotProteinTranscript());
         Assert.assertEquals(1, isoform.getActiveInstances().size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
@@ -208,7 +208,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -297,9 +297,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(interaction);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -324,7 +324,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
         Assert.assertEquals(chain.getAc(), transcript.getProtein().getAc());
-        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+        Assert.assertEquals(chain1, transcript.getUniprotProteinTranscript());
         Assert.assertEquals(1, chain.getActiveInstances().size());
 
         Assert.assertEquals(2, range.getFromIntervalStart());
@@ -383,9 +383,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variant));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -400,7 +400,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
 
         Protein updatedProtein = transcript.getProtein();
-        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(variant, transcript.getUniprotProteinTranscript());
 
         Assert.assertEquals(isoform.getAc(), updatedProtein.getAc());
 
@@ -435,7 +435,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ISOFORM_SYNONYM, syn2));
         }
 
-        Assert.assertEquals(3, updatedProtein.getXrefs().size());
+        Assert.assertEquals(6, updatedProtein.getXrefs().size());
         Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
         Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 
@@ -482,9 +482,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variant));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -500,12 +500,12 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         ProteinTranscript transcript = evt.getPrimaryIsoforms().iterator().next();
 
         Protein updatedProtein = transcript.getProtein();
-        Assert.assertEquals(variant, transcript.getUniprotVariant());
+        Assert.assertEquals(variant, transcript.getUniprotProteinTranscript());
         Assert.assertEquals(isoform.getAc(), updatedProtein.getAc());
 
         Assert.assertEquals(master.getBioSource().getTaxId(), updatedProtein.getBioSource().getTaxId());
 
-        Assert.assertEquals(3, updatedProtein.getXrefs().size());
+        Assert.assertEquals(6, updatedProtein.getXrefs().size());
 
         getDataContext().commitTransaction(status);
     }
@@ -560,9 +560,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(isoform);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variant));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -630,9 +630,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -648,7 +648,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
 
         Protein updatedProtein = transcript.getProtein();
-        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+        Assert.assertEquals(chain1, transcript.getUniprotProteinTranscript());
 
         Assert.assertEquals(chain.getAc(), updatedProtein.getAc());
 
@@ -727,9 +727,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -745,7 +745,7 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         ProteinTranscript transcript = evt.getPrimaryFeatureChains().iterator().next();
 
         Protein updatedProtein = transcript.getProtein();
-        Assert.assertEquals(chain1, transcript.getUniprotVariant());
+        Assert.assertEquals(chain1, transcript.getUniprotProteinTranscript());
 
         Assert.assertEquals(chain.getAc(), updatedProtein.getAc());
 
@@ -802,9 +802,9 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(chain);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(master);
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -863,24 +863,5 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
         return hasFoundAlias;
     }
 
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
-    }
 
 }

@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.listener;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,8 +6,8 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.dbupdate.prot.errors.ProteinUpdateError;
 import uk.ac.ebi.intact.dbupdate.prot.event.*;
 import uk.ac.ebi.intact.dbupdate.prot.rangefix.InvalidRange;
@@ -101,7 +86,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private String mapCollectionStringToString(Map<String, Collection<String>> mapInfo){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         int i = 1;
 
@@ -121,7 +106,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private String mapSetStringToString(Map<String, Set<String>> mapInfo){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         int i = 1;
 
@@ -141,7 +126,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private String mapCollectionXrefsToString(Map<String, Collection<InteractorXref>> mapInfo){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         int i = 1;
 
@@ -161,7 +146,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     private String mapCollectionAnnotationsToString(Map<String, Collection<Annotation>> mapInfo){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
 
         int i = 1;
 
@@ -258,7 +243,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     protein.getShortLabel()+"|"+
                     getPrimaryIdString(protein)+
                     "|CRC:"+evt.getUniprotCrc64()+
-                    "|Length:"+Integer.toString(sequenceLength)+
+                    "|Length:"+ sequenceLength +
                     "|Diff:"+seqDiff+
                     "|Levenshtein:"+ levenshtein+
                     "|Conservation:"+conservation);
@@ -289,7 +274,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
                     String qual = (ref.getCvXrefQualifier() != null)? "("+ref.getCvXrefQualifier().getShortLabel()+")" : "";
 
-                    xRefs.append(ref.getCvDatabase().getShortLabel()+":"+ref.getPrimaryId()+qual);
+                    xRefs.append(ref.getCvDatabase().getShortLabel()).append(":").append(ref.getPrimaryId()).append(qual);
                 }
             }
             else {
@@ -397,7 +382,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "New annotations");
             String primaryId = evt.getProtein().getPrimaryAc();
 
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             for (Map.Entry<String, Collection<Annotation>> entry : evt.getNewAnnotations().entrySet()) {
 
                 buffer.append(entry.getKey()).append(" [");
@@ -405,7 +390,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                 for (Annotation annotation : entry.getValue()){
                     String qual = (annotation.getCvTopic()!= null)? "("+ annotation.getCvTopic().getShortLabel()+")" : "";
 
-                    buffer.append(qual+":"+ (annotation.getAnnotationText() != null ? annotation.getAnnotationText() : "-"));
+                    buffer.append(qual).append(":").append(annotation.getAnnotationText() != null ? annotation.getAnnotationText() : "-");
                     buffer.append(" ");
                 }
                 buffer.append(entry.getKey()).append("] ");
@@ -463,70 +448,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             if (!evt.getInvalidRangeReport().getUpdatedFeatureAnnotations().isEmpty()){
                 logFeatureChanged(evt.getInvalidRangeReport());
             }
-        } catch (Exception e) {
-            log.fatal("Problem writing update case to stream", e);
-        }
-    }
-
-    @Override
-    public void onRangeChanged(RangeChangedEvent evt) throws ProcessorException {
-
-        try {
-            UpdatedRange updatedRange = evt.getUpdatedRange();
-
-            String uniprotAc = EMPTY_VALUE;
-            String rangeAc = updatedRange.getRangeAc();
-            String featureAc = updatedRange.getFeatureAc();
-            String componentAc = updatedRange.getComponentAc();
-            String proteinAc = updatedRange.getProteinAc();
-            String interactionAc = updatedRange.getInteractionAc();
-            String featureLabel = EMPTY_VALUE;
-            String proteinLabel = EMPTY_VALUE;
-
-            String oldRange = EMPTY_VALUE;
-            String newRange = EMPTY_VALUE;
-
-            if (updatedRange.getNewRange() != null){
-                Feature feature = updatedRange.getNewRange().getFeature();
-                Component component = feature.getComponent();
-                Interactor interactor = component.getInteractor();
-
-                final InteractorXref xref = ProteinUtils.getUniprotXref(interactor);
-                uniprotAc = (xref != null)? xref.getPrimaryId() : EMPTY_VALUE;
-                newRange = updatedRange.getNewRange().toString();
-                featureLabel = feature.getShortLabel();
-                proteinLabel = interactor.getShortLabel();
-            }
-
-            if (updatedRange.getOldRange() != null){
-                oldRange = updatedRange.getOldRange().toString();
-            }
-            ReportWriter writer = reportHandler.getRangeChangedWriter();
-            writer.writeHeaderIfNecessary("Range AC",
-                    "Old Pos.",
-                    "New Pos.",
-                    "Length Changed",
-                    "Seq. Changed",
-                    "Feature AC",
-                    "Feature Label",
-                    "Comp. AC",
-                    "Prot. AC",
-                    "Prot. Label",
-                    "Prot. Uniprot",
-                    "Interaction ac");
-            writer.writeColumnValues(dashIfNull(rangeAc),
-                    dashIfNull(oldRange),
-                    dashIfNull(newRange),
-                    booleanToYesNo(updatedRange.isRangeLengthChanged()),
-                    booleanToYesNo(updatedRange.isSequenceChanged()),
-                    dashIfNull(featureAc),
-                    dashIfNull(featureLabel),
-                    dashIfNull(componentAc),
-                    dashIfNull(proteinAc),
-                    dashIfNull(proteinLabel),
-                    dashIfNull(uniprotAc),
-                    dashIfNull(interactionAc));
-            writer.flush();
         } catch (Exception e) {
             log.fatal("Problem writing update case to stream", e);
         }
@@ -598,9 +519,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             Map<String, AnnotationUpdateReport> featureReport = rangeReport.getUpdatedFeatureAnnotations();
 
             for (Map.Entry<String, AnnotationUpdateReport> entry : featureReport.entrySet()){
-                StringBuffer added = new StringBuffer();
-                StringBuffer removed = new StringBuffer();
-                StringBuffer updated = new StringBuffer();
+                StringBuilder added = new StringBuilder();
+                StringBuilder removed = new StringBuilder();
+                StringBuilder updated = new StringBuilder();
 
                 AnnotationUpdateReport a = entry.getValue();
 
@@ -769,7 +690,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     public void onInvalidIntactParent(InvalidIntactParentFoundEvent evt) throws ProcessorException{
-        ReportWriter writer = null;
+        ReportWriter writer;
         try {
             writer = reportHandler.getIntactParentWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
@@ -786,7 +707,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
     }
 
     public void onProteinRemapping(ProteinRemappingEvent evt) throws ProcessorException{
-        ReportWriter writer = null;
+        ReportWriter writer;
         try {
             writer = reportHandler.getProteinMappingWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
@@ -796,26 +717,26 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Uniprot id found",
                     "Actions");
 
-            StringBuffer identifiers = new StringBuffer(1064);
+            StringBuilder identifiers = new StringBuilder(1064);
 
             for (Map.Entry<String, String> entry : evt.getContext().getIdentifiers().entrySet()){
-                identifiers.append(entry.getKey() + " : " + entry.getValue() + ",");
+                identifiers.append(entry.getKey()).append(" : ").append(entry.getValue()).append(",");
             }
 
             String uniprotId = "-";
-            StringBuffer actions = new StringBuffer(1064);
+            StringBuilder actions = new StringBuilder(1064);
             if (evt.getResult() != null){
                 uniprotId = dashIfNull(evt.getResult().getFinalUniprotId());
                 List<MappingReport> reports = evt.getResult().getListOfActions();
 
                 for (MappingReport report : reports){
                     actions.append("[");
-                    actions.append(report.getName().toString() + " : " + report.getStatus().getLabel() + " : " + report.getStatus().getDescription());
+                    actions.append(report.getName().toString()).append(" : ").append(report.getStatus().getLabel()).append(" : ").append(report.getStatus().getDescription());
 
                     if (!report.getWarnings().isEmpty()){
                         actions.append(" (");
                         for (String warn : report.getWarnings()){
-                            actions.append(warn + ";");
+                            actions.append(warn).append(";");
                         }
                         actions.append(")");
                     }
@@ -823,7 +744,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     if (!report.getPossibleAccessions().isEmpty()){
                         actions.append(", possible accessions : ");
                         for (String ac : report.getPossibleAccessions()){
-                            actions.append(ac + ";");
+                            actions.append(ac).append(";");
                         }
                     }
 
@@ -831,12 +752,12 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                         actions.append(", ");
 
                         UniprotProteinAPIReport<UniprotProteinAPICrossReferences> uniprotProteinAPIReport = (UniprotProteinAPIReport) report;
-                        actions.append("Is a Swissprot entry : " + uniprotProteinAPIReport.isASwissprotEntry());
+                        actions.append("Is a Swissprot entry : ").append(uniprotProteinAPIReport.isASwissprotEntry());
 
                         if (!uniprotProteinAPIReport.getCrossReferences().isEmpty()){
                             actions.append(", other cross references : ");
                             for (UniprotProteinAPICrossReferences xrefs : uniprotProteinAPIReport.getCrossReferences()){
-                                actions.append(xrefs.getDatabase() + " : " + xrefs.getAccessions() + ";");
+                                actions.append(xrefs.getDatabase()).append(" : ").append(xrefs.getAccessions()).append(";");
                             }
                         }
                     }
@@ -847,9 +768,9 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                         if (!blast.getBlastMatchingProteins().isEmpty()){
                             actions.append(", Blast Results : ");
                             for (BlastResults prot : blast.getBlastMatchingProteins()){
-                                actions.append("BLAST Protein " + prot.getAccession() + " : identity = " + prot.getIdentity() + ";");
-                                actions.append("Query start = " + prot.getStartQuery() + ": end = " + prot.getEndQuery() + ";");
-                                actions.append("Match start = " + prot.getStartMatch() + ": end = " + prot.getEndMatch() + ",");
+                                actions.append("BLAST Protein ").append(prot.getAccession()).append(" : identity = ").append(prot.getIdentity()).append(";");
+                                actions.append("Query start = ").append(prot.getStartQuery()).append(": end = ").append(prot.getEndQuery()).append(";");
+                                actions.append("Match start = ").append(prot.getStartMatch()).append(": end = ").append(prot.getEndMatch()).append(",");
                             }
                         }
                     }
@@ -871,7 +792,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     @Override
     public void onProteinSequenceCaution(ProteinSequenceChangeEvent evt) throws ProcessorException {
-        ReportWriter writer = null;
+        ReportWriter writer;
         try {
             writer = reportHandler.getSequenceChangedCautionWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
@@ -896,7 +817,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
 
     @Override
     public void onDeletedComponent(DeletedComponentEvent evt) throws ProcessorException {
-        ReportWriter writer = null;
+        ReportWriter writer;
         try {
             writer = reportHandler.getDeletedComponentWriter();
             writer.writeHeaderIfNecessary("Protein Ac",
@@ -904,13 +825,13 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Deleted Components");
 
             if (evt.getProtein() != null && !evt.getDeletedComponents().isEmpty()){
-                StringBuffer comp = new StringBuffer();
+                StringBuilder comp = new StringBuilder();
 
                 int i = 0;
                 for (Component component : evt.getDeletedComponents()){
                     String interactionAc = component.getInteraction() != null ? component.getInteraction().getAc() : "-";
 
-                    comp.append("Participant " + component.getAc() + "[interaction = "+interactionAc+"]");
+                    comp.append("Participant ").append(component.getAc()).append("[interaction = ").append(interactionAc).append("]");
 
                     if (i < evt.getDeletedComponents().size()){
                         comp.append(",");
@@ -1004,10 +925,10 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             sb.append(protein.getShortLabel()).append("(").append(protein.getAc()).append(")");
 
             InteractorXref ref = ProteinUtils.getUniprotXref(protein);
-            String primary = p.getUniprotVariant() != null ? p.getUniprotVariant().getPrimaryAc() : "-";
+            String primary = p.getUniprotProteinTranscript() != null ? p.getUniprotProteinTranscript().getPrimaryAc() : "-";
 
             if (ref != null){
-                sb.append(" Old = " + ref.getPrimaryId() + ", New = " + primary);
+                sb.append(" Old = ").append(ref.getPrimaryId()).append(", New = ").append(primary);
             }
 
             if (iterator.hasNext()) {
@@ -1064,7 +985,7 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             InteractorXref ref = ProteinUtils.getUniprotXref(protein);
 
             if (ref != null){
-                sb.append(" old = " + ref.getPrimaryId() + ", new = " + primary);
+                sb.append(" old = ").append(ref.getPrimaryId()).append(", new = ").append(primary);
             }
 
             if (iterator.hasNext()) {
@@ -1234,10 +1155,6 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             writer.writeHeaderIfNecessary("datetime", "ac", "shortLabel", "primary ID", "message");
             writer.flush();
         }
-    }
-
-    private void writeDefaultLine(ReportWriter writer, Protein protein) throws IOException {
-        writeDefaultLine(writer, protein, null);
     }
 
     private void writeDefaultLine(ReportWriter writer, Protein protein, String message) throws IOException {

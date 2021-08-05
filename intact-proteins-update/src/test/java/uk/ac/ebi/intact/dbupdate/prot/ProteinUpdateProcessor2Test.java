@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
@@ -31,7 +16,6 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 
 /**
  * ProteinUpdateProcessor Tester.
@@ -197,11 +181,6 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         CvTopic invalid_range = getDaoFactory().getCvObjectDao(CvTopic.class).getByShortLabel("invalid-range");
 
-        int oldSequenceLength = 579;
-
-        String oldFeatureSequence = "AQKN";
-        String newFeatureSequence = "AQKN";
-
         String previousSequence = "MMAVAAQKNREMFAIKKSYSIENGYPSRRRSLVDDARFETLVVKQTKQTVLEEARSKAN" +
                 "DDSLEDCIVQAQEHIPSEQDVELQDEHANLENLPLEEYVPVEEDVEFESVEQEQSESQSQ" +
                 "EPEGNQQPTKNDYGLTEDEILLANAASESSDAEAAMQSAALVVRLKEGISSLGRILKAIE" +
@@ -296,12 +275,12 @@ public class ProteinUpdateProcessor2Test extends IntactBasicTestCase {
 
         Assert.assertNotNull( ao );
 
-        for ( Iterator iterator = ao.getXrefs().iterator(); iterator.hasNext(); ) {
-            Xref xref = (Xref) iterator.next();
+        for (Object o : ao.getXrefs()) {
+            Xref xref = (Xref) o;
 
-            if( (xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db) ) &&
-                    (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier) ) &&
-                    xref.getPrimaryId().equals( primaryId ) ) {
+            if ((xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db)) &&
+                    (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier)) &&
+                    xref.getPrimaryId().equals(primaryId)) {
                 // found it
                 return;
             }

@@ -11,12 +11,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DeadUniprotProteinFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.mappers.UniprotProteinMapper;
+import uk.ac.ebi.intact.dbupdate.prot.actions.retrievers.UniprotProteinRetriever;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinMapperImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinRetrieverImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Protein;
@@ -32,7 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Second tester of UniprotProteinRetrieverImpl
+ * Second tester of UniprotProteinRetriever
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -41,12 +40,12 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
-    UniprotProteinRetrieverImpl retriever;
+    UniprotProteinRetriever retriever;
 
     @Before
     public void before() throws Exception {
         UniprotService uniprotService = new MockUniprotService();
-        retriever = new UniprotProteinRetrieverImpl(uniprotService, new UniprotProteinMapperImpl(uniprotService), new DeadUniprotProteinFixerImpl());
+        retriever = new UniprotProteinRetriever(uniprotService, new UniprotProteinMapper(uniprotService), new DeadUniprotProteinFixer());
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -76,7 +75,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        ProteinProcessor processor = new ProteinUpdateProcessor();
+        ProteinUpdateProcessor processor = new ProteinUpdateProcessor();
         ProteinEvent evt = new ProteinEvent(processor, null, prot);
         evt.setUniprotIdentity("P21181-1");
 
@@ -100,7 +99,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot = getMockBuilder().createProtein("P60953", "one_uniprot_organim");
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -121,7 +120,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot3 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "one_uniprot"); // should not be removed
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P60953-2", "one_uniprot"); // should not be removed
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
@@ -153,7 +152,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot = getMockBuilder().createProtein("P21181", "test_several_uniprot"); // should be removed
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -174,9 +173,9 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot3 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "one_uniprot"); // should not be removed
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P00012-2", "several_uniprot"); // should be removed
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
-        secondaryIsoforms.add(new ProteinTranscript(prot4, null));
+        secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot3, prot4);
 
@@ -206,7 +205,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot = getMockBuilder().createProtein("P00012", "test_several_uniprot_same_organism");
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -227,7 +226,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot3 = getMockBuilder().createProteinSpliceVariant(prot, "P60953-1", "one_uniprot"); // should not be removed
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P00012-1", "several_uniprot"); // should be removed
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
@@ -264,7 +263,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
         // one of the protein is human
         prot.getBioSource().setTaxId("9606");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -289,7 +288,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P21181-4", "several_uniprot"); // should be removed
         prot4.getBioSource().setTaxId("9606");
 
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
@@ -326,7 +325,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
         // one of the protein is human
         prot.getBioSource().setTaxId("9606");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -351,7 +350,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P00012-1", "several_uniprot"); // should be removed
         prot4.getBioSource().setTaxId("9606");
 
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, variants1));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 
@@ -384,7 +383,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProtein("P12345", "no_uniprot_protein");;
 
         Protein prot2 = getMockBuilder().createProtein("Q7L8R5", "test_one_uniprot");
-        Collection<Protein> secondary = new ArrayList<Protein>();
+        Collection<Protein> secondary = new ArrayList<>();
         secondary.add(prot);
         secondary.add(prot2);
         UniprotProtein cdc = MockUniprotProtein.build_CDC42_HUMAN();
@@ -403,7 +402,7 @@ public class UniprotProteinRetriever2Test extends IntactBasicTestCase {
 
         Protein prot4 = getMockBuilder().createProteinSpliceVariant(prot2, "P60953-1", "one_uniprot");
 
-        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> secondaryIsoforms = new ArrayList<>();
         secondaryIsoforms.add(new ProteinTranscript(prot3, null));
         secondaryIsoforms.add(new ProteinTranscript(prot4, variants2));
 

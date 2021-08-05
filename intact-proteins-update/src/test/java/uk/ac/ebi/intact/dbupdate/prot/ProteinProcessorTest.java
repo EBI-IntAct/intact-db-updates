@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.After;
@@ -46,7 +31,7 @@ import java.util.Set;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     public void before() throws Exception {
@@ -102,7 +87,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * proteins without interactions. In addition, it is not a global update and we can have transcripts without interactions.
      * The protein should be updated and two splice variants without any interactions should be created
      */
-    public void update_protein_without_interaction_transcripts_yes() throws Exception{
+    public void update_protein_without_interaction_transcripts_yes() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -154,7 +139,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -171,7 +156,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * proteins without interactions. In addition, it is a global update and we cannot have transcripts without interactions.
      * The protein should be updated and no splice variants should be created.
      */
-    public void update_protein_without_interaction_no_transcripts() throws Exception{
+    public void update_protein_without_interaction_no_transcripts() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(false);
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -223,7 +208,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -240,7 +225,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * proteins without interactions. In addition, it is not a global update and we cannot have transcripts without interactions.
      * The protein should be updated and no splice variants should be created.
      */
-    public void update_protein_without_interaction_no_transcripts_2() throws Exception{
+    public void update_protein_without_interaction_no_transcripts_2() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(false);
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -292,7 +277,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -441,7 +426,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * The configuration allows to delete proteins without interactions.
      * The protein with the interaction is updated and the protein without interactions should be deleted
      */
-    public void update_protein_and_delete_protein_without_interaction() throws Exception{
+    public void update_protein_and_delete_protein_without_interaction() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
 
@@ -499,7 +484,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         context.commitTransaction(status);
     }
@@ -510,7 +495,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * One Intact protein is 'no-uniprot' and the other is from uniprot.
      * The protein from uniprot is updated and the protein 'no-uniptoy-update' should be ignored
      */
-    public void update_protein_and_ignore_protein_no_uniprot() throws Exception{
+    public void update_protein_and_ignore_protein_no_uniprot() {
 
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -574,7 +559,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);

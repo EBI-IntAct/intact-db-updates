@@ -12,8 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.RangeUpdateReport;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.report.RangeUpdateReport;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.FeatureUtils;
@@ -33,10 +33,10 @@ import java.util.Collections;
  */
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class RangeFixer2Test extends IntactBasicTestCase {
-    private RangeFixerImpl rangeFixer;
+    private RangeFixer rangeFixer;
     @Before
     public void setUp(){
-        rangeFixer = new RangeFixerImpl();
+        rangeFixer = new RangeFixer();
 
         TransactionStatus status = getDataContext().beginTransaction();
 
@@ -382,14 +382,12 @@ public class RangeFixer2Test extends IntactBasicTestCase {
         feature.addAnnotation(getMockBuilder().createAnnotation("[xxxxx]0-0", invalid_positions));
 
         Interaction interaction = getMockBuilder().createInteraction(prot, randomProtein1);
-        Component componentWithConflicts = null;
 
         for (Component c : interaction.getComponents()){
             c.getBindingDomains().clear();
 
             if (c.getInteractor().getAc().equals(prot.getAc())){
                 c.addBindingDomain(feature);
-                componentWithConflicts = c;
             }
         }
 
@@ -412,8 +410,6 @@ public class RangeFixer2Test extends IntactBasicTestCase {
 
         // update ranges and collect components with feature conflicts
         RangeUpdateReport rangeReport = rangeFixer.updateRanges(prot, uniprot.getSequence(), new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext());
-        Collection<Component> componentToFix = rangeReport.getInvalidComponents().keySet();
-
         Assert.assertTrue(rangeReport.getInvalidComponents().isEmpty());
 
         final Collection<Annotation> invalid = AnnotatedObjectUtils.findAnnotationsByCvTopic(feature, Collections.singleton(invalid_range));
@@ -446,23 +442,6 @@ public class RangeFixer2Test extends IntactBasicTestCase {
                 "MDCFKMGNLQTSDIKILSSIQSRLRLYSLETSDLIHQYYLERLENQKSQESSPYGQLTIT" +
                 "AQLTDTGLLVGLQSFET";
 
-        String sequence2 = "MWKGFFFKLQELKMNPPTEHEHQLQDGDDGFFEKFGSLLRQKSQIDEGVLKSSLAPLEEN" +
-                "GSGGEEDSDESPDGTLQLSQDSECTSIDTFATESTLASSSDKDISTSVLDSAPVMNVTDL" +
-                "YEEILFEIFNNIGCENNEECTNSLVEFVQDAFKIPNATHEEIYEAARLKEPPNVRLNVEI" +
-                "IKAENLMSKDSNGLSDPFVTLYLESNGSHRYNSSVKPATLNPIWEEHFSLDFDAAETVKE" +
-                "KVNKILDVKGVKGLSKLMKEIAVTASSGKHDNELIGRAAITLKSIPVSGLTVWYNLEKGS" +
-                "KGRSRGSLLVNLALSAEKNKSVAVQEHKNLLKLLLMYELETSQVANYWWSGKFSPNAELI" +
-                "RSQHAAQSGLTPFDCALSQWHAYSTIHETHKLNFTLFNSILDVVVPVITYMQNDSEDVKT" +
-                "FWDGVKRLLPSCFAVLRKLRSKNTSDKNIIRALNEVLDILKKIKELEVPESVDIFPKSVY" +
-                "GWLHTNDTDETCNIDTAIEDAINTGTREWLEHIVEGSRQSKNTETDDEKLQYVIKLIQMV" +
-                "RSDLQRAMEYFDKIFYHKIQLNYSAVLYLFYDSKLAEICKSIIIEVCNNIKRLDVPDDQF" +
-                "EYLPNLENVNMGTTLFEVYLILKRYVQLGESLCSEPLELSNFYPWFERGVTHWLDISIIK" +
-                "ALSRIQKAIDLDQLKAVDETVKYSSSAVDTLSIFYQIKIFWQQLDWPEVEGSYIFVAKIV" +
-                "NDLCRCCIFYAQQMSRRVENIFIADDNNKNFSKFYWKPFFIIYCLLGEYRTNLEAERCAS" +
-                "TIKTVIENALDTERNQIVELIEIVARKMAPPIRRYLAEGAEVLAKDSNSMDQLMMYLESS" +
-                "LATLYDTLNEINFQRILDGIWSELSIIMYDLIQSNLDKRRPPAFFQNLNNTLQTMMDCFK" +
-                "MGNLQTSDIKILSSIQSRLRLYSLETSDLIHQYYLERLENQKSQESSPYGQLTITAQLTD" +
-                "TGLLVGLQSFET";
 
         TransactionStatus status = IntactContext.getCurrentInstance().getDataContext().beginTransaction();
 
@@ -529,25 +508,5 @@ public class RangeFixer2Test extends IntactBasicTestCase {
         Assert.assertTrue(rangeReport.getInvalidComponents().isEmpty());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
-    }
-
-    private boolean hasAnnotation( Feature f, String text, String cvTopic) {
-        final Collection<Annotation> annotations = f.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
     }
 }

@@ -14,8 +14,8 @@ import java.util.Set;
 
 public class InvalidCollectionOfParents extends DefaultProteinUpdateError implements IntactUpdateError{
 
-    private Set<String> isoformParents = new HashSet<String>();
-    private Set<String> chainParents = new HashSet<String>();
+    private Set<String> isoformParents = new HashSet<>();
+    private Set<String> chainParents = new HashSet<>();
     private String proteinAc;
 
     public InvalidCollectionOfParents(String proteinAc, UpdateError errorLabel) {
@@ -40,12 +40,12 @@ public class InvalidCollectionOfParents extends DefaultProteinUpdateError implem
         StringBuffer error = new StringBuffer();
         error.append("The protein ");
         error.append(proteinAc);
-        error.append(" has " + this.isoformParents.size());
+        error.append(" has ").append(this.isoformParents.size());
         error.append(" isoform parents : ");
 
         writeIntactAcs(error, this.isoformParents);
 
-        error.append(" and has " + this.chainParents.size());
+        error.append(" and has ").append(this.chainParents.size());
         error.append(" chain parents : ");
 
         writeIntactAcs(error, this.chainParents);

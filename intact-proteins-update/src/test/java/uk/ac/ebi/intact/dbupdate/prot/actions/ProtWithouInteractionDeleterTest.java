@@ -14,7 +14,7 @@ import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.ProtWithoutInteractionDeleterImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.deleters.ProtWithoutInteractionDeleter;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.Interaction;
@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Tester of ProtWithoutInteractionDeleterImpl
+ * Tester of ProtWithoutInteractionDeleter
  *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
@@ -36,10 +36,10 @@ import java.util.Set;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
 
-    private ProtWithoutInteractionDeleterImpl deleter;
+    private ProtWithoutInteractionDeleter deleter;
     @Before
     public void before_schema() throws Exception {
-        deleter = new ProtWithoutInteractionDeleterImpl();
+        deleter = new ProtWithoutInteractionDeleter();
 
         TransactionStatus status = getDataContext().beginTransaction();
 
@@ -291,7 +291,7 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(1, getDaoFactory().getProteinDao().getSpliceVariants(masterProt).size());
         Assert.assertEquals(0, getDaoFactory().getInteractionDao().countAll());
 
-        // isDeleteProteinTranscriptWhitoutInteractions = true        
+        // isDeleteProteinTranscriptWhitoutInteractions = true
         boolean toDelete = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), masterProt));
         boolean toDeleteVariant = deleter.hasToBeDeleted(new ProteinEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(), spliceVar1));
 
@@ -343,9 +343,9 @@ public class ProtWithouInteractionDeleterTest  extends IntactBasicTestCase {
         Assert.assertEquals(0, getDaoFactory().getProteinDao().getSpliceVariants(masterProt).size());
         Assert.assertEquals(1, getDaoFactory().getInteractionDao().countAll());
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(masterProt);
-        Collection<Protein> secondaryProteins = new ArrayList<Protein>();
+        Collection<Protein> secondaryProteins = new ArrayList<>();
         secondaryProteins.add(randomProt);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(), IntactContext.getCurrentInstance().getDataContext(),

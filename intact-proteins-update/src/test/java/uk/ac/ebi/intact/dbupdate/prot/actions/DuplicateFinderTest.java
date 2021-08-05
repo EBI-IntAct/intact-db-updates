@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.finders.DuplicatesFinder;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DuplicatesFinderImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.DuplicatesFoundEvent;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.CvDatabase;
@@ -41,11 +41,11 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class DuplicateFinderTest extends IntactBasicTestCase {
 
-    private DuplicatesFinderImpl duplicateFinder;
+    private DuplicatesFinder duplicateFinder;
 
     @Before
     public void setUp(){
-        duplicateFinder = new DuplicatesFinderImpl();
+        duplicateFinder = new DuplicatesFinder();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -76,7 +76,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         Protein primary = getMockBuilder().createProtein("P60953", "primary");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
@@ -91,7 +91,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
             }
         }
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variants1));
 
         Protein chain = getMockBuilder().createProteinSpliceVariant(primary, "PRO-1", "chain");
@@ -99,7 +99,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         UniprotFeatureChain chain1 = uniprot.getFeatureChains().iterator().next();
 
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
 
         // collect
@@ -136,7 +136,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         Protein prot = getMockBuilder().createProtein("P12345", "protein");
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary, prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
@@ -159,7 +159,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
             }
         }
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variants1));
         primaryIsoforms.add(new ProteinTranscript(isoform2, variants1));
 
@@ -176,7 +176,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         UniprotFeatureChain chain1 = uniprot.getFeatureChains().iterator().next();
 
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
         primaryChains.add(new ProteinTranscript(chain2, chain1));
 
@@ -216,7 +216,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
         primaryProteins.add(prot);
 
@@ -244,7 +244,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
             }
         }
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variants1));
         primaryIsoforms.add(new ProteinTranscript(isoform2, variants1));
 
@@ -261,7 +261,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         UniprotFeatureChain chain1 = uniprot.getFeatureChains().iterator().next();
 
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
         primaryChains.add(new ProteinTranscript(chain2, chain1));
 
@@ -313,7 +313,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(primary);
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(prot);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(primary);
 
         Protein isoform = getMockBuilder().createProteinSpliceVariant(primary, "P60953-1", "isoform");
@@ -369,7 +369,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
             }
         }
 
-        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryIsoforms = new ArrayList<>();
         primaryIsoforms.add(new ProteinTranscript(isoform, variants1));
         primaryIsoforms.add(new ProteinTranscript(isoform2, variants1));
         primaryIsoforms.add(new ProteinTranscript(isoform3, variants1));
@@ -422,7 +422,7 @@ public class DuplicateFinderTest extends IntactBasicTestCase {
 
         UniprotFeatureChain chain1 = uniprot.getFeatureChains().iterator().next();
 
-        Collection<ProteinTranscript> primaryChains = new ArrayList<ProteinTranscript>();
+        Collection<ProteinTranscript> primaryChains = new ArrayList<>();
         primaryChains.add(new ProteinTranscript(chain, chain1));
         primaryChains.add(new ProteinTranscript(chain2, chain1));
         primaryChains.add(new ProteinTranscript(chain3, chain1));

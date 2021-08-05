@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.DeadUniprotProteinFixerImpl;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.DeadUniprotProteinFixer;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
@@ -29,10 +29,10 @@ import java.util.Collection;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class DeadUniprotFixerTest extends IntactBasicTestCase {
 
-    private DeadUniprotProteinFixerImpl deadUniprotFixer;
+    private DeadUniprotProteinFixer deadUniprotFixer;
     @Before
     public void before() throws Exception {
-        deadUniprotFixer = new DeadUniprotProteinFixerImpl();
+        deadUniprotFixer = new DeadUniprotProteinFixer();
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());

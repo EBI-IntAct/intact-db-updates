@@ -53,21 +53,17 @@ public class SelectionProteinUpdate {
         config.setBlastEnabled(isBlastEnabled);
         try {
             System.out.println("Reading file containing protein acs to update...");
-            List<String> proteinAcs = new ArrayList<String>();
+            List<String> proteinAcs = new ArrayList<>();
 
             File inputFile = new File(fileInputName);
-            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
 
-            try{
+            try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
                 String line = reader.readLine();
 
-                while (line != null){
+                while (line != null) {
                     proteinAcs.add(line);
                     line = reader.readLine();
                 }
-            }
-            finally {
-                reader.close();
             }
 
             config.setReportHandler(new FileReportHandler(new File(filename)));

@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot.actions;
 
 import org.junit.After;
@@ -27,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.ProteinTranscript;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.OutOfDateParticipantFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.RangeFixerImpl;
-import uk.ac.ebi.intact.dbupdate.prot.actions.impl.UniprotProteinUpdaterImpl;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
@@ -48,7 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Tester of UniprotProteinUpdaterImpl
+ * Tester of UniprotProteinUpdater
  *
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
@@ -56,11 +41,11 @@ import java.util.Collections;
 @ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
-    private UniprotProteinUpdaterImpl updater;
+    private UniprotProteinUpdater updater;
 
     @Before
     public void before() throws Exception {
-        updater = new UniprotProteinUpdaterImpl(new OutOfDateParticipantFixerImpl(new RangeFixerImpl()));
+        updater = new UniprotProteinUpdater(new OutOfDateParticipantFixer(new RangeFixer()));
         TransactionStatus status = getDataContext().beginTransaction();
 
         ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
@@ -126,8 +111,8 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(createdProtein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        // 4 uniprot + 10 other xrefs
-        Assert.assertEquals(14, createdProtein.getXrefs().size());
+        // 4 uniprot + 20 other xrefs
+        Assert.assertEquals(24, createdProtein.getXrefs().size());
         Assert.assertNotNull(IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().getByAc(createdProtein.getAc()));
 
         getDataContext().commitTransaction(status);
@@ -167,14 +152,14 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // test that isoform P60953-1 has been properly updated
         ProteinTranscript transcript = null;
         for (ProteinTranscript t : evt.getPrimaryIsoforms()){
-            if (t.getUniprotVariant().getPrimaryAc().equals("P60953-1")){
+            if (t.getUniprotProteinTranscript().getPrimaryAc().equals("P60953-1")){
                 transcript = t;
                 break;
             }
         }
         Assert.assertNotNull(transcript);
         Protein createdProtein = transcript.getProtein();
-        UniprotSpliceVariant variant = (UniprotSpliceVariant) transcript.getUniprotVariant();
+        UniprotSpliceVariant variant = (UniprotSpliceVariant) transcript.getUniprotProteinTranscript();
 
         Assert.assertEquals(master.getBioSource().getTaxId(), createdProtein.getBioSource().getTaxId());
         Assert.assertEquals(variant.getPrimaryAc().toLowerCase(), createdProtein.getShortLabel());
@@ -208,7 +193,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(createdProtein, CvAliasType.ISOFORM_SYNONYM, syn2));
         }
 
-        Assert.assertEquals(3, createdProtein.getXrefs().size());
+        Assert.assertEquals(6, createdProtein.getXrefs().size());
         Assert.assertTrue(hasAnnotation(createdProtein, variant.getNote(), CvTopic.ISOFORM_COMMENT));
         Assert.assertEquals(3, IntactContext.getCurrentInstance().getDaoFactory().getProteinDao().countAll());
 
@@ -256,14 +241,14 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // test that chain PRO-1 has been properly updated (has start and end)
         ProteinTranscript transcript = null;
         for (ProteinTranscript t : evt.getPrimaryFeatureChains()){
-            if (t.getUniprotVariant().getPrimaryAc().equals("PRO-1")){
+            if (t.getUniprotProteinTranscript().getPrimaryAc().equals("PRO-1")){
                 transcript = t;
                 break;
             }
         }
         Assert.assertNotNull(transcript);
         Protein createdProtein = transcript.getProtein();
-        UniprotFeatureChain variant = (UniprotFeatureChain) transcript.getUniprotVariant();
+        UniprotFeatureChain variant = (UniprotFeatureChain) transcript.getUniprotProteinTranscript();
 
         Assert.assertEquals(master.getBioSource().getTaxId(), createdProtein.getBioSource().getTaxId());
         Assert.assertEquals(variant.getPrimaryAc().toLowerCase(), createdProtein.getShortLabel());
@@ -296,7 +281,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         // test that chain PRO-2 has been properly updated (has start and end undetermined)
         ProteinTranscript transcript2 = null;
         for (ProteinTranscript t : evt.getPrimaryFeatureChains()){
-            if (t.getUniprotVariant().getPrimaryAc().equals("PRO-2")){
+            if (t.getUniprotProteinTranscript().getPrimaryAc().equals("PRO-2")){
                 transcript2 = t;
                 break;
             }
@@ -423,7 +408,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
         IntactContext.getCurrentInstance().getCorePersister().saveOrUpdate(protein);
 
-        Collection<Protein> primaryProteins = new ArrayList<Protein>();
+        Collection<Protein> primaryProteins = new ArrayList<>();
         primaryProteins.add(protein);
 
         UpdateCaseEvent evt = new UpdateCaseEvent(new ProteinUpdateProcessor(),
@@ -465,7 +450,7 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, updatedProtein.getXrefs().size());
+        Assert.assertEquals(24, updatedProtein.getXrefs().size());
         Assert.assertFalse(hasAlias(updatedProtein, CvAliasType.ORF_NAME, "name"));
         Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 

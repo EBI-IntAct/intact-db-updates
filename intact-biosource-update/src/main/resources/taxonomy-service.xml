@@ -11,9 +11,6 @@
     <bean id="uniprotTaxonomyFetcher" class="psidev.psi.mi.jami.bridges.uniprot.taxonomy.UniprotTaxonomyFetcher"/>
 
     <bean id="biosourceLoaderBean" class="uk.ac.ebi.intact.util.biosource.BioSourceServiceImpl">
-        <constructor-arg>
-            <!--<ref bean="${TaxonomyBridgeAdapter.class}"/>-->
-            <ref bean="uniprotTaxonomyFetcher"/>
-        </constructor-arg>
+        <constructor-arg ref="uniprotTaxonomyFetcher"/>
     </bean>
 </beans>

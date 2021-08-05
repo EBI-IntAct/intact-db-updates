@@ -22,18 +22,8 @@ public class UpdateErrorEvent extends EventObject implements ProteinProcessorEve
      * the data context
      */
     private DataContext dataContext;
-
     private Protein protein;
-
     private String uniprotAc;
-
-    public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error) {
-        super(source);
-        this.error = error;
-        this.dataContext = dataContext;
-        this.protein = null;
-        this.uniprotAc = null;
-    }
 
     public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, Protein protein) {
         super(source);

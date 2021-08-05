@@ -19,14 +19,19 @@ import java.util.ArrayList;
  */
 public class UniprotProteinXrefBuilder {
 
-    Collection<UniprotXref> xrefs = new ArrayList<UniprotXref>( );
+    Collection<UniprotXref> xrefs = new ArrayList<>();
 
     public Collection<UniprotXref> build() {
         return xrefs;
     }
 
     public UniprotProteinXrefBuilder add(  String ac, String db, String desc ) {
-        xrefs.add( new UniprotXref( ac, db, desc) );
+        xrefs.add( new UniprotXref( ac, db, desc, null) );
+        return this;
+    }
+
+    public UniprotProteinXrefBuilder add(  String ac, String db, String desc, String isoformId ) {
+        xrefs.add( new UniprotXref( ac, db, desc, isoformId) );
         return this;
     }
 }
