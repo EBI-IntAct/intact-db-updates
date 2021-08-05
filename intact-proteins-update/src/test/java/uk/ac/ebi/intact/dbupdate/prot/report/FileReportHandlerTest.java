@@ -58,7 +58,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    //This test fails usually if executed via maven test, but it works trough the intelliJ tests.
+    //This test fails usually if executed with all the tests, but it works when run alone.
     public void simulation() throws Exception {
 
         TransactionStatus status = getDataContext().beginTransaction();
@@ -377,7 +377,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(featureChangedFile.exists());
         Assert.assertTrue(invalidRangeFile.exists());
         Assert.assertTrue(outOfDateRangeFile.exists());
-        Assert.assertTrue(deadProteinFile.exists());
         Assert.assertTrue(outOfDateProteinFile.exists());
         Assert.assertTrue(erroFile.exists());
         Assert.assertTrue(secondaryProteinsFile.exists());
@@ -386,6 +385,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertTrue(proteinMappingFile.exists());
         Assert.assertTrue(sequenceChangedCautionFile.exists());
         Assert.assertTrue(deletedComponentFile.exists());
+        Assert.assertTrue(deadProteinFile.exists());
 
         // 2 : header plus one duplicate case
         Assert.assertEquals(2, countLinesInFile(duplicatesFile));
@@ -405,8 +405,6 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, countLinesInFile(invalidRangeFile));
         // 2 : header plus out of date range attached to one of the duplicated proteins
         Assert.assertEquals(2, countLinesInFile(outOfDateRangeFile));
-        // 3 : header plus dead master protein and one non existing splice variant
-        Assert.assertEquals(3, countLinesInFile(deadProteinFile));
         // 3 : header plus secondary protein with invalid range and one of the duplicated protein having an out of date range
         Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
         // 5 : header plus one protein with several uniprot identities
@@ -419,7 +417,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, countLinesInFile(invalidIntactParentFile));
         // 2 : header plus dupe3 which is now a duplicated participant
         Assert.assertEquals(2, countLinesInFile(deletedComponentFile));
-
+        // 3 : header plus dead master protein and one non existing splice variant
+        Assert.assertEquals(3, countLinesInFile(deadProteinFile));
         getDataContext().commitTransaction(status2);
     }
 
