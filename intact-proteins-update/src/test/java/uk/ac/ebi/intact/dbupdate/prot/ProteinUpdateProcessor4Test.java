@@ -411,12 +411,12 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         Assert.assertNotNull( ao );
 
-        for ( Iterator iterator = ao.getXrefs().iterator(); iterator.hasNext(); ) {
-            Xref xref = (Xref) iterator.next();
+        for (Object o : ao.getXrefs()) {
+            Xref xref = (Xref) o;
 
-            if( (xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db) ) &&
-                    (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier) ) &&
-                    xref.getPrimaryId().equals( primaryId ) ) {
+            if ((xref.getCvDatabase().getIdentifier().equals(db) || xref.getCvDatabase().getShortLabel().equals(db)) &&
+                    (xref.getCvXrefQualifier().getIdentifier().equals(qualifier) || xref.getCvXrefQualifier().getShortLabel().equals(qualifier)) &&
+                    xref.getPrimaryId().equals(primaryId)) {
                 // found it
                 return;
             }

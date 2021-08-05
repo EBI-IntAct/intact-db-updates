@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.After;
@@ -28,9 +13,7 @@ import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.Interaction;
 import uk.ac.ebi.intact.model.Protein;
-import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
-import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
 import java.util.List;
@@ -45,7 +28,7 @@ import java.util.List;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor3Test extends IntactBasicTestCase {
 
-    ProteinProcessor processor;
+    ProteinUpdateProcessor processor;
 
     @Before
     public void before() throws Exception {
@@ -155,9 +138,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
         config.setGlobalProteinUpdate(true);
 
-        // the uniprot protein
-        UniprotProtein uniprot = MockUniprotProtein.build_CDC42_HUMAN();
-
         DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();
 
@@ -170,7 +150,7 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         context.commitTransaction(status);
 
         List<Protein> intactProteins = processor.retrieveAndUpdateProteinFromUniprot("P60953");
-        
+
         DataContext context2 = getDataContext();
         TransactionStatus status2 = context2.beginTransaction();
 
