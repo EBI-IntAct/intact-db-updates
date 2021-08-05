@@ -7,6 +7,7 @@ package uk.ac.ebi.intact.util.protein.mock;
 
 import uk.ac.ebi.intact.uniprot.model.Organism;
 import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 
 import java.util.Collection;
 import java.util.List;
@@ -60,6 +61,15 @@ public class UniprotSpliceVariantBuilder {
      */
     private String note;
 
+    /**
+     * Collection of cross references.
+     */
+    private Collection<UniprotXref> crossReferences;
+
+    /**
+     * Information about if the splice variant is the canonical sequence
+     */
+    private boolean canonical;
 
     public UniprotSpliceVariantBuilder() {
     }
@@ -105,6 +115,16 @@ public class UniprotSpliceVariantBuilder {
         return this;
     }
 
+    public UniprotSpliceVariantBuilder setCrossReferences (Collection<UniprotXref> crossReferences) {
+        this.crossReferences = crossReferences;
+        return this;
+    }
+
+    public UniprotSpliceVariantBuilder isCanonical (boolean canonical) {
+        this.canonical = canonical;
+        return this;
+    }
+
     public UniprotSpliceVariant build() {
         UniprotSpliceVariant variant = new UniprotSpliceVariant( primaryAc, organism, sequence );
         variant.setSecondaryAcs( secondaryAcs );
@@ -112,6 +132,8 @@ public class UniprotSpliceVariantBuilder {
         variant.setNote( note );
         variant.setStart( start );
         variant.setEnd( end );
+        variant.setCrossReferences(crossReferences);
+        variant.setCanonical(canonical);
         return variant;
     }
 }

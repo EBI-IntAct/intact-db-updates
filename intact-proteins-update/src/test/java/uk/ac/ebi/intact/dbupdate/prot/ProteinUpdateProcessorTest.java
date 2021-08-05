@@ -1,18 +1,3 @@
-/**
- * Copyright 2008 The European Bioinformatics Institute, and others.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package uk.ac.ebi.intact.dbupdate.prot;
 
 import org.junit.Assert;
@@ -29,14 +14,11 @@ import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
-import uk.ac.ebi.intact.model.util.AnnotatedObjectUtils;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 /**
  * ProteinUpdateProcessor Tester.
@@ -49,7 +31,7 @@ import java.util.List;
 public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
     @Before
-    public void before() throws Exception{
+    public void before() throws Exception {
 
         DataContext context = getDataContext();
 
@@ -199,7 +181,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
     @Transactional(propagation = Propagation.NEVER)
     public void updateAll_delete_masterNoInteractions_spliceVars_no() throws Exception {
         ProteinUpdateProcessorConfig configUpdate = new ProteinUpdateProcessorConfig();
-        configUpdate.setDeleteProteinTranscriptWithoutInteractions( true );
+        configUpdate.setDeleteProteinTranscriptWithoutInteractions(true);
         configUpdate.setProcessProteinNotFoundInUniprot(false);
 
         DataContext context = getDataContext();
@@ -399,7 +381,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
         Assert.assertNotNull(dupe2FromDb);
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
-        Assert.assertEquals(3, dupe2FromDb.getXrefs().size());
+        Assert.assertEquals(6, dupe2FromDb.getXrefs().size());
 
         context2.commitTransaction(status2);
     }
@@ -461,10 +443,10 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Range r = getMockBuilder().createRange(2, 2, 8, 8);
         Component c = null;
-        for (Component comp : components){
-           if (dupe1_1.equals(comp.getInteractor())){
-               c = comp;
-           }
+        for (Component comp : components) {
+            if (dupe1_1.equals(comp.getInteractor())) {
+                c = comp;
+            }
         }
 
         c.getBindingDomains().clear();
@@ -480,10 +462,10 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Range r2 = getMockBuilder().createRange(2, 2, 8, 8);
         Component c2 = null;
-        for (Component comp : components2){
-           if (dupe1_2.equals(comp.getInteractor())){
-               c2 = comp;
-           }
+        for (Component comp : components2) {
+            if (dupe1_2.equals(comp.getInteractor())) {
+                c2 = comp;
+            }
         }
 
         c2.getBindingDomains().clear();
@@ -499,10 +481,10 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         Range r3 = getMockBuilder().createRange(2, 2, 8, 8);
         Component c3 = null;
-        for (Component comp : components3){
-           if (dupe1_1.equals(comp.getInteractor())){
-               c3 = comp;
-           }
+        for (Component comp : components3) {
+            if (dupe1_1.equals(comp.getInteractor())) {
+                c3 = comp;
+            }
         }
 
         c3.getBindingDomains().clear();
@@ -527,8 +509,8 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         boolean hasCautionBefore = false;
 
-        for (Annotation a : dupe1_1.getAnnotations()){
-            if (a.getCvTopic().getIdentifier().equals(CvTopic.CAUTION_MI_REF)){
+        for (Annotation a : dupe1_1.getAnnotations()) {
+            if (a.getCvTopic().getIdentifier().equals(CvTopic.CAUTION_MI_REF)) {
                 hasCautionBefore = true;
             }
         }
@@ -555,7 +537,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         // if dupe 2 before, dupe 2 will be kept as original protein and will have only one interaction because the other interactions have range conflicts.
         // dupe 1 is now deprecated and contains two interactions
-        if (dupe2FromDb.getCreated().before(dupe1FromDb.getCreated())){
+        if (dupe2FromDb.getCreated().before(dupe1FromDb.getCreated())) {
             // keep same number of proteins
             Assert.assertEquals(6, getDaoFactory().getProteinDao().countAll());
 
@@ -579,18 +561,4 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
 
         context2.commitTransaction(status2);
     }
-
-    private void assertHasAlias( AnnotatedObject ao, String aliasLabelOrMi, String... expectedAliasNames ) {
-        final Collection<Alias> aliases = AnnotatedObjectUtils.getAliasByType( ao, aliasLabelOrMi );
-        Assert.assertEquals( expectedAliasNames.length, aliases.size() );
-
-        List<String> expectedList = Arrays.asList( expectedAliasNames );
-        for ( Alias alias : aliases ) {
-            Assert.assertTrue( "Expected aliases: " + expectedList + ". Found: " + alias.getName(),
-                    expectedList.contains( alias.getName() ) );
-        }
-    }
-
-    // seems like the global protein update bring in new splice variant if they were not in the db yet.
-    // But given that they don't have interaction we don't need them be added in the first place.
 }

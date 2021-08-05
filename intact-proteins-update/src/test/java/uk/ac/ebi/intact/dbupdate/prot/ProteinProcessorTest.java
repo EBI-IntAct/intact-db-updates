@@ -139,7 +139,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -208,7 +208,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -277,7 +277,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProtsWithoutInteractions(true);
@@ -484,7 +484,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         context.commitTransaction(status);
     }
@@ -559,7 +559,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
-        Assert.assertEquals(14, protein.getXrefs().size());
+        Assert.assertEquals(24, protein.getXrefs().size());
 
         // reset
         config.setDeleteProteinTranscriptWithoutInteractions(true);

@@ -378,11 +378,6 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
         isoform1 = proteinDao.getByAc( isoform1.getAc() );
         Assert.assertNotNull( isoform1 );
 
-        // master2 should have been merged into master1
-        final String master2ac = master1.getAc();
-        master1 = proteinDao.getByAc( master1.getAc() );
-        Assert.assertNotNull( master1 );
-
         // isoform2 should have been merged into isoform1
         final String isoform2ac = isoform2.getAc();
         isoform2 = proteinDao.getByAc( isoform2ac );
@@ -390,7 +385,6 @@ public class ProteinUpdateProcessor4Test extends IntactBasicTestCase {
 
         // isoform-parent Xref should have been updated to reflect the parent merge
         assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
-//        assertHasXref( isoform2, CvDatabase.INTACT_MI_REF, CvXrefQualifier.ISOFORM_PARENT_MI_REF, master1.getAc() );
 
         // master/isoform 1 should have an xref pointing to the former master/isoform 2 AC
         assertHasXref( isoform1, CvDatabase.INTACT_MI_REF, "intact-secondary", isoform2ac );
