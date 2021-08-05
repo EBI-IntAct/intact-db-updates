@@ -15,9 +15,9 @@ import java.util.Collection;
 
 public class AnnotationUpdateReport {
 
-    private Collection<Annotation> addedAnnotations = new ArrayList<Annotation>();
-    private Collection<Annotation> removedAnnotations = new ArrayList<Annotation>();
-    private Collection<Annotation> updatedAnnotations = new ArrayList<Annotation>();
+    private Collection<Annotation> addedAnnotations = new ArrayList<>();
+    private Collection<Annotation> removedAnnotations = new ArrayList<>();
+    private Collection<Annotation> updatedAnnotations = new ArrayList<>();
 
     public Collection<Annotation> getAddedAnnotations() {
         return addedAnnotations;
@@ -42,7 +42,7 @@ public class AnnotationUpdateReport {
 
             String qual = (a.getCvTopic() != null)? "("+a.getCvTopic().getShortLabel()+")" : "";
 
-            sb.append(qual+":"+ (a.getAnnotationText() != null ? a.getAnnotationText() : ""));
+            sb.append(qual).append(":").append(a.getAnnotationText() != null ? a.getAnnotationText() : "");
 
             i++;
         }

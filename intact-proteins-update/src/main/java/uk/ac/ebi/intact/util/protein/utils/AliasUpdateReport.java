@@ -18,51 +18,19 @@ import java.util.Collection;
 public class AliasUpdateReport {
 
     private String protein;
-    private Collection<Alias> addedAliases = new ArrayList<Alias>();
-    private Collection<Alias> removedAliases = new ArrayList<Alias>();
+    private Collection<Alias> addedAliases = new ArrayList<>();
+    private Collection<Alias> removedAliases = new ArrayList<>();
 
     public AliasUpdateReport(Protein protein, Collection<InteractorAlias> addedAliases, Collection<InteractorAlias> removedAliases){
         this.protein = protein != null ? protein.getAc() : null;
 
         this.addedAliases.addAll(addedAliases);
         this.removedAliases.addAll(removedAliases);
-        /*for (Alias alias : addedAliases){
-            String aliasType = "";
-            if (alias.getCvAliasType() != null && alias.getCvAliasType().getShortLabel() != null){
-                aliasType = alias.getCvAliasType().getShortLabel();
-            }
-
-            this.addedAliases.add(aliasType+ " : " +alias.getName());
-        }
-        for (Alias alias : removedAliases){
-            String aliasType = "";
-            if (alias.getCvAliasType() != null && alias.getCvAliasType().getShortLabel() != null){
-                aliasType = alias.getCvAliasType().getShortLabel();
-            }
-
-            this.removedAliases.add(aliasType+ " : " +alias.getName());
-        }*/
     }
 
     public AliasUpdateReport(Protein protein){
         this.protein = protein != null ? protein.getAc() : null;
 
-        /*for (Alias alias : addedAliases){
-            String aliasType = "";
-            if (alias.getCvAliasType() != null && alias.getCvAliasType().getShortLabel() != null){
-                aliasType = alias.getCvAliasType().getShortLabel();
-            }
-
-            this.addedAliases.add(aliasType+ " : " +alias.getName());
-        }
-        for (Alias alias : removedAliases){
-            String aliasType = "";
-            if (alias.getCvAliasType() != null && alias.getCvAliasType().getShortLabel() != null){
-                aliasType = alias.getCvAliasType().getShortLabel();
-            }
-
-            this.removedAliases.add(aliasType+ " : " +alias.getName());
-        }*/
     }
 
     public String getProtein() {
@@ -88,7 +56,7 @@ public class AliasUpdateReport {
 
             String qual = (alias.getCvAliasType() != null)? "("+alias.getCvAliasType().getShortLabel()+")" : "";
 
-            sb.append(qual+":"+ (alias.getName() != null ? alias.getName() : ""));
+            sb.append(qual).append(":").append(alias.getName() != null ? alias.getName() : "");
 
             i++;
         }

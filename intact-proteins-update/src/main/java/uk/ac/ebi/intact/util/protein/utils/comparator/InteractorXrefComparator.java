@@ -18,7 +18,6 @@ public class InteractorXrefComparator implements Comparator<InteractorXref>{
     public int compare(InteractorXref o1, InteractorXref o2) {
 
         final int BEFORE = -1;
-        final int EQUAL = 0;
         final int AFTER = 1;
 
         if (o1.getCvDatabase() != null && o2.getCvDatabase() != null){
