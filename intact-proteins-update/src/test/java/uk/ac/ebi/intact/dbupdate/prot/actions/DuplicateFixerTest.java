@@ -28,6 +28,8 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
+
 /**
  * Tester of DuplicateFixer
  *
@@ -875,42 +877,5 @@ public class DuplicateFixerTest extends IntactBasicTestCase{
         Assert.assertEquals(50, r.getToIntervalEnd());
 
         IntactContext.getCurrentInstance().getDataContext().commitTransaction(status);
-    }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
     }
 }

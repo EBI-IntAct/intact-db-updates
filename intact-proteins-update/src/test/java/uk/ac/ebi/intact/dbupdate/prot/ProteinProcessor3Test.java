@@ -11,12 +11,21 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.model.Interaction;
-import uk.ac.ebi.intact.model.Protein;
+import uk.ac.ebi.intact.model.*;
+import uk.ac.ebi.intact.model.util.ProteinUtils;
+import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
+import uk.ac.ebi.intact.uniprot.model.UniprotSpliceVariant;
+import uk.ac.ebi.intact.uniprot.model.UniprotXref;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
+import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.hasAlias;
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.hasXRef;
 
 /**
  * Third Tester of ProteinProcessor
@@ -56,7 +65,7 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
      * The Intact protein is not involved in any interactions and the configuration allows to delete proteins without interactions.
      * Should be deleted
      */
-    public void delete_protein_without_interaction() throws Exception{
+    public void delete_protein_without_interaction() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
         config.setDeleteProteinTranscriptWithoutInteractions(true);
@@ -85,7 +94,191 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    /**
+    public void create_master_protein_ensembl_plants() {
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setDeleteProtsWithoutInteractions(false);
+        config.setDeleteProteinTranscriptWithoutInteractions(false);
+        config.setGlobalProteinUpdate(false);
+
+        DataContext context = getDataContext();
+
+        // the uniprot protein
+        UniprotProtein uniprot = MockUniprotProtein.build_AHK4_ARATH();
+
+        TransactionStatus status = getDataContext().beginTransaction();
+
+        Protein protein = getMockBuilder().createProtein("Q9C5U0",
+                "ahk4_arath", getMockBuilder().createBioSource(3702, "arath"));
+
+        // now create a protein xrefs to check if they get properly updated
+        // TODO: xref update testing throws an error - investigate
+        CvDatabase go = getMockBuilder().createCvObject(CvDatabase.class, null, "go");
+        protein.addXref(getMockBuilder().createXref(protein, "GO:0005783", null, go));
+        protein.addXref(getMockBuilder().createXref(protein, "GO:0005789", null, go));
+        protein.addXref(getMockBuilder().createXref(protein, "GO:0016021", null, go));
+        protein.addXref(getMockBuilder().createXref(protein, "GO:0009736", null, go));
+
+        CvDatabase ensemblPlants = getMockBuilder().createCvObject( CvDatabase.class, null,"ensemblplants");
+        protein.addXref(getMockBuilder().createXref(protein, "AT2G01830.2", null, ensemblPlants));
+        protein.addXref(getMockBuilder().createXref(protein, "AT2G01830", null, ensemblPlants));
+
+        Protein isoform1 = getMockBuilder().createProtein("Q9C5U0-1",
+                "q9c5u0-1", getMockBuilder().createBioSource(3702,"arath"));
+        Protein isoform2 = getMockBuilder().createProtein("Q9C5U0-2",
+                "q9c5u0-2", getMockBuilder().createBioSource(3702,"arath"));
+        getCorePersister().saveOrUpdate(protein);
+        getCorePersister().saveOrUpdate(isoform1);
+        getCorePersister().saveOrUpdate(isoform2);
+
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
+        Assert.assertTrue(protein.getActiveInstances().isEmpty());
+        Assert.assertEquals(7, protein.getXrefs().size());
+
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(isoform1.getAc()));
+        Assert.assertTrue(isoform1.getActiveInstances().isEmpty());
+        Assert.assertEquals(1, isoform1.getXrefs().size());
+
+        Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(isoform2.getAc()));
+        Assert.assertTrue(isoform2.getActiveInstances().isEmpty());
+        Assert.assertEquals(1, isoform2.getXrefs().size());
+
+        context.commitTransaction(status);
+
+        List<Protein> intactProteins = processor.retrieveAndUpdateProteinFromUniprot("Q9C5U0");
+
+        status = context.beginTransaction();
+
+        Assert.assertEquals(3, intactProteins.size());
+        Protein updatedProtein = getDaoFactory().getProteinDao().getByAc(protein.getAc());
+
+        Assert.assertNotNull(updatedProtein);
+
+        Assert.assertEquals(uniprot.getOrganism().getTaxid(), Integer.parseInt(updatedProtein.getBioSource().getTaxId()));
+        Assert.assertEquals(uniprot.getId().toLowerCase(), updatedProtein.getShortLabel());
+        Assert.assertEquals(uniprot.getDescription(), updatedProtein.getFullName());
+        Assert.assertEquals(uniprot.getSequence(), updatedProtein.getSequence());
+        Assert.assertEquals(uniprot.getCrc64(), updatedProtein.getCrc64());
+        Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(updatedProtein).getPrimaryId());
+
+        // 7 uniprot + 13 other xrefs
+        Assert.assertEquals(20, updatedProtein.getXrefs().size());
+
+        Assert.assertEquals(6, uniprot.getSecondaryAcs().size());
+        for (String secAc : uniprot.getSecondaryAcs()){
+            Assert.assertTrue(hasXRef(updatedProtein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
+        }
+
+        List<UniprotXref> ensemblXrefs = uniprot.getCrossReferences().stream()
+                .filter(uniprotXref -> uniprotXref.getDatabase().equalsIgnoreCase("ensemblPlants"))
+                .collect(Collectors.toList());
+        Assert.assertEquals(3, ensemblXrefs.size());
+        for (UniprotXref uniprotXref : ensemblXrefs){
+            Assert.assertTrue(hasXRef(updatedProtein, uniprotXref.getAccession(), uniprotXref.getDatabase(), uniprotXref.getQualifier()));
+        }
+
+        List<UniprotXref> goXrefs = uniprot.getCrossReferences().stream()
+                .filter(uniprotXref -> uniprotXref.getDatabase().equalsIgnoreCase("go"))
+                .collect(Collectors.toList());
+        Assert.assertEquals(4, goXrefs.size());
+        for (UniprotXref uniprotXref : goXrefs){
+            Assert.assertTrue(hasXRef(updatedProtein, uniprotXref.getAccession(), uniprotXref.getDatabase(),uniprotXref.getDescription(), uniprotXref.getQualifier()));
+        }
+
+        Assert.assertEquals(6, updatedProtein.getAliases().size());
+        for ( String geneName : uniprot.getGenes() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME, geneName));
+        }
+
+        for ( String syn : uniprot.getSynomyms() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+        }
+
+        for ( String orf : uniprot.getOrfs() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ORF_NAME, orf));
+        }
+
+        for ( String locus : uniprot.getLocuses() ) {
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
+        }
+
+
+        Assert.assertNotNull(updatedProtein);
+
+
+        Collection<UniprotSpliceVariant> isoforms = uniprot.getSpliceVariants();
+        Assert.assertEquals(2, isoforms.size());
+        for (UniprotSpliceVariant isoform : isoforms) {
+            switch (isoform.getPrimaryAc()){
+                case "Q9C5U0-1":
+                    updatedProtein = getDaoFactory().getProteinDao().getByAc(isoform1.getAc());
+
+                    // 1 intact  + 1 uniprot + 3 other xrefs
+                    Assert.assertEquals(5, updatedProtein.getXrefs().size());
+
+                    ensemblXrefs = isoform.getCrossReferences().stream()
+                            .filter(uniprotXref -> uniprotXref.getDatabase().equalsIgnoreCase("ensemblPlants"))
+                            .collect(Collectors.toList());
+                    Assert.assertEquals(3, ensemblXrefs.size());
+                    for (UniprotXref uniprotXref : ensemblXrefs){
+                        Assert.assertTrue(hasXRef(updatedProtein, uniprotXref.getAccession(), uniprotXref.getDatabase(), uniprotXref.getQualifier()));
+                    }
+
+                    break;
+                case "Q9C5U0-2":
+                    updatedProtein = getDaoFactory().getProteinDao().getByAc(isoform2.getAc());
+
+                    // 1 intact  + 1 uniprot + 9 other xrefs
+                    Assert.assertEquals(11, updatedProtein.getXrefs().size());
+
+                    ensemblXrefs = isoform.getCrossReferences().stream()
+                            .filter(uniprotXref -> uniprotXref.getDatabase().equalsIgnoreCase("ensemblPlants"))
+                            .collect(Collectors.toList());
+                    Assert.assertEquals(9, ensemblXrefs.size());
+                    for (UniprotXref uniprotXref : ensemblXrefs){
+                        Assert.assertTrue(hasXRef(updatedProtein, uniprotXref.getAccession(), uniprotXref.getDatabase(), uniprotXref.getQualifier()));
+                    }
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + isoform.getPrimaryAc());
+            }
+
+            // common to both isoforms
+            Assert.assertNotNull(updatedProtein);
+
+            Assert.assertEquals(isoform.getOrganism().getTaxid(), Integer.parseInt(updatedProtein.getBioSource().getTaxId()));
+            Assert.assertEquals(isoform.getId().toLowerCase(), updatedProtein.getShortLabel());
+            Assert.assertEquals(isoform.getSequence(), updatedProtein.getSequence());
+            Assert.assertEquals(isoform.getPrimaryAc(), ProteinUtils.getUniprotXref(updatedProtein).getPrimaryId());
+            Assert.assertEquals(0, isoform.getSecondaryAcs().size());
+
+            Assert.assertEquals(7, updatedProtein.getAliases().size());
+            for ( String geneName : uniprot.getGenes() ) {
+                Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME, geneName));
+            }
+
+            for ( String syn : uniprot.getSynomyms() ) {
+                Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.GENE_NAME_SYNONYM, syn));
+            }
+
+            for ( String orf : uniprot.getOrfs() ) {
+                Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ORF_NAME, orf));
+            }
+
+            for ( String locus : uniprot.getLocuses() ) {
+                Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
+            }
+
+            Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.ISOFORM_SYNONYM, isoform.getSynomyms().iterator().next()));
+
+        }
+
+
+        context.commitTransaction(status);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NEVER)
+    /*
      * The Intact protein is not involved in any interactions and the configuration doesn't allow to delete
      * proteins without interactions. In addition, it is not a global update and we can have transcripts without interactions.
      * The protein should be updated and two splice variants without any interactions should be created

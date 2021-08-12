@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
+
 /**
  * Tester of UniprotProteinUpdater
  *
@@ -455,58 +457,5 @@ public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
         Assert.assertFalse(hasXRef(updatedProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 
         getDataContext().commitTransaction(status);
-    }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
-    }
-
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
     }
 }

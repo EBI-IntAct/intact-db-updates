@@ -12,14 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
-import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
-import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
-import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
+import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.UpdateCaseEvent;
+import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotFeatureChain;
@@ -31,6 +31,8 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
 
 /**
  * Second tester of UniprotProteinUpdater
@@ -829,39 +831,4 @@ public class UniprotProteinUpdater2Test extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
     }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
-    }
-
-
 }

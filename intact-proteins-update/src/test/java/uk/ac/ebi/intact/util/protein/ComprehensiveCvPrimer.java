@@ -26,9 +26,15 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvDatabase.class, CvDatabase.INTERPRO, CvDatabase.INTERPRO_MI_REF);
         getCvObject(CvDatabase.class, CvDatabase.PDB, CvDatabase.PDB_MI_REF);
         getCvObject(CvDatabase.class, CvDatabase.ENSEMBL, CvDatabase.ENSEMBL_MI_REF);
+        getCvObject(CvDatabase.class, "ensemblplants");
+        getCvObject(CvDatabase.class, "uniprot-taxonomy", "MI:0942");
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.SECONDARY_AC, CvXrefQualifier.SECONDARY_AC_MI_REF);
         getCvObject(CvXrefQualifier.class, CvXrefQualifier.ISOFORM_PARENT, CvXrefQualifier.ISOFORM_PARENT_MI_REF);
         getCvObject(CvXrefQualifier.class, "chain-parent", "MI:0951");
+        getCvObject(CvXrefQualifier.class, CvXrefQualifier.UNIPROT_REMOVED_AC);
+        getCvObject(CvXrefQualifier.class, "gene");
+        getCvObject(CvXrefQualifier.class, "transcript");
+        getCvObject(CvXrefQualifier.class, "intact-secondary");
         getCvObject(CvAliasType.class, CvAliasType.GENE_NAME, CvAliasType.GENE_NAME_MI_REF);
         getCvObject(CvAliasType.class, CvAliasType.GENE_NAME_SYNONYM, CvAliasType.GENE_NAME_SYNONYM_MI_REF);
         getCvObject(CvAliasType.class, CvAliasType.ISOFORM_SYNONYM, CvAliasType.ISOFORM_SYNONYM_MI_REF);
@@ -40,7 +46,6 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvBiologicalRole.class, CvBiologicalRole.COFACTOR, CvBiologicalRole.COFACTOR_MI_REF);
         getCvObject(CvFuzzyType.class, CvFuzzyType.UNDETERMINED, CvFuzzyType.UNDETERMINED_MI_REF);
         getCvObject(CvFuzzyType.class, CvFuzzyType.CERTAIN, CvFuzzyType.CERTAIN_MI_REF);
-        getCvObject(CvDatabase.class, "uniprot-taxonomy", "MI:0942");
 
         getCvObject(CvTopic.class, CvTopic.ISOFORM_COMMENT);
         getCvObject(CvTopic.class, CvTopic.CHAIN_SEQ_START);
@@ -51,7 +56,5 @@ public class ComprehensiveCvPrimer extends SmallCvPrimer {
         getCvObject(CvTopic.class, "sequence-version");
         getCvObject(CvTopic.class, CvTopic.NON_UNIPROT);
         getCvObject(CvTopic.class, CvTopic.CAUTION, CvTopic.CAUTION_MI_REF);
-        getCvObject(CvXrefQualifier.class, CvXrefQualifier.UNIPROT_REMOVED_AC);
-        getCvObject(CvXrefQualifier.class, "intact-secondary");
     }
 }

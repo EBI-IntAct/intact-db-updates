@@ -26,12 +26,12 @@ public class UniprotProteinXrefBuilder {
     }
 
     public UniprotProteinXrefBuilder add(  String ac, String db, String desc ) {
-        xrefs.add( new UniprotXref( ac, db, desc, null) );
+        xrefs.add( new UniprotXref( ac, db, desc) );
         return this;
     }
 
-    public UniprotProteinXrefBuilder add(  String ac, String db, String desc, String isoformId ) {
-        xrefs.add( new UniprotXref( ac, db, desc, isoformId) );
+    public UniprotProteinXrefBuilder add(  String ac, String db, String desc, String qualifier, String isoformId ) {
+        xrefs.add( new UniprotXref( ac, db, desc, qualifier, isoformId) );
         return this;
     }
 }

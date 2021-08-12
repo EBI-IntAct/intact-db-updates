@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
+
 /**
  * Third tester of UniprotProteinUpdater
  *
@@ -380,38 +382,4 @@ public class UniprotProteinUpdater3Test extends IntactBasicTestCase {
 
         getDataContext().commitTransaction(status);
     }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
-    }
-
 }
