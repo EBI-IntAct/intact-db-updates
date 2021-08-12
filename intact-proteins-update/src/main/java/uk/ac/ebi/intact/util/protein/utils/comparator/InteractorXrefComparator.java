@@ -24,10 +24,10 @@ public class InteractorXrefComparator implements Comparator<InteractorXref>{
             .comparing(CvXrefQualifier::getIdentifier, nullSafeStringComparator);
 
     private final static Comparator<InteractorXref> interactorXrefComparator = Comparator
-            .comparing(InteractorXref::getCvDatabase, cvDatabaseComparator)
+            .comparing(InteractorXref::getCvDatabase, Comparator.nullsFirst(cvDatabaseComparator))
             .thenComparing(InteractorXref::getPrimaryId, nullSafeStringComparator)
             .thenComparing(InteractorXref::getSecondaryId, nullSafeStringComparator)
-            .thenComparing(InteractorXref::getCvXrefQualifier, cvQualifierComparator);
+            .thenComparing(InteractorXref::getCvXrefQualifier, Comparator.nullsFirst(cvQualifierComparator));
 
     @Override
     public int compare(InteractorXref o1, InteractorXref o2) {
