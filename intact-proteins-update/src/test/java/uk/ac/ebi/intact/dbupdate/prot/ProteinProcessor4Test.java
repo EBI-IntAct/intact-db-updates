@@ -19,9 +19,11 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
+
 
 /**
  * Second Tester of ProteinProcessor
@@ -701,22 +703,5 @@ public class ProteinProcessor4Test extends IntactBasicTestCase {
         config.setDeleteProteinTranscriptWithoutInteractions(true);
 
         context2.commitTransaction(status2);
-    }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
     }
 }

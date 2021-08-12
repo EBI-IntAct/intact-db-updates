@@ -7,7 +7,6 @@
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.CvObjectDao;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
 import uk.ac.ebi.intact.core.persistence.dao.ProteinDao;
@@ -26,6 +25,8 @@ import uk.ac.ebi.intact.util.protein.utils.comparator.UniprotXrefComparator;
 
 import java.util.*;
 
+import static uk.ac.ebi.intact.core.context.IntactContext.getCurrentInstance;
+
 /**
  * Utilities for updating Xrefs.
  *
@@ -33,6 +34,8 @@ import java.util.*;
  * @version $Id$
  * @since 1.1.2
  */
+
+//TODO: This class needs some refactoring, plenty of duplicated code
 public final class XrefUpdaterUtils {
 
     //We keep for now the map of databases here, but the strategy of filtering should be revisit.
@@ -46,6 +49,12 @@ public final class XrefUpdaterUtils {
      */
     public static final Log log = LogFactory.getLog( XrefUpdaterUtils.class );
 
+    public static XrefUpdaterReport updateAllProteinXrefs(Protein intactProtein,
+                                                          UniprotProtein uniprotProtein,
+                                                          DataContext context) {
+        return updateAllXrefs(intactProtein, uniprotProtein, uniprotProtein.getReleaseVersion(), context);
+
+    }
     public static XrefUpdaterReport updateAllProteinTranscriptXrefs( Protein intactProtein,
                                                                      UniprotProteinTranscript uniprotTranscript,
                                                                      UniprotProtein master,
@@ -56,9 +65,9 @@ public final class XrefUpdaterUtils {
     }
 
     private static XrefUpdaterReport updateAllXrefs(Protein intactProtein,
-                                                           UniprotProteinLike uniprotProtein,
-                                                           String releaseVersion,
-                                                           DataContext context) {
+                                                    UniprotProteinLike uniprotProtein,
+                                                    String releaseVersion,
+                                                    DataContext context) {
         // update uniprot xrefs
         XrefUpdaterReport report = updateUniprotXrefs(intactProtein, uniprotProtein, releaseVersion, context);
 
@@ -66,7 +75,7 @@ public final class XrefUpdaterUtils {
         sortedInteractorXrefs.addAll(intactProtein.getXrefs());
         Iterator<InteractorXref> intactInteractorXrefIterator = sortedInteractorXrefs.iterator();
 
-        final TreeSet<UniprotXref> sortedUniprotXrefs = new TreeSet<>(new UniprotXrefComparator(databaseName2mi));
+        final TreeSet<UniprotXref> sortedUniprotXrefs = new TreeSet<>(new UniprotXrefComparator());
         sortedUniprotXrefs.addAll(uniprotProtein.getCrossReferences());
         Iterator<UniprotXref> uniprotXrefIterator = sortedUniprotXrefs.iterator();
 
@@ -74,45 +83,79 @@ public final class XrefUpdaterUtils {
         List<Xref> deletedXrefs = new ArrayList<>(intactProtein.getXrefs().size());
 
         DaoFactory daoFactory = context.getDaoFactory();
-        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao( CvDatabase.class );
+        CvObjectDao<CvDatabase> dbDao = daoFactory.getCvObjectDao(CvDatabase.class);
+        CvObjectDao<CvXrefQualifier> qualifierDao = daoFactory.getCvObjectDao(CvXrefQualifier.class);
         XrefDao<InteractorXref> refDao = daoFactory.getXrefDao(InteractorXref.class);
 
         InteractorXref currentIntactXref = null;
         UniprotXref currentUniprotXref = null;
-        String uniprotXrefDatabase = null;
+        String uniprotXrefDatabaseId = null;
+        String uniprotXrefDatabaseName = null;
         CvDatabase intactCvDatabase = null;
 
         if (intactInteractorXrefIterator.hasNext() && uniprotXrefIterator.hasNext()){
             currentIntactXref = intactInteractorXrefIterator.next();
             currentUniprotXref = uniprotXrefIterator.next();
 
-            uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+            uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+            uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
             intactCvDatabase = currentIntactXref.getCvDatabase();
 
-            if (uniprotXrefDatabase != null && intactCvDatabase != null){
+            if (uniprotXrefDatabaseId != null && intactCvDatabase != null){
                 do{
-                    int dbComparator = intactCvDatabase.getIdentifier().compareTo(uniprotXrefDatabase);
+                    int dbComparator = intactCvDatabase.getIdentifier().compareTo(uniprotXrefDatabaseId);
 
                     if (dbComparator == 0) {
                         int acComparator = currentIntactXref.getPrimaryId().compareTo(currentUniprotXref.getAccession());
 
                         if (acComparator == 0) {
-                            if (intactInteractorXrefIterator.hasNext() && uniprotXrefIterator.hasNext()){
+                            // We add the comparison for the secondaryId and qualifier because now we have added information on these fields,
+                            // if it is not the same we remove the xref and we update it with UniProt one.
+                            final String currentIntactXrefSecondaryId = currentIntactXref.getSecondaryId();
+                            final CvXrefQualifier currentIntactXrefQualifier = currentIntactXref.getCvXrefQualifier();
+                            final String currentUniprotXrefDescription = currentUniprotXref.getDescription();
+                            final String currentUniprotXrefQualifier = currentUniprotXref.getQualifier();
+
+                            // If all of them are null or equal we don't need to do anything,
+                            // at soon as one qualifier or description is different we replace it with the one coming form Uniprot
+                            if (!((currentIntactXrefSecondaryId == null && currentUniprotXrefDescription == null
+                                    && currentIntactXrefQualifier == null && currentUniprotXrefQualifier == null)
+                                    || ((currentIntactXrefSecondaryId != null && currentIntactXrefSecondaryId.equalsIgnoreCase(currentUniprotXrefDescription))
+                                    && (currentIntactXrefQualifier!= null && currentIntactXrefQualifier.getShortLabel().equalsIgnoreCase(currentUniprotXrefQualifier))))) {
+
+                                // If they are not exactly the same we take the value from UniProt because in principle it will be the most up to date one
+                                deletedXrefs.add(currentIntactXref);
+                                intactProtein.removeXref(currentIntactXref);
+                                refDao.delete(currentIntactXref);
+
+                                //Note: for Ensembl and GO we extract information about the description or type of identifier. For the moment that translate to the SecondaryId in the database.
+                                CvXrefQualifier cvQualifier = qualifierDao.getByIdentifier(currentUniprotXrefQualifier);
+                                if (cvQualifier == null) { // we try by shortlabel, useful because IA:XXX ids can be different depending of the database
+                                    cvQualifier = qualifierDao.getByShortLabel(currentUniprotXrefQualifier);
+                                }
+                                InteractorXref newXref = new InteractorXref(
+                                        getCurrentInstance().getInstitution(), intactCvDatabase, currentUniprotXref.getAccession(),
+                                        currentUniprotXrefDescription, releaseVersion, cvQualifier);
+                                intactProtein.addXref(newXref);
+                                refDao.persist(newXref);
+                                createdXrefs.add(newXref);
+                            }
+
+                            if (intactInteractorXrefIterator.hasNext() && uniprotXrefIterator.hasNext()) {
                                 currentIntactXref = intactInteractorXrefIterator.next();
                                 currentUniprotXref = uniprotXrefIterator.next();
-                                uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
                                 intactCvDatabase = currentIntactXref.getCvDatabase();
-                            }
-                            else {
+                            } else {
                                 currentIntactXref = null;
                                 currentUniprotXref = null;
-                                uniprotXrefDatabase = null;
+                                uniprotXrefDatabaseId = null;
                                 intactCvDatabase = null;
                             }
                         }
                         else if (acComparator < 0) {
                             //intact has no match in uniprot
-                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(intactCvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntactXref.getCvDatabase().getIdentifier())
+                            if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(intactCvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(intactCvDatabase.getIdentifier())
                                     && !(currentIntactXref.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(currentIntactXref.getCvXrefQualifier().getShortLabel())
                                     || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(currentIntactXref.getCvXrefQualifier().getShortLabel())))){
                                 deletedXrefs.add(currentIntactXref);
@@ -132,8 +175,13 @@ public final class XrefUpdaterUtils {
                         else {
                             //uniprot has no match in intact
 
-                            //Note: for Ensembl and GO we extract information about the description or type of identifier. For the moment that translate to the SecondaryId in the database.
-                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), intactCvDatabase, currentUniprotXref.getAccession(), currentUniprotXref.getDescription(), null, null);
+                            //Note: for Ensembl and GO we extract information about the description or type of identifier. For the moment that translate to the SecondaryId ir qualifier in the database.
+                            CvXrefQualifier cvQualifier = qualifierDao.getByIdentifier(currentUniprotXref.getQualifier());
+                            if (cvQualifier == null) { // we try by shortlabel, useful because IA:XXX ids can be different depending of the database
+                                cvQualifier = qualifierDao.getByShortLabel(currentUniprotXref.getQualifier());
+                            }
+                            InteractorXref newXref = new InteractorXref(getCurrentInstance().getInstitution(), intactCvDatabase, currentUniprotXref.getAccession(),
+                                    currentUniprotXref.getDescription(), releaseVersion, cvQualifier);
                             intactProtein.addXref(newXref);
 
                             refDao.persist(newXref);
@@ -142,22 +190,21 @@ public final class XrefUpdaterUtils {
 
                             if (uniprotXrefIterator.hasNext()){
                                 currentUniprotXref = uniprotXrefIterator.next();
-                                uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
                             }
                             else {
                                 currentUniprotXref = null;
-                                uniprotXrefDatabase = null;
+                                uniprotXrefDatabaseId = null;
                             }
                         }
                     }
                     else if (dbComparator < 0) {
                         //intact has no match in uniprot
-                        if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(currentIntactXref.getCvDatabase().getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(currentIntactXref.getCvDatabase().getIdentifier())
+                        if (!CvDatabase.UNIPROT_MI_REF.equalsIgnoreCase(intactCvDatabase.getIdentifier()) && !CvDatabase.INTACT_MI_REF.equalsIgnoreCase(intactCvDatabase.getIdentifier())
                                 && !(currentIntactXref.getCvXrefQualifier() != null && ("intact-secondary".equalsIgnoreCase(currentIntactXref.getCvXrefQualifier().getShortLabel())
                                 || CvXrefQualifier.SECONDARY_AC.equalsIgnoreCase(currentIntactXref.getCvXrefQualifier().getShortLabel())))){
                             deletedXrefs.add(currentIntactXref);
                             intactProtein.removeXref(currentIntactXref);
-
                             refDao.delete(currentIntactXref);
                         }
                         if (intactInteractorXrefIterator.hasNext()){
@@ -171,32 +218,37 @@ public final class XrefUpdaterUtils {
                     }
                     else {
                         //uniprot has no match in intact
-                        CvDatabase cvDb = dbDao.getByIdentifier(uniprotXrefDatabase);
+                        CvDatabase cvDb = dbDao.getByIdentifier(uniprotXrefDatabaseId);
+                        if (cvDb == null) { // we try by shortlabel, useful because IA:XXX ids can be different can be different depending of the databas
+                            cvDb = dbDao.getByShortLabel(uniprotXrefDatabaseName);
+                        }
 
                         if (cvDb != null){
+                            CvXrefQualifier cvQualifier = qualifierDao.getByIdentifier(currentUniprotXref.getQualifier());
+                            if (cvQualifier == null) { // we try by shortlabel, useful because IA:XXX ids can be different depending of the database
+                                cvQualifier = qualifierDao.getByShortLabel(currentUniprotXref.getQualifier());
+                            }
 
-                            InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprotXref.getAccession(), currentUniprotXref.getDescription(), null, null);
+                            InteractorXref newXref = new InteractorXref(getCurrentInstance().getInstitution(), cvDb, currentUniprotXref.getAccession(),
+                                    currentUniprotXref.getDescription(), releaseVersion, cvQualifier);
                             intactProtein.addXref(newXref);
-
                             refDao.persist(newXref);
-
                             createdXrefs.add(newXref);
-
                         }
                         else {
-                            log.debug("We are not copying across xref to " + uniprotXrefDatabase);
+                            log.debug("We are not copying across xref to " + uniprotXrefDatabaseId +". The database doesn't exist in IntAct");
                         }
 
                         if (uniprotXrefIterator.hasNext()){
                             currentUniprotXref = uniprotXrefIterator.next();
-                            uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                            uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
                         }
                         else {
                             currentUniprotXref = null;
-                            uniprotXrefDatabase = null;
+                            uniprotXrefDatabaseId = null;
                         }
                     }
-                } while (currentIntactXref != null && currentUniprotXref != null && uniprotXrefDatabase != null && intactCvDatabase != null);
+                } while (currentIntactXref != null && currentUniprotXref != null && uniprotXrefDatabaseId != null && intactCvDatabase != null);
             }
         }
 
@@ -232,38 +284,45 @@ public final class XrefUpdaterUtils {
         if (currentUniprotXref != null || uniprotXrefIterator.hasNext()){
             if (currentUniprotXref == null ){
                 currentUniprotXref = uniprotXrefIterator.next();
-                uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
             }
 
-            if (uniprotXrefDatabase != null){
+            if (uniprotXrefDatabaseId != null){
                 do {
                     //uniprot has no match in intact
-                    CvDatabase cvDb = dbDao.getByIdentifier(uniprotXrefDatabase);
+                    CvDatabase cvDb = dbDao.getByIdentifier(uniprotXrefDatabaseId);
+                    if (cvDb == null) { // we try by shortlabel, useful because IA:XXX can be different
+                        cvDb = dbDao.getByShortLabel(uniprotXrefDatabaseName);
+                    }
 
                     if (cvDb != null){
+                        CvXrefQualifier cvQualifier = qualifierDao.getByIdentifier(currentUniprotXref.getQualifier());
+                        if (cvQualifier == null) { // we try by shortlabel, useful because IA:XXX ids can be different depending of the database
+                            cvQualifier = qualifierDao.getByShortLabel(currentUniprotXref.getQualifier());
+                        }
 
-                        InteractorXref newXref = new InteractorXref(IntactContext.getCurrentInstance().getInstitution(), cvDb, currentUniprotXref.getAccession(), currentUniprotXref.getDescription(), null, null);
+                        InteractorXref newXref = new InteractorXref(getCurrentInstance().getInstitution(), cvDb, currentUniprotXref.getAccession(),
+                                currentUniprotXref.getDescription(), releaseVersion, cvQualifier);
+
                         intactProtein.addXref(newXref);
-
                         refDao.persist(newXref);
-
                         createdXrefs.add(newXref);
 
                     }
                     else {
-                        log.debug("We are not copying across xref to " + uniprotXrefDatabase);
+                        log.debug("We are not copying across xref to " + uniprotXrefDatabaseId +". The database doesn't exist in IntAct");
                     }
 
                     if (uniprotXrefIterator.hasNext()){
                         currentUniprotXref = uniprotXrefIterator.next();
-                        uniprotXrefDatabase = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                        uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
                     }
                     else {
                         currentUniprotXref = null;
-                        uniprotXrefDatabase = null;
+                        uniprotXrefDatabaseId = null;
                     }
                 }
-                while (currentUniprotXref != null && uniprotXrefDatabase != null);
+                while (currentUniprotXref != null && uniprotXrefDatabaseId != null);
             }
         }
 
@@ -277,13 +336,6 @@ public final class XrefUpdaterUtils {
         }
 
         return report;
-
-    }
-
-    public static XrefUpdaterReport updateAllProteinXrefs(Protein intactProtein,
-                                                          UniprotProtein uniprotProtein,
-                                                          DataContext context) {
-        return updateAllXrefs(intactProtein, uniprotProtein, uniprotProtein.getReleaseVersion(), context);
 
     }
 

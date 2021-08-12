@@ -17,7 +17,8 @@ import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 
-import java.util.Collection;
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
+
 
 /**
  * TODO comment this
@@ -100,42 +101,5 @@ public class DeadUniprotFixerTest extends IntactBasicTestCase {
         Assert.assertFalse(hasXRef(deadProtein, "test", CvDatabase.REFSEQ, CvXrefQualifier.IDENTITY));
 
         getDataContext().commitTransaction(status);
-    }
-
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
-    }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
     }
 }

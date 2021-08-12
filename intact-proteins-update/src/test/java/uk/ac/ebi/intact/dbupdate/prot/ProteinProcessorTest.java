@@ -18,8 +18,9 @@ import uk.ac.ebi.intact.util.protein.ComprehensiveCvPrimer;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
 import uk.ac.ebi.intact.util.protein.mock.MockUniprotService;
 
-import java.util.Collection;
 import java.util.Set;
+
+import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
 
 /**
  * Tester of ProteinProcessor
@@ -27,7 +28,7 @@ import java.util.Set;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessorTest extends IntactBasicTestCase {
 
@@ -59,7 +60,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * The Intact protein is not involved in any interactions and the configuration allows to delete proteins without interactions.
      * Should be deleted
      */
-    public void delete_protein_without_interaction() throws Exception{
+    public void delete_protein_without_interaction() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
 
@@ -119,23 +120,23 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
 
-        for (String secAc : uniprot.getSecondaryAcs()){
+        for (String secAc : uniprot.getSecondaryAcs()) {
             Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
         }
 
-        for ( String geneName : uniprot.getGenes() ) {
+        for (String geneName : uniprot.getGenes()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
         }
 
-        for ( String syn : uniprot.getSynomyms() ) {
+        for (String syn : uniprot.getSynomyms()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
         }
 
-        for ( String orf : uniprot.getOrfs() ) {
+        for (String orf : uniprot.getOrfs()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
         }
 
-        for ( String locus : uniprot.getLocuses() ) {
+        for (String locus : uniprot.getLocuses()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
@@ -188,23 +189,23 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
 
-        for (String secAc : uniprot.getSecondaryAcs()){
+        for (String secAc : uniprot.getSecondaryAcs()) {
             Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
         }
 
-        for ( String geneName : uniprot.getGenes() ) {
+        for (String geneName : uniprot.getGenes()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
         }
 
-        for ( String syn : uniprot.getSynomyms() ) {
+        for (String syn : uniprot.getSynomyms()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
         }
 
-        for ( String orf : uniprot.getOrfs() ) {
+        for (String orf : uniprot.getOrfs()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
         }
 
-        for ( String locus : uniprot.getLocuses() ) {
+        for (String locus : uniprot.getLocuses()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
@@ -257,23 +258,23 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
 
-        for (String secAc : uniprot.getSecondaryAcs()){
+        for (String secAc : uniprot.getSecondaryAcs()) {
             Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
         }
 
-        for ( String geneName : uniprot.getGenes() ) {
+        for (String geneName : uniprot.getGenes()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
         }
 
-        for ( String syn : uniprot.getSynomyms() ) {
+        for (String syn : uniprot.getSynomyms()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
         }
 
-        for ( String orf : uniprot.getOrfs() ) {
+        for (String orf : uniprot.getOrfs()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
         }
 
-        for ( String locus : uniprot.getLocuses() ) {
+        for (String locus : uniprot.getLocuses()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
@@ -293,7 +294,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * The Intact protein is involved in one interaction but is 'no-uniprot-update'.
      * Should not be updated
      */
-    public void ignore_protein_no_uniprot() throws Exception{
+    public void ignore_protein_no_uniprot() throws Exception {
 
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -336,7 +337,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * The configuration allows to fix dead proteins.
      * Should not be updated and the identity cross reference should be set as 'uniprot-removed-ac'
      */
-    public void update_dead_protein_yes() throws Exception{
+    public void update_dead_protein_yes() throws Exception {
 
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -381,7 +382,7 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
      * The configuration doesn't allow to fix dead proteins.
      * Should not be updated and the identity cross reference should not be changed
      */
-    public void update_dead_protein_no() throws Exception{
+    public void update_dead_protein_no() throws Exception {
 
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -464,23 +465,23 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
 
-        for (String secAc : uniprot.getSecondaryAcs()){
+        for (String secAc : uniprot.getSecondaryAcs()) {
             Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
         }
 
-        for ( String geneName : uniprot.getGenes() ) {
+        for (String geneName : uniprot.getGenes()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
         }
 
-        for ( String syn : uniprot.getSynomyms() ) {
+        for (String syn : uniprot.getSynomyms()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
         }
 
-        for ( String orf : uniprot.getOrfs() ) {
+        for (String orf : uniprot.getOrfs()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
         }
 
-        for ( String locus : uniprot.getLocuses() ) {
+        for (String locus : uniprot.getLocuses()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
@@ -539,23 +540,23 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         Assert.assertEquals(uniprot.getCrc64(), protein.getCrc64());
         Assert.assertEquals(uniprot.getPrimaryAc(), ProteinUtils.getUniprotXref(protein).getPrimaryId());
 
-        for (String secAc : uniprot.getSecondaryAcs()){
+        for (String secAc : uniprot.getSecondaryAcs()) {
             Assert.assertTrue(hasXRef(protein, secAc, CvDatabase.UNIPROT, CvXrefQualifier.SECONDARY_AC));
         }
 
-        for ( String geneName : uniprot.getGenes() ) {
+        for (String geneName : uniprot.getGenes()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME, geneName));
         }
 
-        for ( String syn : uniprot.getSynomyms() ) {
+        for (String syn : uniprot.getSynomyms()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.GENE_NAME_SYNONYM, syn));
         }
 
-        for ( String orf : uniprot.getOrfs() ) {
+        for (String orf : uniprot.getOrfs()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.ORF_NAME, orf));
         }
 
-        for ( String locus : uniprot.getLocuses() ) {
+        for (String locus : uniprot.getLocuses()) {
             Assert.assertTrue(hasAlias(protein, CvAliasType.LOCUS_NAME, locus));
         }
 
@@ -566,58 +567,5 @@ public class ProteinProcessorTest extends IntactBasicTestCase {
         config.setGlobalProteinUpdate(false);
 
         context.commitTransaction(status);
-    }
-
-    private boolean hasXRef( Protein p, String primaryAc, String databaseName, String qualifierName ) {
-        final Collection<InteractorXref> refs = p.getXrefs();
-        boolean hasXRef = false;
-
-        for ( InteractorXref ref : refs ) {
-            if (databaseName.equalsIgnoreCase(ref.getCvDatabase().getShortLabel())){
-                if (qualifierName.equalsIgnoreCase(ref.getCvXrefQualifier().getShortLabel())){
-                    if (primaryAc.equalsIgnoreCase(ref.getPrimaryId())){
-                        hasXRef = true;
-                    }
-                }
-            }
-        }
-
-        return hasXRef;
-    }
-
-    private boolean hasAlias( Protein p, String aliasLabel, String aliasName ) {
-        final Collection<InteractorAlias> aliases = p.getAliases();
-
-        boolean hasFoundAlias = false;
-
-        for ( InteractorAlias alias : aliases ) {
-            if (alias.getCvAliasType().getShortLabel().equals(aliasLabel)){
-                if (aliasName.equals(alias.getName())){
-                    hasFoundAlias = true;
-                }
-            }
-        }
-
-        return hasFoundAlias;
-    }
-
-    private boolean hasAnnotation( Protein p, String text, String cvTopic) {
-        final Collection<Annotation> annotations = p.getAnnotations();
-        boolean hasAnnotation = false;
-
-        for ( Annotation a : annotations ) {
-            if (cvTopic.equalsIgnoreCase(a.getCvTopic().getShortLabel())){
-                if (text == null){
-                    hasAnnotation = true;
-                }
-                else if (text != null && a.getAnnotationText() != null){
-                    if (text.equalsIgnoreCase(a.getAnnotationText())){
-                        hasAnnotation = true;
-                    }
-                }
-            }
-        }
-
-        return hasAnnotation;
     }
 }

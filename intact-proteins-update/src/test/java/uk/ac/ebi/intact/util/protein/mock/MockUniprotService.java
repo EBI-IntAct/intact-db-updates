@@ -31,55 +31,66 @@ public class MockUniprotService extends AbstractUniprotService {
 
         UniprotProtein cdc42canfa = MockUniprotProtein.build_CDC42_CANFA();
         UniprotProtein cdc42human = MockUniprotProtein.build_CDC42_HUMAN();
+        UniprotProtein ahk4arath = MockUniprotProtein.build_AHK4_ARATH();
 
         /*In uniprot, if you search for P60952 or it's splice variant (P60952-1, P60952-2), it will return the same entry.
         That's why P60952, P60952-1 and P60952-2 are associated to the same UniprotProtein cdc42canfa*/
-        proteins.put( "P60952", Arrays.asList( cdc42canfa ) );
-        proteins.put( "P60952-1", Arrays.asList( cdc42canfa ) );
-        proteins.put( "P60952-2", Arrays.asList( cdc42canfa ) );
+        proteins.put("P60952", Collections.singletonList(cdc42canfa));
+        proteins.put("P60952-1", Collections.singletonList(cdc42canfa));
+        proteins.put("P60952-2", Collections.singletonList(cdc42canfa));
 
-        proteins.put( "P60953", Arrays.asList( cdc42human ) );
-        proteins.put( "Q7L8R5", Arrays.asList( cdc42human ) ); /* (!) secondary AC not shared by CANFA */
-        proteins.put( "P60953-1", Arrays.asList( cdc42human ) );
-        proteins.put( "P60953-2", Arrays.asList( cdc42human ) );
+        proteins.put("P60953", Collections.singletonList(cdc42human));
+        proteins.put("Q7L8R5", Collections.singletonList(cdc42human)); /* (!) secondary AC not shared by CANFA */
+        proteins.put("P60953-1", Collections.singletonList(cdc42human));
+        proteins.put("P60953-2", Collections.singletonList(cdc42human));
 
-        proteins.put( "P21181", Arrays.asList( cdc42canfa, cdc42human ) );
-        proteins.put( "P25763", Arrays.asList( cdc42canfa, cdc42human ) );
-        proteins.put( "P21181-1", Arrays.asList( cdc42canfa, cdc42human ) );
-        proteins.put( "P21181-4", Arrays.asList( cdc42canfa, cdc42human ) );
+        proteins.put("P21181", Arrays.asList(cdc42canfa, cdc42human));
+        proteins.put("P25763", Arrays.asList(cdc42canfa, cdc42human));
+        proteins.put("P21181-1", Arrays.asList(cdc42canfa, cdc42human));
+        proteins.put("P21181-4", Arrays.asList(cdc42canfa, cdc42human));
 
-        proteins.put( "P00012", Arrays.asList( cdc42human, cdc42human ) );
-        proteins.put( "P00012-1", Arrays.asList( cdc42human, cdc42human ) );
-        proteins.put( "P00012-2", Arrays.asList( cdc42canfa, cdc42canfa ) );
+        proteins.put("P00012", Arrays.asList(cdc42human, cdc42human));
+        proteins.put("P00012-1", Arrays.asList(cdc42human, cdc42human));
+        proteins.put("P00012-2", Arrays.asList(cdc42canfa, cdc42canfa));
+
+        proteins.put("Q9C5U0", Collections.singletonList(ahk4arath));
+        proteins.put("Q9C5U0-1", Collections.singletonList(ahk4arath));
+        proteins.put("Q9C5U0-2", Collections.singletonList(ahk4arath));
+        proteins.put("A5YY60", Collections.singletonList(ahk4arath));
+        proteins.put("A5YY75", Collections.singletonList(ahk4arath));
+        proteins.put("Q9C5T8", Collections.singletonList(ahk4arath));
+        proteins.put("Q9C5T9", Collections.singletonList(ahk4arath));
+        proteins.put("Q9FDZ3", Collections.singletonList(ahk4arath));
+        proteins.put("Q9SIT0", Collections.singletonList(ahk4arath));
     }
 
     ////////////////////////////
     // AbstractUniprotService
 
-    public Collection<UniprotProtein> retrieve( String ac ) {
+    public Collection<UniprotProtein> retrieve(String ac) {
         Collection<UniprotProtein> myProteins = new ArrayList<>(2);
 
-        if (proteins.get( ac ) != null){
-            myProteins.addAll( proteins.get( ac ) );
+        if (proteins.get(ac) != null) {
+            myProteins.addAll(proteins.get(ac));
         }
         return myProteins;
     }
 
-    public Collection<UniprotProtein> retrieve( String ac, boolean processSpliceVars ) {
-        throw new UnsupportedOperationException( );
+    public Collection<UniprotProtein> retrieve(String ac, boolean processSpliceVars) {
+        throw new UnsupportedOperationException();
     }
 
 
-    public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs ) {
+    public Map<String, Collection<UniprotProtein>> retrieve(Collection<String> acs) {
         Map<String, Collection<UniprotProtein>> results = new HashMap<>(acs.size());
-        for ( String ac : acs ) {
-            results.put( ac, retrieve( ac ) );
+        for (String ac : acs) {
+            results.put(ac, retrieve(ac));
         }
         return results;
     }
 
-    public Map<String, Collection<UniprotProtein>> retrieve( Collection<String> acs, boolean processSpliceVars ) {
-        throw new UnsupportedOperationException( );
+    public Map<String, Collection<UniprotProtein>> retrieve(Collection<String> acs, boolean processSpliceVars) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

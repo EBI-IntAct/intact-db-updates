@@ -1,6 +1,6 @@
 package uk.ac.ebi.intact.util.protein.utils.comparator;
 
-import uk.ac.ebi.intact.model.InteractorXref;
+import uk.ac.ebi.intact.model.*;
 
 import java.util.Comparator;
 
@@ -14,28 +14,23 @@ import java.util.Comparator;
 
 public class InteractorXrefComparator implements Comparator<InteractorXref>{
 
+    private final static Comparator<String> nullSafeStringComparator = Comparator
+            .nullsFirst(String::compareToIgnoreCase);
+
+    private final static Comparator<CvDatabase> cvDatabaseComparator = Comparator
+            .comparing(CvDatabase::getIdentifier, nullSafeStringComparator);
+
+    private final static Comparator<CvXrefQualifier> cvQualifierComparator = Comparator
+            .comparing(CvXrefQualifier::getIdentifier, nullSafeStringComparator);
+
+    private final static Comparator<InteractorXref> interactorXrefComparator = Comparator
+            .comparing(InteractorXref::getCvDatabase, cvDatabaseComparator)
+            .thenComparing(InteractorXref::getPrimaryId, nullSafeStringComparator)
+            .thenComparing(InteractorXref::getSecondaryId, nullSafeStringComparator)
+            .thenComparing(InteractorXref::getCvXrefQualifier, cvQualifierComparator);
+
     @Override
     public int compare(InteractorXref o1, InteractorXref o2) {
-
-        final int BEFORE = -1;
-        final int AFTER = 1;
-
-        if (o1.getCvDatabase() != null && o2.getCvDatabase() != null){
-            if (o1.getCvDatabase().getIdentifier().equalsIgnoreCase(o2.getCvDatabase().getIdentifier())){
-                return o1.getPrimaryId().toLowerCase().compareTo(o2.getPrimaryId().toLowerCase());
-            }
-            else {
-                return o1.getCvDatabase().getIdentifier().toLowerCase().compareTo(o2.getCvDatabase().getIdentifier().toLowerCase());
-            }
-        }
-        else if (o1.getCvDatabase() == null && o2.getCvDatabase() != null){
-            return AFTER;
-        }
-        else if (o1.getCvDatabase() != null && o2.getCvDatabase() == null){
-            return BEFORE;
-        }
-        else {
-            return o1.getPrimaryId().toLowerCase().compareTo(o2.getPrimaryId().toLowerCase());
-        }
+        return interactorXrefComparator.compare(o1, o2);
     }
 }
