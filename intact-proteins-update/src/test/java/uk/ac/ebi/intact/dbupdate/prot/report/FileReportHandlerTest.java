@@ -1,8 +1,6 @@
 package uk.ac.ebi.intact.dbupdate.prot.report;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,39 +34,27 @@ import java.util.Iterator;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class FileReportHandlerTest extends IntactBasicTestCase {
 
-    ProteinUpdateProcessor processor;
-
-    @Before
-    public void before() throws Exception {
-        TransactionStatus status = getDataContext().beginTransaction();
-        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
-        config.setBlastEnabled(false);
-        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
-        primer.createCVs();
-
-        processor = new ProteinUpdateProcessor();
-
-        getDataContext().commitTransaction(status);
-    }
-
-    @After
-    public void after() throws Exception {
-        processor = null;
-    }
-
     @Test
     @Transactional(propagation = Propagation.NEVER)
     //This test fails usually if executed with all the tests, but it works when run alone.
     public void simulation() throws Exception {
 
+        final File dir = new File("target/simulation");
+        final UpdateReportHandler reportHandler = new FileReportHandler(dir);
+
+        ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
+        config.setBlastEnabled(false);
+        config.setReportHandler( reportHandler );
+        config.setGlobalProteinUpdate(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
+
         TransactionStatus status = getDataContext().beginTransaction();
 
-        final File dir = new File("target/simulation");
-        UpdateReportHandler reportHandler = new FileReportHandler(dir);
-        ProteinUpdateContext.getInstance().getConfig().setReportHandler( reportHandler );
-        ProteinUpdateContext.getInstance().getConfig().setGlobalProteinUpdate(true);
-
+        ComprehensiveCvPrimer primer = new ComprehensiveCvPrimer(getDaoFactory());
+        primer.createCVs();
         getMockBuilder().createInstitution(CvDatabase.INTACT_MI_REF, CvDatabase.INTACT);
+
+        getDataContext().commitTransaction(status);
 
         // one protein for all interactions. This protein has the same sequence as one isoform which is not the canonical sequence
         Protein simple = getMockBuilder().createProtein("P36872", "simple_protein");
@@ -310,6 +296,7 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         getDaoFactory().getXrefDao(InteractorXref.class).update(uniprotXref2);
 
         Assert.assertEquals(3, getDaoFactory().getProteinDao().getByUniprotId("P12345").size());
+
         getDataContext().commitTransaction(status);
 
         // try the updater

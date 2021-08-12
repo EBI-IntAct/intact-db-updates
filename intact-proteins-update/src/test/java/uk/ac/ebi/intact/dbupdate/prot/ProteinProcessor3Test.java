@@ -94,7 +94,7 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    public void create_master_protein_ensembl_plants() {
+    public void update_proteins_with_xrefs() {
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(false);
         config.setDeleteProteinTranscriptWithoutInteractions(false);
@@ -111,7 +111,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
                 "ahk4_arath", getMockBuilder().createBioSource(3702, "arath"));
 
         // now create a protein xrefs to check if they get properly updated
-        // TODO: xref update testing throws an error - investigate
         CvDatabase go = getMockBuilder().createCvObject(CvDatabase.class, null, "go");
         protein.addXref(getMockBuilder().createXref(protein, "GO:0005783", null, go));
         protein.addXref(getMockBuilder().createXref(protein, "GO:0005789", null, go));
@@ -201,9 +200,7 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
             Assert.assertTrue(hasAlias(updatedProtein, CvAliasType.LOCUS_NAME, locus));
         }
 
-
         Assert.assertNotNull(updatedProtein);
-
 
         Collection<UniprotSpliceVariant> isoforms = uniprot.getSpliceVariants();
         Assert.assertEquals(2, isoforms.size());
@@ -272,7 +269,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
 
         }
 
-
         context.commitTransaction(status);
     }
 
@@ -310,11 +306,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         Assert.assertEquals(3, getDaoFactory().getProteinDao().countAll());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().getSpliceVariants(protein).size());
 
-        // reset
-        config.setDeleteProtsWithoutInteractions(true);
-        config.setDeleteProteinTranscriptWithoutInteractions(true);
-        config.setGlobalProteinUpdate(false);
-
         context2.commitTransaction(status2);
     }
 
@@ -351,11 +342,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         Assert.assertEquals(protein.getAc(), intactProteins.iterator().next().getAc());
         Assert.assertNotNull(getDaoFactory().getProteinDao().getByAc(protein.getAc()));
         Assert.assertEquals(1, getDaoFactory().getProteinDao().countAll());
-
-        // reset
-        config.setDeleteProtsWithoutInteractions(true);
-        config.setDeleteProteinTranscriptWithoutInteractions(true);
-        config.setGlobalProteinUpdate(false);
 
         context2.commitTransaction(status2);
     }
@@ -434,11 +420,6 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
         Assert.assertEquals(0, intactProteins.size());
         Assert.assertEquals(2, getDaoFactory().getProteinDao().countAll());
 
-        // reset
-        config.setDeleteProteinTranscriptWithoutInteractions(true);
-        config.setGlobalProteinUpdate(false);
-        config.setProcessProteinNotFoundInUniprot(true);
-
         context2.commitTransaction(status2);
     }
 
@@ -452,6 +433,8 @@ public class ProteinProcessor3Test extends IntactBasicTestCase {
     public void update_protein_and_delete_protein_without_interaction() throws Exception{
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setDeleteProtsWithoutInteractions(true);
+        config.setDeleteProteinTranscriptWithoutInteractions(true);
+        config.setGlobalProteinUpdate(false);
 
         DataContext context = getDataContext();
         TransactionStatus status = context.beginTransaction();
