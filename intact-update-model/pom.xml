@@ -71,10 +71,10 @@
 
         <!--spring-->
         <!-- not modify -->
-        <dependency>
+         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>2.5.6</version>
+            <version>3.2.9.RELEASE</version>
             <optional>true</optional>
         </dependency>
 
