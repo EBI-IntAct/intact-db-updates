@@ -14,7 +14,7 @@
     <properties>
         <folder>/ebi/sp/pro6/intact/local/data/protein-update-report/</folder>
         <blast>false</blast>
-        <spring.version>4.3.12.RELEASE</spring.version>
+        <spring.version>5.3.19</spring.version>
     </properties>
 
     <build>
