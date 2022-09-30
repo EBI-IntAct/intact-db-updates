@@ -3,8 +3,7 @@ package uk.ac.ebi.intact.dbupdate.gene.importer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import psidev.psi.mi.jami.bridges.uniprot.taxonomy.UniprotTaxonomyFetcher;
-import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
-import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserXML;
+import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserTab;
 import uk.ac.ebi.intact.dbupdate.gene.utils.GeneUtils;
 import uk.ac.ebi.intact.dbupdate.gene.utils.ParameterNameValue;
 import uk.ac.ebi.intact.dbupdate.gene.utils.UniProtRestQuery;
@@ -48,10 +47,9 @@ public class GeneServiceImpl implements GeneService {
 
 
     public GeneServiceImpl() {
-        // We use the XML because the format is xml, maybe this can be
+        // We use the TAB because only tab can limit fields, maybe this can be
         //configure automatically from in the future
-        UniProtParser parser = new UniProtParserXML();
-        uniProtRestQuery = new UniProtRestQuery(parser);
+        uniProtRestQuery = new UniProtRestQuery(new UniProtParserTab());
         biosourceService = new BioSourceServiceImpl(new UniprotTaxonomyFetcher());
 
         log.info("A default uniprot taxonomy service will be used to retrieve the Biosource");
@@ -59,7 +57,7 @@ public class GeneServiceImpl implements GeneService {
 
     @Override
     public List<Interactor> getGeneByEnsemblIdInSwissprot(String ensemblId) throws GeneServiceException {
-        return getGeneByEnsemblId(ensemblId, " + reviewed:yes");
+        return getGeneByEnsemblId(ensemblId, " AND (reviewed:true)");
     }
 
     @Override
@@ -81,12 +79,12 @@ public class GeneServiceImpl implements GeneService {
             parameters = new ParameterNameValue[]
                     {
                             new ParameterNameValue("query", ensemblId + queryFilter),
-                            new ParameterNameValue("columns",
-                                    "entry name,genes,organism,organism-id,id,reviewed,protein names"),
-                            new ParameterNameValue("format", "xml")
+                            new ParameterNameValue("fields",
+                                    "accession,id,gene_names,organism_name,organism_id,reviewed,protein_name"),
+                            new ParameterNameValue("format", "tsv")
                     };
 
-            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprot", parameters);
+            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprotkb", parameters);
             if (list != null) {
 
                 genes = new ArrayList<Interactor>(list.size());

@@ -24,7 +24,7 @@ import java.util.List;
 public class UniProtRestQuery {
 
 	public static final Log log = LogFactory.getLog(UniProtRestQuery.class);
-	private static final String UNIPROT_SERVER = "https://www.uniprot.org/";
+	private static final String UNIPROT_SERVER = "https://rest.uniprot.org/";
 
 	private UniProtParser uniProtParser;
 
@@ -83,7 +83,7 @@ public class UniProtRestQuery {
 
 	protected static String queryURLGenerator(String tool, ParameterNameValue[] params) {
 
-		StringBuilder locationBuilder = new StringBuilder(UNIPROT_SERVER + tool + "/?");
+		StringBuilder locationBuilder = new StringBuilder(UNIPROT_SERVER + tool + "/stream?");
 		for (int i = 0; i < params.length; i++) {
 			if (i > 0)
 				locationBuilder.append('&');

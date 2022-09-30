@@ -394,8 +394,8 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
         Assert.assertEquals(2, countLinesInFile(outOfDateRangeFile));
         // 3 : header plus secondary protein with invalid range and one of the duplicated protein having an out of date range
         Assert.assertEquals(3, countLinesInFile(outOfDateProteinFile));
-        // 5 : header plus one protein with several uniprot identities
-        Assert.assertEquals(5, countLinesInFile(erroFile));
+        // 5 : header plus 1 protein with several uniprot identities + 2 dead_protein + 1 bad_organism + 3 not_existing_splice_variant
+        Assert.assertEquals(9, countLinesInFile(erroFile));
         // 2 : header plus one secondary protein updated
         Assert.assertEquals(2, countLinesInFile(secondaryProteinsFile));
         // 2 : header plus one simple protein haing the same sequence as one of its isoforms
