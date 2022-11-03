@@ -5,12 +5,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotIdentityUpdater;
 import uk.ac.ebi.intact.dbupdate.prot.event.ProteinEvent;
@@ -31,7 +30,6 @@ import uk.ac.ebi.intact.util.protein.mock.MockUniprotProtein;
  * @version $Id$
  * @since <pre>12-Nov-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotIdentityUpdaterTest extends IntactBasicTestCase {
 
     private UniprotIdentityUpdater updater;

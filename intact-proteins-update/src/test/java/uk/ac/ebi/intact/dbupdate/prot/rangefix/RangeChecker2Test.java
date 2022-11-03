@@ -5,12 +5,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.CvFuzzyType;
 import uk.ac.ebi.intact.model.Feature;
 import uk.ac.ebi.intact.model.Range;
@@ -25,7 +24,6 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>21-Oct-2010</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class RangeChecker2Test extends IntactBasicTestCase {
 
     private RangeChecker rangeChecker;

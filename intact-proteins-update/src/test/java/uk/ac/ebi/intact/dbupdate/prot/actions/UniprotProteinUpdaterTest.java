@@ -5,13 +5,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.IntactBasicTestCase;
 import uk.ac.ebi.intact.commons.util.Crc64;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.OutOfDateParticipantFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.fixers.RangeFixer;
 import uk.ac.ebi.intact.dbupdate.prot.actions.updaters.UniprotProteinUpdater;
@@ -40,7 +39,6 @@ import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.*;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UniprotProteinUpdaterTest extends IntactBasicTestCase {
 
     private UniprotProteinUpdater updater;

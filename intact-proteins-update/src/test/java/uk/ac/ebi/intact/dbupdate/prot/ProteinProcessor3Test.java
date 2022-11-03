@@ -5,12 +5,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.IntactBasicTestCase;
 import uk.ac.ebi.intact.core.context.DataContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
 import uk.ac.ebi.intact.uniprot.model.UniprotProtein;
@@ -33,7 +32,6 @@ import static uk.ac.ebi.intact.util.protein.utils.TestsUtils.hasXRef;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id: ProteinProcessorTest.java 15394 2010-11-19 15:30:14Z marine.dumousseau@wanadoo.fr $
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class ProteinProcessor3Test extends IntactBasicTestCase {
 
