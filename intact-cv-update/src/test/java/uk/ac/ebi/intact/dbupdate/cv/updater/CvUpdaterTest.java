@@ -6,15 +6,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyAccess;
 import psidev.psi.tools.ontology_manager.impl.local.OntologyLoaderException;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateContext;
 import uk.ac.ebi.intact.dbupdate.cv.CvUpdateManager;
+import uk.ac.ebi.intact.dbupdate.cv.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
 
 import java.io.File;
@@ -29,10 +28,7 @@ import java.util.Iterator;
  * @version $Id$
  * @since <pre>16/11/11</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
-        "classpath*:/META-INF/standalone/*-standalone.spring.xml",
-        "classpath*:/META-INF/beanscv*.spring.xml"})
-public class CvUpdaterTest extends IntactBasicTestCase{
+public class CvUpdaterTest extends IntactBasicTestCase {
 
     private CvUpdateManager cvManager;
 
