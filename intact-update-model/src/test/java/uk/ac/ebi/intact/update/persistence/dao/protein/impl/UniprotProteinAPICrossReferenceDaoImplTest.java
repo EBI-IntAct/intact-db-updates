@@ -110,7 +110,7 @@ public class UniprotProteinAPICrossReferenceDaoImplTest extends UpdateBasicTestC
 
         long id = report.getId();
 
-        List<PersistentUniprotProteinAPICrossReferences> uniprotProteinAPIResults = uniprotProteinAPICrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", 1);
+        List<PersistentUniprotProteinAPICrossReferences> uniprotProteinAPIResults = uniprotProteinAPICrossReferenceDoa.getCrossReferencesByDatabaseNameAndActionId("Ensembl", -1);
 
         Assert.assertTrue(uniprotProteinAPIResults.isEmpty());
     }
@@ -145,7 +145,7 @@ public class UniprotProteinAPICrossReferenceDaoImplTest extends UpdateBasicTestC
         uniprotProteinAPICrossReferenceDoa.persist( uniprotProteinAPIRefs );
         uniprotProteinAPICrossReferenceDoa.flush();
 
-        PersistentUniprotProteinAPICrossReferences uniprotProteinAPIResults = uniprotProteinAPICrossReferenceDoa.getById(1);
+        PersistentUniprotProteinAPICrossReferences uniprotProteinAPIResults = uniprotProteinAPICrossReferenceDoa.getById(-1);
 
         Assert.assertNull(uniprotProteinAPIResults);
     }

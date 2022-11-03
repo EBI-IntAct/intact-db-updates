@@ -66,7 +66,7 @@ public class IdentificationResultsDaoImplTest extends UpdateBasicTestCase{
         updateResultDao.persist( results );
         updateResultDao.flush();
 
-        PersistentIdentificationResults r = updateResultDao.getById(1);
+        PersistentIdentificationResults r = updateResultDao.getById(-1);
 
         Assert.assertNull(r);
     }

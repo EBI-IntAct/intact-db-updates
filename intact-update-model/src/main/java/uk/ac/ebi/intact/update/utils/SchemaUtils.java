@@ -2,15 +2,22 @@ package uk.ac.ebi.intact.update.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.Environment;
+import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.dialect.*;
-import org.hibernate.ejb.Ejb3Configuration;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.hibernate.mapping.Collection;
+import org.hibernate.mapping.Property;
+import org.hibernate.mapping.Table;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.hibernate.tool.hbm2ddl.Target;
+import uk.ac.ebi.intact.update.context.IntactUpdatePersistenceProvider;
 
-import java.util.HashMap;
-import java.util.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This class contains methods to generate database schemas for the annotated elements in this project
@@ -23,6 +30,7 @@ import java.util.Properties;
 public class SchemaUtils {
 
     private static final Log log = LogFactory.getLog(SchemaUtils.class);
+    private static final IntactUpdatePersistenceProvider persistence = new IntactUpdatePersistenceProvider();
 
     private SchemaUtils(){}
 
@@ -32,38 +40,28 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDL(String dialect) {
-        Properties props = new Properties();
-        props.put( Environment.DIALECT, dialect);
-
-        Configuration cfg = getBasicConfiguration(props);
-
-        String[] sqls = cfg.generateSchemaCreationScript( Dialect.getDialect(props));
-        addDelimiters(sqls);
-
-        return sqls;
+        return exportSchema(
+                "create",
+                new SchemaExport((MetadataImplementor) persistence.getBasicMetaDataBuilder(dialect).build()),
+                Target.SCRIPT,
+                SchemaExport.Type.CREATE);
     }
 
-    private static void addDelimiters(String[] sqls) {
-        for (int i=0; i<sqls.length; i++) {
-            sqls[i] = sqls[i]+";";
+    private static String[] exportSchema(String tempFileName, SchemaExport export, Target target, SchemaExport.Type exportType) {
+        String[] sqls;
+        try {
+            File file = File.createTempFile(tempFileName, ".sql");
+            export.setDelimiter(";")
+                    .setOutputFile(file.getAbsolutePath())
+                    .execute(target, exportType);
+            try (Stream<String> lines = Files.lines(file.toPath())) {
+                sqls = lines.toArray(String[]::new);
+            }
+            if (file.delete()) log.debug("Temp file deleted");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    }
-
-    private static Configuration getBasicConfiguration(Properties props) {
-        final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-        factoryBean.setPersistenceUnitName("intact-update");
-
-        final HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setDatabasePlatform(Dialect.getDialect(props).getClass().getName());
-        factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
-        factoryBean.afterPropertiesSet();
-
-        Ejb3Configuration cfg = new Ejb3Configuration();
-        Ejb3Configuration configured = cfg.configure(factoryBean.getPersistenceUnitInfo(), new HashMap());
-
-        factoryBean.getNativeEntityManagerFactory().close();
-
-        return configured.getHibernateConfiguration();
+        return sqls;
     }
 
     /**
@@ -71,7 +69,7 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDLForOracle() {
-        return generateCreateSchemaDDL( Oracle9iDialect.class.getName());
+        return generateCreateSchemaDDL(Oracle10gDialect.class.getName());
     }
 
     /**
@@ -79,7 +77,7 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDLForPostgreSQL() {
-        return generateCreateSchemaDDL( PostgreSQLDialect.class.getName());
+        return generateCreateSchemaDDL(PostgreSQL82Dialect.class.getName());
     }
 
     /**
@@ -87,7 +85,7 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDLForHSQL() {
-        return generateCreateSchemaDDL( HSQLDialect.class.getName());
+        return generateCreateSchemaDDL(HSQLDialect.class.getName());
     }
 
     /**
@@ -95,7 +93,32 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDLForH2() {
-        return generateCreateSchemaDDL( H2Dialect.class.getName());
+        return generateCreateSchemaDDL(H2Dialect.class.getName());
     }
-    
+
+    public static String[] getTableNames() {
+        return persistence.getBasicMetaDataBuilder(Oracle10gDialect.class.getName()).build()
+                .getEntityBindings()
+                .stream()
+                .map(persistentClass -> {
+                    List<String> tableNames = new ArrayList<>();
+                    if (!persistentClass.isAbstract()) {
+                        tableNames.add(persistentClass.getTable().getName());
+                    }
+                    Iterator propertiesIterator = persistentClass.getPropertyIterator();
+                    while (propertiesIterator.hasNext()) {
+                        Property property = (Property) propertiesIterator.next();
+                        if (property.getValue().getType().isCollectionType()) {
+                            Table collectionTable = ((Collection) property.getValue()).getCollectionTable();
+                            if (collectionTable != null) {
+                                tableNames.add(collectionTable.getName());
+                            }
+                        }
+                    }
+                    return tableNames;
+                })
+                .flatMap(List::stream)
+                .distinct()
+                .toArray(String[]::new);
+    }
 }

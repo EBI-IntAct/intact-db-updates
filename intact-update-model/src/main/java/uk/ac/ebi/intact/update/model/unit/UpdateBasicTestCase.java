@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.update.persistence.dao.UpdateDaoFactory;
 
@@ -21,10 +20,11 @@ import javax.persistence.PersistenceContext;
  * @since <pre>20-May-2010</pre>
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath*:/META-INF/update-jpa.spring.xml",
-        "classpath*:/META-INF/standalone/*-standalone.spring.xml"})
-@TransactionConfiguration( transactionManager = "updateTransactionManager" )
-@Transactional
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/update-jpa.spring.xml",
+        "classpath*:/META-INF/standalone/update-jpa-standalone.spring.xml"
+})
+@Transactional("updateTransactionManager")
 public abstract class UpdateBasicTestCase {
 
     /**
