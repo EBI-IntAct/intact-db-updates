@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 import uk.ac.ebi.intact.model.CvDatabase;
@@ -16,7 +17,7 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>15-Jun-2010</pre>
  */
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class InteractorXRefSelectorTest extends BasicDatasetTest {
 
     private InteractorXRefSelector selector;

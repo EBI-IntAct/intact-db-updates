@@ -1,8 +1,18 @@
 package uk.ac.ebi.intact.dbupdate.dataset;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
-import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
+import uk.ac.ebi.intact.core.unit.IntactMockBuilder;
 import uk.ac.ebi.intact.model.*;
 
 import java.util.Collection;
@@ -14,8 +24,15 @@ import java.util.Collection;
  * @version $Id$
  * @since <pre>10-Jun-2010</pre>
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath*:/META-INF/dbupdate.spring.xml" })
+@Transactional("transactionManager")
+public abstract class BasicDatasetTest {
 
-public abstract class BasicDatasetTest extends IntactBasicTestCase {
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    private IntactMockBuilder mockBuilder;
 
     protected IntactContext intactContext;
     protected Protein prot1;
@@ -28,6 +45,16 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     protected Publication p1;
     protected Publication p2;
     protected Publication p3;
+
+    @Before
+    public void prepareBasicTest() throws Exception {
+        mockBuilder = new IntactMockBuilder(getIntactContext().getConfig().getDefaultInstitution());
+    }
+
+    @After
+    public void afterBasicTest() throws Exception {
+        mockBuilder = null;
+    }
 
     private void createInterproXRefs(){
 
@@ -120,6 +147,8 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     }
 
     public void setUpDatabase(){
+        TransactionStatus status = getDataContext().beginTransaction();
+
         this.intactContext = IntactContext.getCurrentInstance();
 
         createProteinsHumanMouseAndRat();
@@ -127,5 +156,19 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         createDatasetCVTopic();
         createCVXRefs();
         createInterproXRefs();
+
+        getDataContext().commitTransaction(status);
+    }
+
+    protected IntactContext getIntactContext() {
+        return (IntactContext) applicationContext.getBean("intactContext");
+    }
+
+    protected DataContext getDataContext() {
+        return getIntactContext().getDataContext();
+    }
+
+    protected IntactMockBuilder getMockBuilder() {
+        return mockBuilder;
     }
 }
