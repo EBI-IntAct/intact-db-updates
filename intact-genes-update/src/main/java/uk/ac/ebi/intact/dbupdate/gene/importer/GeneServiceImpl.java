@@ -59,7 +59,7 @@ public class GeneServiceImpl implements GeneService {
 
     @Override
     public List<Interactor> getGeneByEnsemblIdInSwissprot(String ensemblId) throws GeneServiceException {
-        return getGeneByEnsemblId(ensemblId, " + reviewed:yes");
+        return getGeneByEnsemblId(ensemblId, " + reviewed:true");
     }
 
     @Override
@@ -86,7 +86,7 @@ public class GeneServiceImpl implements GeneService {
                             new ParameterNameValue("format", "xml")
                     };
 
-            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprot", parameters);
+            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprotkb/search", parameters);
             if (list != null) {
 
                 genes = new ArrayList<Interactor>(list.size());

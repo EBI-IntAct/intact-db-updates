@@ -31,13 +31,13 @@ public class UniProtRestQueryTest {
             parameters = new ParameterNameValue[]
                     {
                             //By default only the swissprot entries (curators decision)
-                            new ParameterNameValue("query", "ENSG00000126001 + reviewed:yes"),
+                            new ParameterNameValue("query", "ENSG00000126001 + reviewed:true"),
                             new ParameterNameValue("columns",
                                     "entry name,genes,organism,organism-id,id,reviewed,protein names"),
                             new ParameterNameValue("format", "xml")
                     };
 
-            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprot", parameters);
+            List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprotkb/search", parameters);
             Assert.assertEquals(1, list.size());
             UniProtResult aux = list.get(0);
             Assert.assertEquals("CP250_HUMAN", aux.getEntryName());
@@ -69,8 +69,8 @@ public class UniProtRestQueryTest {
                 };
 
         Assert.assertEquals(
-                "https://www.uniprot.org/uniprot/?query=ENSMUSG00000034391&columns=entry+name%2Cgenes%2Corganism%2Corganism-id%2Cid%2Creviewed%2Cprotein+names&reviewed=yes&format=xml",
-                UniProtRestQuery.queryURLGenerator("uniprot", parameters)
+                "https://rest.uniprot.org/uniprotkb/search?query=ENSMUSG00000034391&columns=entry+name%2Cgenes%2Corganism%2Corganism-id%2Cid%2Creviewed%2Cprotein+names&reviewed=yes&format=xml",
+                UniProtRestQuery.queryURLGenerator("uniprotkb/search", parameters)
         );
 
     }
