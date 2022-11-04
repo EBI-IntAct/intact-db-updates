@@ -2,9 +2,11 @@ package uk.ac.ebi.intact.update.model.protein.listener;
 
 import org.junit.*;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateContext;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessor;
 import uk.ac.ebi.intact.dbupdate.prot.ProteinUpdateProcessorConfig;
@@ -13,7 +15,6 @@ import uk.ac.ebi.intact.dbupdate.prot.report.UpdateReportHandler;
 import uk.ac.ebi.intact.model.*;
 import uk.ac.ebi.intact.model.clone.IntactCloner;
 import uk.ac.ebi.intact.model.util.ProteinUtils;
-import uk.ac.ebi.intact.update.IntactBasicTestCase;
 import uk.ac.ebi.intact.update.IntactUpdateContext;
 import uk.ac.ebi.intact.update.model.protein.errors.*;
 import uk.ac.ebi.intact.update.model.protein.events.*;
@@ -38,7 +39,8 @@ import java.util.List;
  * @version $Id$
  * @since <pre>11/08/11</pre>
  */
-public class EventPersisterListenerTest extends IntactBasicTestCase {
+@ContextConfiguration(locations = {"classpath*:/META-INF/db-update-test.spring.xml"})
+public class EventPersisterListenerTest extends IntactBasicTestCase{
 
     ProteinUpdateProcessor processor;
 

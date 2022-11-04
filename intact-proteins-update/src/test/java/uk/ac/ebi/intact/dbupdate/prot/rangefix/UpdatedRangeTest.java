@@ -2,7 +2,8 @@ package uk.ac.ebi.intact.dbupdate.prot.rangefix;
 
 import org.junit.Assert;
 import org.junit.Test;
-import uk.ac.ebi.intact.IntactBasicTestCase;
+import org.springframework.test.context.ContextConfiguration;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.Range;
 
 /**
@@ -11,6 +12,7 @@ import uk.ac.ebi.intact.model.Range;
  * @author Bruno Aranda (baranda@ebi.ac.uk)
  * @version $Id$
  */
+@ContextConfiguration(locations = {"classpath*:/META-INF/dbupdate.spring.xml"} )
 public class UpdatedRangeTest extends IntactBasicTestCase {
 
     @Test

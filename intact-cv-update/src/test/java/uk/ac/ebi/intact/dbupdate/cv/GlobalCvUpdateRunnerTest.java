@@ -5,9 +5,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.model.*;
 
@@ -21,6 +23,11 @@ import java.sql.SQLException;
  * @version $Id$
  * @since <pre>25/01/12</pre>
  */
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml",
+        "classpath*:/META-INF/beanscv*.spring.xml"
+})
 public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase {
 
     @Autowired
