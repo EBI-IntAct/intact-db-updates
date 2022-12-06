@@ -22,7 +22,7 @@ public abstract class HibernateUpdatePersistentImpl implements HibernateUpdatePe
      */
     @Id
     @GeneratedValue(strategy= GenerationType.SEQUENCE, generator="SEQ_STORE")
-    @SequenceGenerator(name="SEQ_STORE", sequenceName="my_sequence" )
+    @SequenceGenerator(name="SEQ_STORE", sequenceName="my_sequence")
     public Long getId() {
         return id;
     }
