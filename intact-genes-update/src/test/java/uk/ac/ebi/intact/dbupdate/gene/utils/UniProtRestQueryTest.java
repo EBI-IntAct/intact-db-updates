@@ -4,7 +4,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 import uk.ac.ebi.intact.dbupdate.gene.importer.GeneServiceException;
 import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParser;
-import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserXML;
+import uk.ac.ebi.intact.dbupdate.gene.parser.UniProtParserTab;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ import java.util.List;
  */
 public class UniProtRestQueryTest {
 
-    private UniProtParser parser = new UniProtParserXML();
+    private UniProtParser parser = new UniProtParserTab();
     private UniProtRestQuery uniProtRestQuery = new UniProtRestQuery(parser);
 
     @Test
@@ -31,10 +31,10 @@ public class UniProtRestQueryTest {
             parameters = new ParameterNameValue[]
                     {
                             //By default only the swissprot entries (curators decision)
-                            new ParameterNameValue("query", "ENSG00000126001 + reviewed:true"),
-                            new ParameterNameValue("columns",
-                                    "entry name,genes,organism,organism-id,id,reviewed,protein names"),
-                            new ParameterNameValue("format", "xml")
+                            new ParameterNameValue("query", "ENSG00000126001 AND (reviewed:true)"),
+                            new ParameterNameValue("fields",
+                                    "accession,id,gene_names,organism_name,organism_id,reviewed,protein_name"),
+                            new ParameterNameValue("format", "tsv")
                     };
 
             List<UniProtResult> list = uniProtRestQuery.queryUniProt("uniprotkb/search", parameters);
@@ -43,10 +43,10 @@ public class UniProtRestQueryTest {
             Assert.assertEquals("CP250_HUMAN", aux.getEntryName());
             Assert.assertEquals("Centrosome-associated protein CEP250", aux.getRecommendedName());
             Assert.assertEquals("CEP250", aux.getGeneName());
-            Assert.assertEquals("Homo sapiens", aux.getOrganism());
+            Assert.assertEquals("Homo sapiens", aux.getScientificOrganismName());
             Assert.assertEquals("9606", aux.getOrganismId());
             Assert.assertEquals(2, aux.getGeneNameSynonyms().size());
-            Assert.assertEquals(3, aux.getAlternativeNames().size());
+            Assert.assertEquals(5, aux.getAlternativeNames().size());
             Assert.assertEquals("reviewed", aux.getStatus());
 
         } catch (UnsupportedEncodingException e) {
@@ -61,16 +61,15 @@ public class UniProtRestQueryTest {
 
         ParameterNameValue[] parameters = new ParameterNameValue[]
                 {
-                        new ParameterNameValue("query", "ENSMUSG00000034391"),
-                        new ParameterNameValue("columns",
-                                "entry name,genes,organism,organism-id,id,reviewed,protein names"),
-                        new ParameterNameValue("reviewed", "yes"), //By default only the swissprot entries (curators decision)
-                        new ParameterNameValue("format", "xml")
+                        new ParameterNameValue("query", "ENSMUSG00000034391 AND (reviewed:true)"),
+                        new ParameterNameValue("fields",
+                        "accession,id,gene_names,organism_name,organism_id,reviewed,protein_name"),
+                        new ParameterNameValue("format", "tsv")
                 };
 
         Assert.assertEquals(
-                "https://rest.uniprot.org/uniprotkb/search?query=ENSMUSG00000034391&columns=entry+name%2Cgenes%2Corganism%2Corganism-id%2Cid%2Creviewed%2Cprotein+names&reviewed=yes&format=xml",
-                UniProtRestQuery.queryURLGenerator("uniprotkb/search", parameters)
+                "https://rest.uniprot.org/uniprotkb?query=ENSMUSG00000034391+AND+%28reviewed%3Atrue%29&fields=accession%2Cid%2Cgene_names%2Corganism_name%2Corganism_id%2Creviewed%2Cprotein_name&format=tsv",
+                UniProtRestQuery.queryURLGenerator("uniprotkb", parameters)
         );
 
     }

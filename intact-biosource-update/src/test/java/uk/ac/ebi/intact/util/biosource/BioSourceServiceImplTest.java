@@ -5,6 +5,7 @@ import org.junit.Test;
 import psidev.psi.mi.jami.bridges.fetcher.mock.MockOrganismFetcher;
 import psidev.psi.mi.jami.model.Organism;
 import psidev.psi.mi.jami.model.impl.DefaultOrganism;
+import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.BioSource;
 
 /**
@@ -13,7 +14,7 @@ import uk.ac.ebi.intact.model.BioSource;
  * @author Samuel Kerrien (skerrien@ebi.ac.uk)
  * @since 1.0
  */
-public class BioSourceServiceImplTest {
+public class BioSourceServiceImplTest extends IntactBasicTestCase {
 
     public static final int HUMAN_TAX_ID = 9606;
     public static final int NEW_TAX_ID = 9999999;
