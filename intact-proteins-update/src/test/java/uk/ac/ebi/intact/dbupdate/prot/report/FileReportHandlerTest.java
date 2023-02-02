@@ -36,12 +36,12 @@ public class FileReportHandlerTest extends IntactBasicTestCase {
 
     @Test
     @Transactional(propagation = Propagation.NEVER)
-    //This test fails usually if executed with all the tests, but it works when run alone.
     public void simulation() throws Exception {
 
         final File dir = new File("target/simulation");
         final UpdateReportHandler reportHandler = new FileReportHandler(dir);
 
+        ProteinUpdateContext.getInstance().setConfig(new ProteinUpdateProcessorConfig());
         ProteinUpdateProcessorConfig config = ProteinUpdateContext.getInstance().getConfig();
         config.setBlastEnabled(false);
         config.setReportHandler( reportHandler );

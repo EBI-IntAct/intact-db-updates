@@ -63,7 +63,7 @@ public class MappingReportDaoImplTest extends UpdateBasicTestCase {
         actionReportDao.persist( report );
         actionReportDao.flush();
 
-        PersistentMappingReport r = actionReportDao.getById(1);
+        PersistentMappingReport r = actionReportDao.getById(-1);
 
         Assert.assertNull(r);
     }

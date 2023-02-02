@@ -76,7 +76,7 @@ public class UniprotProteinAPIReportDaoImplTest extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentUniprotProteinAPIReport> r = uniprotProteinAPIReportDao.getUniprotProteinAPIReportsByResultsId(1);
+        List<PersistentUniprotProteinAPIReport> r = uniprotProteinAPIReportDao.getUniprotProteinAPIReportsByResultsId(-1);
 
         Assert.assertTrue(r.isEmpty());
     }

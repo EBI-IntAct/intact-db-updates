@@ -30,15 +30,16 @@ public class UniProtParserTab implements UniProtParser {
 		CSVReader csvReader = new CSVReader(reader, '\t', '\"', 1);
 
 		ColumnPositionMappingStrategy strat = new ColumnPositionMappingStrategy();
+//		"entry name,genes,organism,organism-id,id,reviewed,protein names"),
 
 		String[] columns = new String[]{
+				"entry",
 				"entryName",
 				"geneNames",
 				"organism",
 				"organismId",
-				"entry",
 				"status",
-				"proteinNames"
+				"proteinNames",
 		}; // the fields to bind do in your JavaBean
 
 		strat.setColumnMapping(columns);
@@ -56,12 +57,17 @@ public class UniProtParserTab implements UniProtParser {
 			element.setRecommendedName(generateRecommendedName(element));
 			element.setAlternativeNames(generateAlternativeNames(element));
 
-			String commonName = element.getOrganism();
+			String fullName = element.getOrganism();
+			element.setOrganism(fullName);
 
-			if (commonName.indexOf("(") > 0) {
-				commonName = commonName.substring(commonName.indexOf("(") + 1, commonName.indexOf(")"));
+			int i = fullName.indexOf("(");
+			if (i > 0) {
+				String commonName = fullName.substring(i + 1, fullName.indexOf(")"));
+				element.setCommonOrganismName(commonName);
+				element.setScientificOrganismName(fullName.substring(0, i - 1));
+			} else {
+				element.setScientificOrganismName(fullName);
 			}
-			element.setOrganism(commonName);
 		}
 
 		return list;
@@ -131,15 +137,15 @@ public class UniProtParserTab implements UniProtParser {
 		if (aux != null && !aux.isEmpty()) {
 			int index = aux.indexOf("(");
 			if (index > 0) {
-				String alternativeNames = aux.substring(index, aux.length());
+				String alternativeNames = aux.substring(index);
 
 				String[] alternativeNamesArray = alternativeNames.split("\\)");
 				if (alternativeNamesArray != null && alternativeNamesArray.length > 0) {
-					alternativeNamesList = new ArrayList<String>(alternativeNamesArray.length);
+					alternativeNamesList = new ArrayList<>(alternativeNamesArray.length);
 					for (String name : alternativeNamesArray) {
 						if (!name.startsWith("[")) {
 							//We need to remove the parenthesis
-							alternativeNamesList.add(name.substring(name.indexOf("(") + 1, name.length()));
+							alternativeNamesList.add(name.substring(name.indexOf("(") + 1));
 						}
 					}
 				}

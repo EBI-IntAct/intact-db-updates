@@ -39,7 +39,7 @@ public class UniProtParserTabTest {
 				Assert.assertEquals("CP250_HUMAN", aux.getEntryName());
 				Assert.assertEquals("Centrosome-associated protein CEP250", aux.getRecommendedName());
 				Assert.assertEquals("CEP250", aux.getGeneName());
-				Assert.assertEquals("Human", aux.getOrganism());
+				Assert.assertEquals("Human", aux.getCommonOrganismName());
 				Assert.assertEquals("9606", aux.getOrganismId());
 				Assert.assertEquals(2, aux.getGeneNameSynonyms().size());
 				Assert.assertEquals(5, aux.getAlternativeNames().size());

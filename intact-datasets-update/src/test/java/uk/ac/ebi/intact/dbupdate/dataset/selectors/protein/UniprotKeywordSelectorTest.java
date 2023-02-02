@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.dataset.selectors.protein;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.test.annotation.DirtiesContext;
 import uk.ac.ebi.intact.dbupdate.dataset.BasicDatasetTest;
 import uk.ac.ebi.intact.dbupdate.dataset.DatasetException;
 
@@ -16,7 +16,7 @@ import java.util.Set;
  * @version $Id$
  * @since <pre>23/01/12</pre>
  */
-
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class UniprotKeywordSelectorTest extends BasicDatasetTest{
 
     private UniprotKeywordSelector selector;

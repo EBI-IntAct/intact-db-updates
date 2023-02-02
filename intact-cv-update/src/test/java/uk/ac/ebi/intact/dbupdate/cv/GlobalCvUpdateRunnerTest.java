@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.dbupdate.cv.updater.CvUpdateException;
 import uk.ac.ebi.intact.model.*;
@@ -21,10 +23,12 @@ import java.sql.SQLException;
  * @version $Id$
  * @since <pre>25/01/12</pre>
  */
-@ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
         "classpath*:/META-INF/standalone/*-standalone.spring.xml",
-        "classpath*:/META-INF/beanscv*.spring.xml"})
-public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
+        "classpath*:/META-INF/beanscv*.spring.xml"
+})
+public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase {
 
     @Autowired
     GlobalCvUpdateRunner globalCvUpdateRunner;
@@ -46,6 +50,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void test_update_allIntactTerms() throws CvUpdateException {
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();
@@ -77,7 +82,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
-    //Todo: This test needs investigation. It doesn't pass but the reason it is still unknown
+    @Transactional(propagation = Propagation.NEVER)
     public void test_update_allTerms() throws CvUpdateException {
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();
@@ -142,6 +147,7 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
 
     @Test
     @DirtiesContext
+    @Transactional(propagation = Propagation.NEVER)
     public void test_update_and_create_allTerms() throws CvUpdateException {
         // create terms to update, parents to create, obsolete terms and obsolete terms remapped to other ontology
         TransactionStatus status = getDataContext().beginTransaction();
@@ -211,16 +217,5 @@ public class GlobalCvUpdateRunnerTest extends IntactBasicTestCase{
         Assert.assertEquals(existingCv.getAc(), interDb.getCvInteractionType().getAc());
 
         getDataContext().commitTransaction(status2);
-    }
-
-    private boolean isTermHidden(CvObject term){
-
-        for (Annotation annot : term.getAnnotations()){
-            if (CvTopic.HIDDEN.equals(annot.getCvTopic().getShortLabel())){
-                return true;
-            }
-        }
-
-        return false;
     }
 }

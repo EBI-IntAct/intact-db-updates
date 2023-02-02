@@ -17,7 +17,7 @@ import javax.persistence.Entity;
  * @since <pre>08/08/11</pre>
  */
 @Entity
-@DiscriminatorValue("invalid_parent")
+@DiscriminatorValue("organism_conflict")
 public class OrganismConflict extends DefaultPersistentUpdateError  implements IntactUpdateError, UniprotUpdateError {
 
     /**

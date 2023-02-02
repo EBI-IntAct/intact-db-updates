@@ -75,7 +75,7 @@ public class BlastReportDaoImplTest extends UpdateBasicTestCase {
         updateResultsDao.persist( results );
         updateResultsDao.flush();
 
-        List<PersistentBlastReport> r = blastReportDao.getByResultsId(1);
+        List<PersistentBlastReport> r = blastReportDao.getByResultsId(-1);
 
         Assert.assertTrue(r.isEmpty());
     }
