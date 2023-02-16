@@ -25,7 +25,7 @@
         <uniprot.japi.version>1.1.2</uniprot.japi.version>
         <spring.version>4.3.30.RELEASE</spring.version>
         <chebi.ws.version>2.4</chebi.ws.version>
-        <jami.version>3.3.0</jami.version>
+        <jami.version>3.3.1-SNAPSHOT</jami.version>
     </properties>
 
     <scm>
