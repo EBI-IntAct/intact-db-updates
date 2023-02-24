@@ -69,7 +69,7 @@ public class SchemaUtils {
      * @return an array containing the SQL statements
      */
     public static String[] generateCreateSchemaDDLForOracle() {
-        return generateCreateSchemaDDL(Oracle10gDialect.class.getName());
+        return generateCreateSchemaDDL(Oracle12cDialect.class.getName());
     }
 
     /**
@@ -97,7 +97,7 @@ public class SchemaUtils {
     }
 
     public static String[] getTableNames() {
-        return persistence.getBasicMetaDataBuilder(Oracle10gDialect.class.getName()).build()
+        return persistence.getBasicMetaDataBuilder(Oracle12cDialect.class.getName()).build()
                 .getEntityBindings()
                 .stream()
                 .map(persistentClass -> {
