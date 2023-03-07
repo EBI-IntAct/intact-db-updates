@@ -10,12 +10,13 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 import uk.ac.ebi.intact.update.model.HibernateUpdatePersistent;
 
+import javax.sql.DataSource;
 import java.util.Properties;
 
 @Component
 public class IntactUpdatePersistenceProvider extends HibernatePersistenceProvider {
 
-    public MetadataBuilder getBasicMetaDataBuilder(String dialect) {
+    public MetadataBuilder getBasicMetaDataBuilder(DataSource dataSource, String dialect) {
         StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
 
         Properties properties = new Properties();
@@ -25,12 +26,12 @@ public class IntactUpdatePersistenceProvider extends HibernatePersistenceProvide
         }
 
         MetadataSources metadata = new MetadataSources(registryBuilder.build());
-        HibernateConfig basicConfiguration = getBasicConfiguration(properties);
+        HibernateConfig basicConfiguration = getBasicConfiguration(dataSource, properties);
         basicConfiguration.getEntityClasses().forEach(metadata::addAnnotatedClass); // Add package classes
         return metadata.getMetadataBuilder();
     }
 
-    public HibernateConfig getBasicConfiguration(Properties props) {
+    public HibernateConfig getBasicConfiguration(DataSource dataSource, Properties props) {
         if (props == null) props = new Properties();
         final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setPersistenceUnitName("intact-update");
@@ -38,6 +39,7 @@ public class IntactUpdatePersistenceProvider extends HibernatePersistenceProvide
         final IntactHibernateJpaVendorAdapter jpaVendorAdapter = new IntactHibernateJpaVendorAdapter();
         jpaVendorAdapter.setDatabasePlatform(Dialect.getDialect(props).getClass().getName());
         factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
+        factoryBean.setDataSource(dataSource);
         factoryBean.afterPropertiesSet();
 
         factoryBean.getNativeEntityManagerFactory().close();
