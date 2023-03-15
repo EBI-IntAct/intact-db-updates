@@ -50,3 +50,5 @@ local.properties
 
 # Hidden files
 .DS_Store
+
+reports/

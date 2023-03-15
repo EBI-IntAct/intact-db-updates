@@ -2,19 +2,21 @@ package uk.ac.ebi.intact.update.utils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.boot.Metadata;
 import org.hibernate.dialect.*;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.Table;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.tool.hbm2ddl.Target;
+import org.hibernate.tool.schema.TargetType;
 import uk.ac.ebi.intact.update.context.IntactUpdatePersistenceProvider;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -39,21 +41,26 @@ public class SchemaUtils {
      * @param dialect the dialect to use (complete class name for the hibernate dialect object)
      * @return an array containing the SQL statements
      */
-    public static String[] generateCreateSchemaDDL(String dialect) {
+    public static String[] generateCreateSchemaDDL(DataSource dataSource, String dialect) {
         return exportSchema(
                 "create",
-                new SchemaExport((MetadataImplementor) persistence.getBasicMetaDataBuilder(dialect).build()),
-                Target.SCRIPT,
-                SchemaExport.Type.CREATE);
+                persistence.getBasicMetaDataBuilder(dataSource, dialect).build(),
+                EnumSet.of(TargetType.SCRIPT),
+                SchemaExport.Action.CREATE);
     }
 
-    private static String[] exportSchema(String tempFileName, SchemaExport export, Target target, SchemaExport.Type exportType) {
+    private static String[] exportSchema(
+            String tempFileName,
+            Metadata metadata,
+            EnumSet<TargetType> targetTypes,
+            SchemaExport.Action action) {
+
         String[] sqls;
         try {
             File file = File.createTempFile(tempFileName, ".sql");
-            export.setDelimiter(";")
+            new SchemaExport().setDelimiter(";")
                     .setOutputFile(file.getAbsolutePath())
-                    .execute(target, exportType);
+                    .execute(targetTypes, action, metadata);
             try (Stream<String> lines = Files.lines(file.toPath())) {
                 sqls = lines.toArray(String[]::new);
             }
@@ -68,36 +75,36 @@ public class SchemaUtils {
      * Generates the DDL schema for Oracle 9i.
      * @return an array containing the SQL statements
      */
-    public static String[] generateCreateSchemaDDLForOracle() {
-        return generateCreateSchemaDDL(Oracle10gDialect.class.getName());
+    public static String[] generateCreateSchemaDDLForOracle(DataSource dataSource) {
+        return generateCreateSchemaDDL(dataSource, Oracle10gDialect.class.getName());
     }
 
     /**
      * Generates the DDL schema for PostgreSQL.
      * @return an array containing the SQL statements
      */
-    public static String[] generateCreateSchemaDDLForPostgreSQL() {
-        return generateCreateSchemaDDL(PostgreSQL82Dialect.class.getName());
+    public static String[] generateCreateSchemaDDLForPostgreSQL(DataSource dataSource) {
+        return generateCreateSchemaDDL(dataSource, PostgreSQL82Dialect.class.getName());
     }
 
     /**
      * Generates the DDL schema for HSQL DB.
      * @return an array containing the SQL statements
      */
-    public static String[] generateCreateSchemaDDLForHSQL() {
-        return generateCreateSchemaDDL(HSQLDialect.class.getName());
+    public static String[] generateCreateSchemaDDLForHSQL(DataSource dataSource) {
+        return generateCreateSchemaDDL(dataSource, HSQLDialect.class.getName());
     }
 
     /**
      * Generates the DDL schema for HSQL DB.
      * @return an array containing the SQL statements
      */
-    public static String[] generateCreateSchemaDDLForH2() {
-        return generateCreateSchemaDDL(H2Dialect.class.getName());
+    public static String[] generateCreateSchemaDDLForH2(DataSource dataSource) {
+        return generateCreateSchemaDDL(dataSource, H2Dialect.class.getName());
     }
 
-    public static String[] getTableNames() {
-        return persistence.getBasicMetaDataBuilder(Oracle10gDialect.class.getName()).build()
+    public static String[] getTableNames(DataSource dataSource) {
+        return persistence.getBasicMetaDataBuilder(dataSource, Oracle10gDialect.class.getName()).build()
                 .getEntityBindings()
                 .stream()
                 .map(persistentClass -> {
