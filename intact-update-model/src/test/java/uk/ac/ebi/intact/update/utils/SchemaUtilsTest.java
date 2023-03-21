@@ -2,30 +2,39 @@ package uk.ac.ebi.intact.update.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import javax.sql.DataSource;
 
 /**
- * TODO comment this
- *
  * @author Marine Dumousseau (marine@ebi.ac.uk)
  * @version $Id$
  * @since <pre>02/08/11</pre>
  */
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/db-update-test.spring.xml",
+        "classpath*:/META-INF/intact.spring.xml"
+})
 public class SchemaUtilsTest {
 
-    @Test
-    public void testGenerateCreateSchemaDDLForOracle() throws Exception {
-        String[] strings = SchemaUtils.generateCreateSchemaDDLForOracle();
+    @Autowired
+    @Qualifier("intactUpdateDataSource")
+    DataSource dataSource;
 
-        for (String s : strings){
-            System.out.println(s);
-        }
+    @Test
+    public void testGenerateCreateSchemaDDLForOracle() {
+        String[] strings = SchemaUtils.generateCreateSchemaDDLForOracle(dataSource);
 
         Assert.assertEquals(44, strings.length);
-        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForPostgreSQL().length);
-        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForHSQL().length);
-        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForH2().length);
+        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForPostgreSQL(dataSource).length);
+        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForHSQL(dataSource).length);
+        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForH2(dataSource).length);
 
-        Assert.assertEquals(22, SchemaUtils.getTableNames().length);
+        Assert.assertEquals(22, SchemaUtils.getTableNames(dataSource).length);
     }
 }
