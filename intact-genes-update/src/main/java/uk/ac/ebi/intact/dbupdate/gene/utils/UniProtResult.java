@@ -12,11 +12,13 @@ import java.util.List;
 public class UniProtResult {
 
 	//Direct parsing
+    private String entry;
     private String entryName;
     private String geneNames;
     private String organism;
+    private String commonOrganismName;
+    private String scientificOrganismName;
     private String organismId;
-    private String entry;
     private String status;
     private String proteinNames;
 
@@ -51,6 +53,22 @@ public class UniProtResult {
 
     public void setOrganism(String organism) {
         this.organism = organism;
+    }
+
+    public String getCommonOrganismName() {
+        return commonOrganismName;
+    }
+
+    public void setCommonOrganismName(String commonOrganismName) {
+        this.commonOrganismName = commonOrganismName;
+    }
+
+    public String getScientificOrganismName() {
+        return scientificOrganismName;
+    }
+
+    public void setScientificOrganismName(String scientificOrganismName) {
+        this.scientificOrganismName = scientificOrganismName;
     }
 
     public String getOrganismId() {

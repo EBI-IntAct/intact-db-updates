@@ -1,6 +1,7 @@
 package uk.ac.ebi.intact.dbupdate.dataset;
 
 import org.junit.Assert;
+import org.springframework.transaction.TransactionStatus;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.unit.IntactBasicTestCase;
 import uk.ac.ebi.intact.model.*;
@@ -120,6 +121,8 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
     }
 
     public void setUpDatabase(){
+        TransactionStatus status = getDataContext().beginTransaction();
+
         this.intactContext = IntactContext.getCurrentInstance();
 
         createProteinsHumanMouseAndRat();
@@ -127,5 +130,7 @@ public abstract class BasicDatasetTest extends IntactBasicTestCase {
         createDatasetCVTopic();
         createCVXRefs();
         createInterproXRefs();
+
+        getDataContext().commitTransaction(status);
     }
 }

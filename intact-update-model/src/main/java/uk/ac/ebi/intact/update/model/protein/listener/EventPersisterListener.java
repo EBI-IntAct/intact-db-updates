@@ -1,7 +1,6 @@
 package uk.ac.ebi.intact.update.model.protein.listener;
 
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import uk.ac.ebi.intact.dbupdate.prot.ProcessorException;
 import uk.ac.ebi.intact.dbupdate.prot.model.ProteinTranscript;
@@ -42,8 +41,7 @@ import java.util.Set;
  * @since <pre>27/06/11</pre>
  */
 @Component
-@TransactionConfiguration( transactionManager = "updateTransactionManager" )
-@Transactional
+@Transactional(transactionManager = "updateTransactionManager")
 public class EventPersisterListener implements ProteinUpdateProcessorListener {
 
     private ProteinUpdateProcess updateProcess;

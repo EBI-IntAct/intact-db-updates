@@ -97,7 +97,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentMappingReport> r = actionReportDao.getReportsWithWarningsByResultsId(1);
+        List<PersistentMappingReport> r = actionReportDao.getReportsWithWarningsByResultsId(-1);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -143,7 +143,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentMappingReport> r = actionReportDao.getReportsWithSeveralPossibleUniprotByResultId(1);
+        List<PersistentMappingReport> r = actionReportDao.getReportsWithSeveralPossibleUniprotByResultId(-1);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -189,7 +189,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
 
         long id = results.getId();
 
-        List<PersistentMappingReport> r = actionReportDao.getAllReportsByResultsId(1);
+        List<PersistentMappingReport> r = actionReportDao.getAllReportsByResultsId(-1);
 
         Assert.assertTrue(r.isEmpty());
     }
@@ -233,7 +233,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         updateResultsdao.persist( results );
         updateResultsdao.flush();
 
-        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.UniprotProteinAPI_accession, 1);
+        List<PersistentMappingReport> list = actionReportDao.getActionReportsByNameAndResultId(ActionName.UniprotProteinAPI_accession, -1);
 
         Assert.assertTrue(list.isEmpty());
     }
@@ -277,7 +277,7 @@ public class MappingReportDaoImpl3Test extends UpdateBasicTestCase {
         updateResultsdao.persist( results );
         updateResultsdao.flush();
 
-        List<PersistentMappingReport> list = actionReportDao.getActionReportsByStatusAndResultId(StatusLabel.COMPLETED, 1);
+        List<PersistentMappingReport> list = actionReportDao.getActionReportsByStatusAndResultId(StatusLabel.COMPLETED, -1);
 
         Assert.assertTrue(list.isEmpty());
     }
