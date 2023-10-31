@@ -144,11 +144,13 @@ public final class XrefUpdaterUtils {
                             if (intactInteractorXrefIterator.hasNext() && uniprotXrefIterator.hasNext()) {
                                 currentIntactXref = intactInteractorXrefIterator.next();
                                 currentUniprotXref = uniprotXrefIterator.next();
-                                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                                uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+                                uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
                                 intactCvDatabase = currentIntactXref.getCvDatabase();
                             } else {
                                 currentIntactXref = null;
                                 currentUniprotXref = null;
+                                uniprotXrefDatabaseName = null;
                                 uniprotXrefDatabaseId = null;
                                 intactCvDatabase = null;
                             }
@@ -190,10 +192,12 @@ public final class XrefUpdaterUtils {
 
                             if (uniprotXrefIterator.hasNext()){
                                 currentUniprotXref = uniprotXrefIterator.next();
-                                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                                uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+                                uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
                             }
                             else {
                                 currentUniprotXref = null;
+                                uniprotXrefDatabaseName = null;
                                 uniprotXrefDatabaseId = null;
                             }
                         }
@@ -241,10 +245,12 @@ public final class XrefUpdaterUtils {
 
                         if (uniprotXrefIterator.hasNext()){
                             currentUniprotXref = uniprotXrefIterator.next();
-                            uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                            uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+                            uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
                         }
                         else {
                             currentUniprotXref = null;
+                            uniprotXrefDatabaseName = null;
                             uniprotXrefDatabaseId = null;
                         }
                     }
@@ -284,7 +290,8 @@ public final class XrefUpdaterUtils {
         if (currentUniprotXref != null || uniprotXrefIterator.hasNext()){
             if (currentUniprotXref == null ){
                 currentUniprotXref = uniprotXrefIterator.next();
-                uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+                uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
             }
 
             if (uniprotXrefDatabaseId != null){
@@ -315,10 +322,12 @@ public final class XrefUpdaterUtils {
 
                     if (uniprotXrefIterator.hasNext()){
                         currentUniprotXref = uniprotXrefIterator.next();
-                        uniprotXrefDatabaseId = databaseName2mi.get(currentUniprotXref.getDatabase().toLowerCase());
+                        uniprotXrefDatabaseName = currentUniprotXref.getDatabase().toLowerCase();
+                        uniprotXrefDatabaseId = databaseName2mi.get(uniprotXrefDatabaseName);
                     }
                     else {
                         currentUniprotXref = null;
+                        uniprotXrefDatabaseName = null;
                         uniprotXrefDatabaseId = null;
                     }
                 }
