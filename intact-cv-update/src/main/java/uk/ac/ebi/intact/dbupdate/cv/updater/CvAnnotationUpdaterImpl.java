@@ -1,7 +1,5 @@
 package uk.ac.ebi.intact.dbupdate.cv.updater;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import psidev.psi.mi.jami.bridges.ontologymanager.MIOntologyTermI;
@@ -30,8 +28,6 @@ import java.util.*;
 
 //TODO Deal with comments and URL
 public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
-
-    private static final Log log = LogFactory.getLog(CvAnnotationUpdaterImpl.class);
 
     private final TreeSet<psidev.psi.mi.jami.model.Annotation> sortedOntologyAnnotations;
     private final TreeSet<Annotation> sortedCvAnnotations;
@@ -216,7 +212,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else {
                 // One definition annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -227,7 +222,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else {
                 // One url annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -238,7 +232,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else {
                 // One search url annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -249,7 +242,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else {
                 // One validation regex annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -260,7 +252,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else {
                 // One obsolete annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -291,13 +282,11 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
                 // we update existing definition annotation with new text from ontology
                 if (!ontologyTerm.getDelegate().getDefinition().equalsIgnoreCase(currentIntact.getAnnotationText())) {
-                    log.info("TESTING - Definition updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                     updateAnnotation(updateEvt, ontologyTerm.getDelegate().getDefinition());
                 }
             }
             else {
                 // One definition annotation has been found already, we delete the extra ones
-                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -308,7 +297,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
                 // we update existing obsolete annotation with new text from ontology
                 if (ontologyTerm.getObsoleteMessage() ==  null && currentIntact.getAnnotationText() != null) {
-                    log.info("TESTING - Obsolete updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                     updateAnnotation(updateEvt, null);
                 }
                 else if (ontologyTerm.getObsoleteMessage() !=  null && !ontologyTerm.getObsoleteMessage().equalsIgnoreCase(currentIntact.getAnnotationText())){
@@ -317,7 +305,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             else{
                 // One obsolete annotation has been found already, we delete the extra ones
-                log.info("TESTING - Obsolete deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -335,14 +322,12 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
             // comment does not exist but can be updated with a newer comment from the ontology
             else if (!comments.contains(currentIntact.getAnnotationText()) && !comments.isEmpty()) {
-                log.info("TESTING - Comment updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 updateAnnotation(updateEvt, comments.iterator().next());
 
                 comments.remove(currentIntact.getAnnotationText());
             }
             // delete the comment annotation, as it does not exist in the ontology
             else {
-                log.info("TESTING - Comment deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -350,12 +335,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.URL_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())) {
             if (!hasFoundURL) {
                 // we update existing url annotation with new text from ontology
-                log.info("TESTING - Url updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 hasFoundURL = updateAnnotationIfFoundInOntology(ontologyTerm, updateEvt, CvTopic.URL_MI_REF, CvTopic.URL);
             }
             else {
                 // One url annotation has been found already, we delete the extra ones
-                log.info("TESTING - Url deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -363,13 +346,11 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.SEARCH_URL_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())) {
             if (!hasFoundSearchURL) {
                 // we update existing search url annotation with new text from ontology
-                log.info("TESTING - Search url updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 hasFoundSearchURL = updateAnnotationIfFoundInOntology(
                         ontologyTerm, updateEvt, CvTopic.SEARCH_URL_MI_REF, CvTopic.SEARCH_URL);
             }
             else {
                 // One search url annotation has been found already, we delete the extra ones
-                log.info("TESTING - Search url deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -377,13 +358,11 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.XREF_VALIDATION_REGEXP_MI_REF.equalsIgnoreCase(cvTopic.getIdentifier())) {
             if (!hasFoundValidationRegexp) {
                 // we update existing validation regex annotation with new text from ontology
-                log.info("TESTING - Validation regex updated for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 hasFoundValidationRegexp = updateAnnotationIfFoundInOntology(
                         ontologyTerm, updateEvt, CvTopic.XREF_VALIDATION_REGEXP_MI_REF, CvTopic.XREF_VALIDATION_REGEXP);
             }
             else {
                 // One validation regex annotation has been found already, we delete the extra ones
-                log.info("TESTING - Validation regex deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 deleteAnnotation(term, updateEvt);
             }
         }
@@ -424,7 +403,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         if (CvTopic.DEFINITION.equalsIgnoreCase(cvTop.getShortLabel())) {
             if (!hasFoundDefinition) {
                 hasFoundDefinition = true;
-                log.info("TESTING - Definition created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
             }
         }
@@ -432,7 +410,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.URL.equalsIgnoreCase(cvTop.getShortLabel())) {
             if (!hasFoundURL) {
                 hasFoundURL = true;
-                log.info("TESTING - Url created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
             }
         }
@@ -440,7 +417,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.SEARCH_URL.equalsIgnoreCase(cvTop.getShortLabel())) {
             if (!hasFoundSearchURL) {
                 hasFoundSearchURL = true;
-                log.info("TESTING - Search url created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
             }
         }
@@ -448,7 +424,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.XREF_VALIDATION_REGEXP.equalsIgnoreCase(cvTop.getShortLabel())) {
             if (!hasFoundValidationRegexp) {
                 hasFoundValidationRegexp = true;
-                log.info("TESTING - Validation regex created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
             }
         }
@@ -456,7 +431,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.OBSOLETE.equalsIgnoreCase(cvTop.getShortLabel())) {
             if (!hasFoundObsolete) {
                 hasFoundObsolete = true;
-                log.info("TESTING - Obsolete created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
             }
         }
@@ -464,12 +438,10 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
         else if (CvTopic.COMMENT_MI_REF.equalsIgnoreCase(cvTop.getIdentifier())) {
             comment = cvTop;
             comments.remove(currentOntologyRef.getValue());
-            log.info("TESTING - Comment created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
         }
         // we have another type of annotation, we simply create it in Intact
         else {
-            log.info("TESTING - Other (Topic = " + cvTop.getShortLabel() + ") created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotation(cvTop, term, updateEvt, currentOntologyRef.getValue());
         }
 
@@ -489,7 +461,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
         // create missing definition
         if (!hasFoundDefinition && ontologyTerm.getDelegate().getDefinition() != null) {
-            log.info("TESTING - Missing definition created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotationWithTopic(factory, term, updateEvt, ontologyTerm.getDelegate().getDefinition(), null, CvTopic.DEFINITION);
         }
 
@@ -498,7 +469,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 ontologyTerm.getDelegate().getAnnotations(),CvTopic.URL_MI_REF, CvTopic.URL);
 
         if (!hasFoundURL && urlAnnotation != null) {
-            log.info("TESTING - Missing url created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotationWithTopic(factory, term, updateEvt, urlAnnotation.getValue(), CvTopic.URL_MI_REF, CvTopic.URL);
         }
 
@@ -507,7 +477,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 ontologyTerm.getDelegate().getAnnotations(),CvTopic.SEARCH_URL_MI_REF, CvTopic.SEARCH_URL);
 
         if (!hasFoundSearchURL && searchUrlAnnotation != null) {
-            log.info("TESTING - Missing search url created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotationWithTopic(factory, term, updateEvt, searchUrlAnnotation.getValue(), CvTopic.SEARCH_URL_MI_REF, CvTopic.SEARCH_URL);
         }
 
@@ -516,19 +485,16 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
                 ontologyTerm.getDelegate().getAnnotations(),CvTopic.XREF_VALIDATION_REGEXP_MI_REF, CvTopic.XREF_VALIDATION_REGEXP);
 
         if (!hasFoundValidationRegexp && validationRegexAnnotation != null) {
-            log.info("TESTING - Missing validation regex created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotationWithTopic(factory, term, updateEvt, validationRegexAnnotation.getValue(), CvTopic.XREF_VALIDATION_REGEXP_MI_REF, CvTopic.XREF_VALIDATION_REGEXP);
         }
 
         // create missing obsolete
         if (!hasFoundObsolete && isObsolete) {
-            log.info("TESTING - Missing obsolete created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             createNewAnnotationWithTopic(factory, term, updateEvt, ontologyTerm.getObsoleteMessage(), CvTopic.OBSOLETE_MI_REF, CvTopic.OBSOLETE);
         }
 
         // hide term if obsolete
         if (isObsolete && !isHidden) {
-            log.info("TESTING - Missing old obsolete created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
             Annotation hidden = CvUpdateUtils.hideTerm(term, CvTopic.OBSOLETE_OLD);
 
             if (updateEvt != null) {
@@ -548,7 +514,6 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
             }
 
             for (String com : comments) {
-                log.info("TESTING - Missing comment created for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
                 createNewAnnotation(comment, term, updateEvt, com);
             }
         }
