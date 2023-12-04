@@ -191,7 +191,7 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
 
         // We have an exact match, the annotation from Intact and from the ontology contain the same text
         if (acComparator == 0) {
-            processAnnotationsWithExactMatch(intactIterator, ontologyIterator);
+            processAnnotationsWithExactMatch(term, updateEvt, intactIterator, ontologyIterator);
         }
         // Annotation from Intact has no match in ontology, we need to delete it
         else if (acComparator < 0) {
@@ -204,28 +204,65 @@ public class CvAnnotationUpdaterImpl implements CvAnnotationUpdater {
     }
 
     private void processAnnotationsWithExactMatch(
+            CvDagObject term,
+            UpdatedEvent updateEvt,
             Iterator<Annotation> intactIterator,
             Iterator<psidev.psi.mi.jami.model.Annotation> ontologyIterator) {
 
-        // we have a definition. Only one is allowed
+        // we have a definition annotation. Only one is allowed
         if (CvTopic.DEFINITION.equalsIgnoreCase(cvTopic.getShortLabel())) {
-            hasFoundDefinition = true;
+            if (!hasFoundDefinition) {
+                hasFoundDefinition = true;
+            }
+            else {
+                // One definition annotation has been found already, we delete the extra ones
+                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
+                deleteAnnotation(term, updateEvt);
+            }
         }
-        // we have a definition. Only one is allowed
+        // we have a url annotation. Only one is allowed
         else if (CvTopic.URL.equalsIgnoreCase(cvTopic.getShortLabel())) {
-            hasFoundURL = true;
+            if (!hasFoundURL) {
+                hasFoundURL = true;
+            }
+            else {
+                // One url annotation has been found already, we delete the extra ones
+                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
+                deleteAnnotation(term, updateEvt);
+            }
         }
-        // we have a definition. Only one is allowed
+        // we have a search url annotation. Only one is allowed
         else if (CvTopic.SEARCH_URL.equalsIgnoreCase(cvTopic.getShortLabel())) {
-            hasFoundSearchURL = true;
+            if (!hasFoundSearchURL) {
+                hasFoundSearchURL = true;
+            }
+            else {
+                // One search url annotation has been found already, we delete the extra ones
+                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
+                deleteAnnotation(term, updateEvt);
+            }
         }
-        // we have a definition. Only one is allowed
+        // we have a validation regex annotation. Only one is allowed
         else if (CvTopic.XREF_VALIDATION_REGEXP.equalsIgnoreCase(cvTopic.getShortLabel())) {
-            hasFoundValidationRegexp = true;
+            if (!hasFoundValidationRegexp) {
+                hasFoundValidationRegexp = true;
+            }
+            else {
+                // One validation regex annotation has been found already, we delete the extra ones
+                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
+                deleteAnnotation(term, updateEvt);
+            }
         }
-        // we have a definition. Only one is allowed
+        // we have an obsolete annotation. Only one is allowed
         else if (CvTopic.OBSOLETE.equalsIgnoreCase(cvTopic.getShortLabel())) {
-            hasFoundObsolete = true;
+            if (!hasFoundObsolete) {
+                hasFoundObsolete = true;
+            }
+            else {
+                // One obsolete annotation has been found already, we delete the extra ones
+                log.info("TESTING - Definition deleted for term (AC = " + term.getAc() + ", label = " + term.getShortLabel() + ")");
+                deleteAnnotation(term, updateEvt);
+            }
         }
 
         if (intactIterator.hasNext() && ontologyIterator.hasNext()) {
