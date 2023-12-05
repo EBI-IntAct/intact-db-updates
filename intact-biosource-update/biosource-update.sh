@@ -20,4 +20,4 @@ DATABASE=$1
 
 # Make sure we are using institution intact by default.
 
-mvn clean install -Pbiosource-update,oracle -Ddatabase=${DATABASE} -Dmaven.test.skip=true
+mvn clean install -Pbiosource-update,postgres -Ddatabase=${DATABASE} -Dmaven.test.skip=true

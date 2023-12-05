@@ -148,7 +148,6 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
         this.rangeAc = rangeAc;
     }
 
-    @Lob
     @Column(name = "old_seq", nullable = true)
     public String getOldSequence() {
         return oldSequence;
@@ -158,7 +157,6 @@ public abstract class AbstractUpdatedRange extends HibernateUpdatePersistentImpl
         this.oldSequence = currentSequence;
     }
 
-    @Lob
     @Column(name = "new_seq", nullable = true)
     public String getNewSequence() {
         return newSequence;

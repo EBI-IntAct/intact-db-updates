@@ -8,7 +8,6 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 
 /**
  * Error for uniprot protein sequence null
@@ -50,7 +49,6 @@ public class UniprotSequenceNull extends DefaultPersistentUpdateError  implement
         this.proteinAc = proteinAc;
     }
 
-    @Lob
     @Column(name = "intact_seq")
     public String getIntactSequence() {
         return intactSequence;
