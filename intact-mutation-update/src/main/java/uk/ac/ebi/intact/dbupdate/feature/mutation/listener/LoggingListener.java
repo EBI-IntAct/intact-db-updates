@@ -117,4 +117,10 @@ public class LoggingListener extends AbstractShortlabelGeneratorListener {
             }
         }
     }
+
+    public void onShortLabelTooLongErrorEvent(ShortLabelTooLongErrorEvent event) {
+        if (log.isDebugEnabled()) {
+            log.debug("New shortlabel: " + event.getFeatureAc() + " is too long: " + event.getNewShortLabel());
+        }
+    }
 }

@@ -39,4 +39,8 @@ public abstract class AbstractShortlabelGeneratorListener implements ShortlabelG
     public void onObjectTypeError(TypeErrorEvent event) {
         //do nothing
     }
+
+    public void onShortLabelTooLongErrorEvent(ShortLabelTooLongErrorEvent event) {
+        //do nothing
+    }
 }
