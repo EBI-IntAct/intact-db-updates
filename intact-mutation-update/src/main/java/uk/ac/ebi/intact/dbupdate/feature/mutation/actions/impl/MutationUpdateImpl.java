@@ -14,6 +14,7 @@ import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.jami.synchronizer.FinderException;
 import uk.ac.ebi.intact.jami.synchronizer.PersisterException;
 import uk.ac.ebi.intact.jami.synchronizer.SynchronizerException;
+import uk.ac.ebi.intact.jami.utils.IntactUtils;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.events.ModifiedMutationShortlabelEvent;
 
 import java.util.Date;
@@ -48,6 +49,13 @@ public class MutationUpdateImpl implements MutationUpdate {
         String annotationMessage = new Date() + " This feature has been corrected as a result of our quality control procedures. The original label was '" + originalShortlabel + "'";
         DefaultAnnotation defaultAnnotation = new DefaultAnnotation(cvTerm, annotationMessage);
         intactFeatureEvidence.getAnnotations().add(defaultAnnotation);
+        if (intactFeatureEvidence.getShortName() != null) {
+            if (intactFeatureEvidence.getShortName().isEmpty()) {
+                log.error("Short label in feature evidence (ac = " + intactFeatureEvidence.getAc() + ")  is too short. Short label = " + intactFeatureEvidence.getShortName());
+            } else if (intactFeatureEvidence.getShortName().length() > IntactUtils.MAX_SHORT_LABEL_LEN) {
+                log.error("Short label in feature evidence (ac = " + intactFeatureEvidence.getAc() + ")  is too long. Short label = " + intactFeatureEvidence.getShortName());
+            }
+        }
         return intactFeatureEvidence;
     }
 
