@@ -22,6 +22,7 @@ public class FileReportHandler {
     private ReportWriter resultingSequenceChangedReport;
     private ReportWriter modifiedMutationsReport;
     private ReportWriter unmodifiedMutationsReport;
+    private ReportWriter shortLabelTooLongErrorReport;
 
 
     public FileReportHandler(File dirFile) throws IOException {
@@ -41,6 +42,7 @@ public class FileReportHandler {
         this.resultingSequenceChangedReport = new ReportWriterImpl(new FileWriter(new File(dirFile, "resulting_sequence_changed.tsv")));
         this.modifiedMutationsReport = new ReportWriterImpl(new FileWriter(new File(dirFile, "updated_mutations.tsv")));
         this.unmodifiedMutationsReport = new ReportWriterImpl(new FileWriter(new File(dirFile, "not_updated_mutations.tsv")));
+        this.shortLabelTooLongErrorReport = new ReportWriterImpl(new FileWriter(new File(dirFile, "short_label_too_long.tsv")));
     }
 
     public ReportWriter getRangeErrorReport() throws IOException {
@@ -75,6 +77,10 @@ public class FileReportHandler {
         return unmodifiedMutationsReport;
     }
 
+    public ReportWriter getShortLabelTooLongErrorReport() throws IOException {
+        return shortLabelTooLongErrorReport;
+    }
+
     //TODO investigate where should be call
     public void close() throws IOException {
         this.rangeErrorReport.close();
@@ -85,5 +91,6 @@ public class FileReportHandler {
         this.resultingSequenceChangedReport.close();
         this.modifiedMutationsReport.close();
         this.unmodifiedMutationsReport.close();
+        this.shortLabelTooLongErrorReport.close();
     }
 }
