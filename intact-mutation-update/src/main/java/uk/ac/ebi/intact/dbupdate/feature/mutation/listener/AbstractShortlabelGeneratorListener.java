@@ -40,7 +40,7 @@ public abstract class AbstractShortlabelGeneratorListener implements ShortlabelG
         //do nothing
     }
 
-    public void onShortLabelTooLongErrorEvent(ShortLabelTooLongErrorEvent event) {
+    public void onOtherErrorEvent(OtherErrorEvent event) {
         //do nothing
     }
 }

@@ -178,14 +178,15 @@ public class ReportWriterListener extends AbstractShortlabelGeneratorListener {
         }
     }
 
-    public void onShortLabelTooLongErrorEvent(ShortLabelTooLongErrorEvent event) {
+    public void onOtherErrorEvent(OtherErrorEvent event) {
         String featureAc = event.getFeatureAc();
-        String newShortLabel = event.getNewShortLabel();
+        String errorType = event.getErrorType().getMessage();
+        String errorDetails = event.getErrorDetails();
 
         try {
-            ReportWriter shortLabelTooLongErrorReport = fileReportHandler.getShortLabelTooLongErrorReport();
-            shortLabelTooLongErrorReport.writeHeaderIfNecessary("feature_ac", "new_short_label");
-            shortLabelTooLongErrorReport.writeColumnValues(featureAc, newShortLabel);
+            ReportWriter shortLabelTooLongErrorReport = fileReportHandler.getOtherErrorsReport();
+            shortLabelTooLongErrorReport.writeHeaderIfNecessary("feature_ac", "error_type", "error_details");
+            shortLabelTooLongErrorReport.writeColumnValues(featureAc, errorType, errorDetails);
             shortLabelTooLongErrorReport.flush();
         } catch (IOException e) {
             e.printStackTrace();
