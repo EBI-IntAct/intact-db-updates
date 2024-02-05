@@ -1021,10 +1021,10 @@ public class RangeFixer {
                     // clean annotations features if necessary
                     checkConsistencyFeatureAfterRangeShifting(feature, datacontext, report);
                 }
+            }
 
-                if (!totalInvalidRanges.isEmpty()){
-                    report.getInvalidComponents().put(component, totalInvalidRanges);
-                }
+            if (!totalInvalidRanges.isEmpty()){
+                report.getInvalidComponents().put(component, totalInvalidRanges);
             }
         }
 
