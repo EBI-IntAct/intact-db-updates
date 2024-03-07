@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.update.model.protein.mapping.actions.PersistentBlastReport;
 import uk.ac.ebi.intact.update.model.protein.mapping.results.PersistentBlastResults;
 import uk.ac.ebi.intact.update.model.unit.UpdateBasicTestCase;
@@ -18,7 +19,11 @@ import java.util.List;
  * @version $Id$
  * @since <pre>20-May-2010</pre>
  */
-
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
+        "classpath*:/META-INF/update-jpa.spring.xml",
+        "classpath*:/META-INF/db-update-test.spring.xml"
+})
 public class BlastResultsDaoImplTest extends UpdateBasicTestCase {
 
     @Test
