@@ -17,6 +17,7 @@
                 <prop key="hibernate.generate_statistics">true</prop>
                 <prop key="hibernate.format_sql">false</prop>
                 <prop key="hibernate.hbm2ddl.auto">create-drop</prop>
+                <prop key="hibernate.default_schema">intact</prop>
             </props>
         </property>
 
@@ -31,7 +32,7 @@
 
     <bean id="intactUpdateDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName" value="org.h2.Driver"/>
-        <property name="url" value="jdbc:h2:mem:intactupdate;DB_CLOSE_DELAY=-1;LOCK_MODE=0"/>
+        <property name="url" value="jdbc:h2:mem:intactupdate;DB_CLOSE_DELAY=-1;LOCK_MODE=0;INIT=CREATE SCHEMA IF NOT EXISTS INTACT"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
     </bean>

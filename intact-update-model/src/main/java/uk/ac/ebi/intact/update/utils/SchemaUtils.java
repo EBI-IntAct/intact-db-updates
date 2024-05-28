@@ -104,7 +104,7 @@ public class SchemaUtils {
     }
 
     public static String[] getTableNames(DataSource dataSource) {
-        return persistence.getBasicMetaDataBuilder(dataSource, Oracle12cDialect.class.getName()).build()
+        return persistence.getBasicMetaDataBuilder(dataSource, PostgreSQL82Dialect.class.getName()).build()
                 .getEntityBindings()
                 .stream()
                 .map(persistentClass -> {

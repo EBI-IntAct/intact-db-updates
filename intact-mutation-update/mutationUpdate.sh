@@ -29,6 +29,6 @@ DATABASE=$1
 FOLDER=$2
 LOG=$3
 
-mvn clean -U compile -X install -Pglobal-feature-report,${DATABASE},oracle -Dfolder=${FOLDER} -Ddatabase=${DATABASE} -Dmaven.test.skip -Dmaven.repo.local=repository
+mvn clean -U compile -X install -Pglobal-feature-report,${DATABASE},postgres -Dfolder=${FOLDER} -Ddatabase=${DATABASE} -Dmaven.test.skip -Dmaven.repo.local=repository
 
 # Write automatic summary

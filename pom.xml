@@ -4,7 +4,7 @@
     <parent>
         <groupId>uk.ac.ebi.intact.maven</groupId>
         <artifactId>intact-hibernate-master</artifactId>
-        <version>47</version>
+        <version>48-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -12,16 +12,16 @@
     <groupId>uk.ac.ebi.intact.dbupdate</groupId>
     <artifactId>dbupdate-master</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.5-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
 
     <name>IntAct Database Update</name>
     <description>Database Update Master POM</description>
     <url>http://www.ebi.ac.uk/~intact/devsite/dbupdate</url>
 
     <properties>
-        <core.version>2.8.2-SNAPSHOT</core.version>
+        <core.version>3.0.1-SNAPSHOT</core.version>
         <bridges.version>2.2.2</bridges.version>
-        <intact.tools.version>1.2.6-SNAPSHOT</intact.tools.version>
+        <intact.tools.version>2.0.0-SNAPSHOT</intact.tools.version>
         <uniprot.japi.version>1.1.2</uniprot.japi.version>
         <spring.version>4.3.30.RELEASE</spring.version>
         <chebi.ws.version>2.4</chebi.ws.version>

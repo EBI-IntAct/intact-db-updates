@@ -8,7 +8,6 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 
 /**
  * This class is for fatal errors while updating a protein
@@ -62,7 +61,6 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
         return this.uniprotAc;
     }
 
-    @Lob
     @Column(name = "exception")
     public String getException() {
         return exception;
