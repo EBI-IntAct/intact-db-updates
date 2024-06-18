@@ -20,7 +20,7 @@
 
     <properties>
         <core.version>3.0.1-SNAPSHOT</core.version>
-        <bridges.version>2.2.2</bridges.version>
+        <bridges.version>2.2.3-SNAPSHOT</bridges.version>
         <intact.tools.version>2.0.0-SNAPSHOT</intact.tools.version>
         <uniprot.japi.version>1.1.2</uniprot.japi.version>
         <spring.version>4.3.30.RELEASE</spring.version>
@@ -151,10 +151,6 @@
     </dependencies>
 
     <repositories>
-        <repository>
-            <id>nexus-ebi-repo-old</id>
-            <url>https://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
-        </repository>
         <repository>
             <id>nexus-ebi-release-repo</id>
             <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
