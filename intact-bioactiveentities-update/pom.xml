@@ -5,7 +5,7 @@
     <parent>
         <artifactId>dbupdate-master</artifactId>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
-        <version>3.0.1-SNAPSHOT</version>
+        <version>3.0.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>intact-bioactiveentities-update</artifactId>
