@@ -417,9 +417,9 @@ public class CvUpdateManager {
     public List<String> getValidCvObjectsWithoutIdentity(){
         DaoFactory factory = IntactContext.getCurrentInstance().getDaoFactory();
 
-        Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c where c.ac not in " +
-                "(select distinct c2.ac from CvDagObject c2 join c2.xrefs as x " +
-                "where x.cvDatabase.identifier <> :database and x.cvXrefQualifier.identifier = :identity) " +
+        Query query = factory.getEntityManager().createQuery("select distinct c.ac from CvDagObject c where not exists " +
+                "(select c2 from CvDagObject c2 join c2.xrefs as x " +
+                "where c2.ac = c.ac and x.cvDatabase.identifier <> :database and x.cvXrefQualifier.identifier = :identity) " +
                 "or c.ac in " +
                 "( select distinct c3.ac from CvDagObject c3 where c3.xrefs is empty)");
         query.setParameter("database", CvDatabase.INTACT_MI_REF);
