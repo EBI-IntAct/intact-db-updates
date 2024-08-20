@@ -94,7 +94,7 @@ public class FatalUpdateError extends DefaultPersistentUpdateError implements In
         }
 
         if (uniprotAc != null){
-            error.append("attached to the uniprot entry ");
+            error.append(" attached to the uniprot entry ");
             error.append(uniprotAc);
         }
 

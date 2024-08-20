@@ -308,7 +308,7 @@ public class ProteinUpdateProcessor {
                     for (String ac : chunkIntactProteins) {
                         log.fatal("FATAL: We failed to update the protein " + ac, e);
                         ProteinUpdateError fatalError = errorFactory.createFatalUpdateError(ac, null, e);
-                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, fatalError, null, ac));
+                        fireOnProcessErrorFound(new UpdateErrorEvent(this, dataContext, fatalError, null, null, ac));
                     }
                     dataContext.rollbackTransaction(transactionStatus);
                 }
