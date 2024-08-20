@@ -24,29 +24,32 @@ public class UpdateErrorEvent extends EventObject implements ProteinProcessorEve
     private DataContext dataContext;
     private Protein protein;
     private String uniprotAc;
+    private String proteinAc;
 
-    public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, Protein protein) {
+    public UpdateErrorEvent(Object source,
+                            DataContext dataContext,
+                            ProteinUpdateError error,
+                            Protein protein,
+                            String uniprotAc,
+                            String proteinAc) {
         super(source);
         this.error = error;
         this.dataContext = dataContext;
         this.protein = protein;
-        this.uniprotAc = null;
-    }
-
-    public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, String uniprotAc) {
-        super(source);
-        this.error = error;
-        this.dataContext = dataContext;
-        this.protein = null;
         this.uniprotAc = uniprotAc;
+        this.proteinAc = proteinAc;
     }
 
     public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, Protein protein, String uniprotAc) {
-        super(source);
-        this.error = error;
-        this.dataContext = dataContext;
-        this.protein = protein;
-        this.uniprotAc = uniprotAc;
+        this(source, dataContext, error, protein, uniprotAc, null);
+    }
+
+    public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, Protein protein) {
+        this(source, dataContext, error, protein, null, null);
+    }
+
+    public UpdateErrorEvent(Object source, DataContext dataContext, ProteinUpdateError error, String uniprotAc) {
+        this(source, dataContext, error, null, uniprotAc, null);
     }
 
     public ProteinUpdateError getError() {
@@ -72,5 +75,13 @@ public class UpdateErrorEvent extends EventObject implements ProteinProcessorEve
 
     public void setUniprotAc(String uniprotAc) {
         this.uniprotAc = uniprotAc;
+    }
+
+    public String getProteinAc() {
+        return proteinAc;
+    }
+
+    public void setProteinAc(String proteinAc) {
+        this.proteinAc = proteinAc;
     }
 }
