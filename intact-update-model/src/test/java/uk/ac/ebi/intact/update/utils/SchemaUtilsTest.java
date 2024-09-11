@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.sql.DataSource;
@@ -20,6 +21,7 @@ import javax.sql.DataSource;
         "classpath*:/META-INF/db-update-test.spring.xml",
         "classpath*:/META-INF/intact.spring.xml"
 })
+@TestPropertySource(locations="classpath:/retry.properties")
 public class SchemaUtilsTest {
 
     @Autowired

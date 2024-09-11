@@ -2,6 +2,10 @@ package uk.ac.ebi.intact.dbupdate.bioactiveentity.utils;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.ac.ebi.intact.model.*;
 
 /**
@@ -10,7 +14,12 @@ import uk.ac.ebi.intact.model.*;
  * Date: 24/05/2013
  * Time: 11:18
  */
-
+@RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource(locations="classpath:/retry.properties")
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml"
+})
 public class BioActiveEntityUtilsTest {
     @Test
     public void testGetInstitution() throws Exception {
