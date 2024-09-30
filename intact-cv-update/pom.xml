@@ -4,7 +4,7 @@
     <parent>
         <artifactId>dbupdate-master</artifactId>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
-        <version>3.0.2-SNAPSHOT</version>
+        <version>3.0.2</version>
     </parent>
 
     <artifactId>intact-cv-update</artifactId>
