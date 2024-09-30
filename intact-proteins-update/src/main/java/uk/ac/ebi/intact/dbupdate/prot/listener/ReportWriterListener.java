@@ -323,6 +323,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
             if (evt.getProtein() != null){
                 proteinAc = evt.getProtein().getAc();
                 proteinShortlablel = evt.getProtein().getShortLabel();
+            } else if (evt.getProteinAc() != null) {
+                proteinAc = evt.getProteinAc();
             }
 
             writer.writeHeaderIfNecessary("Protein ac",
@@ -330,7 +332,8 @@ public class ReportWriterListener extends AbstractProteinUpdateProcessorListener
                     "Uniprot ac",
                     "error type",
                     "error description");
-            writer.writeColumnValues(proteinAc,
+            writer.writeColumnValues(
+                    proteinAc,
                     proteinShortlablel,
                     uniprotAc,
                     errorType,

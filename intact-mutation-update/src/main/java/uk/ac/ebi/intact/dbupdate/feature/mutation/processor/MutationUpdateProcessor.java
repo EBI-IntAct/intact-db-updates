@@ -13,6 +13,7 @@ import uk.ac.ebi.intact.jami.dao.IntactDao;
 import uk.ac.ebi.intact.jami.model.extension.IntactFeatureEvidence;
 import uk.ac.ebi.intact.tools.feature.shortlabel.generator.ShortlabelGenerator;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -69,25 +70,30 @@ public class MutationUpdateProcessor {
 
 //    @Transactional(propagation = Propagation.REQUIRED, value = "jamiTransactionManager", readOnly = true)
     private Set<IntactFeatureEvidence> getAllMutationFeatures() {
-        log.info("Retrieved all child terms of MI:0118 (mutation).");
+        log.info("Retrieving all features of type mutation. Excluding MI:0429(necessary binding region)");
 
         //We store them to avoid calling to OLS for a known subset
         Set<IntactFeatureEvidence> featureEvidences = new HashSet<>();
         //MI:0429(necessary binding region) should not be taken into account
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_ENABLING_INTERACTION_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DECREASING_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DECREASING_RATE_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DECREASING_STRENGTH_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DISRUPTING_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DISRUPTING_RATE_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_DISRUPTING_STRENGTH_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_INCREASING_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_INCREASING_RATE_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_INCREASING_STRENGTH_MI_ID));
-        featureEvidences.addAll(intactDao.getFeatureEvidenceDao().getByFeatureType(null, MUTATION_WITH_NO_EFFECT_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_ENABLING_INTERACTION_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DECREASING_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DECREASING_RATE_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DECREASING_STRENGTH_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DISRUPTING_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DISRUPTING_RATE_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_DISRUPTING_STRENGTH_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_INCREASING_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_INCREASING_RATE_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_INCREASING_STRENGTH_MI_ID));
+        featureEvidences.addAll(getByFeatureType(MUTATION_WITH_NO_EFFECT_MI_ID));
 
         log.info("Retrieved all features of type mutation. Excluded MI:0429(necessary binding region)");
         return featureEvidences;
+    }
+
+    private Collection<IntactFeatureEvidence> getByFeatureType(String featureTypeMi) {
+        log.info("Retrieving all child terms of " + featureTypeMi);
+        return intactDao.getFeatureEvidenceDao().getByFeatureType(null, featureTypeMi);
     }
 }

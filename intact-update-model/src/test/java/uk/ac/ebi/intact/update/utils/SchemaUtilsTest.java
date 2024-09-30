@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.sql.DataSource;
@@ -20,6 +21,7 @@ import javax.sql.DataSource;
         "classpath*:/META-INF/db-update-test.spring.xml",
         "classpath*:/META-INF/intact.spring.xml"
 })
+@TestPropertySource(locations="classpath:/retry.properties")
 public class SchemaUtilsTest {
 
     @Autowired
@@ -27,11 +29,11 @@ public class SchemaUtilsTest {
     DataSource dataSource;
 
     @Test
-    public void testGenerateCreateSchemaDDLForOracle() {
-        String[] strings = SchemaUtils.generateCreateSchemaDDLForOracle(dataSource);
+    public void testGenerateCreateSchemaDDLForPostgres() {
+        String[] strings = SchemaUtils.generateCreateSchemaDDLForPostgreSQL(dataSource);
 
         Assert.assertEquals(44, strings.length);
-        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForPostgreSQL(dataSource).length);
+        Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForOracle(dataSource).length);
         Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForHSQL(dataSource).length);
         Assert.assertEquals(44, SchemaUtils.generateCreateSchemaDDLForH2(dataSource).length);
 

@@ -3,6 +3,7 @@ package uk.ac.ebi.intact.update.persistence.dao.protein.impl;
 import junit.framework.Assert;
 import org.junit.Test;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
 import uk.ac.ebi.intact.dbupdate.prot.errors.UpdateError;
 import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import uk.ac.ebi.intact.update.model.protein.errors.DeadUniprotAc;
@@ -18,7 +19,11 @@ import uk.ac.ebi.intact.update.persistence.dao.protein.ProteinUpdateErrorDao;
  * @version $Id$
  * @since <pre>10/08/11</pre>
  */
-
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
+        "classpath*:/META-INF/update-jpa.spring.xml",
+        "classpath*:/META-INF/db-update-test.spring.xml"
+})
 public class ProteinUpdateErrorDaoImplTest extends UpdateBasicTestCase {
 
     @Test

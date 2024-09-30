@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ import java.util.Set;
 @ContextConfiguration(locations = {"classpath*:/META-INF/intact.spring.xml",
         "classpath*:/META-INF/standalone/*-standalone.spring.xml",
         "classpath*:/META-INF/beanscv*.spring.xml"})
+@TestPropertySource(locations="classpath:/META-INF/cv-update.properties")
 public class CvImporterTest extends IntactBasicTestCase{
 
     private CvUpdateManager cvManager;

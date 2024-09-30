@@ -4,11 +4,17 @@
     <parent>
         <artifactId>dbupdate-master</artifactId>
         <groupId>uk.ac.ebi.intact.dbupdate</groupId>
-        <version>2.3.3</version>
+        <version>3.0.2</version>
     </parent>
 
     <artifactId>intact-cv-update</artifactId>
     <name>IntAct Database Update :: CV Update</name>
+
+    <properties>
+        <retry.maxAttempts>5</retry.maxAttempts>
+        <retry.multiplier>2</retry.multiplier>
+        <retry.maxDelay>5000</retry.maxDelay>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -44,6 +50,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>${spring.retry.version}</version>
         </dependency>
     </dependencies>
 </project>

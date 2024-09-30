@@ -337,7 +337,7 @@ public class GlobalCvUpdateRunner {
                             cvUpdateManager.importNonObsoleteRootAndChildren(ontologyAccess, child);
                         } catch (Exception e) {
                             log.error("Impossible to import " + child.getTermAccession() + " and its children", e);
-                            CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.impossible_import, "Children of Cv object " + root.getTermAccession() + " cannot be imported into the database. Exception = " + ExceptionUtils.getFullStackTrace(e), root.getTermAccession(), null, null);
+                            CvUpdateError error = cvUpdateManager.getErrorFactory().createCvUpdateError(UpdateError.impossible_import, "Children of Cv object " + child.getTermAccession() + " cannot be imported into the database. Exception = " + ExceptionUtils.getFullStackTrace(e), child.getTermAccession(), null, null);
 
                             UpdateErrorEvent evt = new UpdateErrorEvent(this, error);
                             cvUpdateManager.fireOnUpdateError(evt);

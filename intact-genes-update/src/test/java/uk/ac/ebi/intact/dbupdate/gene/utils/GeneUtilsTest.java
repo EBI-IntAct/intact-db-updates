@@ -2,6 +2,10 @@ package uk.ac.ebi.intact.dbupdate.gene.utils;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.ac.ebi.intact.model.*;
 
 /**
@@ -11,6 +15,12 @@ import uk.ac.ebi.intact.model.*;
  * Time: 11:16
  * To change this template use File | Settings | File Templates.
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@TestPropertySource(locations="classpath:/retry.properties")
+@ContextConfiguration(locations = {
+        "classpath*:/META-INF/intact.spring.xml",
+        "classpath*:/META-INF/standalone/*-standalone.spring.xml"
+})
 public class GeneUtilsTest {
 
     @Test

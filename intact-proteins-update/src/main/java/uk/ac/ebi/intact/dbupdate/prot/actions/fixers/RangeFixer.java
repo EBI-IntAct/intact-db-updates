@@ -2,8 +2,8 @@ package uk.ac.ebi.intact.dbupdate.prot.actions.fixers;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import uk.ac.ebi.intact.bridges.unisave.UnisaveService;
-import uk.ac.ebi.intact.bridges.unisave.UnisaveServiceException;
+import psidev.psi.mi.jami.bridges.exception.BridgeFailedException;
+import psidev.psi.mi.jami.bridges.unisave.UnisaveClient;
 import uk.ac.ebi.intact.core.context.DataContext;
 import uk.ac.ebi.intact.core.context.IntactContext;
 import uk.ac.ebi.intact.core.persistence.dao.DaoFactory;
@@ -73,11 +73,11 @@ public class RangeFixer {
     /**
      * The unisave service
      */
-    protected UnisaveService unisave;
+    protected UnisaveClient unisave;
 
     public RangeFixer(){
         this.checker = new RangeChecker();
-        this.unisave = new UnisaveService();
+        this.unisave = new UnisaveClient();
     }
 
     /**
@@ -817,8 +817,8 @@ public class RangeFixer {
                     // try to get the sequence version of this range
                     int sequenceVersion = -1;
                     try {
-                        sequenceVersion = unisave.getSequenceVersion(uniprotAc, false, oldSequence);
-                    } catch (UnisaveServiceException e) {
+                        sequenceVersion = unisave.getSequenceVersion(uniprotAc, oldSequence);
+                    } catch (BridgeFailedException e) {
                         log.error("The version of the sequence for the protein " + protein.getAc() + "could not be found in unisave.");
                     }
 
@@ -857,18 +857,10 @@ public class RangeFixer {
         if (uniprotAc != null && version != -1){
             String oldSequence;
             try {
-                oldSequence = unisave.getSequenceFor(uniprotAc, false, version);
-
+                oldSequence = unisave.getSequenceFor(uniprotAc, version);
                 return oldSequence;
-
-            } catch (UnisaveServiceException e) {
-                try{
-                    oldSequence = unisave.getSequenceFor(uniprotAc, true, version);
-
-                    return oldSequence;
-                }catch(UnisaveServiceException e2){
-                    log.error("Impossible to find the sequence (version "+version+") for the uniprot ac " + uniprotAc , e2);
-                }
+            } catch (BridgeFailedException e) {
+                log.error("Impossible to find the sequence (version "+version+") for the uniprot ac " + uniprotAc , e);
             }
         }
 
@@ -1021,10 +1013,10 @@ public class RangeFixer {
                     // clean annotations features if necessary
                     checkConsistencyFeatureAfterRangeShifting(feature, datacontext, report);
                 }
+            }
 
-                if (!totalInvalidRanges.isEmpty()){
-                    report.getInvalidComponents().put(component, totalInvalidRanges);
-                }
+            if (!totalInvalidRanges.isEmpty()){
+                report.getInvalidComponents().put(component, totalInvalidRanges);
             }
         }
 

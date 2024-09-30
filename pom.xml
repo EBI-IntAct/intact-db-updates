@@ -4,7 +4,7 @@
     <parent>
         <groupId>uk.ac.ebi.intact.maven</groupId>
         <artifactId>intact-hibernate-master</artifactId>
-        <version>47</version>
+        <version>48</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -12,20 +12,21 @@
     <groupId>uk.ac.ebi.intact.dbupdate</groupId>
     <artifactId>dbupdate-master</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.3</version>
+    <version>3.0.2</version>
 
     <name>IntAct Database Update</name>
     <description>Database Update Master POM</description>
     <url>http://www.ebi.ac.uk/~intact/devsite/dbupdate</url>
 
     <properties>
-        <core.version>2.8.1</core.version>
-        <bridges.version>2.2.2</bridges.version>
-        <intact.tools.version>1.2.5</intact.tools.version>
+        <core.version>3.1.0</core.version>
+        <bridges.version>2.2.3</bridges.version>
+        <intact.tools.version>2.0.1</intact.tools.version>
         <uniprot.japi.version>1.1.2</uniprot.japi.version>
         <spring.version>4.3.30.RELEASE</spring.version>
         <chebi.ws.version>2.4</chebi.ws.version>
-        <jami.version>3.5.0</jami.version>
+        <jami.version>3.6.0</jami.version>
+        <spring.retry.version>1.3.4</spring.retry.version>
     </properties>
 
     <scm>
@@ -151,10 +152,6 @@
     </dependencies>
 
     <repositories>
-        <repository>
-            <id>nexus-ebi-repo-old</id>
-            <url>https://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
-        </repository>
         <repository>
             <id>nexus-ebi-release-repo</id>
             <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>

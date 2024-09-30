@@ -183,7 +183,6 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
      *
      * @return The sequence
      */
-    @Lob
     @Column(name = "match_seq")
     public String getSequence() {
         if (this.blastProtein != null){
@@ -340,7 +339,6 @@ public class PersistentBlastResults extends HibernateUpdatePersistentImpl implem
      *
      * @return the alignment
      */
-    @Lob
     @Column(name = "alignment")
     public String getAlignment() {
         if (this.blastProtein != null){

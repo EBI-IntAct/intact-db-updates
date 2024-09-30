@@ -54,7 +54,7 @@ public class FatalErrorDuringUpdate extends DefaultProteinUpdateError implements
         }
 
         if (uniprotAc != null){
-            error.append("attached to the uniprot entry ");
+            error.append(" attached to the uniprot entry ");
             error.append(uniprotAc);
         }
 

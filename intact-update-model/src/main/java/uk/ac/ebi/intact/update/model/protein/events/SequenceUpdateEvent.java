@@ -6,7 +6,6 @@ import uk.ac.ebi.intact.update.model.protein.ProteinUpdateProcess;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 
 /**
  * Event for updated sequences
@@ -48,7 +47,6 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
         this.oldSequence = oldSequence;
     }
 
-    @Lob
     @Column(name = "new_seq")
     public String getNewSequence() {
         return newSequence;
@@ -58,7 +56,6 @@ public class SequenceUpdateEvent extends PersistentProteinEvent {
         this.newSequence = newSequence;
     }
 
-    @Lob
     @Column(name = "old_seq")
     public String getOldSequence() {
         return oldSequence;

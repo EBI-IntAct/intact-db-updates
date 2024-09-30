@@ -72,7 +72,6 @@ public class PersistentBlastReport extends PersistentMappingReport implements Bl
      *
      * @return the sequence used for the blast
      */
-    @Lob
     @Column(name = "query_seq")
     public String getQuerySequence() {
         return querySequence;

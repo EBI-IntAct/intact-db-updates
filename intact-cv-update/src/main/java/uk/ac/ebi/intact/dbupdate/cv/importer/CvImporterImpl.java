@@ -274,14 +274,10 @@ public class CvImporterImpl implements CvImporter{
 
         Query query = factory.getEntityManager().createQuery("select distinct c from "+cvClass+" c left join c.xrefs as x " +
                 "where (x.cvDatabase.identifier = :database and x.cvXrefQualifier.identifier = :identity and x.primaryId = :identifier) " +
-                "or (" +
-                "c.identifier = :identifier and " +
-                "(" +
-                "(x.ac not in " +
-                "(select x2.ac from CvObjectXref x2 where x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity))" +
-                " or c.xrefs is empty" +
-                ") " +
-                ")");
+                "or (c.identifier = :identifier and ( " +
+                "c.xrefs is empty " +
+                "or not exists (select x2 from CvObjectXref x2 where x2.ac = x.ac and x2.cvDatabase.identifier = :database and x2.cvXrefQualifier.identifier = :identity)))"
+        );
         query.setParameter("database", db);
         query.setParameter("identity", CvXrefQualifier.IDENTITY_MI_REF);
         query.setParameter("identifier", id);

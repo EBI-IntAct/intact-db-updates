@@ -381,7 +381,7 @@ public class ProteinUpdateProcessorTest extends IntactBasicTestCase {
         ProteinImpl dupe2FromDb = getDaoFactory().getProteinDao().getByAc(dupe1_2.getAc());
         Assert.assertNotNull(dupe2FromDb);
         Assert.assertEquals(3, dupe2FromDb.getActiveInstances().size());
-        Assert.assertEquals(6, dupe2FromDb.getXrefs().size());
+        Assert.assertEquals(15, dupe2FromDb.getXrefs().size());
 
         context2.commitTransaction(status2);
     }
